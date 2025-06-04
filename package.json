@@ -1,6 +1,7 @@
 {
   "name": "@gorules/jdm-monorepo",
   "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
     "lerna": "lerna",
     "build": "lerna run build",
