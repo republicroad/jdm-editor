@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.41.2](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.41.1...@gorules/jdm-editor@1.41.2) (2025-05-23)
+
+### Bug Fixes
+
+- code editor strict mode ([#179](https://github.com/gorules/jdm-editor/issues/179)) ([fc6f7fe](https://github.com/gorules/jdm-editor/commit/fc6f7fe8140f65b0c0d293aedf664de5463b4d65))
+
+## [1.41.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.41.0...@gorules/jdm-editor@1.41.1) (2025-05-23)
+
+**Note:** Version bump only for package @gorules/jdm-editor
+
+# [1.41.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.40.4...@gorules/jdm-editor@1.41.0) (2025-05-23)
+
+**Note:** Version bump only for package @gorules/jdm-editor
+
+## [1.40.4](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.40.3...@gorules/jdm-editor@1.40.4) (2025-05-22)
+
+### Bug Fixes
+
+- incorrect vt types ([#176](https://github.com/gorules/jdm-editor/issues/176)) ([cb83a7c](https://github.com/gorules/jdm-editor/commit/cb83a7c127e2a84bb6443770a045ad0b1db9e85e))
+
+## [1.40.3](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.40.2...@gorules/jdm-editor@1.40.3) (2025-05-21)
+
+**Note:** Version bump only for package @gorules/jdm-editor
+
+## [1.40.2](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.40.1...@gorules/jdm-editor@1.40.2) (2025-05-20)
+
+**Note:** Version bump only for package @gorules/jdm-editor
+
+## [1.40.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.40.0...@gorules/jdm-editor@1.40.1) (2025-05-20)
+
+### Bug Fixes
+
+- expression key autosize ([#173](https://github.com/gorules/jdm-editor/issues/173)) ([f24a1f8](https://github.com/gorules/jdm-editor/commit/f24a1f86a3ed5291d32669b4825310725a0222a4))
+
 # [1.40.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.39.0...@gorules/jdm-editor@1.40.0) (2025-05-14)
 
 **Note:** Version bump only for package @gorules/jdm-editor
