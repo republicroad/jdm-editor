@@ -126,21 +126,19 @@ const meta: Meta<typeof DecisionTable> = {
   title: 'Decision Table',
   component: DecisionTable,
   argTypes: {
-    configurable: { control: 'boolean' },
+    permission: {
+      control: 'select',
+      options: ['edit:full', 'edit:rules', 'edit:values'],
+    },
     disabled: { control: 'boolean' },
-    inputData: { control: 'object' },
     cellRenderer: {
       control: false,
     },
   },
   args: {
     inputsSchema: inputSchemaDefault,
-    configurable: true,
+    permission: 'edit:full',
     disabled: false,
-    inputData: {
-      cart: { weight: 100, total: 100 },
-      customer: { country: 'US', firstName: 'John', lastName: 'Doe' },
-    },
     onChange: fn(),
   },
 };

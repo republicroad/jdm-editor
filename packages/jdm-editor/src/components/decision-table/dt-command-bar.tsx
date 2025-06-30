@@ -6,30 +6,29 @@ import {
   ExportOutlined,
   ImportOutlined,
 } from '@ant-design/icons';
-import { Button, Divider, Popconfirm, Tooltip, message } from 'antd';
-import React, { useRef } from 'react';
+import { Button, Divider, Popconfirm, Select, Tooltip, Typography, message } from 'antd';
+import React, { useMemo, useRef } from 'react';
+import { P, match } from 'ts-pattern';
 
 import type { DecisionNode } from '../decision-graph';
-import { DiffSelect } from '../shared';
 import { Stack } from '../stack';
-import {
-  type HitPolicy,
-  useDecisionTableActions,
-  useDecisionTableRaw,
-  useDecisionTableState,
-} from './context/dt-store.context';
+import { useDecisionTableActions, useDecisionTableRaw, useDecisionTableState } from './context/dt-store.context';
 import { exportDecisionTable, readDecisionTableFile } from './excel';
 
 export const DecisionTableCommandBar: React.FC = () => {
   const tableActions = useDecisionTableActions();
-  const { disableHitPolicy, disabled, configurable, hitPolicy, diffHitPolicy, cursor } = useDecisionTableState(
-    ({ disableHitPolicy, disabled, configurable, decisionTable, cursor }) => ({
+  const { disabled, debugIndex, traceCount, cursor } = useDecisionTableState(
+    ({ disableHitPolicy, disabled, permission, decisionTable, cursor, debugIndex, debug }) => ({
       disableHitPolicy,
       disabled,
-      configurable,
+      permission,
       cursor,
+      debugIndex,
       hitPolicy: decisionTable.hitPolicy,
       diffHitPolicy: decisionTable?._diff?.fields?.hitPolicy,
+      traceCount: match(debug?.trace?.traceData)
+        .with(P.array(), (some) => some.length)
+        .otherwise(() => null),
     }),
   );
 
@@ -76,6 +75,17 @@ export const DecisionTableCommandBar: React.FC = () => {
       message.error('Failed to upload Excel!');
     }
   };
+
+  const traceIndexOptions = useMemo(() => {
+    if (!traceCount) {
+      return null;
+    }
+
+    return Array.from({ length: traceCount }).map((_, i) => ({
+      label: String(i),
+      value: i,
+    }));
+  }, [debugIndex, traceCount]);
 
   return (
     <>
@@ -128,27 +138,19 @@ export const DecisionTableCommandBar: React.FC = () => {
             </>
           )}
         </Stack>
-        <DiffSelect
-          displayDiff={diffHitPolicy?.status === 'modified'}
-          style={{ width: 140 }}
-          previousValue={diffHitPolicy?.previousValue}
-          size={'small'}
-          disabled={disabled || !configurable || disableHitPolicy}
-          value={hitPolicy}
-          onSelect={(data) => tableActions.updateHitPolicy(data as HitPolicy)}
-          options={[
-            {
-              key: 'first',
-              label: 'First',
-              value: 'first',
-            },
-            {
-              key: 'collect',
-              label: 'Collect',
-              value: 'collect',
-            },
-          ]}
-        />
+        {traceIndexOptions && (
+          <Stack horizontal verticalAlign='center' horizontalAlign='end'>
+            <Typography.Text style={{ fontSize: 12 }}>Simulation index:</Typography.Text>
+            <Select
+              size='small'
+              style={{ fontSize: 12, minWidth: 60 }}
+              options={traceIndexOptions}
+              onChange={(debugIndex: number) => stateStore.setState({ debugIndex })}
+              value={traceIndexOptions.some((t) => t.value === debugIndex) ? debugIndex : 0}
+            />
+            <Divider type='vertical' />
+          </Stack>
+        )}
       </Stack>
       <input
         multiple
