@@ -139,7 +139,9 @@ type InferNodeTypes = (
 const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes }, prevState, graphWalker) => {
   let isModified = false;
   const newNodeTypes = produce(nodeTypes, (draft) => {
-    graphWalker.walk(decisionGraph).forEach(({ node, incomers }) => {
+    const graphExecResults = graphWalker.walk(decisionGraph);
+    if (Array.isArray(graphExecResults)) {
+    graphExecResults.forEach(({ node, incomers }) => {
       if (node.type === 'inputNode') {
         return;
       }
@@ -195,7 +197,8 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         draft[node.id][NodeTypeKind.InferredOutput] = inferredOutputType;
       }
     });
-  });
+  }
+});
 
   return {
     isModified,
