@@ -3,6 +3,7 @@ import { type Edge, type Node, getIncomers, getOutgoers } from 'reactflow';
 
 import type { DecisionGraphType, DecisionNode } from '../components';
 import { mapToGraphEdges, mapToGraphNodes } from '../components/decision-graph/dg-util';
+import { any } from 'zod';
 
 type GraphWalkerCache = {
   digest: ReturnType<typeof decisionGraphPathDigest>;
@@ -20,7 +21,7 @@ export const createGraphWalker = () => {
         return;
       }
 
-      const iterator = [];
+      const iterator: any = [];
       for (const res of walkGraph(decisionGraph)) {
         iterator.push({ id: res.node.id, incomers: res.incomers.map((n) => n.id) });
         yield res;
