@@ -20,7 +20,7 @@ export const createGraphWalker = () => {
         return;
       }
 
-      const iterator = [];
+      const iterator: any = [];
       for (const res of walkGraph(decisionGraph)) {
         iterator.push({ id: res.node.id, incomers: res.incomers.map((n) => n.id) });
         yield res;
