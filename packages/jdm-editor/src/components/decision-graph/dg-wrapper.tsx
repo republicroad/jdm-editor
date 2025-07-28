@@ -17,6 +17,7 @@ import type { GraphTabsProps } from './graph/graph-tabs';
 import { GraphTabs } from './graph/graph-tabs';
 import { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
 import { expressionSpecification } from './nodes/specifications/expression.specification';
+import { customFunctionSpecification } from './nodes/specifications/custom-function.specification';
 import { functionSpecification } from './nodes/specifications/function.specification';
 import { inputSpecification } from './nodes/specifications/input.specification';
 import { outputSpecification } from './nodes/specifications/output.specification';
@@ -90,6 +91,9 @@ const TabContents: React.FC = React.memo(() => {
             .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
             .with(NodeKind.Expression, () =>
               expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
+            )
+            .with(NodeKind.CustomFunction, () =>
+              customFunctionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
             )
             .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
             .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))

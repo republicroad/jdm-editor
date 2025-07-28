@@ -12,6 +12,7 @@ export enum NodeKind {
   DecisionTable = 'decisionTableNode',
   Function = 'functionNode',
   Expression = 'expressionNode',
+  CustomFunction = 'customNode',
   Switch = 'switchNode',
 }
 

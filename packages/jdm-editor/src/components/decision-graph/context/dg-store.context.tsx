@@ -1,3 +1,8 @@
+/**
+ * 决策图(Decision Graph)状态管理上下文
+ * 这个文件使用React Context和Zustand来管理决策图的状态和操作
+ * 提供了决策图的数据结构定义、状态管理、以及各种操作方法
+ */
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { Monaco } from '@monaco-editor/react';
 import equal from 'fast-deep-equal/es6/react';
@@ -18,122 +23,160 @@ import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
 import type { Simulation } from '../simulator/simulation.types';
 
+/**
+ * 面板类型定义
+ * 用于侧边面板的配置
+ */
 export type PanelType = {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  renderPanel?: React.FC;
-  hideHeader?: boolean;
-  onClick?: () => void;
+  id: string;               // 面板唯一标识符
+  icon: React.ReactNode;    // 面板图标
+  title: string;            // 面板标题
+  renderPanel?: React.FC;   // 面板渲染函数
+  hideHeader?: boolean;     // 是否隐藏面板头部
+  onClick?: () => void;     // 点击面板的回调
 };
 
+/**
+ * 用于immer的草稿更新回调类型
+ * 允许在不可变更新中修改状态
+ */
 type DraftUpdateCallback<T> = (draft: WritableDraft<T>) => WritableDraft<T>;
 
+/**
+ * 视图配置权限类型
+ * 定义用户对图形的不同编辑权限级别
+ */
 export type ViewConfigPermission = 'edit:values' | 'edit:rules' | 'edit:full';
 
+/**
+ * 视图配置
+ * 控制决策图的可见性和权限
+ */
 export type ViewConfig = {
-  enabled: boolean;
-  description?: string;
-  permissions?: Record<string, ViewConfigPermission | null | undefined> | null;
+  enabled: boolean;                                               // 是否启用视图配置
+  description?: string;                                           // 视图描述
+  permissions?: Record<string, ViewConfigPermission | null | undefined> | null;  // 权限配置
 };
 
+/**
+ * 节点类型种类枚举
+ * 定义了节点可能的类型种类
+ */
 export enum NodeTypeKind {
-  Input,
-  Output,
-  InferredInput,
-  InferredOutput,
+  Input,          // 输入节点
+  Output,         // 输出节点
+  InferredInput,  // 推断的输入节点
+  InferredOutput, // 推断的输出节点
 }
 
+/**
+ * 设置决策图选项
+ */
 export type SetDecisionGraphOptions = {
-  skipOnChangeEvent?: boolean;
+  skipOnChangeEvent?: boolean;  // 是否跳过onChange事件触发
 };
 
+/**
+ * 决策图存储类型
+ * 包含状态、引用、操作和监听器四个部分
+ */
 export type DecisionGraphStoreType = {
+  // 状态部分
   state: {
-    id?: string;
-    components: NodeSpecification[];
-    disabled?: boolean;
-    decisionGraph: DecisionGraphType;
-    hoveredEdgeId: string | null;
-    openTabs: string[];
-    activeTab: string;
+    id?: string;                    // 图表ID
+    components: NodeSpecification[]; // 组件列表
+    disabled?: boolean;             // 是否禁用
+    decisionGraph: DecisionGraphType; // 决策图数据
+    hoveredEdgeId: string | null;   // 当前悬停的边ID
+    openTabs: string[];             // 打开的标签页
+    activeTab: string;              // 当前活动标签页
 
-    viewConfigCta?: string;
-    viewConfig?: ViewConfig;
+    viewConfigCta?: string;         // 视图配置的行动召唤
+    viewConfig?: ViewConfig;        // 视图配置
 
-    name: string;
+    name: string;                   // 图表名称
 
-    customNodes: CustomNodeSpecification<object, any>[];
+    customNodes: CustomNodeSpecification<object, any>[]; // 自定义节点列表
 
-    panels?: PanelType[];
-    activePanel?: string;
-    onPanelsChange?: (val?: string) => void;
+    panels?: PanelType[];           // 面板列表
+    activePanel?: string;           // 当前活动面板
+    onPanelsChange?: (val?: string) => void; // 面板变更回调
 
-    simulate?: Simulation;
+    simulate?: Simulation;          // 模拟器配置
 
-    compactMode?: boolean;
+    compactMode?: boolean;          // 是否启用紧凑模式
 
-    nodeTypes: Record<string, Partial<Record<NodeTypeKind, VariableType>>>;
-    globalType: Record<string, VariableType>;
+    nodeTypes: Record<string, Partial<Record<NodeTypeKind, VariableType>>>;  // 节点类型映射
+    globalType: Record<string, VariableType>;  // 全局类型映射
   };
 
+  // 引用部分 - 存储React Flow相关引用
   references: {
-    nodesState: MutableRefObject<ReturnType<typeof useNodesState>>;
-    edgesState: MutableRefObject<ReturnType<typeof useEdgesState>>;
-    reactFlowInstance: MutableRefObject<ReactFlowInstance | null>;
-    graphClipboard: MutableRefObject<ReturnType<typeof useGraphClipboard>>;
+    nodesState: MutableRefObject<ReturnType<typeof useNodesState>>;      // 节点状态引用
+    edgesState: MutableRefObject<ReturnType<typeof useEdgesState>>;      // 边状态引用
+    reactFlowInstance: MutableRefObject<ReactFlowInstance | null>;       // ReactFlow实例引用
+    graphClipboard: MutableRefObject<ReturnType<typeof useGraphClipboard>>; // 图形剪贴板引用
   };
 
+  // 操作部分
   actions: {
-    setDecisionGraph: (val: Partial<DecisionGraphType>, options?: SetDecisionGraphOptions) => void;
+    setDecisionGraph: (val: Partial<DecisionGraphType>, options?: SetDecisionGraphOptions) => void;  // 设置决策图
 
-    handleNodesChange: (nodesChange: NodeChange[]) => void;
-    handleEdgesChange: (edgesChange: EdgeChange[]) => void;
+    handleNodesChange: (nodesChange: NodeChange[]) => void;    // 处理节点变更
+    handleEdgesChange: (edgesChange: EdgeChange[]) => void;    // 处理边变更
 
-    setNodes: (nodes: DecisionNode[]) => void;
-    addNodes: (nodes: DecisionNode[]) => void;
-    updateNode: (id: string, updater: DraftUpdateCallback<DecisionNode>) => void;
-    removeNodes: (ids: string[]) => void;
+    setNodes: (nodes: DecisionNode[]) => void;                // 设置所有节点
+    addNodes: (nodes: DecisionNode[]) => void;                // 添加节点
+    updateNode: (id: string, updater: DraftUpdateCallback<DecisionNode>) => void;  // 更新节点
+    removeNodes: (ids: string[]) => void;                    // 删除节点
 
-    duplicateNodes: (ids: string[]) => void;
-    copyNodes: (ids: string[]) => void;
-    pasteNodes: () => void;
+    duplicateNodes: (ids: string[]) => void;                 // 复制节点
+    copyNodes: (ids: string[]) => void;                      // 复制节点到剪贴板
+    pasteNodes: () => void;                                  // 从剪贴板粘贴节点
 
-    setEdges: (edges: DecisionEdge[]) => void;
-    addEdges: (edge: DecisionEdge[]) => void;
-    removeEdges: (ids: string[]) => void;
-    removeEdgeByHandleId: (handleId: string) => void;
-    setHoveredEdgeId: (edgeId: string | null) => void;
+    setEdges: (edges: DecisionEdge[]) => void;               // 设置所有边
+    addEdges: (edge: DecisionEdge[]) => void;                // 添加边
+    removeEdges: (ids: string[]) => void;                    // 删除边
+    removeEdgeByHandleId: (handleId: string) => void;        // 通过句柄ID删除边
+    setHoveredEdgeId: (edgeId: string | null) => void;       // 设置悬停边ID
 
-    closeTab: (id: string, action?: string) => void;
-    openTab: (id: string) => void;
-    goToNode: (id: string) => void;
+    closeTab: (id: string, action?: string) => void;         // 关闭标签页
+    openTab: (id: string) => void;                           // 打开标签页
+    goToNode: (id: string) => void;                          // 导航到节点
 
-    setActivePanel: (panel?: string) => void;
+    setActivePanel: (panel?: string) => void;                // 设置活动面板
+    
+    setCompactMode: (mode: boolean) => void;                 // 设置紧凑模式
+    toggleCompactMode: () => void;                           // 切换紧凑模式
 
-    setCompactMode: (mode: boolean) => void;
-    toggleCompactMode: () => void;
+    setNodeType: (id: string, kind: NodeTypeKind, vt: VariableType) => void;  // 设置节点类型
+    removeNodeType: (id: string, kind?: NodeTypeKind) => void;                // 删除节点类型
 
-    setNodeType: (id: string, kind: NodeTypeKind, vt: VariableType) => void;
-    removeNodeType: (id: string, kind?: NodeTypeKind) => void;
-
-    triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;
+    triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;  // 触发节点选择
   };
 
+  // 监听器部分
   listeners: {
-    onChange?: (val: DecisionGraphType) => void;
-    onPanelsChange?: (val?: string) => void;
-    onReactFlowInit?: (instance: ReactFlowInstance) => void;
-    onCodeExtension?: CodeEditorProps['extension'];
-    onFunctionReady?: (monaco: Monaco) => void;
-    onViewConfigCta?: () => void;
+    onChange?: (val: DecisionGraphType) => void;                // 变更监听器
+    onPanelsChange?: (val?: string) => void;                   // 面板变更监听器
+    onReactFlowInit?: (instance: ReactFlowInstance) => void;   // ReactFlow初始化监听器
+    onCodeExtension?: CodeEditorProps['extension'];            // 代码扩展监听器
+    onFunctionReady?: (monaco: Monaco) => void;                // 函数准备好监听器
+    onViewConfigCta?: () => void;                              // 视图配置行动召唤监听器
   };
 };
 
+/**
+ * 暴露的存储类型
+ * 扩展Zustand存储，添加setState方法
+ */
 export type ExposedStore<T> = UseBoundStore<StoreApi<T>> & {
   setState: (partial: Partial<T>) => void;
 };
 
+/**
+ * 创建决策图上下文
+ */
 export const DecisionGraphStoreContext = React.createContext<{
   stateStore: ExposedStore<DecisionGraphStoreType['state']>;
   listenerStore: ExposedStore<DecisionGraphStoreType['listeners']>;
@@ -145,15 +188,20 @@ export type DecisionGraphContextProps = {
   //
 };
 
+/**
+ * 决策图上下文提供者组件
+ * 提供状态、引用、监听器和操作的上下文
+ */
 export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGraphContextProps>> = (props) => {
   const { children } = props;
 
+  // 创建状态存储
   const stateStore = useMemo(
     () =>
       create<DecisionGraphStoreType['state']>()(() => ({
         id: undefined,
         simulate: undefined,
-        decisionGraph: { nodes: [], edges: [] },
+        decisionGraph: { nodes: [], edges: [] },  // 初始化空决策图
         hoveredEdgeId: null,
         openTabs: [],
         activeTab: 'graph',
@@ -163,13 +211,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         customNodes: [],
         activePanel: undefined,
         panels: [],
-        compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
+        compactMode: localStorage.getItem('jdm-compact-mode') === 'true',  // 从本地存储读取紧凑模式配置
         nodeTypes: {},
         globalType: {},
       })),
     [],
   );
 
+  // 创建监听器存储
   const listenerStore = useMemo(
     () =>
       create<DecisionGraphStoreType['listeners']>(() => ({
@@ -179,6 +228,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
     [],
   );
 
+  // 创建引用存储
   const referenceStore = useMemo(
     () =>
       create<DecisionGraphStoreType['references']>(() => ({
@@ -190,8 +240,10 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
     [],
   );
 
+  // 定义所有操作方法
   const actions = useMemo<DecisionGraphStoreType['actions']>(
     () => ({
+      // 处理节点变更
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -228,7 +280,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
                 }
               })
               .otherwise(() => {
-                // No-op
+                // 不做操作
               }),
           );
         });
@@ -240,6 +292,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 处理边变更
       handleEdgesChange: (changes = []) => {
         const { decisionGraph } = stateStore.getState();
         const { edgesState } = referenceStore.getState();
@@ -263,6 +317,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           listenerStore.getState().onChange?.(newDecisionGraph);
         }
       },
+
+      // 设置所有节点
       setNodes: (nodes: DecisionNode[] = []) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -275,10 +331,13 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 添加节点
       addNodes: (nodes: DecisionNode[]) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
 
+        // 检查是否已经有输入节点，如果有则过滤掉新增的输入节点
         const hasInput = nodesState.current[0]?.some((n) => n.type === NodeKind.Input);
         if (hasInput) {
           nodes = nodes.filter((n) => n.type !== NodeKind.Input);
@@ -292,6 +351,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 复制节点
       duplicateNodes: (ids) => {
         const { nodesState, edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -307,6 +368,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           return;
         }
 
+        // 创建新旧节点ID的映射关系
         const nodeIds: Record<string, string> = nodes.reduce(
           (acc, curr) => ({
             ...acc,
@@ -315,6 +377,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           {},
         );
 
+        // 创建新节点，位置下移
         const newNodes = nodes.map<DecisionNode>((node) => ({
           ...node,
           id: nodeIds[node.id],
@@ -324,6 +387,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           },
         }));
 
+        // 为新复制的节点创建边
         const oldNodeIds = Object.keys(nodeIds);
         const newEdges: DecisionEdge[] = [];
 
@@ -342,6 +406,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           });
         }
 
+        // 更新图形状态
         nodesState.current[1]?.((n) => n.concat(newNodes.map(mapToGraphNode)));
         edgesState.current[1]?.((e) => e.concat(newEdges.map(mapToGraphEdge)));
         const newDecisionGraph = produce(decisionGraph, (draft) => {
@@ -352,6 +417,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 复制节点到剪贴板
       copyNodes: (ids) => {
         const { graphClipboard, nodesState } = referenceStore.getState();
         if (!graphClipboard.current || !nodesState.current) {
@@ -363,14 +430,19 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         graphClipboard.current.copyNodes(copyNodes);
       },
+
+      // 从剪贴板粘贴节点
       pasteNodes: () => {
         const { graphClipboard } = referenceStore.getState();
         graphClipboard.current?.pasteNodes?.();
       },
+
+      // 删除节点
       removeNodes: (ids = []) => {
         const { nodesState, edgesState } = referenceStore.getState();
         const { decisionGraph, nodeTypes } = stateStore.getState();
 
+        // 更新ReactFlow状态
         nodesState.current[1]?.((nodes) => nodes.filter((n) => ids.every((id) => n.id !== id)));
         edgesState.current[1]?.((edges) =>
           edges.filter((e) =>
@@ -378,6 +450,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           ),
         );
 
+        // 更新内部状态
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           const nodes = draft.nodes || [];
           const edges = draft.edges || [];
@@ -387,6 +460,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           );
         });
 
+        // 清理节点类型
         const newNodeTypes = produce(nodeTypes, (draft) => {
           ids.forEach((id) => {
             if (id in draft) {
@@ -398,6 +472,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph, nodeTypes: newNodeTypes });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 添加边
       addEdges: (edges: DecisionEdge[]) => {
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -410,6 +486,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 设置所有边
       setEdges: (edges = []) => {
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -422,6 +500,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 删除边
       removeEdges: (ids) => {
         const { edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
@@ -434,6 +514,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 通过句柄ID删除边
       removeEdgeByHandleId: (handleId: string) => {
         if (!handleId) return;
         const { edgesState } = referenceStore.getState();
@@ -446,6 +528,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 更新节点
       updateNode: (id, updater) => {
         const { decisionGraph } = stateStore.getState();
         const { nodesState } = referenceStore.getState();
@@ -465,6 +549,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           return;
         }
 
+        // 更新React Flow的节点
         const graphChangedNode = mapToGraphNode(changedNode as DecisionNode);
         const existingGraphNode = nodes.find((n) => n.id === id);
         if (!equal(graphChangedNode, existingGraphNode)) {
@@ -474,6 +559,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // 设置决策图
       setDecisionGraph: (graph, options = {}) => {
         const { decisionGraph } = stateStore.getState();
         const { edgesState, nodesState } = referenceStore.getState();
@@ -492,7 +579,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           listenerStore.getState().onChange?.(newDecisionGraph);
         }
       },
+
+      // 设置悬停边ID
       setHoveredEdgeId: (edgeId) => stateStore.setState({ hoveredEdgeId: edgeId }),
+      
+      // 导航到节点
       goToNode: (id: string) => {
         if (stateStore.getState().activeTab !== 'graph') {
           return;
@@ -508,8 +599,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           return;
         }
 
+        // 使视图适应节点，进行动画过渡
         reactFlowInstance.current.fitView({ nodes: [node], duration: 1_000, maxZoom: 1.25 });
       },
+
+      // 打开标签页
       openTab: (id: string) => {
         const { openTabs } = stateStore.getState();
         const nodeId = openTabs.find((i) => i === id);
@@ -524,11 +618,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           stateStore.setState({ openTabs: [...openTabs, id], activeTab: id });
         }
       },
+
+      // 关闭标签页
       closeTab: (id: string, action?: string) => {
         const { openTabs, activeTab } = stateStore.getState();
         const index = openTabs?.findIndex((i) => i === id);
         const tab = openTabs?.[index];
 
+        // 根据不同操作处理标签页关闭
         const updatedTabs = match(action)
           .with(undefined, () => openTabs.filter((id) => id !== tab))
           .with('close', () => openTabs.filter((id) => id !== tab))
@@ -542,6 +639,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           openTabs: updatedTabs,
         };
 
+        // 更新活动标签页
         const newActiveTabId = updatedTabs?.find((i) => i === activeTab);
         if (!newActiveTabId) {
           updatedState.activeTab = updatedTabs?.[index - 1] ?? 'graph';
@@ -549,6 +647,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         stateStore.setState(updatedState);
       },
+
+      // 设置活动面板
       setActivePanel: (panel?: string) => {
         const { panels } = stateStore.getState();
         const updatedState: Partial<DecisionGraphStoreType['state']> = {
@@ -557,22 +657,28 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         listenerStore.getState()?.onPanelsChange?.(panel);
         stateStore.setState(updatedState);
       },
+
+      // 设置紧凑模式
       setCompactMode: (mode: boolean) => {
         const updatedState: Partial<DecisionGraphStoreType['state']> = {
           compactMode: mode,
         };
-        localStorage.setItem('jdm-compact-mode', `${mode}`);
+        localStorage.setItem('jdm-compact-mode', `${mode}`);  // 保存到本地存储
         stateStore.setState(updatedState);
       },
+
+      // 切换紧凑模式
       toggleCompactMode: () => {
         const { compactMode } = stateStore.getState();
         const mode = !compactMode;
         const updatedState: Partial<DecisionGraphStoreType['state']> = {
           compactMode: mode,
         };
-        localStorage.setItem('jdm-compact-mode', `${mode}`);
+        localStorage.setItem('jdm-compact-mode', `${mode}`);  // 保存到本地存储
         stateStore.setState(updatedState);
       },
+
+      // 设置节点类型
       setNodeType: (id, kind, vt) => {
         const { nodeTypes } = stateStore.getState();
 
@@ -583,6 +689,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         stateStore.setState({ nodeTypes: newNodeTypes });
       },
+
+      // 删除节点类型
       removeNodeType: (id, kind) => {
         const { nodeTypes } = stateStore.getState();
 
@@ -602,6 +710,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         stateStore.setState({ nodeTypes: newNodeTypes });
       },
+
+      // 触发节点选择
       triggerNodeSelect: (id, mode) => {
         const { decisionGraph } = stateStore.getState();
         const { nodesState, edgesState } = referenceStore.getState();
@@ -614,6 +724,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             return;
           }
 
+          // 如果是only模式，先取消所有节点的选中状态
           if (mode === 'only') {
             draft.nodes.forEach((n) => {
               if (n[privateSymbol]) {
@@ -622,6 +733,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             });
           }
 
+          // 设置目标节点的选中状态
           chosenNode[privateSymbol] ??= {};
           chosenNode[privateSymbol].selected = match(mode)
             .with('only', () => true)
@@ -644,6 +756,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
     [],
   );
 
+  // 合并所有值并提供给上下文
   const value = useMemo(
     () => ({
       stateStore,
@@ -657,6 +770,13 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
   return <DecisionGraphStoreContext.Provider value={value}>{children}</DecisionGraphStoreContext.Provider>;
 };
 
+/**
+ * 使用决策图状态的钩子函数
+ * 允许组件访问和订阅决策图状态
+ * @param selector 选择器函数，从状态中选择需要的部分
+ * @param equals 比较函数，用于决定是否重新渲染
+ * @returns 选定的状态
+ */
 export function useDecisionGraphState<T>(
   selector: (state: DecisionGraphStoreType['state']) => T,
   equals: (a: any, b: any) => boolean = equal,
@@ -664,6 +784,13 @@ export function useDecisionGraphState<T>(
   return React.useContext(DecisionGraphStoreContext).stateStore(selector, equals);
 }
 
+/**
+ * 使用决策图监听器的钩子函数
+ * 允许组件访问和订阅决策图监听器
+ * @param selector 选择器函数，从监听器中选择需要的部分
+ * @param equals 比较函数，用于决定是否重新渲染
+ * @returns 选定的监听器
+ */
 export function useDecisionGraphListeners<T>(
   selector: (state: DecisionGraphStoreType['listeners']) => T,
   equals: (a: any, b: any) => boolean = equal,
@@ -671,6 +798,13 @@ export function useDecisionGraphListeners<T>(
   return React.useContext(DecisionGraphStoreContext).listenerStore(selector, equals);
 }
 
+/**
+ * 使用决策图引用的钩子函数
+ * 允许组件访问和订阅决策图引用
+ * @param selector 选择器函数，从引用中选择需要的部分
+ * @param equals 比较函数，用于决定是否重新渲染
+ * @returns 选定的引用
+ */
 export function useDecisionGraphReferences<T>(
   selector: (state: DecisionGraphStoreType['references']) => T,
   equals: (a: any, b: any) => boolean = equal,
@@ -678,14 +812,30 @@ export function useDecisionGraphReferences<T>(
   return React.useContext(DecisionGraphStoreContext).referenceStore(selector, equals);
 }
 
+/**
+ * 使用决策图操作的钩子函数
+ * 允许组件访问决策图操作方法
+ * @returns 所有操作方法
+ */
 export function useDecisionGraphActions(): DecisionGraphStoreType['actions'] {
   return React.useContext(DecisionGraphStoreContext).actions;
 }
 
+/**
+ * 使用原始决策图上下文的钩子函数
+ * 获取完整的上下文对象（包含stateStore、referenceStore、listenerStore和actions）
+ * @returns 完整上下文对象
+ */
 export function useDecisionGraphRaw() {
   return React.useContext(DecisionGraphStoreContext);
 }
 
+/**
+ * 使用节点差异的钩子函数
+ * 获取指定节点的差异信息
+ * @param id 节点ID
+ * @returns 节点和内容的差异信息
+ */
 export const useNodeDiff = (id: string) => {
   const { diff, contentDiff } = useDecisionGraphState((s) => {
     const node = (s?.decisionGraph?.nodes ?? []).find((node) => node.id === id);
@@ -701,6 +851,12 @@ export const useNodeDiff = (id: string) => {
   };
 };
 
+/**
+ * 使用边差异的钩子函数
+ * 获取指定边的差异信息
+ * @param id 边ID
+ * @returns 边的差异信息
+ */
 export const useEdgeDiff = (id: string) => {
   const { diff } = useDecisionGraphState((s) => {
     const edge = (s?.decisionGraph?.edges ?? []).find((edge) => edge.id === id);

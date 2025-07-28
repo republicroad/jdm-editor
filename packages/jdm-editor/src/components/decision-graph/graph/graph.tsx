@@ -1,3 +1,9 @@
+/**
+ * 决策图编辑器组件
+ * 
+ * 基于ReactFlow的图形编辑器，用于创建和管理决策流程图。
+ * 支持拖放组件、连接节点和编辑图形结构。
+ */
 import { CloseOutlined, CompressOutlined, LeftOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Modal, Tooltip, Typography, message, notification } from 'antd';
 import clsx from 'clsx';
@@ -38,22 +44,33 @@ import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
 
+/**
+ * Graph组件的属性
+ */
 export type GraphProps = {
   className?: string;
   onDisableTabs?: (val: boolean) => void;
   reactFlowProOptions?: ProOptions;
 };
 
+/**
+ * Graph组件的引用类型，暴露动作和状态存储
+ */
 export type GraphRef = DecisionGraphStoreType['actions'] & {
   stateStore: ExposedStore<DecisionGraphStoreType['state']>;
 };
 
+/**
+ * 通过映射nodeSpecification创建默认节点类型
+ * 每种节点类型都用React.memo包装以优化性能
+ */
 const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
   (acc, [key, value]) => ({
     ...acc,
     [key]: React.memo(
       (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props }),
       (prevProps, nextProps) => {
+        // 自定义相等性检查，防止不必要的重新渲染
         return (
           prevProps.id === nextProps.id &&
           prevProps.selected === nextProps.selected &&
@@ -65,19 +82,30 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
   {},
 );
 
+/**
+ * 自定义边类型配置
+ */
 const edgeTypes = {
   edge: React.memo(edgeFunction(null)),
 };
 
+/**
+ * Graph组件的主要实现
+ * 提供决策图编辑器的核心功能
+ */
 export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
+  // DOM元素和ReactFlow实例的引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
 
+  // 使用ReactFlow hooks管理节点和边的状态
   const nodesState = useNodesState([]);
   const edgesState = useEdgesState([]);
 
+  // 组件面板的UI状态
   const [componentsOpened, setComponentsOpened] = useState(true);
 
+  // 访问决策图存储和动作
   const raw = useDecisionGraphRaw();
   const graphActions = useDecisionGraphActions();
   const graphReferences = useDecisionGraphReferences((s) => s);
@@ -91,19 +119,26 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     }),
   );
 
+  // 更新对当前状态和实例的引用
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
   graphReferences.graphClipboard.current = useGraphClipboard(reactFlowInstance, reactFlowWrapper);
   graphReferences.reactFlowInstance.current = reactFlowInstance.current;
 
+  /**
+   * 用户定义节点类型的自定义渲染器
+   * 使用React.memo进行性能优化
+   */
   const customNodeRenderer = useMemo(() => {
     return React.memo(
       (props: MinimalNodeProps) => {
+        // 根据kind查找自定义节点规格
         const node = customNodes.find((node) => node.kind === props?.data?.kind) as CustomNodeSpecification<
           object,
           string
         >;
 
+        // 如果找不到匹配的规格，渲染错误节点
         if (!node) {
           console.warn('node not found', props, customNodes);
           return (
@@ -124,12 +159,14 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           );
         }
 
+        // 使用其规格渲染自定义节点
         return node.renderNode({
           specification: node,
           ...props,
         });
       },
       (prevProps, nextProps) => {
+        // 自定义相等性检查，防止不必要的重新渲染
         return (
           prevProps.id === nextProps.id &&
           prevProps.selected === nextProps.selected &&
@@ -139,6 +176,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     );
   }, [customNodes]);
 
+  /**
+   * 组合节点类型，包括默认节点、组件和自定义节点
+   * 当components或customNodeRenderer更改时重新计算
+   */
   const nodeTypes = useMemo<Record<string, React.FC<any>>>(() => {
     return components.reduce(
       (acc, component) => ({
@@ -154,15 +195,27 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           },
         ),
       }),
-      { ...defaultNodeTypes, customNode: customNodeRenderer },
-    );
-  }, [components, customNodeRenderer]);
+      // { ...defaultNodeTypes, customNode: customNodeRenderer },
+      { ...defaultNodeTypes},
 
+    );
+  // }, [components, customNodeRenderer]);
+  }, [components]);
+
+  /**
+   * 向图中添加新节点
+   * @param type 节点类型标识符
+   * @param position 节点位置（可选）
+   * @param component 自定义节点的组件标识符（可选）
+   * @returns 当节点添加完成时解析的Promise
+   */
   const addNodeInner = async (type: string, position?: XYPosition, component?: string) => {
+    // 检查ReactFlow是否已初始化
     if (!reactFlowWrapper.current || !reactFlowInstance.current) {
       return;
     }
 
+    // 如果未指定位置，则计算中心位置
     if (!position) {
       const rect = reactFlowWrapper.current.getBoundingClientRect();
       const rectCenter = {
@@ -173,8 +226,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       position = reactFlowInstance.current.project(rectCenter);
     }
 
+    // 根据类型和组件查找节点规格
     const customSpecification = match(type)
-      .with('customNode', () => customNodes.find((node) => node.kind === component))
+      .with('customNode', () => {
+        // customNodes.find((node) => node.kind === component)
+        const allSpecifications = [...Object.values(nodeSpecification), ...components];
+        return allSpecifications.find((s) => s.type === type);
+      })
       .otherwise(() => {
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
         return allSpecifications.find((s) => s.type === type);
@@ -184,8 +242,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       return;
     }
 
+    // 根据规格类型创建新节点
     let newNode: DecisionNode | null = match(customSpecification)
       .with({ kind: P.string }, (specification) => {
+        // 处理带有kind属性的自定义节点
         const existingCount =
           (reactFlowInstance.current?.getNodes() || []).filter((n) => n.data?.kind === specification.kind).length + 1;
 
@@ -202,6 +262,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         } satisfies DecisionNode;
       })
       .with({ type: P.string }, (specification) => {
+        // 处理带有type属性的标准节点
         const existingCount =
           (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
         const partialNode = specification.generateNode({ index: existingCount });
@@ -219,6 +280,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       return;
     }
 
+    // 如果可用，执行onNodeAdd钩子
     if (customSpecification.onNodeAdd) {
       try {
         newNode = (await customSpecification.onNodeAdd(newNode as any)) as any;
@@ -227,6 +289,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       }
     }
 
+    // 验证节点结构并添加到图中
     const parsed = nodeSchema.safeParse(newNode);
     if (parsed.success) {
       return graphActions.addNodes([nodeSchema.parse(newNode)]);
@@ -234,12 +297,19 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     message.error(parsed.error?.message);
   };
 
+  /**
+   * 验证节点之间的连接是否有效
+   * 防止自连接、重复连接和循环连接
+   * @param connection 要验证的连接
+   * @returns 表示连接是否有效的布尔值
+   */
   const isValidConnection = (connection: Connection): boolean => {
-    // Disallow self-reference
+    // 禁止自引用
     if (connection.source === connection.target) {
       return false;
     }
 
+    // 当图表被禁用时阻止连接
     if (disabled) {
       return false;
     }
@@ -247,6 +317,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     const [nodes] = nodesState;
     const [edges] = edgesState;
 
+    // 检查是否有重复连接
     const hasDuplicate = edges.some(
       (edge) =>
         edge.source === connection.source &&
@@ -255,11 +326,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         (edge.targetHandle ?? null) === (connection.targetHandle ?? null),
     );
 
+    // 验证目标节点是否存在且不同于源节点
     const target = nodes.find((node) => node.id === connection.target);
     if (!target || target.id === connection.source) {
       return false;
     }
 
+    // 递归函数，用于检测图中的循环
     const hasCycle = (node: Node, visited = new Set()) => {
       if (visited.has(node.id)) {
         return false;
@@ -276,6 +349,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     return !hasDuplicate && !hasCycle(target);
   };
 
+  /**
+   * 处理将节点拖放到图上的事件
+   * @param event 拖拽事件
+   */
   const onDrop = (event: React.DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -286,20 +363,24 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
     let elementPosition: XYPosition;
 
+    // 从拖拽数据中获取相对位置
     try {
       elementPosition = JSON.parse(event.dataTransfer.getData('relativePosition'));
     } catch {
       return;
     }
 
+    // 计算流程图坐标中的位置
     const position = reactFlowInstance.current.project({
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
     }) as XYPosition;
 
+    // 根据元素的内部偏移调整位置
     position.x -= Math.round((elementPosition.x * 226) / 10) * 10;
     position.y -= Math.round((elementPosition.y * 60) / 10) * 10;
 
+    // 检查是否拖拽的是预配置节点
     const nodeData = event.dataTransfer.getData('nodeData');
     if (nodeData) {
       try {
@@ -313,6 +394,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       return;
     }
 
+    // 否则创建指定类型的新节点
     const type = event.dataTransfer.getData('nodeType');
     const component = match(event.dataTransfer.getData('customNodeComponent'))
       .with(P.string, (c) => c)
@@ -321,11 +403,17 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     void addNodeInner(type, position, component);
   };
 
+  /**
+   * 处理拖放操作的拖动悬停事件
+   */
   const onDragOver = (event: any) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   };
 
+  /**
+   * 处理节点之间的连接创建
+   */
   const onConnect = (params: any) => {
     const edge = {
       ...params,
@@ -337,6 +425,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     graphActions.addEdges([mapToDecisionEdge(edge)]);
   };
 
+  // 通过ref暴露动作和状态存储
   useImperativeHandle(ref, () => ({
     ...graphActions,
     stateStore: raw.stateStore,
@@ -347,6 +436,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       className={clsx(['tab-content', className])}
       tabIndex={0}
       onKeyDown={(e) => {
+        // 处理粘贴快捷键
         if (e.key === 'v' && e.metaKey && !disabled) {
           graphActions.pasteNodes();
         }
@@ -360,6 +450,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           display: 'flex',
         }}
       >
+        {/* 折叠的组件面板切换按钮 */}
         {!disabled && !componentsOpened && (
           <div
             className={'grl-dg__components__floating'}
@@ -382,7 +473,9 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             const [nodes] = nodesState;
             const [edges] = edgesState;
 
+            // 处理复制、复制和删除操作的键盘快捷键
             if (e.key === 'c' && e.metaKey) {
+              // 复制选中的节点
               const selectedNodeIds = nodesState[0].filter((n) => n.selected).map(({ id }) => id);
               if (selectedNodeIds.length === 0) {
                 return;
@@ -391,6 +484,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               graphActions.copyNodes(selectedNodeIds);
               e.preventDefault();
             } else if (e.key === 'd' && e.metaKey) {
+              // 复制选中的节点
               if (!disabled) {
                 const selectedNodeIds = nodes.filter((n) => n.selected).map(({ id }) => id);
                 if (selectedNodeIds.length === 0) {
@@ -401,11 +495,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               }
               e.preventDefault();
             } else if (e.key === 'Backspace') {
+              // 删除选中的节点或边
               if (!disabled) {
                 const selectedNodes = nodes.filter((n) => n.selected);
                 const selectedEdges = edges.filter((e) => e.selected);
 
                 if (selectedNodes.length > 0) {
+                  // 显示节点删除确认对话框
                   const length = selectedNodes.length;
                   const text = length > 1 ? 'nodes' : 'node';
                   Modal.confirm({
@@ -425,6 +521,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                     },
                   });
                 } else if (selectedEdges.length > 0) {
+                  // 无需确认直接删除选中的边
                   graphActions.removeEdges(selectedEdges.map((e) => e.id));
                 }
               }
@@ -433,9 +530,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             }
           }}
         >
+          {/* 主ReactFlow容器 */}
           <div className={clsx(['react-flow'])} ref={reactFlowWrapper}>
             <ReactFlow
-              deleteKeyCode={null}
+              deleteKeyCode={null} // 禁用默认的删除键处理
               elevateEdgesOnSelect={false}
               elevateNodesOnSelect={true}
               zoomOnDoubleClick={false}
@@ -463,6 +561,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               onNodesChange={graphActions.handleNodesChange}
               onEdgesChange={graphActions.handleEdgesChange}
               onNodesDelete={(e) => {
+                // 当节点被删除时关闭相关的标签页
                 e.forEach((node) => {
                   graphActions.closeTab(node?.id);
                 });
@@ -470,6 +569,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               onEdgeMouseEnter={(_, edge) => graphActions.setHoveredEdgeId(edge.id)}
               onEdgeMouseLeave={() => graphActions.setHoveredEdgeId(null)}
             >
+              {/* 图表控制按钮 */}
               <Controls showInteractive={false}>
                 <ControlButton onClick={() => graphActions.toggleCompactMode()}>
                   <CompressOutlined />
@@ -479,6 +579,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             </ReactFlow>
           </div>
         </div>
+        {/* 组件面板 - 启用时可见 */}
         {!disabled && componentsOpened && (
           <div className={'grl-dg__aside__menu'}>
             <div className={'grl-dg__aside__menu__heading'}>

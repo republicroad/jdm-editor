@@ -214,7 +214,34 @@ export const customNodeSchema = z
     type: z.literal(CustomKind),
     content: z.object({
       kind: z.string(),
-      config: z.any(),
+      config: z.object({
+        version: z.string().default('v2'),
+        expressions: z.array(
+          z.object({
+            id,
+            key: z.string().default(''),
+            value: z.string().default(''),
+          }),
+        ),
+        passThrough: z
+          .boolean()
+          .nullish()
+          .transform((val) => val ?? false),
+        inputField: z
+          .string()
+          .nullish()
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        outputPath: z
+          .string()
+          .nullish()
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        executionMode: z
+          .enum(['single', 'loop'])
+          .nullish()
+          .transform((val) => val ?? 'single'),
+      }),
     }),
   })
   .merge(nodeCommon);
