@@ -30,9 +30,35 @@ export const inputNodeSchema = z
           .string()
           .nullish()
           .transform((val) => val ?? ''),
+        expressions: z.array(
+          z.object({
+            id,
+            key: z.string().default(''),
+            value: z.string().default(''),
+          }),
+        ).default([]),
+        passThrough: z
+          .boolean()
+          .nullish()
+          .transform((val) => val ?? false),
+        inputField: z
+          .string()
+          .nullish()
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        outputPath: z
+          .string()
+          .nullish()
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        executionMode: z
+          .enum(['single', 'loop'])
+          .nullish()
+          .transform((val) => val ?? 'single'),
       })
       .default({
         schema: '',
+        expressions: [],
       }),
   })
   .merge(nodeCommon);

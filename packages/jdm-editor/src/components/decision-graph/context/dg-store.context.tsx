@@ -83,16 +83,16 @@ export type SetDecisionGraphOptions = {
 export type DecisionGraphStoreType = {
   // 状态部分
   state: {
-    id?: string;                    // 图表ID
-    components: NodeSpecification[]; // 组件列表
-    disabled?: boolean;             // 是否禁用
-    decisionGraph: DecisionGraphType; // 决策图数据
-    hoveredEdgeId: string | null;   // 当前悬停的边ID
-    openTabs: string[];             // 打开的标签页
-    activeTab: string;              // 当前活动标签页
-
-    viewConfigCta?: string;         // 视图配置的行动召唤
-    viewConfig?: ViewConfig;        // 视图配置
+    id?: string;
+    components: NodeSpecification[];
+    disabled?: boolean;
+    decisionGraph: DecisionGraphType;
+    hoveredEdgeId: string | null;
+    openTabs: string[];
+    activeTab: string;
+    configurable?: boolean;
+    viewConfigCta?: string;
+    viewConfig?: ViewConfig;
 
     name: string;                   // 图表名称
 
@@ -102,7 +102,10 @@ export type DecisionGraphStoreType = {
     activePanel?: string;           // 当前活动面板
     onPanelsChange?: (val?: string) => void; // 面板变更回调
 
-    simulate?: Simulation;          // 模拟器配置
+    simulate?: Simulation;
+    simulatorOpen: boolean;
+    simulatorRequest?: string;
+    simulatorLoading: boolean;
 
     compactMode?: boolean;          // 是否启用紧凑模式
 
@@ -148,6 +151,7 @@ export type DecisionGraphStoreType = {
     
     setCompactMode: (mode: boolean) => void;                 // 设置紧凑模式
     toggleCompactMode: () => void;                           // 切换紧凑模式
+    setSimulatorRequest: (req: string) => void;
 
     setNodeType: (id: string, kind: NodeTypeKind, vt: VariableType) => void;  // 设置节点类型
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;                // 删除节点类型
@@ -200,8 +204,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
     () =>
       create<DecisionGraphStoreType['state']>()(() => ({
         id: undefined,
-        simulate: undefined,
-        decisionGraph: { nodes: [], edges: [] },  // 初始化空决策图
+        simulate: {},
+        decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
         openTabs: [],
         activeTab: 'graph',
@@ -214,6 +218,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',  // 从本地存储读取紧凑模式配置
         nodeTypes: {},
         globalType: {},
+        simulatorLoading: false,
+        simulatorOpen: false,
       })),
     [],
   );
@@ -243,7 +249,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
   // 定义所有操作方法
   const actions = useMemo<DecisionGraphStoreType['actions']>(
     () => ({
-      // 处理节点变更
+      setSimulatorRequest: (request: string) => {
+        stateStore.setState({
+          simulatorRequest: request,
+        });
+      },
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
