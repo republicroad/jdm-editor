@@ -40,7 +40,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
   displayName: 'custom-expression',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
-  renderTab: ({ id, manager }) => <CustomFunctionTable id={id} manager={manager} />,
+  renderTab: ({ id, manager, userId, projectId }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} />,
   getDiffContent: (current, previous) => {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
@@ -168,6 +168,10 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     content: {
       config: {
         version: "v2",
+        meta: {
+          user: "",
+          proj: ""
+        },
         expressions: [],
         inputField: null,
         outputPath: null,

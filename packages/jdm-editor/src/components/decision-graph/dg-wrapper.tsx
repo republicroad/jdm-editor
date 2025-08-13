@@ -26,11 +26,13 @@ import { NodeKind } from './nodes/specifications/specification-types';
 export type DecisionGraphWrapperProps = {
   reactFlowProOptions?: ProOptions;
   tabBarExtraContent?: GraphTabsProps['tabBarExtraContent'];
+  userId?: string;
+  projectId?: string | null ;
 };
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent },
+    { reactFlowProOptions, tabBarExtraContent, userId, projectId },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -40,7 +42,7 @@ export const DecisionGraphWrapper = React.memo(
 
     return (
       <>
-        <GraphSideToolbar />
+        <GraphSideToolbar userId={userId} projectId={projectId} />
         <div className={'grl-dg__graph'}>
           <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
 
@@ -51,7 +53,7 @@ export const DecisionGraphWrapper = React.memo(
             onDisableTabs={setDisableTabs}
           />
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'active'])} />
-          <TabContents />
+          <TabContents userId={userId} projectId={projectId} />
         </div>
         <GraphPanel />
       </>
@@ -59,7 +61,7 @@ export const DecisionGraphWrapper = React.memo(
   }),
 );
 
-const TabContents: React.FC = React.memo(() => {
+const TabContents: React.FC<{ userId?: string; projectId?: string | null }> = React.memo(({ userId, projectId }) => {
   const { openNodes, activeNodeId, components } = useDecisionGraphState(
     ({ decisionGraph, openTabs, activeTab, components }) => {
       const activeNodeId = (decisionGraph?.nodes ?? []).find((node) => node.id === activeTab)?.id;
@@ -93,7 +95,7 @@ const TabContents: React.FC = React.memo(() => {
               expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
             )
             .with(NodeKind.CustomFunction, () =>
-              customFunctionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
+              customFunctionSpecification?.renderTab?.({ id: node?.id, manager: dndManager, userId:userId ,projectId:projectId  }),
             )
             .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
             .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))

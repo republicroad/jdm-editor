@@ -17,9 +17,11 @@ import type { SimulationTrace, SimulationTraceDataExpression } from '../simulato
 export type TabExpressionProps = {
   id: string;
   manager?: DragDropManager;
+  userId?: string;
+  projectId?: string | null;
 };
 
-export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager }) => {
+export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager, userId, projectId }) => {
   const graphActions = useDecisionGraphActions();
   const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
     disabled,
@@ -81,6 +83,10 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager 
         onChange={(val) => {
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;
+            draft.content.config.meta = {
+              user: userId,
+              proj: projectId
+            };
             return draft;
           });
         }}

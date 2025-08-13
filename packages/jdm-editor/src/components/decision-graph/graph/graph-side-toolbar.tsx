@@ -12,10 +12,11 @@ import { NodeKind } from '../nodes/specifications/specification-types';
 const DecisionContentType = 'application/vnd.gorules.decision';
 
 export type GraphSideToolbarProps = {
-  //
+  userId?: string;
+  projectId?: string | null ;
 };
 
-export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
+export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, projectId }) => {
   const decisionGraphRaw = useDecisionGraphRaw();
   const fileInput = useRef<HTMLInputElement>(null);
   const excelFileInput = useRef<HTMLInputElement>(null);
@@ -46,7 +47,13 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         const edges: DecisionEdge[] = (parsed.edges as DecisionEdge[]).filter(
           (edge) => nodeIds.includes(edge?.targetId) && nodeIds.includes(edge?.sourceId),
         );
-
+        const customNodes = nodes.filter(node => node.type === 'customNode');
+        customNodes.forEach(node => {
+          node.content.config.meta = {
+            user: userId,
+            proj: projectId            
+          };  
+        });
         const modelParsed = decisionModelSchema.safeParse({
           nodes,
           edges,
