@@ -51,6 +51,8 @@ export type GraphProps = {
   className?: string;
   onDisableTabs?: (val: boolean) => void;
   reactFlowProOptions?: ProOptions;
+  userId?: string;
+  projectId?: string | null;
 };
 
 /**
@@ -93,7 +95,7 @@ const edgeTypes = {
  * Graph组件的主要实现
  * 提供决策图编辑器的核心功能
  */
-export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
+export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId }, ref) {
   // DOM元素和ReactFlow实例的引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
@@ -244,22 +246,29 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
 
     // 根据规格类型创建新节点
     let newNode: DecisionNode | null = match(customSpecification)
-      .with({ kind: P.string }, (specification) => {
-        // 处理带有kind属性的自定义节点
+      .with({ type: 'customNode' }, (specification) => {
+        // 处理自定义节点类型
         const existingCount =
-          (reactFlowInstance.current?.getNodes() || []).filter((n) => n.data?.kind === specification.kind).length + 1;
-
+          (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
         const partialNode = specification.generateNode({ index: existingCount });
-        return {
-          id: crypto.randomUUID(),
-          type: 'customNode',
-          name: partialNode.name,
-          position: position as XYPosition,
-          content: {
-            kind: specification.kind,
-            config: partialNode?.config,
-          },
-        } satisfies DecisionNode;
+        
+          return {
+            id: crypto.randomUUID(),
+            type: 'customNode',
+            name: partialNode.name,
+            position: position as XYPosition,
+            content: {
+              // kind: specification.kind,
+              config: {
+                ...(partialNode as any)?.content?.config,
+                meta: {
+                  ...(partialNode as any)?.config?.content?.meta,
+                  user: userId,
+                  proj: projectId,
+                },
+              },
+            },
+          } satisfies DecisionNode;
       })
       .with({ type: P.string }, (specification) => {
         // 处理带有type属性的标准节点

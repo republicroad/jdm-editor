@@ -51,6 +51,8 @@ export const DecisionGraphWrapper = React.memo(
             className={clsx([!hasActiveNode && !viewConfig?.enabled && 'active'])}
             reactFlowProOptions={reactFlowProOptions}
             onDisableTabs={setDisableTabs}
+            userId={userId}
+            projectId={projectId}
           />
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'active'])} />
           <TabContents userId={userId} projectId={projectId} />
