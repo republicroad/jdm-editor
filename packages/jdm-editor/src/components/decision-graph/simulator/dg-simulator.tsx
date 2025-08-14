@@ -117,7 +117,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
         <div className={'grl-dg__simulator__section__content'}>
           <Spin spinning={loading}>
             <div className={'grl-dg__simulator__nodes-list'}>
-              {!simulate && (
+              {/* {!simulate && (
                 <Typography.Text type='secondary' style={{ textAlign: 'center', marginTop: 60, fontSize: 13 }}>
                   Ready to simulate!
                   <br />
@@ -131,7 +131,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
                     Learn more
                   </Typography.Link>
                 </Typography.Text>
-              )}
+              )} */}
               {'graph'.includes(search?.toLowerCase() ?? '') && simulate && (
                 <div
                   className={clsx('grl-dg__simulator__nodes-list__node', selectedNode === 'graph' && 'active')}

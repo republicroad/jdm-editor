@@ -65,13 +65,13 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     const Settings = specification.renderSettings;
 
     const menuItems = [
-      specification.documentationUrl
-        ? {
-            key: 'documentation',
-            label: <SpacedText left='Documentation' right={<BookOutlined />} />,
-            onClick: () => window.open(specification.documentationUrl, '_href'),
-          }
-        : null,
+      // specification.documentationUrl
+      //   ? {
+      //       key: 'documentation',
+      //       label: <SpacedText left='Documentation' right={<BookOutlined />} />,
+      //       onClick: () => window.open(specification.documentationUrl, '_href'),
+      //     }
+      //   : null,
       specification.documentationUrl ? { key: 'divider-1', type: 'divider' } : null,
       !displayError && {
         key: 'copy-clipboard',
