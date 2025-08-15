@@ -49,7 +49,7 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
           <TabLabel
             total={openNodes?.length}
             icon={viewConfig?.enabled ? <UnorderedListOutlined /> : <DeploymentUnitOutlined />}
-            name={viewConfig?.enabled ? 'Nodes' : 'Graph'}
+            name={viewConfig?.enabled ? 'Nodes' : '规则图表'}
             active={!activeNodeId || activeNodeId === 'graph'}
             onContextClick={(action) => {
               graphActions.closeTab('graph', action);

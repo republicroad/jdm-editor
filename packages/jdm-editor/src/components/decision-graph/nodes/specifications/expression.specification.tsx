@@ -37,7 +37,7 @@ export type NodeExpressionData = Omit<InferredContent, 'expressions'> &
 export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.Expression,
   icon: <HashIcon size='1em' />,
-  displayName: 'Expression',
+  displayName: '表达式',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
   renderTab: ({ id, manager }) => <TabExpression id={id} manager={manager} />,

@@ -35,7 +35,7 @@ export type NodeSwitchData = {
 export const switchSpecification: NodeSpecification<NodeSwitchData> = {
   type: NodeKind.Switch,
   icon: <SplitIcon size='1em' />,
-  displayName: 'Switch',
+  displayName: '条件分支',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/switch',
   shortDescription: 'Conditional branching',
   color: NodeColor.Purple,

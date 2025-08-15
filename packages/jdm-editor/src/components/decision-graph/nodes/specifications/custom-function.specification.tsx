@@ -37,7 +37,7 @@ export type NodeExpressionData = Omit<InferredContent, 'expressions'> &
 export const customFunctionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.CustomFunction,
   icon: <HashIcon size='1em' />,
-  displayName: 'custom-expression',
+  displayName: '自定义节点',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
   renderTab: ({ id, manager, userId, projectId }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} />,

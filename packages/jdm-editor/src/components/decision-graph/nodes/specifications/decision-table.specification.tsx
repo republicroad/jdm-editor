@@ -31,7 +31,7 @@ export type NodeDecisionTableData = Omit<InferredContent, 'inputs' | 'outputs' |
 export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData> = {
   type: NodeKind.DecisionTable,
   icon: <Grid3x3Icon size='1em' />,
-  displayName: 'Decision table',
+  displayName: '决策表',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/decision-tables',
   shortDescription: 'Rules spreadsheet',
   renderTab: ({ id, manager }) => <TabDecisionTable id={id} manager={manager} />,

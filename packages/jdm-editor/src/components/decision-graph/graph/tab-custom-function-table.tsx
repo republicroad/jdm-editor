@@ -81,7 +81,6 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
         manager={manager}
         debug={debug}
         onChange={(val) => {
-          debugger;
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;
             draft.content.config.meta = {

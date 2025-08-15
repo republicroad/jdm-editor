@@ -31,7 +31,7 @@ export type NodeInputData = Omit<InferredContent, 'expressions'> &
 export const inputSpecification: NodeSpecification<NodeInputData> = {
   type: NodeKind.Input,
   icon: <ArrowRightToLineIcon size='1em' />,
-  displayName: 'Request',
+  displayName: '请求',
   color: NodeColor.Green,
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions',
   shortDescription: 'Provides input context',
@@ -87,10 +87,10 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
             onClick: () =>
               Modal.confirm({
                 icon: null,
-                title: 'Delete node',
+                title: '删除节点',
                 content: (
                   <Typography.Text>
-                    Are you sure you want to delete <Typography.Text strong>{data.name}</Typography.Text> node.
+                    你确定要删除 <Typography.Text strong>{data.name}</Typography.Text> 节点吗？
                   </Typography.Text>
                 ),
                 okButtonProps: { danger: true },

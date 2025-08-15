@@ -75,28 +75,28 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       specification.documentationUrl ? { key: 'divider-1', type: 'divider' } : null,
       !displayError && {
         key: 'copy-clipboard',
-        label: <SpacedText left='Copy to clipboard' right={platform.shortcut('Ctrl + C')} />,
+        label: <SpacedText left='复制' right={platform.shortcut('Ctrl + C')} />,
         onClick: () => {},
       },
-      !displayError && {
-        key: 'duplicate',
-        disabled,
-        label: <SpacedText left='Duplicate' right={platform.shortcut('Ctrl + D')} />,
-        onClick: () => graphActions.duplicateNodes([id]),
-      },
+      // !displayError && {
+      //   key: 'duplicate',
+      //   disabled,
+      //   label: <SpacedText left='Duplicate' right={platform.shortcut('Ctrl + D')} />,
+      //   onClick: () => graphActions.duplicateNodes([id]),
+      // },
       !displayError && { key: 'divider-2', type: 'divider' },
       {
         key: 'delete',
         danger: true,
-        label: <SpacedText left='Delete' right={platform.shortcut('Backspace')} />,
+        label: <SpacedText left='删除' right={platform.shortcut('Backspace')} />,
         disabled,
         onClick: () =>
           Modal.confirm({
             icon: null,
-            title: 'Delete node',
+            title: '删除节点',
             content: (
               <Typography.Text>
-                Are you sure you want to delete <Typography.Text strong>{name}</Typography.Text> node.
+                你确定要删除 <Typography.Text strong>{name}</Typography.Text> 节点吗？
               </Typography.Text>
             ),
             okButtonProps: { danger: true },

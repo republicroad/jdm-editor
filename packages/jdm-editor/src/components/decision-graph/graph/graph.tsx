@@ -470,7 +470,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               zIndex: 1,
             }}
           >
-            <Tooltip placement='right' title='Components'>
+            <Tooltip placement='right' title='组件'>
               <Button icon={<LeftOutlined style={{ fontSize: 12 }} />} onClick={() => setComponentsOpened(true)} />
             </Tooltip>
           </div>
@@ -515,10 +515,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                   const text = length > 1 ? 'nodes' : 'node';
                   Modal.confirm({
                     icon: null,
-                    title: `Delete ${text}`,
+                    title: `删除节点`,
                     content: (
                       <Typography.Text>
-                        Are you sure you want to delete {length > 1 ? `${length} ${text}` : text}?
+                        确定要删除节点吗?
                       </Typography.Text>
                     ),
                     okButtonProps: { danger: true },
@@ -594,10 +594,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             <div className={'grl-dg__aside__menu__heading'}>
               <div className={'grl-dg__aside__menu__heading__text'}>
                 <Typography.Text strong style={{ marginBottom: 0 }}>
-                  Components
+                  组件
                 </Typography.Text>{' '}
                 <Typography.Text type='secondary' style={{ fontSize: 10, marginLeft: 5 }}>
-                  (Drag-and-drop)
+                  (拖放操作)
                 </Typography.Text>
               </div>
               <Button
