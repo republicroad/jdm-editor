@@ -1,5 +1,5 @@
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
-import type { DragDropManager, MenuList } from 'dnd-core';
+import type { DragDropManager } from 'dnd-core';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -18,7 +18,7 @@ export type ExpressionProps = {
   manager?: DragDropManager;
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
-  menuList?: MenuList[];
+  menuList?: any[];
 } & ExpressionControllerProps;
 
 export const Expression: React.FC<ExpressionProps> = ({ manager, debug, hideCommandBar, ...props }) => {

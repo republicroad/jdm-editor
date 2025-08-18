@@ -1,4 +1,4 @@
-import type { DragDropManager,MenuList } from 'dnd-core';
+import type { DragDropManager } from 'dnd-core';
 import React from 'react';
 import { P, match } from 'ts-pattern';
 import type { z } from 'zod';
@@ -14,10 +14,11 @@ import { fJson } from '../../../helpers/utility';
 export type TabRequestProps = {
   id: string;
   manager?: DragDropManager;
-  menuList?: MenuList[];
+  menuList?: any[];
+  type?: string;
 };
 
-export const TabRequest: React.FC<TabRequestProps> = ({ id, manager,menuList }) => {
+export const TabRequest: React.FC<TabRequestProps> = ({ id, manager, menuList, type }) => {
   const graphActions = useDecisionGraphActions();
   const { disabled, configurable, content } = useDecisionGraphState(({ disabled, configurable, decisionGraph }) => ({
     disabled,

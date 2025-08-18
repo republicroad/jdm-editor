@@ -58,7 +58,7 @@ export const fJson = (arr: InputCell[]) => {
   };
 
   const source = {};
-  arr && arr.forEach((item) => {
+  arr && arr.forEach((item:any) => {
     switch (item.type) {
       case 'bool':
         console.log(item.value)
@@ -79,6 +79,14 @@ export const fJson = (arr: InputCell[]) => {
 
   return JSON.stringify(source);
 }
+
+type ParsedItem = {
+  id: string;
+  key: string;
+  type: string;
+  value: any;
+  desc: string;
+};
 
 export const parseJsonToItems = (jsonObject: any): ParsedItem[] => {
   const result: ParsedItem[] = [];

@@ -29,10 +29,7 @@ export type Expression = {
 
 type InferredContent = z.infer<typeof customNodeSchema>['content'];
 
-export type NodeExpressionData = Omit<InferredContent, 'expressions'> &
-  Diff & {
-    expressions: (InferredContent['config']['expressions'][0] & Diff)[];
-  };
+export type NodeExpressionData = InferredContent & Diff;
 
 export const customFunctionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.CustomFunction,
@@ -98,12 +95,12 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         },
       });
 
-      draft.expressions = expressions;
+      draft.config.expressions = expressions;
 
       if (
         expressions.find(
           (expr) =>
-            expr?._diff?.status === 'modified' || expr?._diff?.status === 'added' || expr?._diff?.status === 'removed',
+            (expr as any)?._diff?.status === 'modified' || (expr as any)?._diff?.status === 'added' || (expr as any)?._diff?.status === 'removed',
         )
       ) {
         _.set(fields, 'expressions', {
@@ -166,6 +163,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
   generateNode: ({ index }) => ({
     name: `customNode${index}`,
     content: {
+      kind: 'customNode',
       config: {
         version: "v2",
         meta: {

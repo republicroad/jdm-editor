@@ -30,6 +30,7 @@ export type ExpressionPermission = 'edit:full' | 'edit:values' | 'view';
 
 export type ExpressionStore = {
   disabled: boolean;
+  configurable: boolean;
 
   permission?: ExpressionPermission;
 
@@ -61,6 +62,7 @@ type ExpressionStoreProviderProps = {
 export const createExpression = (data: Partial<ExpressionEntry> = {}): ExpressionEntry => ({
   id: crypto.randomUUID(),
   key: '',
+  type: '',
   value: '',
   ...data,
 });
@@ -72,6 +74,7 @@ export const ExpressionStoreProvider: React.FC<React.PropsWithChildren<Expressio
     () =>
       create<ExpressionStore>((set) => ({
         disabled: false,
+        configurable: false,
         debugIndex: 0,
         addRowAbove: (index = 0) => {
           set(

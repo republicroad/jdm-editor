@@ -8,7 +8,7 @@ import { getNodeData } from '../../../helpers/node-data';
 import type { customNodeSchema } from '../../../helpers/schema';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
-import { Expression } from '../../custom-function-table';
+import { CustomFunction } from '../../custom-function-table';
 import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { NodeExpressionData } from '../nodes/specifications/custom-function.specification';
@@ -56,7 +56,7 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
     }
 
     if (!isWasmAvailable()) {
-      return { trace: nodeTrace, snapshot: nodeSnapshot };
+      return { trace: nodeTrace, snapshot: nodeSnapshot.config };
     }
 
     const $data = Object.fromEntries(Object.entries(nodeTrace.traceData).map(([k, v]) => [k, safeJson(v.result)]));
@@ -69,18 +69,18 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
       extendedInputData.data = get(extendedInputData.data, content.config.inputField, {});
     }
 
-    return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot };
+    return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot.config };
   }, [nodeTrace, nodeSnapshot, inputData]);
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
-      <Expression
+      <CustomFunction
         value={content?.config.expressions}
         disabled={disabled}
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
         manager={manager}
         debug={debug}
-        onChange={(val) => {
+        onChange={(val:any) => {
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;
             draft.content.config.meta = {

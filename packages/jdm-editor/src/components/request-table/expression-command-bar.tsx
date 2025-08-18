@@ -1,6 +1,5 @@
 import { CloudDownloadOutlined, CloudUploadOutlined, ExportOutlined, ImportOutlined } from '@ant-design/icons';
 import { Button, message, Select } from 'antd';
-import Papa from 'papaparse';
 import React, { useRef } from 'react';
 import { v4 } from 'uuid';
 
@@ -76,7 +75,7 @@ export const ExpressTableCommandBar: React.FC = () => {
       // clean up "a" element & remove ObjectURL
       window.document.body.removeChild(link);
       URL.revokeObjectURL(href);
-    } catch (e) {
+    } catch (e:any) {
       message.error(e.message);
     }
   };
@@ -89,7 +88,7 @@ export const ExpressTableCommandBar: React.FC = () => {
           <Button
             type='text'
             size={'small'}
-            color='secondary'
+            color='default'
             icon={<CloudDownloadOutlined />}
             onClick={() => {
               fileInput?.current?.click?.();
@@ -100,7 +99,7 @@ export const ExpressTableCommandBar: React.FC = () => {
           <Button
             type='text'
             size={'small'}
-            color='secondary'
+            color='default'
             disabled={disabled}
             icon={<CloudUploadOutlined />}
             onClick={() => {

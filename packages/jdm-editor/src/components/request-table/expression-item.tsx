@@ -10,15 +10,15 @@ import { AutosizeTextArea } from '../autosize-text-area';
 import type { ExpressionEntry } from './context/expression-store.context';
 import { useExpressionStore } from './context/expression-store.context';
 import { useDecisionGraphRaw } from '../decision-graph/context/dg-store.context';
-import { MenuList } from 'dnd-core';
 
 export type ExpressionItemProps = {
   expression: ExpressionEntry;
   index: number;
-  menuList?: MenuList[];
+  menuList?: any[];
+  variableType?: any;
 };
 
-export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index,menuList }) => {
+export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, menuList, variableType }) => {
   const expressionRef = useRef<HTMLDivElement>(null);
   const { updateRow, removeRow, swapRows, disabled, configurable,expressions } = useExpressionStore(
     ({ updateRow, removeRow, swapRows, disabled, configurable,expressions }) => ({

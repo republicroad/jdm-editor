@@ -14,13 +14,13 @@ import { ExpressionController } from './expression-controller';
 import { ExpressionList } from './expression-list';
 import './expression.scss';
 
-export type ExpressionProps = {
+export type CustomFunctionProps = {
   manager?: DragDropManager;
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
 } & ExpressionControllerProps;
 
-export const Expression: React.FC<ExpressionProps> = ({ manager, debug, hideCommandBar, ...props }) => {
+export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager, debug, hideCommandBar, ...props }) => {
   const [_, setMounted] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -59,7 +59,7 @@ export const Expression: React.FC<ExpressionProps> = ({ manager, debug, hideComm
   );
 };
 
-const SimulateDataSync: React.FC<Pick<ExpressionProps, 'debug'>> = ({ debug }) => {
+const SimulateDataSync: React.FC<Pick<CustomFunctionProps, 'debug'>> = ({ debug }) => {
   const expressionStoreRaw = useExpressionStoreRaw();
 
   useEffect(() => {
