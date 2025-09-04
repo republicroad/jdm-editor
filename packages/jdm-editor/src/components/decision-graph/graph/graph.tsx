@@ -53,6 +53,8 @@ export type GraphProps = {
   reactFlowProOptions?: ProOptions;
   userId?: string;
   projectId?: string | null;
+  menuList?: any;
+  customFunctions?: any;
 };
 
 /**
@@ -95,7 +97,7 @@ const edgeTypes = {
  * Graph组件的主要实现
  * 提供决策图编辑器的核心功能
  */
-export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId }, ref) {
+export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions }, ref) {
   // DOM元素和ReactFlow实例的引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
@@ -258,7 +260,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             name: partialNode.name,
             position: position as XYPosition,
             content: {
-              // kind: specification.kind,
+              kind: component,
               config: {
                 ...(partialNode as any)?.content?.config,
                 meta: {

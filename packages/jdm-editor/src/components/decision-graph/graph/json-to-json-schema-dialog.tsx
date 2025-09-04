@@ -1,4 +1,6 @@
 import { Editor } from '@monaco-editor/react';
+
+import '../../../helpers/monaco';
 import { Modal, Spin, Typography, message, theme } from 'antd';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';

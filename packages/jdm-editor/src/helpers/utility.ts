@@ -134,3 +134,18 @@ export const parseJsonToItems = (jsonObject: any): ParsedItem[] => {
 
   return result;
 };
+
+/**
+ * 使用正则表达式分割字符串，避免在引号内的;;被分割
+ * @param str 要分割的字符串
+ * @returns 分割后的数组
+ */
+export const smartSplit = (str: string): string[] => {
+  if (!str || typeof str !== 'string') {
+    return [''];
+  }
+  
+  // 使用正则表达式分割，避免在引号内的;;被分割
+  const regex = /;;(?=(?:[^"'`]*["'`][^"'`]*["'`])*[^"'`]*$)/;
+  return str.split(regex);
+};

@@ -18,9 +18,11 @@ export type CustomFunctionProps = {
   manager?: DragDropManager;
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
+  menuList?: any;
+  customFunctions?: any;
 } & ExpressionControllerProps;
 
-export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager, debug, hideCommandBar, ...props }) => {
+export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager,menuList, customFunctions, debug, hideCommandBar, ...props }) => {
   const [_, setMounted] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -50,7 +52,7 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager, debug, 
           <ExpressionStoreProvider>
             <ExpressionController {...props} />
             {!hideCommandBar && <ExpressionCommandBar />}
-            <ExpressionList />
+            <ExpressionList menuList={menuList} customFunctions={customFunctions} />
             <SimulateDataSync debug={debug} />
           </ExpressionStoreProvider>
         </DndProvider>

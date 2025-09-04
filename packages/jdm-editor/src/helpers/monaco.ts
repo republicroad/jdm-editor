@@ -7,6 +7,18 @@ declare global {
   }
 }
 
-if (self.monaco) {
-  loader.config({ monaco: self.monaco });
-}
+// 配置Monaco环境，处理worker加载
+self.MonacoEnvironment = {
+  getWorkerUrl: function (workerId: string, label: string) {
+    const baseUrl = './monaco/min/vs';
+    // Monaco min版本使用统一的workerMain.js
+    return `${baseUrl}/base/worker/workerMain.js`;
+  }
+};
+
+// 配置Monaco使用本地静态文件（相对路径）
+loader.config({
+  paths: {
+    vs: './monaco/min/vs'
+  }
+});

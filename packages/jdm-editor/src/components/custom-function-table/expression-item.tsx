@@ -1,43 +1,174 @@
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import type { Row } from '@tanstack/react-table';
-import { Typography } from 'antd';
+import { Typography, Tabs, AutoComplete, Button, Input, Popconfirm, Select } from 'antd';
 import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { getTrace } from '../../helpers/trace';
+import { smartSplit } from '../../helpers/utility';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
 import { DiffAutosizeTextArea } from '../shared';
 import { DiffCodeEditor } from '../shared/diff-ce';
+import { AutosizeTextArea } from '../autosize-text-area';
 import type { ExpressionEntry } from './context/expression-store.context';
 import { useExpressionStore } from './context/expression-store.context';
 import { ExpressionItemContextMenu } from './expression-item-context-menu';
+import { useDecisionGraphActions } from '../decision-graph/context/dg-store.context';
 
 export type ExpressionItemProps = {
   expression: ExpressionEntry;
   index: number;
   variableType?: VariableType;
+  menuList?: any;
+  customFunctions?: any;
 };
 
-export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
+export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType, menuList, customFunctions }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [editMode, setEditMode] = useState<'code' | 'function'>('function');
   const expressionRef = useRef<HTMLDivElement>(null);
-  const { updateRow, removeRow, swapRows, disabled, permission } = useExpressionStore(
-    ({ updateRow, removeRow, swapRows, disabled, permission }) => ({
+
+  // 解析;;分隔的value字符串，用于函数模式显示
+  const parseFunctionValue = (value: string) => {
+    if (!value || typeof value !== 'string') return null;
+    
+    const parts = smartSplit(value);
+    if (parts.length === 0) return null;
+    
+    const funcName = parts[0];
+    const args = parts.slice(1);
+    
+    // 从customFunctions中找到对应的函数定义
+    const funcDef = customFunctions?.find((f: any) => f.name === funcName);
+    if (!funcDef) return null;
+    
+    // 构建arg_exprs对象
+    const argExprs: Record<string, any> = {};
+    if (funcDef.arguments && Array.isArray(funcDef.arguments)) {
+      funcDef.arguments.forEach((argDef: any, index: number) => {
+        if (argDef.arg_name) {
+          argExprs[argDef.arg_name] = args[index] || '';
+        }
+      });
+    }
+    
+    return {
+      funcmeta: funcDef,
+      arg_exprs: argExprs
+    };
+  };
+
+  // 获取当前表达式的函数信息（用于显示）
+  const currentFunctionInfo = expression.type === 'function' ? 
+    (expression.funcmeta ? { funcmeta: expression.funcmeta, arg_exprs: expression.arg_exprs } : parseFunctionValue(expression.value)) : 
+    null;
+
+
+  const { updateRow, removeRow, swapRows, disabled, permission, configurable } = useExpressionStore(
+    ({ updateRow, removeRow, swapRows, disabled, permission, configurable }) => ({
       updateRow,
       removeRow,
       swapRows,
       disabled,
       permission,
+      configurable: configurable ?? (permission === 'edit:full'),
     }),
   );
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {
-    updateRow(index, update);
+    // 如果是函数类型的更新，构建;;分隔的value字符串
+    if (update.type === 'function' && update.funcmeta) {
+      const funcName = update.funcmeta.name || '';
+      const args = update.funcmeta.arguments || [];
+      const argValues: string[] = [];
+      
+      // 收集参数值，优先使用传入的arg_exprs，否则使用现有的
+      const currentArgExprs = update.arg_exprs || expression.arg_exprs || {};
+      args.forEach((arg: any) => {
+        const argValue = currentArgExprs[arg.arg_name] || '';
+        argValues.push(argValue);
+      });
+      
+      // 构建;;分割的字符串格式
+      const expressionValue = [funcName, ...argValues].join(';;');
+      
+      // 更新为简化结构
+      const simplifiedUpdate = {
+        key: update.key || expression.key,
+        value: expressionValue,
+        type: 'function'
+      };
+      
+      updateRow(index, simplifiedUpdate);
+      
+      // 处理特殊函数的清理逻辑
+      if (update.funcmeta?.name) {
+        const type = update.funcmeta?.name.split('_')[1];
+        (update.funcmeta?.name.includes('notify')||update.funcmeta?.name.includes('list') || update.funcmeta?.name.includes('counter')) && graphActions.handleEditorDomClick('clear', update.funcmeta.name)
+      }
+    } else {
+      updateRow(index, update);
+    }
   };
+
+  const inputChange = (value: any) => {
+    // 如果当前表达式是函数类型，需要重新构建value字符串
+    if (expression.type === 'function' && currentFunctionInfo) {
+      const funcName = currentFunctionInfo.funcmeta.name || '';
+      const args = currentFunctionInfo.funcmeta.arguments || [];
+      const argValues: string[] = [];
+      
+      // 更新参数值
+      const currentArgExprs = currentFunctionInfo.arg_exprs ? { ...currentFunctionInfo.arg_exprs } : {};
+      currentArgExprs[value.key.arg_name] = value.value;
+      
+      // 收集所有参数值
+      args.forEach((arg: any) => {
+        const argValue = currentArgExprs[arg.arg_name] || '';
+        argValues.push(argValue);
+      });
+      
+      // 构建;;分割的字符串格式
+      const expressionValue = [funcName, ...argValues].join(';;');
+      
+      // 更新为简化结构
+      updateRow(index, {
+        value: expressionValue,
+        type: 'function'
+      });
+    } else {
+      // 非函数类型保持原有逻辑
+      let last: any = expression?.arg_exprs ? { ...expression.arg_exprs } : {};
+      last[value.key.arg_name] = value.value
+      updateRow(index, {arg_exprs: last});
+    }
+  }
+
+  // 焦点重新获取函数列表
+  const getList = (name: string) => {
+    const type = name.split('_')[1];
+    name.includes('notify')&& graphActions.handleEditorDomClick(type, name);
+    name.includes('list')&& graphActions.handleEditorDomClick(type, name);
+    name.includes('counter')&& graphActions.handleEditorDomClick('counter', name);
+  };
+
+  const fun = () => {
+    const funColl: any = []
+    
+    if (customFunctions && Array.isArray(customFunctions) && customFunctions.length > 0) {
+      customFunctions.forEach((e: any, index: number) => {
+        if (e && e.name) {
+          funColl.push({ value: e.name, label: `${e.name}`, name: 'function', fun: e})
+        }
+      })
+    }
+    
+    return funColl
+  }
 
   const onRemove = () => {
     removeRow(index);
@@ -64,6 +195,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   });
 
   previewRef(dropRef(expressionRef));
+
+  const graphActions = useDecisionGraphActions();
+  const goLink = (e: any, option: any) => {
+    e.stopPropagation()
+    graphActions.handleEditorDomClick('link', option.list_id)
+  }
 
   return (
     <div
@@ -123,25 +260,329 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         </ExpressionItemContextMenu>
       </div>
       <div className='expression-list-item__code'>
-        <ExpressionItemContextMenu index={index}>
-          <div>
-            <DiffCodeEditor
-              className='expression-list-item__value'
-              placeholder='Expression'
-              maxRows={9}
-              disabled={disabled}
-              value={expression?.value}
-              displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
-              previousValue={expression?._diff?.fields?.value?.previousValue}
-              onChange={(value) => onChange({ value })}
-              variableType={variableType}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              noStyle={true}
-            />
-            <ResultOverlay expression={expression} />
-          </div>
-        </ExpressionItemContextMenu>
+        <Tabs
+          activeKey={editMode}
+          onChange={(key) => setEditMode(key as 'code' | 'function')}
+          size="small"
+          items={[
+            {
+              key: 'function',
+              label: 'Function',
+              children: (
+                <div className="function-mode-container">
+                  <div className="function-select-container">
+                    <Select
+                      defaultValue={currentFunctionInfo?.funcmeta?.name || expression?.type}
+                      style={{ minWidth: 200, width: 240 }}
+                      onChange={(value, item: any) => onChange({ type: 'function', funcmeta: item.fun || '', arg_exprs: {} })}
+                      options={fun()}
+                      disabled={!configurable || disabled}
+                    />
+                  </div>
+                  <div className='function-args-container'>
+                    <div className='flex gap-2'>
+                      {(currentFunctionInfo?.funcmeta?.arguments || []).map((ele: any, argIndex: number) => {
+                        const placeholder = currentFunctionInfo?.funcmeta?.arguments[argIndex]?.comments;
+                        const value = currentFunctionInfo?.arg_exprs?.[ele.arg_name] || '';
+                        
+                        switch (ele.arg_name) {
+                          case 'list_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{  minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.list_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.list_name}
+                                    value={`"${option.list_name}"`}
+                                    label={option.list_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.list_name}
+                                      </div>
+                                      <a
+                                        style={{ fontSize: '13px', color: '#1677ff' }}
+                                        onClick={(e) => goLink(e, option)}
+                                        rel="noopener noreferrer"
+                                      >
+                                        更多详情
+                                      </a>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                        
+                          case 'email_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.email_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.email_name}
+                                    value={`"${option.email_name}"`}
+                                    label={option.email_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.email_name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                        
+                          case 'feishu_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.feishu_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.feishu_name}
+                                    value={`"${option.feishu_name}"`}
+                                    label={option.feishu_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.feishu_name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                          
+                          case 'dingtalk_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.dingtalk_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.dingtalk_name}
+                                    value={`"${option.dingtalk_name}"`}
+                                    label={option.dingtalk_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.dingtalk_name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                          
+                          case 'webhook_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.webhook_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.webhook_name}
+                                    value={`"${option.webhook_name}"`}
+                                    label={option.webhook_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.webhook_name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                          
+                          case 'counter_name':
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                onFocus={() => {
+                                  getList(currentFunctionInfo?.funcmeta?.name || '')
+                                }}
+                                disabled={!configurable || disabled}
+                              >
+                                {menuList?.filter((option: any) => option.counter_name).map((option: any) => (
+                                  <AutoComplete.Option
+                                    key={option.counter_name}
+                                    value={`"${option.counter_name}"`}
+                                    label={option.counter_name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.counter_name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                          
+                          case 'counter_method': 
+                            return (
+                              <AutoComplete
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                style={{ minWidth: 120, width: 160 }}
+                                value={value}
+                                popupMatchSelectWidth={300}
+                                onChange={(val) =>
+                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                disabled={!configurable || disabled}
+                              >
+                                {[{name: '查询'}, {name: '计算'}].filter((option) => option.name).map((option) => (
+                                  <AutoComplete.Option
+                                    key={option.name}
+                                    value={`"${option.name}"`}
+                                    label={option.name}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div
+                                        className="max-w-[230px] overflow-hidden whitespace-nowrap"
+                                        style={{ textOverflow: 'ellipsis' }}
+                                      >
+                                        {option.name}
+                                      </div>
+                                    </div>
+                                  </AutoComplete.Option>
+                                ))}
+                              </AutoComplete>
+                            );
+                          
+                          default:
+                            return (
+                              <Input
+                                key={ele.arg_name}
+                                placeholder={placeholder}
+                                value={value}
+                                style={{ minWidth: 120, width: 160 }}
+                                onChange={(e) =>
+                                  inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                }
+                                autoComplete="off"
+                                disabled={!configurable || disabled}
+                              />
+                            );
+                        }
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            },
+            {
+              key: 'code',
+              label: 'Code',
+              children: (
+                <ExpressionItemContextMenu index={index}>
+                  <div>
+                    <DiffCodeEditor
+                      className='expression-list-item__value'
+                      placeholder='Expression'
+                      maxRows={9}
+                      disabled={disabled}
+                      value={expression?.value}
+                      displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
+                      previousValue={expression?._diff?.fields?.value?.previousValue}
+                      onChange={(value) => onChange({ value })}
+                      variableType={variableType}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
+                      noStyle={true}
+                    />
+                    <ResultOverlay expression={expression} />
+                  </div>
+                </ExpressionItemContextMenu>
+              )
+            }
+          ]}
+        />
       </div>
       <div className='expression-list-item__action'>
         <ConfirmAction iconOnly disabled={permission !== 'edit:full' || disabled} onConfirm={onRemove} />

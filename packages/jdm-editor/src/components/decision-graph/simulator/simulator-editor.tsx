@@ -3,6 +3,7 @@ import { Spin, message, theme } from 'antd';
 import json5 from 'json5';
 import React from 'react';
 
+import '../../../helpers/monaco';
 import { copyToClipboard } from '../../../helpers/utility';
 
 type SimulatorEditorProps = {

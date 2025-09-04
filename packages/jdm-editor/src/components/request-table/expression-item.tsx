@@ -319,10 +319,10 @@ const fun = () => {
             return (
               <Select
                 mode="tags"
-                value={(expression?.value && expression?.value.length) ? expression?.value.map(item => JSON.stringify(item)) : []}
+                value={(expression?.value && expression?.value.length) ? expression?.value.map((item: any) => JSON.stringify(item)) : []}
                 style={{ width: '100%' }}
                 onChange={(value) => {
-                  const output = value.map(item => {
+                  const output = value.map((item: string) => {
                     try {
                       return JSON.parse(item);
                     } catch (e) {

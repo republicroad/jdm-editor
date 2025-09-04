@@ -35,9 +35,9 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
   type: NodeKind.CustomFunction,
   icon: <HashIcon size='1em' />,
   displayName: '自定义节点',
-  documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
+  documentationUrl: '     ',
   shortDescription: 'Mapping utility',
-  renderTab: ({ id, manager, userId, projectId }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} />,
+  renderTab: ({ id, manager, userId, projectId, menuList, customFunctions }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} menuList={menuList} customFunctions={customFunctions} />,
   getDiffContent: (current, previous) => {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
@@ -195,7 +195,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         name={data.name}
         isSelected={selected}
         actions={[
-          <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
+          <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id,data.name,data.kind)}>
             Edit Expression
           </Button>,
         ]}

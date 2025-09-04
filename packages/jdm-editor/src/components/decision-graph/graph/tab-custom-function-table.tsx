@@ -6,7 +6,7 @@ import type { z } from 'zod';
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
 import type { customNodeSchema } from '../../../helpers/schema';
-import { get } from '../../../helpers/utility';
+import { get, smartSplit } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { CustomFunction } from '../../custom-function-table';
 import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
@@ -19,9 +19,11 @@ export type TabExpressionProps = {
   manager?: DragDropManager;
   userId?: string;
   projectId?: string | null;
+  menuList?: any;
+  customFunctions?: any;
 };
 
-export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager, userId, projectId }) => {
+export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager, userId, projectId,menuList, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
   const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
     disabled,
@@ -79,10 +81,34 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
         disabled={disabled}
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
         manager={manager}
+        menuList={menuList}
+        customFunctions={customFunctions}
         debug={debug}
         onChange={(val:any) => {
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;
+            
+            // 同时更新expr_asts数组格式
+            draft.content.config.expr_asts = val.map((expr: any) => {
+              if (expr.type === 'function' && expr.value) {
+                // 对于函数类型，将;;分割的字符串转换为数组
+                const valueArray = smartSplit(expr.value);
+                return {
+                  id: expr.id,
+                  key: expr.key,
+                  value: valueArray
+                };
+              } else {
+                // 对于非函数类型，将value按;;分割成数组，或直接使用单个值
+                const valueArray = expr.value ? smartSplit(expr.value) : [expr.value || ''];
+                return {
+                  id: expr.id,
+                  key: expr.key,
+                  value: valueArray
+                };
+              }
+            });
+            
             draft.content.config.meta = {
               user: userId,
               proj: projectId
@@ -102,3 +128,4 @@ const safeJson = (data: string): unknown => {
     return null;
   }
 };
+

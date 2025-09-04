@@ -10,10 +10,11 @@ import { useExpressionStore } from './context/expression-store.context';
 import { ExpressionItem } from './expression-item';
 
 export type ExpressionListProps = {
-  //
+  menuList?: any;
+  customFunctions?: any;
 };
 
-export const ExpressionList: React.FC<ExpressionListProps> = ({}) => {
+export const ExpressionList: React.FC<ExpressionListProps> = ({menuList, customFunctions}) => {
   const { expressions, addRowBelow, permission, disabled, inputVariableType } = useExpressionStore(
     ({ expressions, addRowBelow, permission, disabled, inputVariableType }) => ({
       expressions,
@@ -57,7 +58,7 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({}) => {
           <div />
         </div>
         {(expressions || []).map((expression, index) => (
-          <ExpressionItem key={expression.id} expression={expression} index={index} variableType={variableType} />
+          <ExpressionItem key={expression.id} expression={expression} index={index} variableType={variableType} menuList={menuList} customFunctions={customFunctions} />
         ))}
       </div>
       {permission === 'edit:full' && !disabled && (

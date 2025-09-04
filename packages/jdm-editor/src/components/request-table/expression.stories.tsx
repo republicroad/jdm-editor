@@ -6,9 +6,9 @@ import type { ExpressionEntry } from './context/expression-store.context';
 import { Expression } from './expression';
 
 const expressionDefault: ExpressionEntry[] = [
-  { id: '1', key: 'customer.fullName', value: 'customer.firstName + " " + customer.lastName' },
-  { id: '2', key: 'customer.isPremium', value: 'contains(customer.tags, "premium")' },
-  { id: '3', key: 'customer.purchaseTotals', value: 'sum(map(customer.purchases, #.amount))' },
+  { id: '1', key: 'customer.fullName', value: 'customer.firstName + " " + customer.lastName',type: 'string' },
+  { id: '2', key: 'customer.isPremium', value: 'contains(customer.tags, "premium")',type: 'string' },
+  { id: '3', key: 'customer.purchaseTotals', value: 'sum(map(customer.purchases, #.amount))',type: 'string' },
 ];
 
 const meta: Meta<typeof Expression> = {

@@ -38,6 +38,7 @@ export type DecisionGraphEmptyType = {
 
   onCodeExtension?: DecisionGraphStoreType['listeners']['onCodeExtension'];
   onFunctionReady?: DecisionGraphStoreType['listeners']['onFunctionReady'];
+  onEventClickHandle?: DecisionGraphStoreType['listeners']['onEventClickHandle'];
 };
 
 export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
@@ -59,6 +60,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onReactFlowInit,
   onCodeExtension,
   onFunctionReady,
+  onEventClickHandle,
 }) => {
   const mountedRef = useRef(false);
   const graphActions = useDecisionGraphActions();
@@ -111,8 +113,9 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       onCodeExtension,
       onFunctionReady,
       onViewConfigCta,
+      onEventClickHandle,
     });
-  }, [onReactFlowInit, onPanelsChange, onCodeExtension, onFunctionReady, onViewConfigCta]);
+  }, [onReactFlowInit, onPanelsChange, onCodeExtension, onFunctionReady, onViewConfigCta, onEventClickHandle]);
 
   useEffect(() => {
     listenerStore.setState({ onChange: innerChange });

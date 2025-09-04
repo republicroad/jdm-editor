@@ -144,7 +144,7 @@ export type DecisionGraphStoreType = {
     setHoveredEdgeId: (edgeId: string | null) => void;       // 设置悬停边ID
 
     closeTab: (id: string, action?: string) => void;         // 关闭标签页
-    openTab: (id: string) => void;                           // 打开标签页
+    openTab: (id: string, name?: string, typeV3?: string) => void;
     goToNode: (id: string) => void;                          // 导航到节点
 
     setActivePanel: (panel?: string) => void;                // 设置活动面板
@@ -157,6 +157,8 @@ export type DecisionGraphStoreType = {
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;                // 删除节点类型
 
     triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;  // 触发节点选择
+    handleEditorDomClick:(type: string, data: any) => void
+
   };
 
   // 监听器部分
@@ -167,6 +169,7 @@ export type DecisionGraphStoreType = {
     onCodeExtension?: CodeEditorProps['extension'];            // 代码扩展监听器
     onFunctionReady?: (monaco: Monaco) => void;                // 函数准备好监听器
     onViewConfigCta?: () => void;                              // 视图配置行动召唤监听器
+    onEventClickHandle?: (type: any, data: any) => void;
   };
 };
 
@@ -230,6 +233,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       create<DecisionGraphStoreType['listeners']>(() => ({
         onChange: undefined,
         onPanelsChange: undefined,
+        onEventClickHandle: undefined
       })),
     [],
   );
@@ -614,7 +618,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
 
       // 打开标签页
-      openTab: (id: string) => {
+      openTab: (id: string, name?: string, typeV3?: string) => {
         const { openTabs } = stateStore.getState();
         const nodeId = openTabs.find((i) => i === id);
 
@@ -626,6 +630,30 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           stateStore.setState({ activeTab: nodeId });
         } else {
           stateStore.setState({ openTabs: [...openTabs, id], activeTab: id });
+        }
+
+        // 请求回调数据
+        console.log('name', name);
+        if(name){
+          let type = name.split('_')[1] || typeV3
+          switch (type) {
+            case 'UDF':
+                type = 'function'
+              break;
+            case 'NOTIFY':
+                type = 'notify'
+              break;
+            case 'LIST':
+              type = 'menu'
+              break;
+            default:
+              type = type
+              break;
+          }
+          const { onEventClickHandle } = listenerStore.getState();
+          if (onEventClickHandle) {
+            onEventClickHandle(type, '')
+          }
         }
       },
 
@@ -762,6 +790,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
+
+      // eventClik 和业务相关的点击事件
+      handleEditorDomClick: (type: string, data: any) => {
+        const { onEventClickHandle } = listenerStore.getState();
+        if (onEventClickHandle) {
+          onEventClickHandle(type, data)
+        }
+      }
     }),
     [],
   );

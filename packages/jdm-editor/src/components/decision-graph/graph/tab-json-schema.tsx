@@ -8,6 +8,7 @@ import { PanelGroup } from 'react-resizable-panels';
 import { match } from 'ts-pattern';
 import { useThrottledCallback } from 'use-debounce';
 
+import '../../../helpers/monaco';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';
 import { JsonToJsonSchemaDialog } from './json-to-json-schema-dialog';
 

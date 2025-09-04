@@ -3,7 +3,7 @@ import { fn } from '@storybook/test';
 import React, { useState } from 'react';
 
 import type { ExpressionEntry } from './context/expression-store.context';
-import { Expression } from './expression';
+import { CustomFunction } from './expression';
 
 const expressionDefault: ExpressionEntry[] = [
   { id: '1', key: 'customer.fullName', value: 'customer.firstName + " " + customer.lastName' },
@@ -11,13 +11,13 @@ const expressionDefault: ExpressionEntry[] = [
   { id: '3', key: 'customer.purchaseTotals', value: 'sum(map(customer.purchases, #.amount))' },
 ];
 
-const meta: Meta<typeof Expression> = {
+const meta: Meta<typeof CustomFunction> = {
   /* 👇 The title prop is optional.
    * See https://storybook.js.org/docs/react/configure/overview#configure-story-loading
    * to learn how to generate automatic titles
    */
   title: 'Expression',
-  component: Expression,
+  component: CustomFunction,
   args: {
     disabled: false,
     defaultValue: expressionDefault,
@@ -36,7 +36,7 @@ const meta: Meta<typeof Expression> = {
 
 export default meta;
 
-type Story = StoryObj<typeof Expression>;
+type Story = StoryObj<typeof CustomFunction>;
 
 const StoryWrapper: React.FC<React.PropsWithChildren<any>> = ({ children }) => (
   <div style={{ maxWidth: 900 }}>{children}</div>
@@ -46,7 +46,7 @@ export const Uncontrolled: Story = {
   render: (args) => {
     return (
       <StoryWrapper>
-        <Expression {...args} />
+        <CustomFunction {...args} />
       </StoryWrapper>
     );
   },
@@ -58,7 +58,7 @@ export const Controlled: Story = {
 
     return (
       <StoryWrapper>
-        <Expression value={value} onChange={setValue} {...args} />
+        <CustomFunction value={value} onChange={setValue} {...args} />
       </StoryWrapper>
     );
   },

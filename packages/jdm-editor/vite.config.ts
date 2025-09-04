@@ -11,6 +11,9 @@ export default defineConfig({
   resolve: {
     dedupe: ['@lezer/common', '@lezer/lr', '@lezer/highlight'],
   },
+  worker: {
+    format: 'es',
+  },
   build: {
     target: 'esnext',
     sourcemap: true,
