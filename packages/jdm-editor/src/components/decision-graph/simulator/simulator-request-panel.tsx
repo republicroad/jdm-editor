@@ -5,7 +5,7 @@ import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
-import { NodeTypeKind, useDecisionGraphRaw } from '../context/dg-store.context';
+import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
 
@@ -29,6 +29,23 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
 }) => {
   const [requestValue, setRequestValue] = useState(defaultRequest);
   const { stateStore, actions } = useDecisionGraphRaw();
+  
+  const { simulatorRequest } = useDecisionGraphState(({ simulatorRequest }) => ({
+    simulatorRequest,
+  }));
+
+  useEffect(() => {
+    if (simulatorRequest !== undefined && simulatorRequest !== requestValue) {
+      setRequestValue(simulatorRequest);
+      onChange?.(simulatorRequest);
+    }
+  }, [simulatorRequest]);
+
+  useEffect(() => {
+    if (defaultRequest !== undefined && defaultRequest !== requestValue) {
+      setRequestValue(defaultRequest);
+    }
+  }, [defaultRequest]);
 
   useEffect(() => {
     if (!isWasmAvailable()) {
