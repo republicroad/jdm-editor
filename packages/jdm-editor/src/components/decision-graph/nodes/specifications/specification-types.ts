@@ -24,6 +24,7 @@ export type MinimalNodeSpecification = Pick<
 
 type GenerateNodeParams = {
   index: number;
+  component?: string;
 };
 
 export type InferTypeData<T> = {

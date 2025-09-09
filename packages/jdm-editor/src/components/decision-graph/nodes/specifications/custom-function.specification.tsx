@@ -160,8 +160,8 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
       return determinedType;
     },
   },
-  generateNode: ({ index }) => ({
-    name: `customNode${index}`,
+  generateNode: ({ component,index }) => ({
+    name: `${component}${index}`,
     content: {
       kind: 'customNode',
       config: {

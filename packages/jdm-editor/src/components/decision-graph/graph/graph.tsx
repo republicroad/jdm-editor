@@ -233,9 +233,12 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     // 根据类型和组件查找节点规格
     const customSpecification = match(type)
       .with('customNode', () => {
-        // customNodes.find((node) => node.kind === component)
+        let custom = customNodes.find((node) => node.kind === component)
+        console.log('customNodes', customNodes);
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
-        return allSpecifications.find((s) => s.type === type);
+        let middle = allSpecifications.find((s) => s.type === type) || {};
+        Object.assign(middle, { icon: custom?.icon });
+        return middle;
       })
       .otherwise(() => {
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
@@ -252,7 +255,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         // 处理自定义节点类型
         const existingCount =
           (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
-        const partialNode = specification.generateNode({ index: existingCount });
+        const partialNode = specification.generateNode({ component: component || 'customNode',index: existingCount });
         
           return {
             id: crypto.randomUUID(),

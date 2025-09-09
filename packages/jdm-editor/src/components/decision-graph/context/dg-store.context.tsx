@@ -635,21 +635,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         // 请求回调数据
         console.log('name', name);
         if(name){
-          let type = name.split('_')[1] || typeV3
-          switch (type) {
-            case 'UDF':
-                type = 'function'
-              break;
-            case 'NOTIFY':
-                type = 'notify'
-              break;
-            case 'LIST':
-              type = 'menu'
-              break;
-            default:
-              type = type
-              break;
-          }
+          let type = typeV3
+          
           const { onEventClickHandle } = listenerStore.getState();
           if (onEventClickHandle) {
             onEventClickHandle(type, '')
