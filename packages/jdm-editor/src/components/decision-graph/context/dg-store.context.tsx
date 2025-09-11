@@ -74,6 +74,7 @@ export enum NodeTypeKind {
  */
 export type SetDecisionGraphOptions = {
   skipOnChangeEvent?: boolean;  // 是否跳过onChange事件触发
+  autoFitView?: boolean;        // 是否在设置图数据后自动适应视图
 };
 
 /**
@@ -577,8 +578,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       // 设置决策图
       setDecisionGraph: (graph, options = {}) => {
         const { decisionGraph } = stateStore.getState();
-        const { edgesState, nodesState } = referenceStore.getState();
-        const { skipOnChangeEvent = false } = options;
+        const { edgesState, nodesState, reactFlowInstance } = referenceStore.getState();
+        const { skipOnChangeEvent = false, autoFitView = false } = options;
 
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           Object.assign(draft, graph);
@@ -591,6 +592,24 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         });
         if (!skipOnChangeEvent) {
           listenerStore.getState().onChange?.(newDecisionGraph);
+        }
+
+        // 如果启用了自动适应视图，并且有节点数据，则在渲染完成后自动调用 fitView
+        if (autoFitView && newDecisionGraph?.nodes && newDecisionGraph.nodes.length > 0) {
+          console.log('自动适应视图已启用，节点数量:', newDecisionGraph.nodes.length);
+          // 使用 setTimeout 确保节点已经渲染完成
+          setTimeout(() => {
+            if (reactFlowInstance?.current) {
+              console.log('执行自动 fitView');
+              reactFlowInstance.current.fitView({ 
+                duration: 800, 
+                maxZoom: 1, 
+                padding: 0.1 
+              });
+            } else {
+              console.log('ReactFlow 实例不可用');
+            }
+          }, 100);
         }
       },
 

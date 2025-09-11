@@ -108,7 +108,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       // 处理特殊函数的清理逻辑
       if (update.funcmeta?.name) {
         const type = update.funcmeta?.name.split('_')[1];
-        (update.funcmeta?.name.includes('notify')||update.funcmeta?.name.includes('list') || update.funcmeta?.name.includes('counter')) && graphActions.handleEditorDomClick('clear', update.funcmeta.name)
+        (update.funcmeta?.name.includes('notify')||update.funcmeta?.name.includes('list') || update.funcmeta?.name.includes('counter')) && graphActions.handleEditorDomClick(update.funcmeta.kind, update.funcmeta.name)
       }
     } else {
       updateRow(index, update);
@@ -153,7 +153,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     const type = name.split('_')[1];
     name.includes('notify')&& graphActions.handleEditorDomClick(type, name);
     name.includes('list')&& graphActions.handleEditorDomClick(type, name);
-    name.includes('counter')&& graphActions.handleEditorDomClick('counter', name);
+    name.includes('counter')&& graphActions.handleEditorDomClick('counterDetail', name);
   };
 
   const fun = () => {
@@ -291,9 +291,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{  minWidth: 120, width: 160 }}
+                                style={{  minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -308,7 +308,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                     value={`"${option.list_name}"`}
                                     label={option.list_name}
                                   >
-                                    <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center justify-between gap-2" style={{display:'flex',alignItems:'center',justifyContent:'space-between',maxWidth:'180px'}}>
                                       <div
                                         className="max-w-[230px] overflow-hidden whitespace-nowrap"
                                         style={{ textOverflow: 'ellipsis' }}
@@ -333,9 +333,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -368,9 +368,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -403,9 +403,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -438,9 +438,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -473,9 +473,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -493,7 +493,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                     <div className="flex items-center justify-between gap-2">
                                       <div
                                         className="max-w-[230px] overflow-hidden whitespace-nowrap"
-                                        style={{ textOverflow: 'ellipsis' }}
+                                        style={{ textOverflow: 'ellipsis', maxWidth: '180px' }}
                                       >
                                         {option.counter_name}
                                       </div>
@@ -508,9 +508,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               <AutoComplete
                                 key={ele.arg_name}
                                 placeholder={placeholder}
-                                style={{ minWidth: 120, width: 160 }}
+                                style={{ minWidth: 120, width: 180 }}
                                 value={value}
-                                popupMatchSelectWidth={300}
+                                popupMatchSelectWidth={180}
                                 onChange={(val) =>
                                   inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
@@ -546,7 +546,6 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                   inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
                                 autoComplete="off"
-                                disabled={!configurable || disabled}
                               />
                             );
                         }

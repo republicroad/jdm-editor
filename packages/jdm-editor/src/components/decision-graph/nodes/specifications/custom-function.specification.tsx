@@ -1,11 +1,11 @@
-import { ArrowRightOutlined, SyncOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, SyncOutlined,NodeIndexOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Form } from 'antd';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { HashIcon } from 'lucide-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { z } from 'zod';
 
 import { useNodeType } from '../../../../helpers/node-type';
@@ -33,7 +33,7 @@ export type NodeExpressionData = InferredContent & Diff;
 
 export const customFunctionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.CustomFunction,
-  icon: <HashIcon size='1em' />,
+  icon: <NodeIndexOutlined />,
   displayName: '自定义节点',
   documentationUrl: '     ',
   shortDescription: 'Mapping utility',
@@ -42,7 +42,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
 
-      if ((current.config.executionMode || false) !== (previous.config.executionMode || false)) {
+      if ((current.config.executionMode || 'single') !== (previous.config.executionMode || 'single')) {
         _.set(fields, 'executionMode', {
           status: 'modified',
           previousValue: previous.config.executionMode,
@@ -63,7 +63,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         });
       }
 
-      if ((current.config.passThrough || false) !== (previous.config.passThrough || false)) {
+      if ((current.config.passThrough || true) !== (previous.config.passThrough || true)) {
         _.set(fields, 'passThrough', {
           status: 'modified',
           previousValue: previous.config.passThrough,
@@ -165,7 +165,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     content: {
       kind: 'customNode',
       config: {
-        version: "v2",
+        version: "v3",
         meta: {
           user: "",
           proj: ""
@@ -173,25 +173,31 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         expressions: [],
         inputField: null,
         outputPath: null,
-        passThrough: false,
+        passThrough: true,
         executionMode: 'single',
       },
     },
   }),
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification,customNodes }) => {
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData;
       return {
-        passThrough: content?.config.passThrough || false,
-        executionMode: content?.config.executionMode,
+        passThrough: content?.config.passThrough || true,
+        executionMode: content?.config.executionMode || 'single',
       };
     });
+    const nodeSpecification = useMemo(() => {
+      const customNode = customNodes?.find((node) => node.kind === data.kind);
+      return customNode 
+        ? { ...specification, icon: customNode.icon}
+        : specification;
+    }, [specification, customNodes, data.kind]);
 
     return (
       <GraphNode
         id={id}
-        specification={specification}
+        specification={nodeSpecification}
         name={data.name}
         isSelected={selected}
         actions={[
@@ -213,7 +219,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         disabled,
         fields: {
           ...content, // 包含所有字段，包括expressions
-          version: "v2", // 默认值覆盖
+          version: "v3", // 默认值覆盖
           // 其他默认值
         },
       };
@@ -263,7 +269,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
             onChange={(e) => updateNode({ config: { ...fields, outputPath: e?.target?.value?.trim() || null } })}
           />
         </Form.Item>
-        <Form.Item label='Execution mode'>
+        <Form.Item label='Execution mode' style={{display:'none'}}>
           <DiffRadio
             size={'small'}
             disabled={disabled}

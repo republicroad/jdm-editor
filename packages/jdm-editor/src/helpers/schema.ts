@@ -241,7 +241,7 @@ export const customNodeSchema = z
     content: z.object({
       kind: z.string(),
       config: z.object({
-        version: z.string().default('v2'),
+        version: z.string().default('v3'),
         expressions: z.array(
           z.object({
             id,

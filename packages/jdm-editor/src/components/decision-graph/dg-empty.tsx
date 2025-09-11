@@ -17,6 +17,7 @@ export type DecisionGraphEmptyType = {
   value?: DecisionGraphType;
 
   disabled?: boolean;
+  autoFitView?: boolean;  // 新增：是否在数据加载后自动适应视图
 
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
@@ -47,6 +48,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   value,
   name,
   disabled = false,
+  autoFitView = false,
   onChange,
   components,
   customNodes,
@@ -123,15 +125,15 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
 
   useEffect(() => {
     if (mountedRef.current && value !== undefined && !equal(value, decisionGraph)) {
-      graphActions.setDecisionGraph(value);
+      graphActions.setDecisionGraph(value, { autoFitView });
     }
-  }, [value]);
+  }, [value, autoFitView]);
 
   useEffect(() => {
     if (value !== undefined) {
-      graphActions.setDecisionGraph(value);
+      graphActions.setDecisionGraph(value, { autoFitView });
     } else if (defaultValue !== undefined) {
-      graphActions.setDecisionGraph(defaultValue);
+      graphActions.setDecisionGraph(defaultValue, { autoFitView });
     }
 
     stateStore.setState({

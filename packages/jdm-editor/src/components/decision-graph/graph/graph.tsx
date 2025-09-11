@@ -65,28 +65,6 @@ export type GraphRef = DecisionGraphStoreType['actions'] & {
 };
 
 /**
- * 通过映射nodeSpecification创建默认节点类型
- * 每种节点类型都用React.memo包装以优化性能
- */
-const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key]: React.memo(
-      (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props }),
-      (prevProps, nextProps) => {
-        // 自定义相等性检查，防止不必要的重新渲染
-        return (
-          prevProps.id === nextProps.id &&
-          prevProps.selected === nextProps.selected &&
-          equal(prevProps.data, nextProps.data)
-        );
-      },
-    ),
-  }),
-  {},
-);
-
-/**
  * 自定义边类型配置
  */
 const edgeTypes = {
@@ -179,6 +157,28 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       },
     );
   }, [customNodes]);
+
+  /**
+ * 通过映射nodeSpecification创建默认节点类型
+ * 每种节点类型都用React.memo包装以优化性能
+ */
+const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key]: React.memo(
+      (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props,customNodes: customNodes }),
+      (prevProps, nextProps) => {
+        // 自定义相等性检查，防止不必要的重新渲染
+        return (
+          prevProps.id === nextProps.id &&
+          prevProps.selected === nextProps.selected &&
+          equal(prevProps.data, nextProps.data)
+        );
+      },
+    ),
+  }),
+  {},
+);
 
   /**
    * 组合节点类型，包括默认节点、组件和自定义节点

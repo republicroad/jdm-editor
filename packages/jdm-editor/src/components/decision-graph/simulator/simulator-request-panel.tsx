@@ -5,6 +5,7 @@ import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
+import { fJson } from '../../../helpers/utility';
 import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
@@ -30,9 +31,14 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   const [requestValue, setRequestValue] = useState(defaultRequest);
   const { stateStore, actions } = useDecisionGraphRaw();
   
-  const { simulatorRequest } = useDecisionGraphState(({ simulatorRequest }) => ({
-    simulatorRequest,
-  }));
+  const { simulatorRequest, inputNodeContent } = useDecisionGraphState(({ simulatorRequest, decisionGraph }) => {
+    // 获取输入节点的内容
+    const inputNode = decisionGraph?.nodes?.find((n) => n.type === 'inputNode');
+    return {
+      simulatorRequest,
+      inputNodeContent: inputNode?.content?.inputs,
+    };
+  });
 
   useEffect(() => {
     if (simulatorRequest !== undefined && simulatorRequest !== requestValue) {
@@ -46,6 +52,22 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       setRequestValue(defaultRequest);
     }
   }, [defaultRequest]);
+
+  // 监听输入节点内容变化，同步到simulator
+  useEffect(() => {
+    if (inputNodeContent !== undefined) {
+      try {
+        // 将输入节点的内容格式化为JSON字符串
+        const formattedContent = fJson(inputNodeContent);
+        if (formattedContent && formattedContent !== requestValue && formattedContent !== simulatorRequest) {
+          setRequestValue(formattedContent);
+          onChange?.(formattedContent);
+        }
+      } catch (error) {
+        console.warn('Failed to sync input node content to simulator:', error);
+      }
+    }
+  }, [inputNodeContent, onChange, requestValue, simulatorRequest]);
 
   useEffect(() => {
     if (!isWasmAvailable()) {

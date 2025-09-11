@@ -16,7 +16,9 @@ export enum NodeKind {
   Switch = 'switchNode',
 }
 
-export type MinimalNodeProps = Pick<NodeProps, 'id' | 'data' | 'selected'>;
+export type MinimalNodeProps = Pick<NodeProps, 'id' | 'data' | 'selected'> & {
+  customNodes?: any[];
+};
 export type MinimalNodeSpecification = Pick<
   NodeSpecification,
   'color' | 'icon' | 'displayName' | 'documentationUrl' | 'helper' | 'renderSettings'

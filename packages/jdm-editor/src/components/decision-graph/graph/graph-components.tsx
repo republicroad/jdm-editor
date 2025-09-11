@@ -45,7 +45,7 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
 
   const innerGroups = useMemo<Record<string, NodeSpecification[]>>(() => {
     const initialGroups: Record<string, NodeSpecification[]> = {
-      core: Object.values(nodeSpecification),
+      core: Object.values(nodeSpecification).filter(spec => spec.type !== 'customNode'),
     };
     if (customComponents?.length > 0) {
       initialGroups.extended = customComponents;
