@@ -182,11 +182,11 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
       label: 'Upload JSON',
       onClick: () => fileInput?.current?.click?.(),
     },
-    {
-      key: 'upload-excel',
-      label: 'Upload Excel',
-      onClick: () => excelFileInput?.current?.click?.(),
-    },
+    // {
+    //   key: 'upload-excel',
+    //   label: 'Upload Excel',
+    //   onClick: () => excelFileInput?.current?.click?.(),
+    // },
   ].filter((item) => !!item);
 
   const downloadItems: MenuProps['items'] = [
@@ -195,11 +195,11 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
       label: 'Download JSON',
       onClick: () => downloadJDM(),
     },
-    {
-      key: 'download-excel',
-      label: 'Download Excel',
-      onClick: () => downloadJDMExcel(),
-    },
+    // {
+    //   key: 'download-excel',
+    //   label: 'Download Excel',
+    //   onClick: () => downloadJDMExcel(),
+    // },
   ].filter((item) => !!item);
 
   return (

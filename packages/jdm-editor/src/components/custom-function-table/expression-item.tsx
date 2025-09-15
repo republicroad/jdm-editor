@@ -3,7 +3,7 @@ import type { Row } from '@tanstack/react-table';
 import { Typography, Tabs, AutoComplete, Button, Input, Popconfirm, Select } from 'antd';
 import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { getTrace } from '../../helpers/trace';
@@ -32,6 +32,69 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   const [editMode, setEditMode] = useState<'code' | 'function'>('function');
   const expressionRef = useRef<HTMLDivElement>(null);
 
+  // 优化的智能分割函数，正确处理引号内的;;分隔符
+  const smartSplit = (str: string): string[] => {
+    if (!str || typeof str !== 'string') {
+      return [''];
+    }
+    
+    // 先尝试简单分割，看看是否有合理的结构
+    const simpleParts = str.split(';;');
+    
+    // 如果只有一个部分，直接返回
+    if (simpleParts.length <= 1) {
+      return [str];
+    }
+    
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let quoteChar = '';
+    
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      const nextChar = str[i + 1];
+      
+      // 检查是否进入引号
+      if ((char === '"' || char === "'" || char === '`') && !inQuotes) {
+        // 检查这个引号是否有匹配的结束引号
+        const remainingStr = str.substring(i + 1);
+        const closingQuoteIndex = remainingStr.indexOf(char);
+        
+        if (closingQuoteIndex !== -1) {
+          // 找到匹配的结束引号，正常处理
+          inQuotes = true;
+          quoteChar = char;
+          current += char;
+        } else {
+          // 没有找到匹配的结束引号，当作普通字符处理
+          current += char;
+        }
+      } 
+      // 检查是否退出引号（找到匹配的结束引号）
+      else if (char === quoteChar && inQuotes) {
+        inQuotes = false;
+        quoteChar = '';
+        current += char;
+      } 
+      // 检查是否遇到;;分隔符
+      else if (char === ';' && nextChar === ';' && !inQuotes) {
+        // 不在引号内，正常分割
+        result.push(current);
+        current = '';
+        i++; // 跳过下一个 ;
+      } else {
+        current += char;
+      }
+    }
+    
+    // 添加最后一部分
+    result.push(current);
+    
+    return result;
+  };
+  
+
   // 解析;;分隔的value字符串，用于函数模式显示
   const parseFunctionValue = (value: string) => {
     if (!value || typeof value !== 'string') return null;
@@ -51,7 +114,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     if (funcDef.arguments && Array.isArray(funcDef.arguments)) {
       funcDef.arguments.forEach((argDef: any, index: number) => {
         if (argDef.arg_name) {
-          argExprs[argDef.arg_name] = args[index] || '';
+          argExprs[argDef.arg_name] = args[index] ?? '';
         }
       });
     }
@@ -63,9 +126,13 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   };
 
   // 获取当前表达式的函数信息（用于显示）
-  const currentFunctionInfo = expression.type === 'function' ? 
-    (expression.funcmeta ? { funcmeta: expression.funcmeta, arg_exprs: expression.arg_exprs } : parseFunctionValue(expression.value)) : 
-    null;
+  const currentFunctionInfo = useMemo(() => {
+    if (expression.type !== 'function') return null;
+    
+    return expression.funcmeta ? 
+      { funcmeta: expression.funcmeta, arg_exprs: expression.arg_exprs } : 
+      parseFunctionValue(expression.value);
+  }, [expression.type, expression.funcmeta, expression.arg_exprs, expression.value, customFunctions]);
 
 
   const { updateRow, removeRow, swapRows, disabled, permission, configurable } = useExpressionStore(
@@ -89,7 +156,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       // 收集参数值，优先使用传入的arg_exprs，否则使用现有的
       const currentArgExprs = update.arg_exprs || expression.arg_exprs || {};
       args.forEach((arg: any) => {
-        const argValue = currentArgExprs[arg.arg_name] || '';
+        const argValue = currentArgExprs[arg.arg_name] ?? '';
         argValues.push(argValue);
       });
       
@@ -128,7 +195,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       
       // 收集所有参数值
       args.forEach((arg: any) => {
-        const argValue = currentArgExprs[arg.arg_name] || '';
+        const argValue = currentArgExprs[arg.arg_name] ?? '';
         argValues.push(argValue);
       });
       
@@ -283,7 +350,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                     <div className='flex gap-2'>
                       {(currentFunctionInfo?.funcmeta?.arguments || []).map((ele: any, argIndex: number) => {
                         const placeholder = currentFunctionInfo?.funcmeta?.arguments[argIndex]?.comments;
-                        const value = currentFunctionInfo?.arg_exprs?.[ele.arg_name] || '';
+                        const value = currentFunctionInfo?.arg_exprs?.[ele.arg_name] ?? '';
                         
                         switch (ele.arg_name) {
                           case 'list_name':
@@ -294,9 +361,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                 style={{  minWidth: 120, width: 180 }}
                                 value={value}
                                 popupMatchSelectWidth={180}
-                                onChange={(val) =>
-                                  inputChange({ value: val, type: currentFunctionInfo?.funcmeta?.name, key: ele })
-                                }
+                                onChange={(e) => {
+                                  inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: ele });
+                                }}
                                 onFocus={() => {
                                   getList(currentFunctionInfo?.funcmeta?.name || '')
                                 }}

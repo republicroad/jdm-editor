@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Tooltip, Typography, notification } from 'antd';
 import json5 from 'json5';
@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { fJson } from '../../../helpers/utility';
-import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
+import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState, useDecisionGraphActions } from '../context/dg-store.context';
 import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
 
@@ -29,14 +29,17 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   defaultRequest,
 }) => {
   const [requestValue, setRequestValue] = useState(defaultRequest);
+  const [userHasEdited, setUserHasEdited] = useState(false);
   const { stateStore, actions } = useDecisionGraphRaw();
+  const graphActions = useDecisionGraphActions();
   
-  const { simulatorRequest, inputNodeContent } = useDecisionGraphState(({ simulatorRequest, decisionGraph }) => {
+  const { simulatorRequest, inputNodeContent, inputNodeId } = useDecisionGraphState(({ simulatorRequest, decisionGraph }) => {
     // 获取输入节点的内容
     const inputNode = decisionGraph?.nodes?.find((n) => n.type === 'inputNode');
     return {
       simulatorRequest,
       inputNodeContent: inputNode?.content?.inputs,
+      inputNodeId: inputNode?.id,
     };
   });
 
@@ -53,13 +56,13 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     }
   }, [defaultRequest]);
 
-  // 监听输入节点内容变化，同步到simulator
+  // 监听输入节点内容变化，仅在用户未手动编辑时同步到simulator
   useEffect(() => {
-    if (inputNodeContent !== undefined) {
+    if (inputNodeContent !== undefined && !userHasEdited) {
       try {
         // 将输入节点的内容格式化为JSON字符串
         const formattedContent = fJson(inputNodeContent);
-        if (formattedContent && formattedContent !== requestValue && formattedContent !== simulatorRequest) {
+        if (formattedContent && formattedContent !== requestValue) {
           setRequestValue(formattedContent);
           onChange?.(formattedContent);
         }
@@ -67,7 +70,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         console.warn('Failed to sync input node content to simulator:', error);
       }
     }
-  }, [inputNodeContent, onChange, requestValue, simulatorRequest]);
+  }, [inputNodeContent, onChange, userHasEdited, requestValue]);
 
   useEffect(() => {
     if (!isWasmAvailable()) {
@@ -98,6 +101,27 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
           </Typography.Text>
         </Tooltip>
         <div className={'grl-dg__simulator__section__bar__actions'}>
+          {inputNodeContent && userHasEdited && (
+            <Tooltip title="重新同步输入节点内容">
+              <Button
+                size={'small'}
+                type={'text'}
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  try {
+                    const formattedContent = fJson(inputNodeContent);
+                    if (formattedContent) {
+                      setRequestValue(formattedContent);
+                      setUserHasEdited(false);
+                      onChange?.(formattedContent);
+                    }
+                  } catch (error) {
+                    console.warn('Failed to sync input node content:', error);
+                  }
+                }}
+              />
+            </Tooltip>
+          )}
           {onRun && (
             <Tooltip
               title={
@@ -136,7 +160,38 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
           value={requestValue}
           onChange={(text) => {
             setRequestValue(text);
+            setUserHasEdited(true);
             onChange?.(text ?? '');
+            
+            // 同步到input节点
+            if (inputNodeId && text) {
+              try {
+                // 解析JSON内容
+                const parsedContent = json5.parse(text);
+                
+                // 将解析的内容转换为input节点所需的格式
+                if (typeof parsedContent === 'object' && parsedContent !== null) {
+                  const inputs = Object.entries(parsedContent).map(([key, value], index) => ({
+                    id: `input_${index}`,
+                    key,
+                    value: typeof value === 'string' ? value : JSON.stringify(value),
+                    type: typeof value,
+                  }));
+                  
+                  // 更新input节点的内容
+                  graphActions.updateNode(inputNodeId, (draft) => {
+                    if (!draft.content) {
+                      draft.content = { inputs };
+                    } else {
+                      draft.content.inputs = inputs;
+                    }
+                    return draft;
+                  });
+                }
+              } catch (error) {
+                console.warn('Failed to sync simulator content to input node:', error);
+              }
+            }
           }}
         />
       </div>

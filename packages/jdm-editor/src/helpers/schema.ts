@@ -35,8 +35,18 @@ export const inputNodeSchema = z
             id,
             key: z.string().default(''),
             value: z.string().default(''),
+            type: z.string().optional(),
           }),
         ).default([]),
+        // 兼容inputs字段，用于向后兼容
+        inputs: z.array(
+          z.object({
+            id,
+            key: z.string().default(''),
+            value: z.string().default(''),
+            type: z.string().optional(),
+          }),
+        ).optional(),
         passThrough: z
           .boolean()
           .nullish()
