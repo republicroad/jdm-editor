@@ -101,7 +101,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
           </Typography.Text>
         </Tooltip>
         <div className={'grl-dg__simulator__section__bar__actions'}>
-          {inputNodeContent && userHasEdited && (
+          {/* {inputNodeContent && userHasEdited && (
             <Tooltip title="重新同步输入节点内容">
               <Button
                 size={'small'}
@@ -121,7 +121,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                 }}
               />
             </Tooltip>
-          )}
+          )} */}
           {onRun && (
             <Tooltip
               title={

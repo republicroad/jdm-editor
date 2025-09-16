@@ -107,7 +107,22 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     
     // 从customFunctions中找到对应的函数定义
     const funcDef = customFunctions?.find((f: any) => f.name === funcName);
-    if (!funcDef) return null;
+    if (!funcDef) {
+      // 如果找不到函数定义，创建一个基本的结构以避免UI崩溃
+      return {
+        funcmeta: {
+          name: funcName,
+          arguments: args.map((arg, index) => ({
+            arg_name: `arg${index}`,
+            comments: `参数${index + 1}`
+          }))
+        },
+        arg_exprs: args.reduce((acc, arg, index) => {
+          acc[`arg${index}`] = arg;
+          return acc;
+        }, {} as Record<string, any>)
+      };
+    }
     
     // 构建arg_exprs对象
     const argExprs: Record<string, any> = {};
@@ -127,11 +142,19 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
 
   // 获取当前表达式的函数信息（用于显示）
   const currentFunctionInfo = useMemo(() => {
-    if (expression.type !== 'function') return null;
+    // 检查是否为函数类型：显式的type=function 或者 value包含;;分隔符（推断为函数）
+    const isFunctionType = expression.type === 'function' || 
+                          (typeof expression.value === 'string' && expression.value.includes(';;'));
     
-    return expression.funcmeta ? 
-      { funcmeta: expression.funcmeta, arg_exprs: expression.arg_exprs } : 
-      parseFunctionValue(expression.value);
+    if (!isFunctionType) return null;
+    
+    // 如果已有funcmeta，直接使用
+    if (expression.funcmeta) {
+      return { funcmeta: expression.funcmeta, arg_exprs: expression.arg_exprs };
+    }
+    
+    // 否则解析value字符串
+    return parseFunctionValue(expression.value);
   }, [expression.type, expression.funcmeta, expression.arg_exprs, expression.value, customFunctions]);
 
 

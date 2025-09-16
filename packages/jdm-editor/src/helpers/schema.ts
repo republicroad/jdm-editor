@@ -259,6 +259,13 @@ export const customNodeSchema = z
             value: z.string().default(''),
           }),
         ),
+        expr_asts: z.array(
+          z.object({
+            id,
+            key: z.string().default(''),
+            value: z.array(z.string()).default([]),
+          }),
+        ),
         passThrough: z
           .boolean()
           .nullish()
