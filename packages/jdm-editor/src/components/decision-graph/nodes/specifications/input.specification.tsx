@@ -49,12 +49,10 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
   renderTab: ({ id, manager }) => <TabRequest id={id} manager={manager} type={'input'} />,
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
-    const { disabled, passThrough, executionMode } = useDecisionGraphState(({ disabled, decisionGraph }) => {
+    const { disabled } = useDecisionGraphState(({ disabled, decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeInputData;
       return {
         disabled,
-        passThrough: content?.passThrough || false,
-        executionMode: content?.executionMode,
       };
     });
 
@@ -65,7 +63,6 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         name={data.name}
         isSelected={selected}
         handleLeft={false}
-        helper={[executionMode === 'loop' && <SyncOutlined />, passThrough && <ArrowRightOutlined />]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
             Edit Request
@@ -196,13 +193,6 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         });
       }
 
-      if ((current.executionMode || 'single') !== (previous.executionMode || 'single')) {
-        _.set(fields, 'executionMode', {
-          status: 'modified',
-          previousValue: previous.executionMode,
-        });
-      }
-
       if (!compareStringFields(current.inputField, previous.inputField)) {
         _.set(fields, 'inputField', {
           status: 'modified',
@@ -214,13 +204,6 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         _.set(fields, 'outputPath', {
           status: 'modified',
           previousValue: previous.outputPath,
-        });
-      }
-
-      if ((current.passThrough || false) !== (previous.passThrough || false)) {
-        _.set(fields, 'passThrough', {
-          status: 'modified',
-          previousValue: previous.passThrough,
         });
       }
 
