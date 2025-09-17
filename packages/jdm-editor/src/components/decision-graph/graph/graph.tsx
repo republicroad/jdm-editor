@@ -255,7 +255,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
         // 处理自定义节点类型
         const existingCount =
           (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
-        const partialNode = specification.generateNode({ component: component || 'customNode',index: existingCount });
+        const partialNode = (specification as any).generateNode({ component: component || 'customNode',index: existingCount });
         
           return {
             id: crypto.randomUUID(),
@@ -279,7 +279,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
         // 处理带有type属性的标准节点
         const existingCount =
           (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
-        const partialNode = specification.generateNode({ index: existingCount });
+        const partialNode = (specification as any).generateNode({ index: existingCount });
 
         return {
           id: crypto.randomUUID(),
@@ -295,9 +295,9 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
     }
 
     // 如果可用，执行onNodeAdd钩子
-    if (customSpecification.onNodeAdd) {
+    if ((customSpecification as any).onNodeAdd) {
       try {
-        newNode = (await customSpecification.onNodeAdd(newNode as any)) as any;
+        newNode = (await (customSpecification as any).onNodeAdd(newNode as any)) as any;
       } catch {
         return;
       }

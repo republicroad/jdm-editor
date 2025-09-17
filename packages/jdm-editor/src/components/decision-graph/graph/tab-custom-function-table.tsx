@@ -77,13 +77,13 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
   return (
     <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
       <CustomFunction
-        value={content?.config.expressions}
+        value={content?.config.expressions as any}
         disabled={disabled}
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
         manager={manager}
         menuList={menuList}
         customFunctions={customFunctions}
-        debug={debug}
+        debug={debug as any}
         onChange={(val:any) => {
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;

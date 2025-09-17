@@ -175,6 +175,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         outputPath: null,
         passThrough: true,
         executionMode: 'single',
+        expr_asts: [],
       },
     },
   }),
