@@ -31,6 +31,16 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
     }),
   );
 
+  const smartSplit = (str: string): string[] => {
+    if (!str || typeof str !== 'string') {
+      return [''];
+    }
+    
+    // 使用正则表达式分割，避免在引号内的;;被分割
+    const regex = /;;(?=(?:[^"'`]*["'`][^"'`]*["'`])*[^"'`]*$)/;
+    return str.split(regex);
+  };
+
   const handleUploadInput = async (event: any) => {
     const fileList = event?.target?.files as FileList;
     const reader = new FileReader();
@@ -54,8 +64,133 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
             proj: projectId            
           };  
         });
+
+        // 处理老版本编辑器上传的文件
+        const nodeMid = nodes?.map((node: any) => {
+          if (node.type === 'customNode' && node.content?.config) {
+            
+            // 先处理expressions格式，确保同时有expr_asts
+            if (node.content.config.expressions) {
+              const expressions = node.content.config.expressions.map((expr: any) => ({
+                id: expr.id,
+                key: expr.key,
+                value: expr.value || '',
+                type: expr.type || 'function'
+              }));
+              
+              // 生成或更新expr_asts
+              const expr_asts = node.content.config.expressions.map((expr: any) => {
+                // 如果已经有expr_ast，使用它
+                if (expr.expr_ast && Array.isArray(expr.expr_ast)) {
+                  return {
+                    id: expr.id,
+                    key: expr.key,
+                    value: expr.expr_ast
+                  };
+                }
+                                   // 否则从value字符串解析
+                 const valueArray = expr.value ? smartSplit(expr.value) : [''];
+                return {
+                  id: expr.id,
+                  key: expr.key,
+                  value: valueArray
+                };
+              });
+              
+              return {
+                ...node,
+                content: {
+                  ...node.content,
+                  config: {
+                    ...node.content.config,
+                    expressions: expressions,
+                    expr_asts: expr_asts
+                  }
+                }
+              };
+            }
+            // 如果没有新的expressions格式，则处理旧的inputs格式
+             else if (node.content.config.inputs) {
+              const inputs = node.content.config.inputs;
+              const expressions = inputs.map((input: any) => {
+                // 如果是函数类型，构建简化的存储格式
+                if (input.type === 'function' && input.funcmeta) {
+                  const funcName = input.funcmeta.name;
+                  const args = input.funcmeta.arguments || [];
+                  const argValues: string[] = [];
+                  
+                  // 收集参数值
+                  args.forEach((arg: any) => {
+                    const argValue = input.arg_exprs?.[arg.arg_name] || '';
+                    argValues.push(argValue);
+                  });
+                  
+                  // 构建;;分割的字符串格式
+                  const expressionValue = [funcName, ...argValues].join(';;');
+                  
+                  return {
+                    id: input.id,
+                    key: input.key,
+                    value: expressionValue,
+                    type: 'function'
+                  };
+                }
+                // 非函数类型保持简单结构
+                return {
+                  id: input.id,
+                  key: input.key,
+                  value: input.value || '',
+                  type: input.type
+                };
+              });
+              
+              // 生成expr_asts数组格式
+              const expr_asts = inputs.map((input: any) => {
+                if (input.type === 'function' && input.funcmeta) {
+                  const funcName = input.funcmeta.name;
+                  const args = input.funcmeta.arguments || [];
+                  const argValues: string[] = [funcName];
+                  
+                  // 收集参数值
+                  args.forEach((arg: any) => {
+                    const argValue = input.arg_exprs?.[arg.arg_name] || '';
+                    argValues.push(argValue);
+                  });
+                  
+                  return {
+                    id: input.id,
+                    key: input.key,
+                    value: argValues
+                  };
+                }
+                // 非函数类型，将value按;;分割成数组
+                const valueArray = input.value ? smartSplit(input.value) : [''];
+                return {
+                  id: input.id,
+                  key: input.key,
+                  value: valueArray
+                };
+              });
+              
+              return {
+                ...node,
+                content: {
+                  ...node.content,
+                  config: {
+                    ...node.content.config,
+                    expressions: expressions,
+                    expr_asts: expr_asts,
+                    // 移除旧的字段
+                    inputs: undefined
+                  }
+                }
+              };
+            }
+          }
+          return node;
+        }) || []
         const modelParsed = decisionModelSchema.safeParse({
-          nodes,
+          nodes:nodeMid,
           edges,
           settings: parsed?.settings,
         });

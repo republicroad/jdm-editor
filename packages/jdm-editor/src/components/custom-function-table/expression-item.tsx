@@ -385,7 +385,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                 value={value}
                                 popupMatchSelectWidth={180}
                                 onChange={(e) => {
-                                  inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: ele });
+                                  inputChange({ value: e?.target?.value || e, type: currentFunctionInfo?.funcmeta?.name, key: ele });
                                 }}
                                 onFocus={() => {
                                   getList(currentFunctionInfo?.funcmeta?.name || '')

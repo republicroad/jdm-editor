@@ -34,7 +34,7 @@ export const inputNodeSchema = z
           z.object({
             id,
             key: z.string().default(''),
-            value: z.string().default(''),
+            value: z.any().default(''),
             type: z.string().optional(),
           }),
         ).default([]),
@@ -43,7 +43,7 @@ export const inputNodeSchema = z
           z.object({
             id,
             key: z.string().default(''),
-            value: z.string().default(''),
+            value: z.any().default(''),
             type: z.string().optional(),
           }),
         ).optional(),
@@ -252,13 +252,30 @@ export const customNodeSchema = z
       kind: z.string(),
       config: z.object({
         version: z.string().default('v3'),
+        meta: z.object({
+          user: z.string(),
+          proj: z.string(),
+        }).optional(),
         expressions: z.array(
           z.object({
             id,
             key: z.string().default(''),
-            value: z.string().default(''),
+            value: z.any().default(''),
+            type: z.string().optional(),
+            funcmeta: z.any().optional(),
+            arg_exprs: z.record(z.any()).optional(),
           }),
         ),
+        inputs: z.array(
+          z.object({
+            id,
+            key: z.string().default(''),
+            value: z.any().default(''),
+            type: z.string().optional(),
+            funcmeta: z.any().optional(),
+            arg_exprs: z.record(z.any()).optional(),
+          }),
+        ).optional(),
         expr_asts: z.array(
           z.object({
             id,
