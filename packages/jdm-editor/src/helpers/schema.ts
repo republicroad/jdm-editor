@@ -47,10 +47,6 @@ export const inputNodeSchema = z
             type: z.string().optional(),
           }),
         ).optional(),
-        passThrough: z
-          .boolean()
-          .nullish()
-          .transform((val) => val ?? false),
         inputField: z
           .string()
           .nullish()
@@ -61,10 +57,6 @@ export const inputNodeSchema = z
           .nullish()
           .default(null)
           .transform((val) => (val && val.trim().length > 0 ? val : null)),
-        executionMode: z
-          .enum(['single', 'loop'])
-          .nullish()
-          .transform((val) => val ?? 'single'),
       })
       .default({
         schema: '',
@@ -286,7 +278,7 @@ export const customNodeSchema = z
         passThrough: z
           .boolean()
           .nullish()
-          .transform((val) => val ?? false),
+          .transform((val) => val ?? true),
         inputField: z
           .string()
           .nullish()

@@ -63,7 +63,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         });
       }
 
-      if ((current.config.passThrough || true) !== (previous.config.passThrough || true)) {
+      if ((current.config.passThrough || false) !== (previous.config.passThrough || false)) {
         _.set(fields, 'passThrough', {
           status: 'modified',
           previousValue: previous.config.passThrough,
