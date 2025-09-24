@@ -40,10 +40,8 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     content: {
       schema: '',
       expressions: [],
-      passThrough: false,
       inputField: null,
       outputPath: null,
-      executionMode: 'single' as const,
     },
   }),
   renderTab: ({ id, manager }) => <TabRequest id={id} manager={manager} type={'input'} />,
@@ -63,6 +61,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         name={data.name}
         isSelected={selected}
         handleLeft={false}
+        helper={[]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
             Edit Request

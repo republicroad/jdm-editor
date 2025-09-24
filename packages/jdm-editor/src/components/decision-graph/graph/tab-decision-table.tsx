@@ -44,12 +44,18 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
   }));
 
   const debug = useMemo(() => {
-    if (!nodeTrace || !inputData || !nodeSnapshot) {
+    if (!nodeTrace || !inputData) {
+      return undefined;
+    }
+
+    // 如果 nodeSnapshot 缺失，使用当前节点内容作为降级
+    const fallbackSnapshot = nodeSnapshot || content;
+    if (!fallbackSnapshot) {
       return undefined;
     }
 
     if (!isWasmAvailable()) {
-      return { trace: nodeTrace, snapshot: nodeSnapshot };
+      return { trace: nodeTrace, snapshot: fallbackSnapshot };
     }
 
     const extendedInputData = { ...inputData };
@@ -57,8 +63,8 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       extendedInputData.data = get(extendedInputData.data, content.inputField, {});
     }
 
-    return { trace: nodeTrace, inputData: extendedInputData, snapshot: nodeSnapshot };
-  }, [nodeTrace, nodeSnapshot, inputData]);
+    return { trace: nodeTrace, inputData: extendedInputData, snapshot: fallbackSnapshot };
+  }, [nodeTrace, nodeSnapshot, inputData, content]);
 
   return (
     <DecisionTable

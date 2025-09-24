@@ -119,7 +119,7 @@ export const decisionTableSchema = z
       passThrough: z
         .boolean()
         .nullish()
-        .transform((val) => val ?? true),
+        .transform((val) => val ?? false),
       inputField: z
         .string()
         .nullish()
@@ -166,7 +166,7 @@ export const expressionNodeSchema = z
       passThrough: z
         .boolean()
         .nullish()
-        .transform((val) => val ?? true),
+        .transform((val) => val ?? false),
       inputField: z
         .string()
         .nullish()
@@ -193,7 +193,7 @@ export const decisionNodeSchema = z
       passThrough: z
         .boolean()
         .nullish()
-        .transform((val) => val ?? true),
+        .transform((val) => val ?? false),
       inputField: z
         .string()
         .nullish()
