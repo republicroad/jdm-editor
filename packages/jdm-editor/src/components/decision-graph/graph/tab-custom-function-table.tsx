@@ -61,7 +61,7 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
       return { trace: nodeTrace, snapshot: nodeSnapshot.config };
     }
 
-    const $data = Object.fromEntries(Object.entries(nodeTrace.traceData).map(([k, v]) => [k, safeJson(v.result)]));
+    const $data = Object.fromEntries(Object.entries(nodeTrace.traceData || {}).map(([k, v]) => [k, safeJson(v.result)]));
     const extendedInputData: GetNodeDataResult = {
       ...inputData,
       $: $data,
