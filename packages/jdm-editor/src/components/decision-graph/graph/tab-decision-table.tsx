@@ -48,8 +48,11 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       return undefined;
     }
 
-    // 如果 nodeSnapshot 缺失，使用当前节点内容作为降级
-    const fallbackSnapshot = nodeSnapshot || content;
+    // 如果 nodeSnapshot 缺失，使用当前节点内容作为降级，并转换类型
+    const fallbackSnapshot = nodeSnapshot || (content ? {
+      ...content,
+      inputField: content.inputField || undefined, // 将 null 转换为 undefined
+    } as DecisionTableType : null);
     if (!fallbackSnapshot) {
       return undefined;
     }
