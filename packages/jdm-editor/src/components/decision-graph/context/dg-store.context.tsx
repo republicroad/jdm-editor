@@ -158,7 +158,8 @@ export type DecisionGraphStoreType = {
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;                // 删除节点类型
 
     triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;  // 触发节点选择
-    handleEditorDomClick:(type: string, data: any) => void
+    handleEditorDomClick:(type: string, data: any) => void;             // 编辑器DOM点击处理
+    getActiveTab: () => string;                                          // 获取当前活动标签页
 
   };
 
@@ -170,7 +171,8 @@ export type DecisionGraphStoreType = {
     onCodeExtension?: CodeEditorProps['extension'];            // 代码扩展监听器
     onFunctionReady?: (monaco: Monaco) => void;                // 函数准备好监听器
     onViewConfigCta?: () => void;                              // 视图配置行动召唤监听器
-    onEventClickHandle?: (type: any, data: any) => void;
+    onEventClickHandle?: (type: any, data: any, tabId?: string) => void;
+    onTabChange?: (tabId: string) => void;                     // 标签页变化监听器
   };
 };
 
@@ -642,13 +644,23 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         const nodeId = openTabs.find((i) => i === id);
 
         if (id === 'graph') {
-          return stateStore.setState({ activeTab: id });
+          stateStore.setState({ activeTab: id });
+          // 通知标签页变化
+          const { onTabChange } = listenerStore.getState();
+          onTabChange?.(id);
+          return;
         }
 
         if (nodeId) {
           stateStore.setState({ activeTab: nodeId });
+          // 通知标签页变化
+          const { onTabChange } = listenerStore.getState();
+          onTabChange?.(nodeId);
         } else {
           stateStore.setState({ openTabs: [...openTabs, id], activeTab: id });
+          // 通知标签页变化
+          const { onTabChange } = listenerStore.getState();
+          onTabChange?.(id);
         }
 
         // 请求回调数据
@@ -658,7 +670,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           
           const { onEventClickHandle } = listenerStore.getState();
           if (onEventClickHandle) {
-            onEventClickHandle(type, '')
+            onEventClickHandle(type, '', id) // 传递标签页ID
           }
         }
       },
@@ -803,6 +815,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         if (onEventClickHandle) {
           onEventClickHandle(type, data)
         }
+      },
+
+      // 获取当前活动标签页
+      getActiveTab: () => {
+        return stateStore.getState().activeTab;
       }
     }),
     [],
