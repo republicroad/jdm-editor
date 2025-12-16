@@ -1,11 +1,11 @@
 import { InfoCircleOutlined, PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Tooltip, Typography, notification } from 'antd';
+import { Button, Tooltip, Typography, message, notification } from 'antd';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
-import { fJson } from '../../../helpers/utility';
+import { copyToClipboard, fJson } from '../../../helpers/utility';
 import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState, useDecisionGraphActions } from '../context/dg-store.context';
 import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
@@ -132,6 +132,50 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
             >
               <Button
                 size={'small'}
+                type={'default'}
+                style={{"marginRight":"8px"}}
+                onClick={() => {
+                  try {
+                    const parsed = json5.parse(requestValue || '');
+                    const formatted = JSON.stringify(parsed, null, 2);
+                    setRequestValue(formatted);
+                    setUserHasEdited(true);
+                    onChange?.(formatted);
+                    message.success('Formatted successfully!');
+                  } catch {
+                    message.error('Failed to format. Invalid JSON format.');
+                  }
+                }}
+              >
+                Format
+              </Button>
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{"marginRight":"8px"}}
+                onClick={async () => {
+                  try {
+                    if (!requestValue || requestValue.trim().length === 0) {
+                      message.warning('Nothing to copy.');
+                      return;
+                    }
+
+                    // 验证并复制JSON（不格式化，保持原样）
+                    const parsed = json5.parse(requestValue);
+                    const jsonString = JSON.stringify(parsed);
+
+                    // 复制到剪贴板
+                    await copyToClipboard(jsonString);
+                    message.success('Copied to clipboard!');
+                  } catch {
+                    message.error('Failed to copy. Invalid JSON format.');
+                  }
+                }}
+              >
+                Copy JSON
+              </Button>
+              <Button
+                size={'small'}
                 type={'primary'}
                 loading={loading}
                 icon={<PlayCircleOutlined />}
@@ -168,16 +212,39 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
               try {
                 // 解析JSON内容
                 const parsedContent = json5.parse(text);
-                
+
                 // 将解析的内容转换为input节点所需的格式
                 if (typeof parsedContent === 'object' && parsedContent !== null) {
-                  const inputs = Object.entries(parsedContent).map(([key, value], index) => ({
-                    id: `input_${index}`,
-                    key,
-                    value: typeof value === 'string' ? value : JSON.stringify(value),
-                    type: typeof value,
-                  }));
-                  
+                  const inputs = Object.entries(parsedContent).map(([key, value], index) => {
+                    // 判断值的类型
+                    let type: string;
+                    let processedValue: any;
+
+                    if (Array.isArray(value)) {
+                      type = 'array';
+                      processedValue = value; // 保持数组原样
+                    } else if (typeof value === 'boolean') {
+                      type = 'bool';
+                      processedValue = value;
+                    } else if (typeof value === 'number') {
+                      type = 'number';
+                      processedValue = value;
+                    } else if (typeof value === 'object' && value !== null) {
+                      type = 'object';
+                      processedValue = value; // 保持对象原样
+                    } else {
+                      type = typeof value;
+                      processedValue = value;
+                    }
+
+                    return {
+                      id: `input_${index}`,
+                      key,
+                      value: processedValue,
+                      type,
+                    };
+                  });
+
                   // 更新input节点的内容
                   graphActions.updateNode(inputNodeId, (draft) => {
                     if (!draft.content) {

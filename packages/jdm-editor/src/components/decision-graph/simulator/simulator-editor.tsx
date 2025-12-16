@@ -53,8 +53,14 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
           contextMenuGroupId: 'utils',
           precondition: '!editorReadonly',
           run: (editor) => {
-            const formatted = JSON.stringify(json5.parse(editor.getValue()), null, 2);
-            editor.setValue(formatted);
+            try {
+              const formatted = JSON.stringify(json5.parse(editor.getValue()), null, 2);
+              editor.setValue(formatted);
+              message.success('Formatted successfully!');
+            } catch (error) {
+            message.error('Failed to format. Invalid JSON format.');
+            }
+            
           },
         });
       }}

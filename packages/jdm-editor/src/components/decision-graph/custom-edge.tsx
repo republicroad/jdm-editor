@@ -27,6 +27,10 @@ export const CustomEdge: React.FC<EdgeProps> = (props) => {
     targetPosition,
   });
 
+  // 防止 NaN 值传递到 SVG
+  const safeLabelX = isNaN(labelX) ? 0 : labelX;
+  const safeLabelY = isNaN(labelY) ? 0 : labelY;
+
   return (
     <>
       <BaseEdge
@@ -44,7 +48,7 @@ export const CustomEdge: React.FC<EdgeProps> = (props) => {
         <div
           className={'nodrag nopan edge-renderer'}
           style={{
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            transform: `translate(-50%, -50%) translate(${safeLabelX}px,${safeLabelY}px)`,
           }}
         >
           {!disabled && (

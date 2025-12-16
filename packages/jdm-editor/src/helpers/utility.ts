@@ -61,23 +61,32 @@ export const fJson = (arr: InputCell[]) => {
   arr && arr.forEach((item:any) => {
     switch (item.type) {
       case 'bool':
-        console.log(item.value)
         item.value !== undefined && inject(item.key, source, item.value === true);
         break;
       case 'number':
         (typeof item.value === 'string'|| typeof item.value === 'number') && inject(item.key, source, parseFloat(item.value));
         break;
       case 'array':
-        Array.isArray(item.value) && inject(item.key, source, item.value);
+        // 支持数组类型，直接使用数组值
+        if (Array.isArray(item.value)) {
+          inject(item.key, source, item.value);
+        }
+        break;
+      case 'object':
+        // 支持对象类型，直接使用对象值
+        if (typeof item.value === 'object' && item.value !== null && !Array.isArray(item.value)) {
+          inject(item.key, source, item.value);
+        }
         break;
       case 'function':
         // Array.isArray(item.value) && inject(item.key, source, `${item.key}(${item.value.join(',')})`);
+        break;
       default:
         typeof item.value === 'string'&& inject(item.key, source, item.value);
     }
   });
 
-  return JSON.stringify(source);
+  return JSON.stringify(source, null, 2);
 }
 
 type ParsedItem = {

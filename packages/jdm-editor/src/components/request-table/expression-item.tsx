@@ -116,6 +116,7 @@ const fun = () => {
     { value: 'string', label: 'string'},
     { value: 'datetime', label: 'datetime'},
     { value: 'array', label: 'array'},
+    { value: 'object', label: 'object'},
     { value: 'bool', label: 'bool'},
     // { value: 'list', label: 'customList'},
   ]
@@ -321,6 +322,7 @@ const fun = () => {
                 mode="tags"
                 value={(expression?.value && expression?.value.length) ? expression?.value.map((item: any) => JSON.stringify(item)) : []}
                 style={{ width: '100%' }}
+                placeholder='请输入数组元素'
                 onChange={(value) => {
                   const output = value.map((item: string) => {
                     try {
@@ -331,6 +333,27 @@ const fun = () => {
                   })
                   onChange({ value: output })}}
                 options={[]}
+              />
+            );
+          case 'object':
+            return (
+              <AutosizeTextArea
+                placeholder='请输入JSON对象，如: {"key": "value"}'
+                maxRows={6}
+                disabled={disabled}
+                value={typeof expression?.value === 'string' ? expression?.value : (typeof expression?.value === 'object' && expression?.value !== null ? JSON.stringify(expression?.value) : '')}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  // 尝试解析 JSON，如果成功则保存对象，失败则保存字符串
+                  try {
+                    const parsed = JSON.parse(inputValue);
+                    onChange({ value: parsed });
+                  } catch {
+                    // 解析失败则保存字符串（正在编辑中）
+                    onChange({ value: inputValue });
+                  }
+                }}
+                autoComplete='off'
               />
             );
           case 'string':
