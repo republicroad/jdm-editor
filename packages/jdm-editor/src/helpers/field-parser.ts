@@ -101,26 +101,24 @@ export function escapeFieldName(fieldName: string): string {
 }
 
 /**
- * 构建字段路径
+ * 类型守卫：检查值是否为对象
  */
-function buildPath(parentPath: string, fieldName: string): string {
-  const escapedName = escapeFieldName(fieldName);
-
-  if (!parentPath) {
-    return escapedName.startsWith('[') ? `$${escapedName}` : escapedName;
-  }
-
-  if (escapedName.startsWith('[')) {
-    return `${parentPath}${escapedName}`;
-  }
-
-  return `${parentPath}.${escapedName}`;
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 /**
- * 构建节点路径
+ * 类型守卫：检查值是否为数组
  */
-function buildNodePath(parentPath: string, fieldName: string): string {
+function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+/**
+ * 构建字段路径
+ * 用于构建 data 路径和 node 路径
+ */
+function buildPath(parentPath: string, fieldName: string): string {
   const escapedName = escapeFieldName(fieldName);
 
   if (!parentPath) {
@@ -142,7 +140,8 @@ function parseFieldsRecursive(
   parentPath: string,
   parentNodePath: string,
   currentDepth: number,
-  options: Required<ParseFieldsOptions>
+  options: Required<ParseFieldsOptions>,
+  visited: WeakSet<object> = new WeakSet()
 ): FieldInfo[] {
   // 检查深度限制
   if (currentDepth > options.maxDepth) {
@@ -154,16 +153,22 @@ function parseFieldsRecursive(
     return [];
   }
 
+  // 循环引用检测
+  if (typeof data === 'object' && visited.has(data as object)) {
+    return [];
+  }
+
   const fields: FieldInfo[] = [];
   const type = getValueType(data);
 
   // 处理对象
-  if (type === 'object') {
-    const obj = data as Record<string, unknown>;
+  if (type === 'object' && isObject(data)) {
+    // 标记当前对象为已访问
+    visited.add(data);
 
-    for (const [key, value] of Object.entries(obj)) {
+    for (const [key, value] of Object.entries(data)) {
       const fieldPath = buildPath(parentPath, key);
-      const fieldNodePath = buildNodePath(parentNodePath, key);
+      const fieldNodePath = buildPath(parentNodePath, key);
       const valueType = getValueType(value);
 
       const fieldInfo: FieldInfo = {
@@ -185,23 +190,24 @@ function parseFieldsRecursive(
           fieldPath,
           fieldNodePath,
           currentDepth + 1,
-          options
+          options,
+          visited
         );
       }
 
       // 处理数组
-      if (valueType === 'array') {
-        const arr = value as unknown[];
-        fieldInfo.arrayItemType = getArrayItemType(arr);
+      if (valueType === 'array' && isArray(value)) {
+        fieldInfo.arrayItemType = getArrayItemType(value);
 
         // 如果数组包含对象，解析第一个对象的结构
-        if (arr.length > 0 && getValueType(arr[0]) === 'object') {
+        if (value.length > 0 && getValueType(value[0]) === 'object') {
           fieldInfo.children = parseFieldsRecursive(
-            arr[0],
+            value[0],
             `${fieldPath}[0]`,
             `${fieldNodePath}[0]`,
             currentDepth + 1,
-            options
+            options,
+            visited
           );
         }
       }
@@ -211,18 +217,18 @@ function parseFieldsRecursive(
   }
 
   // 处理数组（作为顶层）
-  if (type === 'array') {
-    const arr = data as unknown[];
-    const arrayItemType = getArrayItemType(arr);
+  if (type === 'array' && isArray(data)) {
+    const arrayItemType = getArrayItemType(data);
 
     // 如果数组包含对象，解析第一个对象的结构
-    if (arr.length > 0 && getValueType(arr[0]) === 'object') {
+    if (data.length > 0 && getValueType(data[0]) === 'object') {
       return parseFieldsRecursive(
-        arr[0],
+        data[0],
         parentPath ? `${parentPath}[0]` : '[0]',
         parentNodePath ? `${parentNodePath}[0]` : '[0]',
         currentDepth,
-        options
+        options,
+        visited
       );
     }
   }
