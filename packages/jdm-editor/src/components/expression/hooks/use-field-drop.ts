@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { EditorView } from '@codemirror/view';
 
 export interface UseFieldDropOptions {
@@ -9,11 +9,23 @@ export function useFieldDrop(
   editor: EditorView | null,
   options: UseFieldDropOptions = {}
 ) {
+  // 使用 ref 存储回调，避免依赖变化导致重新绑定事件
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
   useEffect(() => {
-    if (!editor) return;
+    if (!editor) {
+      console.log('[useFieldDrop] Editor is null, skipping setup');
+      return;
+    }
 
     const domNode = editor.dom;
-    if (!domNode) return;
+    if (!domNode) {
+      console.log('[useFieldDrop] DOM node is null, skipping setup');
+      return;
+    }
+
+    console.log('[useFieldDrop] Setting up drag-drop listeners on editor');
 
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
@@ -24,16 +36,28 @@ export function useFieldDrop(
       e.preventDefault();
       e.stopPropagation();
 
+      console.log('[useFieldDrop] Drop event received');
+
       try {
         const data = e.dataTransfer?.getData('application/json');
-        if (!data) return;
+        if (!data) {
+          console.log('[useFieldDrop] No JSON data in drop event');
+          return;
+        }
 
         const fieldInfo = JSON.parse(data);
         const fieldPath = fieldInfo.path || '';
 
+        console.log('[useFieldDrop] Dropping field:', fieldPath);
+
         // 获取鼠标位置对应的编辑器位置
         const pos = editor.posAtCoords({ x: e.clientX, y: e.clientY });
-        if (pos === null) return;
+        if (pos === null) {
+          console.log('[useFieldDrop] Could not get position at coords');
+          return;
+        }
+
+        console.log('[useFieldDrop] Inserting at position:', pos);
 
         // 在目标位置插入字段路径
         editor.dispatch({
@@ -47,18 +71,23 @@ export function useFieldDrop(
 
         // 聚焦编辑器
         editor.focus();
-        options.onFieldDrop?.(fieldPath);
+
+        console.log('[useFieldDrop] Field inserted successfully');
+        optionsRef.current.onFieldDrop?.(fieldPath);
       } catch (error) {
-        console.error('Failed to handle field drop:', error);
+        console.error('[useFieldDrop] Failed to handle field drop:', error);
       }
     };
 
     domNode.addEventListener('dragover', handleDragOver);
     domNode.addEventListener('drop', handleDrop);
 
+    console.log('[useFieldDrop] Listeners attached');
+
     return () => {
       domNode.removeEventListener('dragover', handleDragOver);
       domNode.removeEventListener('drop', handleDrop);
+      console.log('[useFieldDrop] Listeners removed');
     };
-  }, [editor, options.onFieldDrop]);
+  }, [editor]); // 只依赖 editor
 }
