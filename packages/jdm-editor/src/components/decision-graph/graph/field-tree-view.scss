@@ -1,0 +1,172 @@
+/**
+ * 字段树视图样式
+ */
+
+.field-tree-view {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+
+  &--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 24px;
+  }
+}
+
+.field-tree-item {
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    padding-right: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    &:active {
+      background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    // 叶子节点可拖拽样式
+    &--leaf {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+
+      &[draggable='true'] {
+        cursor: grab;
+      }
+    }
+  }
+
+  &__expand-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+
+    &--placeholder {
+      display: inline-block;
+      width: 12px;
+    }
+  }
+
+  &__type-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 14px;
+  }
+
+  &__name {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.88);
+    margin-right: 4px;
+  }
+
+  &__type {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.45);
+    font-family: var(--mono-font-family, 'Monaco', 'Menlo', 'Consolas', monospace);
+  }
+
+  &__array-type {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.45);
+    padding: 0 4px;
+    background-color: rgba(0, 0, 0, 0.04);
+    border-radius: 2px;
+    font-family: var(--mono-font-family, 'Monaco', 'Menlo', 'Consolas', monospace);
+  }
+
+  &__value {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.65);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 8px;
+    font-family: var(--mono-font-family, 'Monaco', 'Menlo', 'Consolas', monospace);
+  }
+
+  &__children {
+    animation: slideDown 0.2s ease;
+  }
+}
+
+// 展开动画
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 暗色主题支持
+@media (prefers-color-scheme: dark) {
+  .field-tree-item {
+    &__content {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+
+      &:active {
+        background-color: rgba(255, 255, 255, 0.12);
+      }
+    }
+
+    &__expand-icon {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    &__type-icon {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    &__name {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    &__type {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    &__array-type {
+      color: rgba(255, 255, 255, 0.45);
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    &__value {
+      color: rgba(255, 255, 255, 0.65);
+    }
+  }
+}
