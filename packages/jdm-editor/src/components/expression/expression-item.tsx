@@ -8,6 +8,7 @@ import { useDrag, useDrop } from 'react-dnd';
 
 import { getTrace } from '../../helpers/trace';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
+import type { CodeEditorRef } from '../code-editor';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
 import { DiffAutosizeTextArea } from '../shared';
@@ -15,6 +16,7 @@ import { DiffCodeEditor } from '../shared/diff-ce';
 import type { ExpressionEntry } from './context/expression-store.context';
 import { useExpressionStore } from './context/expression-store.context';
 import { ExpressionItemContextMenu } from './expression-item-context-menu';
+import { useFieldDrop } from './hooks/use-field-drop';
 
 export type ExpressionItemProps = {
   expression: ExpressionEntry;
@@ -25,6 +27,7 @@ export type ExpressionItemProps = {
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
   const [isFocused, setIsFocused] = useState(false);
   const expressionRef = useRef<HTMLDivElement>(null);
+  const codeEditorRef = useRef<CodeEditorRef>(null);
   const { updateRow, removeRow, swapRows, disabled, permission } = useExpressionStore(
     ({ updateRow, removeRow, swapRows, disabled, permission }) => ({
       updateRow,
@@ -34,6 +37,13 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       permission,
     }),
   );
+
+  // 使用拖拽 Hook
+  useFieldDrop(codeEditorRef.current?.codeMirror || null, {
+    onFieldDrop: (fieldPath) => {
+      console.log('Field dropped into expression:', fieldPath);
+    }
+  });
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {
     updateRow(index, update);
@@ -126,6 +136,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         <ExpressionItemContextMenu index={index}>
           <div>
             <DiffCodeEditor
+              ref={codeEditorRef}
               className='expression-list-item__value'
               placeholder='Expression'
               maxRows={9}
