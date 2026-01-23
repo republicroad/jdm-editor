@@ -27,7 +27,7 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
   shortDescription: 'Outputs the context',
   generateNode: () => ({ name: 'response', content: { schema: '' } }),
   renderTab: ({ id, manager }) => <TabJsonSchema id={id} manager={manager} type={'output'} />,
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     return (
       <GraphNode
@@ -36,6 +36,8 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
         name={data.name}
         isSelected={selected}
         handleRight={false}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
             Configure

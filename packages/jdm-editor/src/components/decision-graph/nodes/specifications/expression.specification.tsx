@@ -40,7 +40,9 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
   displayName: '表达式',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
-  renderTab: ({ id, manager }) => <TabExpression id={id} manager={manager} />,
+  renderTab: ({ id, manager, onRunNode, runLoading }) => (
+    <TabExpression id={id} manager={manager} onRunNode={onRunNode} runLoading={runLoading} />
+  ),
   getDiffContent: (current, previous) => {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
@@ -173,7 +175,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
       executionMode: 'single',
     },
   }),
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData;
@@ -189,6 +191,8 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
         specification={specification}
         name={data.name}
         isSelected={selected}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
             Edit Expression

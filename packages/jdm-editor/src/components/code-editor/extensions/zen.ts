@@ -18,6 +18,7 @@ import { P, match } from 'ts-pattern';
 
 import { getCompletions } from './completion';
 import { renderDiagnosticMessage } from './diagnostic';
+import { fieldCompletion } from './field-completion';
 import { zenLinter } from './linter';
 import type { ZenType } from './types';
 import { buildTypeCompletion, typeField, zenKindToString } from './types';
@@ -165,7 +166,7 @@ const hoverSpan = (node: SyntaxNode): [number, number] | null => {
 
 export const completionExtension = () =>
   autocompletion({
-    override: [makeExpressionCompletion()],
+    override: [fieldCompletion, makeExpressionCompletion()],
   });
 
 export const hoverExtension = () => {

@@ -1,0 +1,101 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    {
+      "name": "myRequest",
+      "content": {
+        "outputs": [
+          {
+            "field": "output",
+            "id": "ba911126-6cec-4f4a-a05d-13f54dd273d6",
+            "name": "Output",
+            "type": "expression"
+          }
+        ],
+        "rules": [],
+        "inputs": [
+          {
+            "id": "f6fd2aff-21a6-400a-98a7-ca60f63664a7",
+            "key": "user",
+            "type": "string",
+            "value": "test",
+            "desc": ""
+          }
+        ]
+      },
+      "id": "1eb685ea-c5cb-4177-bd66-7d8856524615",
+      "position": {
+        "x": -70,
+        "y": 145
+      },
+      "type": "inputNode"
+    },
+    {
+      "name": "myResponse",
+      "id": "0d45ea78-01ef-441a-be4c-868c5bbc7e7c",
+      "position": {
+        "x": 535,
+        "y": 125
+      },
+      "type": "outputNode"
+    },
+    {
+      "type": "customNode",
+      "content": {
+        "kind": "http",
+        "config": {
+          "version": "v3",
+          "meta": {
+            "user": "4205b0391bb64aa0925ac13c06ff24f3",
+            "proj": "proj_fe43811be7d2460a"
+          },
+          "expressions": [
+            {
+              "id": "4092483e-08fc-4dcf-9e83-89ce99df7a80",
+              "key": "",
+              "value": "http_call_with_headers;;http://127.0.0.1;;\"post\";;{'user':\"1223\"};;{'header':\"456\"}",
+              "type": "function"
+            }
+          ],
+          "expr_asts": [
+            {
+              "id": "4092483e-08fc-4dcf-9e83-89ce99df7a80",
+              "key": "",
+              "value": [
+                "http_call_with_headers",
+                "http://127.0.0.1",
+                "\"post\"",
+                "{'user':\"1223\"}",
+                "{'header':\"456\"}"
+              ]
+            }
+          ],
+          "passThrough": true,
+          "inputField": null,
+          "outputPath": null,
+          "executionMode": "single"
+        }
+      },
+      "id": "df548067-e9b2-4b7f-8154-4d8f1e63bab0",
+      "name": "http1",
+      "position": {
+        "x": 230,
+        "y": 135
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "bea08b91-7241-4b49-b8c2-4c69ce824a5c",
+      "sourceId": "df548067-e9b2-4b7f-8154-4d8f1e63bab0",
+      "type": "edge",
+      "targetId": "0d45ea78-01ef-441a-be4c-868c5bbc7e7c"
+    },
+    {
+      "id": "ff6f9f86-0ab4-4012-9189-fa90dfc22c3b",
+      "sourceId": "1eb685ea-c5cb-4177-bd66-7d8856524615",
+      "type": "edge",
+      "targetId": "df548067-e9b2-4b7f-8154-4d8f1e63bab0"
+    }
+  ]
+}

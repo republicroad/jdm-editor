@@ -1,7 +1,9 @@
 {
   "name": "@gorules/jdm-monorepo",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "lerna": "lerna",
     "build": "lerna run build",
@@ -43,5 +45,8 @@
     "overrides": {
       "axios@<0.30.0": ">=0.30.0"
     }
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0"
   }
 }

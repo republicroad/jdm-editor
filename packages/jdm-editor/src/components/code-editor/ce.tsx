@@ -10,6 +10,7 @@ import { match } from 'ts-pattern';
 import { composeRefs } from '../../helpers/compose-refs';
 import { isWasmAvailable } from '../../helpers/wasm';
 import './ce.scss';
+import { inputDataField, updateInputData } from './extensions/field-completion';
 import {
   updateExpectedVariableTypeEffect,
   updateExpressionTypeEffect,
@@ -50,6 +51,7 @@ export type CodeEditorProps = {
   livePreview?: { input: unknown; fromSimulation: boolean; result?: unknown };
   variableType?: any;
   expectedVariableType?: any;
+  inputData?: unknown; // 用于字段自动补全的输入数据
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'disabled' | 'onChange'>;
 
 export type CodeEditorRef = HTMLDivElement & {
@@ -74,6 +76,7 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
       variableType,
       expectedVariableType,
       lint = true,
+      inputData,
       ...props
     },
     ref,
@@ -106,6 +109,7 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
           extensions: [
             EditorView.lineWrapping,
             bracketMatching(),
+            inputDataField,
             compartment.zenExtension.of(zenExtensions({ type, lint })),
             compartment.updateListener.of(updateListener(onChange, onStateChange)),
             compartment.theme.of(editorTheme(token.mode === 'dark')),
@@ -119,6 +123,13 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
       (codeMirror as any).current = editorView;
       if (container.current) {
         (container.current as CodeEditorRef).codeMirror = editorView;
+      }
+
+      // 如果有初始输入数据，立即更新
+      if (inputData) {
+        editorView.dispatch({
+          effects: updateInputData(inputData),
+        });
       }
 
       return () => {
@@ -256,6 +267,16 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
         effects: updateStrictModeEffect.of(strict),
       });
     }, [strict]);
+
+    useEffect(() => {
+      if (!codeMirror.current) {
+        return;
+      }
+
+      codeMirror.current.dispatch({
+        effects: updateInputData(inputData),
+      });
+    }, [inputData]);
 
     return (
       <div

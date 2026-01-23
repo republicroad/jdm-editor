@@ -32,6 +32,8 @@ export type DecisionNodeProps = {
   detailsOpen?: boolean;
   detailsTitle?: string;
   onDetailsClose?: () => void;
+  menuOpen?: boolean;
+  onMenuOpenChange?: (open: boolean) => void;
 };
 
 export const DecisionNode: React.FC<DecisionNodeProps> = ({
@@ -54,6 +56,8 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
   detailsOpen = false,
   detailsTitle = 'Details',
   onDetailsClose,
+  menuOpen,
+  onMenuOpenChange,
 }) => {
   const nodeColor = match(color)
     .with('primary', () => NodeColor.Blue)
@@ -98,7 +102,13 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           <TextEdit onChange={onNameChange} disabled={disabled} value={name} />
           {menuItems.length > 0 && (
             <div className={clsx('grl-dn__header__actions', 'nodrag')}>
-              <Dropdown trigger={['click']} overlayStyle={{ minWidth: 250 }} menu={{ items: menuItems }}>
+              <Dropdown
+                trigger={['click']}
+                overlayStyle={{ minWidth: 250 }}
+                menu={{ items: menuItems }}
+                open={menuOpen}
+                onOpenChange={onMenuOpenChange}
+              >
                 <Button type='text' size={'small'} icon={<MoreOutlined />} />
               </Dropdown>
             </div>

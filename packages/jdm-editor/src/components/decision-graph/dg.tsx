@@ -34,6 +34,9 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
               projectId={props.projectId}
               menuList={props.menuList}
               customFunctions={props.customFunctions}
+              getTabData={props.getTabData}
+              onRunNode={props.onRunNode}
+              runningNodeId={props.runningNodeId}
             />
             <DecisionGraphInferTypes />
             <DecisionGraphEmpty {...props} />

@@ -26,6 +26,8 @@ export type GraphNodeProps = {
   className?: string;
   specification: MinimalNodeSpecification;
   displayError?: boolean;
+  onRunNode?: () => void;
+  runLoading?: boolean;
 } & Partial<DecisionNodeProps>;
 
 export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
@@ -40,12 +42,20 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       displayError,
       helper,
       actions,
+      onRunNode,
+      runLoading,
       ...decisionNodeProps
     },
     ref,
   ) => {
     const [currentDetails, setCurrentDetails] = usePersistentState<Details>(`node:details:${id}`, Details.Settings);
     const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
+    const [menuOpen, setMenuOpen] = React.useState(false);
+    const preventMenuClose = React.useRef(false);
+
+    // 调试日志：组件渲染
+    // console.log(`[GraphNode ${id}] Rendered, menuOpen:`, menuOpen, 'runLoading:', runLoading);
+
     const graphActions = useDecisionGraphActions();
     const { nodeError, nodeTrace, disabled, compactMode } = useDecisionGraphState(
       ({ simulate, disabled, compactMode }) => ({
@@ -83,6 +93,22 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         disabled,
         label: <SpacedText left='复制' right={platform.shortcut('Ctrl + D')} />,
         onClick: () => graphActions.duplicateNodes([id]),
+      },
+      !displayError && onRunNode && { key: 'divider-run', type: 'divider' },
+      !displayError && onRunNode && {
+        key: 'run-to-node',
+        disabled: disabled || runLoading,
+        label: <SpacedText left={runLoading ? '运行中...' : '运行到此节点'} />,
+        onClick: () => {
+          // Set flag to prevent menu from closing immediately
+          preventMenuClose.current = true;
+          onRunNode();
+          // Close menu after a delay
+          setTimeout(() => {
+            preventMenuClose.current = false;
+            setMenuOpen(false);
+          }, 100);
+        },
       },
       !displayError && { key: 'divider-2', type: 'divider' },
       {
@@ -141,6 +167,18 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
             .with(Details.Settings, () => 'Settings')
             .otherwise(() => undefined)}
           onDetailsClose={() => setDetailsOpen(false)}
+          menuOpen={menuOpen}
+          onMenuOpenChange={(open) => {
+            // 调试日志：菜单状态变化
+            // console.log(`[GraphNode ${id}] onMenuOpenChange called, open:`, open, 'preventMenuClose:', preventMenuClose.current);
+
+            // Don't close the menu if preventMenuClose flag is set
+            if (!open && preventMenuClose.current) {
+              // console.log(`[GraphNode ${id}] Menu close prevented by flag`);
+              return;
+            }
+            setMenuOpen(open);
+          }}
           actions={
             !Settings
               ? actions

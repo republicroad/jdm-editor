@@ -8,6 +8,7 @@ import { outputSpecification } from './output.specification';
 import { NodeKind } from './specification-types';
 import type { NodeSpecification } from './specification-types';
 import { switchSpecification } from './switch.specification';
+import { httpRequestSpecification } from './http-request.specification';
 
 function makeNodeSpecification<T extends Record<NodeKind, V>, V extends NodeSpecification>(o: T): Readonly<T> {
   return o;
@@ -21,4 +22,5 @@ export const nodeSpecification = makeNodeSpecification({
   [NodeKind.CustomFunction]: customFunctionSpecification,
   [NodeKind.Function]: functionSpecification,
   [NodeKind.Switch]: switchSpecification,
+  [NodeKind.HttpRequest]: httpRequestSpecification,
 });

@@ -37,7 +37,18 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
   displayName: '自定义节点',
   documentationUrl: '     ',
   shortDescription: 'Mapping utility',
-  renderTab: ({ id, manager, userId, projectId, menuList, customFunctions }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} menuList={menuList} customFunctions={customFunctions} />,
+  renderTab: ({ id, manager, userId, projectId, menuList, customFunctions, onRunNode, runLoading }) => (
+    <CustomFunctionTable
+      id={id}
+      manager={manager}
+      userId={userId}
+      projectId={projectId}
+      menuList={menuList}
+      customFunctions={customFunctions}
+      onRunNode={onRunNode}
+      runLoading={runLoading}
+    />
+  ),
   getDiffContent: (current, previous) => {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
@@ -179,7 +190,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
       },
     },
   }),
-  renderNode: ({ id, data, selected, specification,customNodes }) => {
+  renderNode: ({ id, data, selected, specification, customNodes, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData;
@@ -190,7 +201,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     });
     const nodeSpecification = useMemo(() => {
       const customNode = customNodes?.find((node) => node.kind === data.kind);
-      return customNode 
+      return customNode
         ? { ...specification, icon: customNode.icon}
         : specification;
     }, [specification, customNodes, data.kind]);
@@ -201,6 +212,8 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         specification={nodeSpecification}
         name={data.name}
         isSelected={selected}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id,data.name,data.kind)}>
             Edit Expression

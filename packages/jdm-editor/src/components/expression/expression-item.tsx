@@ -26,20 +26,29 @@ export type ExpressionItemProps = {
 
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
   const expressionRef = useRef<HTMLDivElement>(null);
-  const codeEditorRef = useRef<CodeEditorRef>(null);
-  const { updateRow, removeRow, swapRows, disabled, permission } = useExpressionStore(
-    ({ updateRow, removeRow, swapRows, disabled, permission }) => ({
+  const { updateRow, removeRow, swapRows, disabled, permission, calculatedInputData } = useExpressionStore(
+    ({ updateRow, removeRow, swapRows, disabled, permission, calculatedInputData }) => ({
       updateRow,
       removeRow,
       swapRows,
       disabled,
       permission,
+      calculatedInputData,
     }),
   );
 
+  // 使用回调 ref 来捕获编辑器实例
+  const codeEditorRef = React.useCallback((node: CodeEditorRef | null) => {
+    if (node?.codeMirror) {
+      console.log('[ExpressionItem] Editor instance available via callback ref');
+      setEditorInstance(node.codeMirror);
+    }
+  }, []);
+
   // 使用拖拽 Hook
-  useFieldDrop(codeEditorRef.current?.codeMirror || null, {
+  useFieldDrop(editorInstance, {
     onFieldDrop: (fieldPath) => {
       console.log('Field dropped into expression:', fieldPath);
     }
@@ -149,6 +158,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               noStyle={true}
+              inputData={calculatedInputData}
             />
             <ResultOverlay expression={expression} />
           </div>

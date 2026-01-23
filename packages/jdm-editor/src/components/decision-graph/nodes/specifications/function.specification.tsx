@@ -71,7 +71,7 @@ export const functionSpecification: NodeSpecification<NodeFunctionData> = {
       source: defaultFunctionValue,
     },
   }),
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     const kind = useFunctionKind(id);
     return (
@@ -91,6 +91,8 @@ export const functionSpecification: NodeSpecification<NodeFunctionData> = {
         }}
         name={data.name}
         isSelected={selected}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         helper={[kind === FunctionKind.Deprecated && <DeprecatedFunctionWarning size={16} />]}
         actions={[
           <Button key='edit-function' type='text' onClick={() => graphActions.openTab(id)}>

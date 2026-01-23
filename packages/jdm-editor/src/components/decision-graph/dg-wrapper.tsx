@@ -21,6 +21,7 @@ import { customFunctionSpecification } from './nodes/specifications/custom-funct
 import { functionSpecification } from './nodes/specifications/function.specification';
 import { inputSpecification } from './nodes/specifications/input.specification';
 import { outputSpecification } from './nodes/specifications/output.specification';
+import { httpRequestSpecification } from './nodes/specifications/http-request.specification';
 import { NodeKind } from './nodes/specifications/specification-types';
 
 export type DecisionGraphWrapperProps = {
@@ -31,11 +32,13 @@ export type DecisionGraphWrapperProps = {
   menuList?: any;
   customFunctions?: any;
   getTabData?: (tabId: string) => { menuList?: any[], customFunctions?: any[] };
+  onRunNode?: (nodeId: string) => void;
+  runningNodeId?: string | null;
 };
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent, userId, projectId, menuList, customFunctions, getTabData },
+    { reactFlowProOptions, tabBarExtraContent, userId, projectId, menuList, customFunctions, getTabData, onRunNode, runningNodeId },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -58,9 +61,11 @@ export const DecisionGraphWrapper = React.memo(
             projectId={projectId}
             menuList={menuList}
             customFunctions={customFunctions}
+            onRunNode={onRunNode}
+            runningNodeId={runningNodeId}
           />
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'active'])} />
-          <TabContents userId={userId} projectId={projectId} menuList={menuList || []} customFunctions={customFunctions || []} getTabData={getTabData} />
+          <TabContents userId={userId} projectId={projectId} menuList={menuList || []} customFunctions={customFunctions || []} getTabData={getTabData} onRunNode={onRunNode} runningNodeId={runningNodeId} />
         </div>
         <GraphPanel />
       </>
@@ -68,7 +73,7 @@ export const DecisionGraphWrapper = React.memo(
   }),
 );
 
-const TabContents: React.FC<{ userId?: string; projectId?: string | null, menuList?: any, customFunctions?: any, getTabData?: (tabId: string) => { menuList?: any[], customFunctions?: any[] } }> = React.memo(({ userId, projectId, menuList, customFunctions, getTabData }) => {
+const TabContents: React.FC<{ userId?: string; projectId?: string | null, menuList?: any, customFunctions?: any, getTabData?: (tabId: string) => { menuList?: any[], customFunctions?: any[] }, onRunNode?: (nodeId: string) => void, runningNodeId?: string | null }> = React.memo(({ userId, projectId, menuList, customFunctions, getTabData, onRunNode, runningNodeId }) => {
   const { openNodes, activeNodeId, components } = useDecisionGraphState(
     ({ decisionGraph, openTabs, activeTab, components }) => {
       const activeNodeId = (decisionGraph?.nodes ?? []).find((node) => node.id === activeTab)?.id;
@@ -91,40 +96,84 @@ const TabContents: React.FC<{ userId?: string; projectId?: string | null, menuLi
 
   return (
     <div style={{ display: 'contents' }} ref={containerRef}>
-      {openNodes.map((node) => (
-        <div key={node?.id} className={clsx(['tab-content', activeNodeId === node?.id && 'active'])}>
-          {match(node?.type)
-            .with(NodeKind.DecisionTable, () =>
-              decisionTableSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
-            )
-            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
-            .with(NodeKind.Expression, () =>
-              expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
-            )
-            .with(NodeKind.CustomFunction, () => {
-              const tabData = getTabData ? getTabData(node?.id) : { menuList, customFunctions };
-              return customFunctionSpecification?.renderTab?.({ 
-                id: node?.id, 
-                manager: dndManager, 
-                userId: userId, 
-                projectId: projectId, 
-                menuList: tabData.menuList || menuList, 
-                customFunctions: tabData.customFunctions || customFunctions
-              });
-            })
-            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
-            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
+      {openNodes.map((node) => {
+        const isRunning = runningNodeId === node?.id;
+        const handleRunNode = onRunNode ? () => onRunNode(node?.id) : undefined;
 
-            .otherwise(() => {
-              const component = components.find((cmp) => cmp.type === node.type);
-              if (component) {
-                return component?.renderTab?.({ id: node.id, manager: dndManager });
-              }
+        return (
+          <div key={node?.id} className={clsx(['tab-content', activeNodeId === node?.id && 'active'])}>
+            {match(node?.type)
+              .with(NodeKind.DecisionTable, () =>
+                decisionTableSpecification?.renderTab?.({
+                  id: node?.id,
+                  manager: dndManager,
+                  onRunNode: handleRunNode,
+                  runLoading: isRunning
+                }),
+              )
+              .with(NodeKind.Function, () => functionSpecification?.renderTab?.({
+                id: node?.id,
+                manager: dndManager,
+                onRunNode: handleRunNode,
+                runLoading: isRunning
+              }))
+              .with(NodeKind.Expression, () =>
+                expressionSpecification?.renderTab?.({
+                  id: node?.id,
+                  manager: dndManager,
+                  onRunNode: handleRunNode,
+                  runLoading: isRunning
+                }),
+              )
+              .with(NodeKind.CustomFunction, () => {
+                const tabData = getTabData ? getTabData(node?.id) : { menuList, customFunctions };
+                return customFunctionSpecification?.renderTab?.({
+                  id: node?.id,
+                  manager: dndManager,
+                  userId: userId,
+                  projectId: projectId,
+                  menuList: tabData.menuList || menuList,
+                  customFunctions: tabData.customFunctions || customFunctions,
+                  onRunNode: handleRunNode,
+                  runLoading: isRunning
+                });
+              })
+              .with(NodeKind.Input, () => inputSpecification?.renderTab?.({
+                id: node?.id,
+                manager: dndManager,
+                onRunNode: handleRunNode,
+                runLoading: isRunning
+              }))
+              .with(NodeKind.Output, () => outputSpecification?.renderTab?.({
+                id: node?.id,
+                manager: dndManager,
+                onRunNode: handleRunNode,
+                runLoading: isRunning
+              }))
+              .with(NodeKind.HttpRequest, () => httpRequestSpecification?.renderTab?.({
+                id: node?.id,
+                manager: dndManager,
+                userId: userId,
+                projectId: projectId,
+                onRunNode: handleRunNode,
+                runLoading: isRunning
+              }))
+              .otherwise(() => {
+                const component = components.find((cmp) => cmp.type === node.type);
+                if (component) {
+                  return component?.renderTab?.({
+                    id: node.id,
+                    manager: dndManager,
+                    onRunNode: handleRunNode,
+                    runLoading: isRunning
+                  });
+                }
 
-              return null;
-            })}
-        </div>
-      ))}
+                return null;
+              })}
+          </div>
+        );
+      })}
     </div>
   );
 });

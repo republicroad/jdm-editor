@@ -44,6 +44,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
             .with(NodeKind.Function, () => false)
             .with(NodeKind.DecisionTable, () => false)
             .with(NodeKind.Expression, () => false)
+            .with(NodeKind.HttpRequest, () => false)
             .otherwise(() => true),
           position: node.position,
           icon: specification?.icon,
@@ -112,6 +113,10 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
       {
         title: 'Functions',
         nodes: filtered.filter((node) => node.type === NodeKind.Function),
+      },
+      {
+        title: 'HTTP Requests',
+        nodes: filtered.filter((node) => node.type === NodeKind.HttpRequest),
       },
     ];
   }, [search, nodes]);

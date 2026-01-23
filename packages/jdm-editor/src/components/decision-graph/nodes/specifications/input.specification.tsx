@@ -45,7 +45,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     },
   }),
   renderTab: ({ id, manager }) => <TabRequest id={id} manager={manager} type={'input'} />,
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     const { disabled } = useDecisionGraphState(({ disabled, decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeInputData;
@@ -61,6 +61,8 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         name={data.name}
         isSelected={selected}
         handleLeft={false}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         helper={[]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>

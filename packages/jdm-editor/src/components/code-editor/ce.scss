@@ -64,6 +64,21 @@
     }
   }
 
+  &.custom-function-input {
+    .cm-editor {
+      min-height: 32px;
+      font-size: 14px;
+
+      .cm-content {
+        padding: 4px 11px;
+      }
+
+      .cm-scroller {
+        overflow: hidden;
+      }
+    }
+  }
+
   .cm-editor {
     background: var(--grl-color-bg-container);
     width: 100%;

@@ -14,10 +14,14 @@ export enum NodeKind {
   Expression = 'expressionNode',
   CustomFunction = 'customNode',
   Switch = 'switchNode',
+  HttpRequest = 'httpRequestNode',
 }
 
 export type MinimalNodeProps = Pick<NodeProps, 'id' | 'data' | 'selected'> & {
   customNodes?: any[];
+  onRunNode?: () => void;
+  runLoading?: boolean;
+  _runningNodeId?: string | null;
 };
 export type MinimalNodeSpecification = Pick<
   NodeSpecification,
@@ -43,7 +47,16 @@ export type NodeSpecification<T = any> = {
   documentationUrl?: string;
   shortDescription?: string;
   helper?: string | React.ReactNode;
-  renderTab?: (props: { id: string; manager?: DragDropManager; userId?: string; projectId?: string | null; menuList?: any; customFunctions?: any }) => React.ReactNode;
+  renderTab?: (props: {
+    id: string;
+    manager?: DragDropManager;
+    userId?: string;
+    projectId?: string | null;
+    menuList?: any;
+    customFunctions?: any;
+    onRunNode?: () => void;
+    runLoading?: boolean;
+  }) => React.ReactNode;
   getDiffContent?: (current: T, previous: T) => T;
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode<T>, 'position' | 'id' | 'type'>;
   renderNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecification }>;

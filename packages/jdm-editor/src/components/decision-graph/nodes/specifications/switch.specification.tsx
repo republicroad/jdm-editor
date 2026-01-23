@@ -108,14 +108,16 @@ export const switchSpecification: NodeSpecification<NodeSwitchData> = {
       statements: [{ id: crypto.randomUUID(), condition: '', isDefault: false }],
     },
   }),
-  renderNode: ({ specification, ...props }) => <SwitchNode specification={specification} {...props} />,
+  renderNode: ({ specification, onRunNode, runLoading, ...props }) => <SwitchNode specification={specification} onRunNode={onRunNode} runLoading={runLoading} {...props} />,
 };
 
 const SwitchNode: React.FC<
   MinimalNodeProps & {
     specification: Pick<NodeSpecification, 'displayName' | 'icon' | 'documentationUrl'>;
+    onRunNode?: (nodeId: string) => void;
+    runLoading?: boolean;
   }
-> = ({ id, data, selected, specification }) => {
+> = ({ id, data, selected, specification, onRunNode, runLoading }) => {
   const graphActions = useDecisionGraphActions();
   const { ref: inViewRef, inView } = useInView({ delay: 1_000 });
   const { content, disabled, nodeTrace, compactMode, isGraphActive } = useDecisionGraphState(
@@ -151,6 +153,8 @@ const SwitchNode: React.FC<
       specification={specification}
       name={data.name}
       handleRight={false}
+      onRunNode={onRunNode}
+      runLoading={runLoading}
       helper={[<ArrowRightOutlined key='arrow-right' />]}
       noBodyPadding
       isSelected={selected}

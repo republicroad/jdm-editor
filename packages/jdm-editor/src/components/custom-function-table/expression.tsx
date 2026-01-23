@@ -120,7 +120,7 @@ const SimulateDataSync: React.FC<Pick<CustomFunctionProps, 'debug'>> = ({ debug 
 
       applyDebug(state);
     });
-  }, []);
+  }, [debug]);
 
   return null;
 };

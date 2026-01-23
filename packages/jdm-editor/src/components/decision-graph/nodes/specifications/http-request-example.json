@@ -1,0 +1,90 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    {
+      "type": "httpRequestNode",
+      "content": {
+        "kind": "http",
+        "config": {
+          "version": "v3",
+          "meta": {
+            "user": "user_id_example",
+            "proj": "proj_id_example"
+          },
+          "expressions": [
+            {
+              "id": "expr-1",
+              "key": "url",
+              "value": "http_call_with_headers;;http://127.0.0.1;;\"post\";;{'user':\"1223\"};;{'header':\"456\"}",
+              "type": "function"
+            }
+          ],
+          "expr_asts": [
+            {
+              "id": "expr-1",
+              "key": "url",
+              "value": [
+                "http_call_with_headers",
+                "http://127.0.0.1",
+                "\"post\"",
+                "{'user':\"1223\"}",
+                "{'header':\"456\"}"
+              ]
+            }
+          ],
+          "passThrough": true,
+          "inputField": null,
+          "outputPath": null,
+          "executionMode": "single",
+          "method": "POST",
+          "url": "http://127.0.0.1/api/users",
+          "headers": [
+            {
+              "id": "header-1",
+              "key": "Content-Type",
+              "value": "application/json",
+              "enabled": true
+            },
+            {
+              "id": "header-2",
+              "key": "Authorization",
+              "value": "Bearer token123",
+              "enabled": true
+            }
+          ],
+          "params": [
+            {
+              "id": "param-1",
+              "key": "page",
+              "value": "1",
+              "enabled": true
+            },
+            {
+              "id": "param-2",
+              "key": "limit",
+              "value": "10",
+              "enabled": true
+            }
+          ],
+          "body": {
+            "type": "json",
+            "content": "{\"user\": \"1223\", \"action\": \"create\"}"
+          },
+          "auth": {
+            "type": "bearer",
+            "token": "your_bearer_token_here"
+          },
+          "timeout": 30000,
+          "followRedirects": true
+        }
+      },
+      "id": "http-node-1",
+      "name": "httpRequest1",
+      "position": {
+        "x": 120,
+        "y": 200
+      }
+    }
+  ],
+  "edges": []
+}

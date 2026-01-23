@@ -158,14 +158,15 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   }, [expression.type, expression.funcmeta, expression.arg_exprs, expression.value, customFunctions]);
 
 
-  const { updateRow, removeRow, swapRows, disabled, permission, configurable } = useExpressionStore(
-    ({ updateRow, removeRow, swapRows, disabled, permission, configurable }) => ({
+  const { updateRow, removeRow, swapRows, disabled, permission, configurable, calculatedInputData } = useExpressionStore(
+    ({ updateRow, removeRow, swapRows, disabled, permission, configurable, calculatedInputData }) => ({
       updateRow,
       removeRow,
       swapRows,
       disabled,
       permission,
       configurable: configurable ?? (permission === 'edit:full'),
+      calculatedInputData,
     }),
   );
 
@@ -627,15 +628,19 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                           
                           default:
                             return (
-                              <Input
+                              <DiffCodeEditor
                                 key={ele.arg_name}
                                 placeholder={placeholder}
                                 value={value}
-                                style={{ minWidth: 120, width: 160 }}
-                                onChange={(e) =>
-                                  inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: ele })
+                                onChange={(newValue) =>
+                                  inputChange({ value: newValue, type: currentFunctionInfo?.funcmeta?.name, key: ele })
                                 }
-                                autoComplete="off"
+                                disabled={!configurable || disabled}
+                                noStyle={false}
+                                maxRows={1}
+                                inputData={calculatedInputData}
+                                className="custom-function-input"
+                                style={{ minWidth: '200px', flex: 1 }}
                               />
                             );
                         }
@@ -664,6 +669,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                       onFocus={() => setIsFocused(true)}
                       onBlur={() => setIsFocused(false)}
                       noStyle={true}
+                      inputData={calculatedInputData}
                     />
                     <ResultOverlay expression={expression} />
                   </div>

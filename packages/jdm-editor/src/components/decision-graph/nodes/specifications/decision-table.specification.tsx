@@ -34,7 +34,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
   displayName: '决策表',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/decision-tables',
   shortDescription: 'Rules spreadsheet',
-  renderTab: ({ id, manager }) => <TabDecisionTable id={id} manager={manager} />,
+  renderTab: ({ id, manager, onRunNode, runLoading }) => <TabDecisionTable id={id} manager={manager} onRunNode={onRunNode} runLoading={runLoading} />,
   getDiffContent: (current, previous) => {
     return produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
@@ -322,7 +322,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
       executionMode: 'single',
     },
   }),
-  renderNode: ({ id, data, selected, specification }) => {
+  renderNode: ({ id, data, selected, specification, onRunNode, runLoading }) => {
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeDecisionTableData;
@@ -338,6 +338,8 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
         specification={specification}
         name={data.name}
         isSelected={selected}
+        onRunNode={onRunNode}
+        runLoading={runLoading}
         helper={[executionMode === 'loop' && <SyncOutlined />, passThrough && <ArrowRightOutlined />]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>

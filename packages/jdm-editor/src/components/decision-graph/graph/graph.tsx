@@ -55,6 +55,8 @@ export type GraphProps = {
   projectId?: string | null;
   menuList?: any;
   customFunctions?: any;
+  onRunNode?: (nodeId: string) => void;
+  runningNodeId?: string | null;
 };
 
 /**
@@ -75,10 +77,14 @@ const edgeTypes = {
  * Graph组件的主要实现
  * 提供决策图编辑器的核心功能
  */
-export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions }, ref) {
+export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions, onRunNode, runningNodeId }, ref) {
   // DOM元素和ReactFlow实例的引用
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
+
+  // 使用 ref 存储 runningNodeId，避免触发不必要的重新渲染
+  const runningNodeIdRef = useRef<string | null | undefined>(null);
+  runningNodeIdRef.current = runningNodeId;
 
   // 使用ReactFlow hooks管理节点和边的状态
   const nodesState = useNodesState([]);
@@ -105,6 +111,24 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
   graphReferences.graphClipboard.current = useGraphClipboard(reactFlowInstance, reactFlowWrapper);
+
+  // 使用 useMemo 缓存带有 _runningNodeId 的节点数组，避免不必要的重新渲染
+  const nodesWithRunningId = useMemo(() => {
+    // console.log('[Graph] nodesWithRunningId useMemo recalculating, runningNodeId:', runningNodeId);
+    return nodesState[0].map(node => {
+      // 只有当 _runningNodeId 真的改变时才创建新对象
+      if (node.data._runningNodeId === runningNodeId) {
+        return node;
+      }
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          _runningNodeId: runningNodeId,
+        }
+      };
+    });
+  }, [nodesState[0], runningNodeId]);
   graphReferences.reactFlowInstance.current = reactFlowInstance.current;
 
   /**
@@ -159,26 +183,54 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   }, [customNodes]);
 
   /**
- * 通过映射nodeSpecification创建默认节点类型
- * 每种节点类型都用React.memo包装以优化性能
- */
-const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key]: React.memo(
-      (props: MinimalNodeProps) => value.renderNode({ specification: value, ...props,customNodes: customNodes }),
-      (prevProps, nextProps) => {
-        // 自定义相等性检查，防止不必要的重新渲染
-        return (
-          prevProps.id === nextProps.id &&
-          prevProps.selected === nextProps.selected &&
-          equal(prevProps.data, nextProps.data)
-        );
-      },
-    ),
-  }),
-  {},
-);
+   * 通过映射nodeSpecification创建默认节点类型
+   * 每种节点类型都用React.memo包装以优化性能
+   */
+  const defaultNodeTypes = useMemo(() => {
+    // console.log('[Graph] defaultNodeTypes useMemo recalculating');
+    return Object.entries(nodeSpecification).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [key]: React.memo(
+          (props: MinimalNodeProps) => {
+            const isRunning = runningNodeIdRef.current === props.id;
+            return value.renderNode({
+              specification: value,
+              ...props,
+              customNodes: customNodes,
+              onRunNode: onRunNode ? () => onRunNode(props.id) : undefined,
+              runLoading: isRunning,
+            });
+          },
+          (prevProps, nextProps) => {
+            // 自定义相等性检查，防止不必要的重新渲染
+            const prevRunning = prevProps._runningNodeId === prevProps.id;
+            const nextRunning = nextProps._runningNodeId === nextProps.id;
+            const shouldSkipRender = (
+              prevProps.id === nextProps.id &&
+              prevProps.selected === nextProps.selected &&
+              equal(prevProps.data, nextProps.data) &&
+              prevRunning === nextRunning
+            );
+
+            if (!shouldSkipRender) {
+              // console.log(`[Graph] Node ${nextProps.id} should re-render:`, {
+              //   idChanged: prevProps.id !== nextProps.id,
+              //   selectedChanged: prevProps.selected !== nextProps.selected,
+              //   dataChanged: !equal(prevProps.data, nextProps.data),
+              //   runningChanged: prevRunning !== nextRunning,
+              //   prevRunning,
+              //   nextRunning,
+              // });
+            }
+
+            return shouldSkipRender;
+          },
+        ),
+      }),
+      {},
+    );
+  }, [customNodes, onRunNode]);
 
   /**
    * 组合节点类型，包括默认节点、组件和自定义节点
@@ -189,12 +241,23 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
       (acc, component) => ({
         ...acc,
         [component.type]: React.memo(
-          (props: MinimalNodeProps) => component.renderNode({ specification: component, ...props }),
+          (props: MinimalNodeProps) => {
+            const isRunning = runningNodeIdRef.current === props.id;
+            return component.renderNode({
+              specification: component,
+              ...props,
+              onRunNode: onRunNode ? () => onRunNode(props.id) : undefined,
+              runLoading: isRunning,
+            });
+          },
           (prevProps, nextProps) => {
+            const prevRunning = prevProps._runningNodeId === prevProps.id;
+            const nextRunning = nextProps._runningNodeId === nextProps.id;
             return (
               prevProps.id === nextProps.id &&
               prevProps.selected === nextProps.selected &&
-              equal(prevProps.data, nextProps.data)
+              equal(prevProps.data, nextProps.data) &&
+              prevRunning === nextRunning
             );
           },
         ),
@@ -204,7 +267,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
 
     );
   // }, [components, customNodeRenderer]);
-  }, [components]);
+  }, [components, defaultNodeTypes, onRunNode]);
 
   /**
    * 向图中添加新节点
@@ -234,7 +297,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
     const customSpecification = match(type)
       .with('customNode', () => {
         let custom = customNodes.find((node) => node.kind === component)
-        console.log('customNodes', customNodes);
+        // console.log('customNodes', customNodes);
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
         let middle = allSpecifications.find((s) => s.type === type) || {};
         Object.assign(middle, { icon: custom?.icon });
@@ -552,7 +615,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
               elevateNodesOnSelect={true}
               zoomOnDoubleClick={false}
               connectionRadius={35}
-              nodes={nodesState[0]}
+              nodes={nodesWithRunningId}
               edges={edgesState[0]}
               onInit={(instance) => {
                 (reactFlowInstance as MutableRefObject<ReactFlowInstance>).current = instance;
