@@ -9,6 +9,8 @@ import { parseFields } from '../../../helpers/field-parser';
 import type { FieldInfo } from '../../../helpers/field-parser';
 import { FieldTreeView } from './field-tree-view';
 
+export type { FieldInfo };
+
 const { Text } = Typography;
 
 type ViewMode = 'tree' | 'json';
@@ -39,7 +41,7 @@ export type DataPreviewProps = {
   data: unknown;
   title: string;
   emptyText?: string;
-  onFieldClick?: (fieldPath: string) => void;
+  onFieldClick?: (field: FieldInfo) => void;
   onFieldDragStart?: (fieldPath: string, e: React.DragEvent) => void;
 };
 
@@ -69,7 +71,7 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
 
   // 字段点击处理
   const handleFieldClick = (field: FieldInfo) => {
-    onFieldClick?.(field.path);
+    onFieldClick?.(field);
   };
 
   // 字段拖拽处理
@@ -152,7 +154,7 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
 // 保持向后兼容的别名
 export const InputDataPreview: React.FC<{
   data: unknown;
-  onFieldClick?: (fieldPath: string) => void;
+  onFieldClick?: (field: FieldInfo) => void;
   onFieldDragStart?: (fieldPath: string, e: React.DragEvent) => void;
 }> = ({ data, onFieldClick, onFieldDragStart }) => {
   return (
@@ -168,7 +170,7 @@ export const InputDataPreview: React.FC<{
 
 export const OutputDataPreview: React.FC<{
   data: unknown;
-  onFieldClick?: (fieldPath: string) => void;
+  onFieldClick?: (field: FieldInfo) => void;
   onFieldDragStart?: (fieldPath: string, e: React.DragEvent) => void;
 }> = ({ data, onFieldClick, onFieldDragStart }) => {
   return (

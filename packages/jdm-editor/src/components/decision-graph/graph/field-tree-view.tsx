@@ -27,6 +27,7 @@ export interface FieldTreeItemProps {
   field: FieldInfo;
   depth: number;
   onFieldClick?: (field: FieldInfo) => void;
+  onFieldDragStart?: (field: FieldInfo, e: React.DragEvent) => void;
 }
 
 /**
@@ -35,6 +36,8 @@ export interface FieldTreeItemProps {
 export interface FieldTreeViewProps {
   fields: FieldInfo[];
   emptyText?: string;
+  onFieldClick?: (field: FieldInfo) => void;
+  onFieldDragStart?: (field: FieldInfo, e: React.DragEvent) => void;
 }
 
 /**
@@ -85,6 +88,8 @@ const formatValue = (value: unknown, type: FieldInfo['type']): string => {
 const FieldTreeItem: React.FC<FieldTreeItemProps> = ({
   field,
   depth,
+  onFieldClick,
+  onFieldDragStart,
 }) => {
   // 判断是否可展开（object 或 array 类型且有子字段）
   const isExpandable = (field.type === 'object' || field.type === 'array') &&
@@ -101,7 +106,15 @@ const FieldTreeItem: React.FC<FieldTreeItemProps> = ({
     if (isExpandable) {
       // 容器节点：切换展开状态
       setIsExpanded(!isExpanded);
+    } else {
+      // 叶子节点：触发字段点击回调
+      onFieldClick?.(field);
     }
+  };
+
+  // 处理拖拽开始
+  const handleDragStart = (e: React.DragEvent) => {
+    onFieldDragStart?.(field, e);
   };
 
   // 计算缩进
@@ -110,12 +123,14 @@ const FieldTreeItem: React.FC<FieldTreeItemProps> = ({
   return (
     <div className="field-tree-item">
       <div
-        className="field-tree-item__content"
+        className={`field-tree-item__content ${!isExpandable ? 'field-tree-item__content--clickable' : ''}`}
         style={{
           paddingLeft: `${indent}px`,
-          cursor: isExpandable ? 'pointer' : 'default',
+          cursor: isExpandable ? 'pointer' : 'pointer',
         }}
         onClick={handleClick}
+        draggable={!isExpandable}
+        onDragStart={handleDragStart}
       >
         {/* 展开/收起图标 */}
         <span className="field-tree-item__expand-icon">
@@ -160,6 +175,8 @@ const FieldTreeItem: React.FC<FieldTreeItemProps> = ({
               key={`${child.path}-${index}`}
               field={child}
               depth={depth + 1}
+              onFieldClick={onFieldClick}
+              onFieldDragStart={onFieldDragStart}
             />
           ))}
         </div>
@@ -174,6 +191,8 @@ const FieldTreeItem: React.FC<FieldTreeItemProps> = ({
 export const FieldTreeView: React.FC<FieldTreeViewProps> = ({
   fields,
   emptyText = '暂无字段数据',
+  onFieldClick,
+  onFieldDragStart,
 }) => {
   // 空状态
   if (!fields || fields.length === 0) {
@@ -191,6 +210,8 @@ export const FieldTreeView: React.FC<FieldTreeViewProps> = ({
           key={`${field.path}-${index}`}
           field={field}
           depth={0}
+          onFieldClick={onFieldClick}
+          onFieldDragStart={onFieldDragStart}
         />
       ))}
     </div>
