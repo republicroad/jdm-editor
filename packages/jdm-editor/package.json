@@ -76,6 +76,7 @@
     "transition-hook": "^1.5.2",
     "ts-pattern": "^5.7.0",
     "use-debounce": "^10.0.4",
+    "uuid": "^13.0.0",
     "zod": "^3.24.2",
     "zustand": "^4.5.5"
   },
