@@ -124,6 +124,6 @@ const DeprecatedFunctionWarning: React.FC<{ size?: number }> = ({ size }) => (
     placement='top'
     title='Function v1 will be deprecated in one of the upcoming releases. To use a new Function, drag and drop a new Function Node and copy your logic. For more information click "Documentation". '
   >
-    <WarningFilled style={{ color: 'var(--grl-color-warning-text)', fontSize: size }} />
+    <WarningFilled style={{ color: '#FFAF26', fontSize: size }} />
   </Tooltip>
 );

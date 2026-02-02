@@ -1,4 +1,4 @@
-import { CloseOutlined, MoreOutlined } from '@ant-design/icons';
+import { CloseOutlined, MoreOutlined, ExclamationOutlined } from '@ant-design/icons';
 import { Button, Dropdown, type MenuProps, Typography } from 'antd';
 import clsx from 'clsx';
 import React from 'react';
@@ -92,7 +92,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               ))}
           {status === 'error' && (
             <div className={clsx('grl-dn__status-icon', `grl-dn__status-icon--${status}`)}>
-              <CloseOutlined />
+              <ExclamationOutlined />
             </div>
           )}
           <DiffIcon status={diffStatus} style={{ fontSize: 16 }} />
