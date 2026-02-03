@@ -4,6 +4,7 @@ import { Button, Tooltip, Typography, message, notification } from 'antd';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 
+import { useTranslation } from '../../../locales';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { copyToClipboard, fJson } from '../../../helpers/utility';
 import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState, useDecisionGraphActions } from '../context/dg-store.context';
@@ -28,6 +29,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   onRun,
   defaultRequest,
 }) => {
+  const { t } = useTranslation();
   const [requestValue, setRequestValue] = useState(defaultRequest);
   const [userHasEdited, setUserHasEdited] = useState(false);
   const { stateStore, actions } = useDecisionGraphRaw();
@@ -94,7 +96,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   return (
     <>
       <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--request'}>
-        <Tooltip title={requestTooltip}>
+        <Tooltip title={t('requestDescription')}>
           <Typography.Text style={{ fontSize: 13, cursor: 'help' }}>
             Request
             <InfoCircleOutlined style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }} />
@@ -102,7 +104,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         </Tooltip>
         <div className={'grl-dg__simulator__section__bar__actions'}>
           {/* {inputNodeContent && userHasEdited && (
-            <Tooltip title="重新同步输入节点内容">
+            <Tooltip title={t('resyncInputNodeContent')}>
               <Button
                 size={'small'}
                 type={'text'}
@@ -126,7 +128,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
             <Tooltip
               title={
                 !hasInputNode
-                  ? 'Request node is required to run the graph. Drag-and-drop it from the Components panel.'
+                  ? t('requestNodeRequired')
                   : undefined
               }
             >
@@ -141,13 +143,13 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                     setRequestValue(formatted);
                     setUserHasEdited(true);
                     onChange?.(formatted);
-                    message.success('Formatted successfully!');
+                    message.success(t('formatSuccess'));
                   } catch {
-                    message.error('Failed to format. Invalid JSON format.');
+                    message.error(t('formatFailed'));
                   }
                 }}
               >
-                Format
+                {t('format')}
               </Button>
               <Button
                 size={'small'}
@@ -156,7 +158,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                 onClick={async () => {
                   try {
                     if (!requestValue || requestValue.trim().length === 0) {
-                      message.warning('Nothing to copy.');
+                      message.warning(t('nothingToCopy'));
                       return;
                     }
 
@@ -166,13 +168,13 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
 
                     // 复制到剪贴板
                     await copyToClipboard(jsonString);
-                    message.success('Copied to clipboard!');
+                    message.success(t('copiedToClipboard'));
                   } catch {
-                    message.error('Failed to copy. Invalid JSON format.');
+                    message.error(t('copyFailedInvalidJson'));
                   }
                 }}
               >
-                Copy JSON
+                {t('copyJson')}
               </Button>
               <Button
                 size={'small'}

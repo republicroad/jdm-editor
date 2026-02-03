@@ -1,6 +1,7 @@
 import { Dropdown } from 'antd';
 import React from 'react';
 
+import { useTranslation } from '../../locales';
 import { SpacedText } from '../spaced-text';
 import { useExpressionStore } from './context/expression-store.context';
 
@@ -10,6 +11,7 @@ type ExpressionItemContextMenuProps = {
 };
 
 export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps> = ({ index, children }) => {
+  const { t } = useTranslation();
   const { addRowAbove, addRowBelow, disabled } = useExpressionStore(({ addRowBelow, addRowAbove, disabled }) => ({
     addRowBelow,
     addRowAbove,
@@ -27,14 +29,14 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
         items: [
           {
             key: 'addRowAbove',
-            label: <SpacedText left='Add row above' />,
+            label: <SpacedText left={t('addRowAbove')} />,
             onClick: () => {
               addRowAbove(index);
             },
           },
           {
             key: 'addRowBelow',
-            label: <SpacedText left='Add row below' />,
+            label: <SpacedText left={t('addRowBelow')} />,
             onClick: () => {
               addRowBelow(index);
             },

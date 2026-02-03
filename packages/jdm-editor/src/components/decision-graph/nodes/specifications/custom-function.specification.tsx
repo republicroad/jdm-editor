@@ -8,6 +8,7 @@ import { HashIcon } from 'lucide-react';
 import React, { useMemo } from 'react';
 import type { z } from 'zod';
 
+import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import type { customNodeSchema } from '../../../../helpers/schema';
 import { DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
@@ -34,7 +35,7 @@ export type NodeExpressionData = InferredContent & Diff;
 export const customFunctionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.CustomFunction,
   icon: <NodeIndexOutlined />,
-  displayName: '自定义节点',
+  displayName: 'customNode',
   documentationUrl: '     ',
   shortDescription: 'Mapping utility',
   renderTab: ({ id, manager, userId, projectId, menuList, customFunctions }) => <CustomFunctionTable id={id} manager={manager} userId={userId} projectId={projectId} menuList={menuList} customFunctions={customFunctions} />,
@@ -180,6 +181,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     },
   }),
   renderNode: ({ id, data, selected, specification,customNodes }) => {
+    const { t } = useTranslation();
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData;
@@ -190,7 +192,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     });
     const nodeSpecification = useMemo(() => {
       const customNode = customNodes?.find((node) => node.kind === data.kind);
-      return customNode 
+      return customNode
         ? { ...specification, icon: customNode.icon}
         : specification;
     }, [specification, customNodes, data.kind]);
@@ -203,7 +205,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
         isSelected={selected}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id,data.name,data.kind)}>
-            Edit Expression
+            {t('editExpression')}
           </Button>,
         ]}
         helper={[executionMode === 'loop' && <SyncOutlined />, passThrough && <ArrowRightOutlined />]}
@@ -211,6 +213,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     );
   },
   renderSettings: ({ id }) => {
+    const { t } = useTranslation();
     const graphActions = useDecisionGraphActions();
     const inputType = useNodeType(id);
     const { contentDiff } = useNodeDiff(id);
@@ -235,7 +238,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
 
     return (
       <div className={'settings-form'}>
-        <Form.Item label='Passthrough'>
+        <Form.Item label={t('passThrough')}>
           <DiffSwitch
             disabled={disabled}
             size={'small'}
@@ -245,7 +248,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
             onChange={(e) => updateNode({ config: { ...fields, passThrough: e } })}
           />
         </Form.Item>
-        <Form.Item label='Input field'>
+        <Form.Item label={t('inputField')}>
           <DiffCodeEditor
             variableType={inputType}
             disabled={disabled}
@@ -260,7 +263,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
             }}
           />
         </Form.Item>
-        <Form.Item label='Output path'>
+        <Form.Item label={t('outputPath')}>
           <DiffInput
             size={'small'}
             readOnly={disabled}
@@ -270,7 +273,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
             onChange={(e) => updateNode({ config: { ...fields, outputPath: e?.target?.value?.trim() || null } })}
           />
         </Form.Item>
-        <Form.Item label='Execution mode' style={{display:'none'}}>
+        <Form.Item label={t('executionMode')} style={{display:'none'}}>
           <DiffRadio
             size={'small'}
             disabled={disabled}
@@ -281,11 +284,11 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
             options={[
               {
                 value: 'single',
-                label: 'Single',
+                label: t('single'),
               },
               {
                 value: 'loop',
-                label: 'Loop',
+                label: t('loop'),
               },
             ]}
           />

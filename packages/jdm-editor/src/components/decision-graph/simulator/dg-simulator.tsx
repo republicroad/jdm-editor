@@ -6,6 +6,7 @@ import React, { useMemo, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { P, match } from 'ts-pattern';
 
+import { useTranslation } from '../../../locales';
 import '../../../helpers/monaco';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
@@ -37,6 +38,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   loading = false,
   leftPanel: LeftPanel = SimulatorRequestPanel,
 }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = usePersistentState<string>('simulation.search', '');
   const [segment, setSegment] = usePersistentState<SimulationSegment>('simulation.segment', SimulationSegment.Output);
 
@@ -93,13 +95,13 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
           <input
             className='grl-dg__simulator__search'
             type='text'
-            placeholder='Search nodes...'
+            placeholder={t('searchNodes')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className={'grl-dg__simulator__section__bar__actions'}>
             {onClear && (
-              <Tooltip title={'Clear'}>
+              <Tooltip title={t('clear')}>
                 <Button
                   size={'small'}
                   type={'text'}
@@ -186,7 +188,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               label: s,
             }))}
             tabBarExtraContent={
-              <Tooltip title='Close panel'>
+              <Tooltip title={t('closePanel')}>
                 <Button
                   type='text'
                   icon={<CloseOutlined style={{ fontSize: 12 }} />}

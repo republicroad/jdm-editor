@@ -2,6 +2,8 @@ import type { ThemeConfig as AntThemeConfig } from 'antd';
 import { ConfigProvider, theme as antTheme, theme } from 'antd';
 import React, { useMemo } from 'react';
 
+import { I18nProvider, type Locale } from './locales';
+
 declare module 'antd/es/theme/interface/alias' {
   export interface AliasToken {
     mode: 'dark' | 'light';
@@ -15,12 +17,14 @@ export type ThemeConfig = Omit<AntThemeConfig, 'algorithm'> & {
 export type JdmConfigProviderProps = {
   theme?: ThemeConfig;
   prefixCls?: string;
+  locale?: Locale;
   children?: React.ReactNode;
 };
 
 export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   theme: { mode = 'light' as const, token = {}, ...restTheme } = {},
   prefixCls,
+  locale = 'zh',
   children,
 }) => {
   const algorithm = useMemo(() => {
@@ -35,8 +39,10 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 
   return (
     <ConfigProvider prefixCls={prefixCls} theme={{ ...restTheme, algorithm, token: { ...token, mode, motion: false } }}>
-      <GlobalCssVariables mode={mode} />
-      {children}
+      <I18nProvider locale={locale}>
+        <GlobalCssVariables mode={mode} />
+        {children}
+      </I18nProvider>
     </ConfigProvider>
   );
 };

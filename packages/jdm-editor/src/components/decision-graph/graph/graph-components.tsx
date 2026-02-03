@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import type { XYPosition } from 'reactflow';
 import { match } from 'ts-pattern';
 
+import { useTranslation, type TranslationKey } from '../../../locales';
 import { useDecisionGraphState } from '../context/dg-store.context';
 import { DecisionNode } from '../nodes/decision-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
@@ -16,6 +17,7 @@ export type GraphComponentsProps = {
 };
 
 export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inputDisabled, disabled }) => {
+  const { t } = useTranslation();
   const customComponents = useDecisionGraphState((store) => store.components || []);
   const customNodes = useDecisionGraphState((store) => store.customNodes || []);
 
@@ -97,7 +99,7 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
     <div>
       {customCount > 5 && (
         <Input
-          placeholder={'Search components...'}
+          placeholder={t('searchComponents')}
           value={search}
           onChange={(e) => setSearch(e.target.value || '')}
           allowClear
@@ -161,6 +163,10 @@ const DragDecisionNode: React.FC<
     disabled?: boolean;
   } & React.HTMLAttributes<HTMLDivElement>
 > = ({ specification, disabled = false, ...props }) => {
+  const { t } = useTranslation();
+  const displayName = typeof specification.displayName === 'string'
+    ? t(specification.displayName as TranslationKey)
+    : specification.displayName;
   return (
     <div className={clsx('draggable-component')} draggable={!disabled} {...props}>
       <div style={{ pointerEvents: 'none' }}>
@@ -169,7 +175,7 @@ const DragDecisionNode: React.FC<
           compactMode
           color={specification.color}
           icon={specification.icon}
-          name={specification.displayName as string}
+          name={displayName as string}
           type={specification.shortDescription}
         />
       </div>
