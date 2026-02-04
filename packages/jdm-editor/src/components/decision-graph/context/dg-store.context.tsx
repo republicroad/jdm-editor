@@ -7,7 +7,7 @@ import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { Monaco } from '@monaco-editor/react';
 import equal from 'fast-deep-equal/es6/react';
 import type { WritableDraft } from 'immer';
-import { produce } from 'immer';
+import { produce, current } from 'immer';
 import React, { type MutableRefObject, createRef, useMemo } from 'react';
 import type { EdgeChange, NodeChange, ReactFlowInstance, useEdgesState, useNodesState } from 'reactflow';
 import { match } from 'ts-pattern';
@@ -268,6 +268,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         let hasChanges = false;
 
+        // 先准备Symbol数据的副本（在produce之前）
+        const symbolDataMap = new Map();
+        decisionGraph.nodes.forEach((node) => {
+          if (node[privateSymbol]) {
+            symbolDataMap.set(node.id, { ...node[privateSymbol] });
+          }
+        });
+
         onNodesChange?.(changes);
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           changes.forEach((c) =>
@@ -281,7 +289,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
               })
               .with({ type: 'dimensions' }, (d) => {
                 const node = draft.nodes.find((n) => n.id === d.id);
-                if (node && !equal(node[privateSymbol]?.dimensions, d.dimensions)) {
+                const savedSymbolData = symbolDataMap.get(d.id);
+                if (node && !equal(savedSymbolData?.dimensions, d.dimensions)) {
                   hasChanges = true;
                   node[privateSymbol] ??= {};
                   node[privateSymbol].dimensions = { height: d.dimensions?.height, width: d.dimensions?.width };
@@ -289,8 +298,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
               })
               .with({ type: 'select' }, (s) => {
                 const node = draft.nodes.find((n) => n.id === s.id);
+                const savedSymbolData = symbolDataMap.get(s.id);
 
-                if (node && node[privateSymbol]?.selected !== s.selected) {
+                if (node && savedSymbolData?.selected !== s.selected) {
                   hasChanges = true;
                   node[privateSymbol] ??= {};
                   node[privateSymbol].selected = s.selected;
@@ -774,6 +784,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         const [, setNodes] = nodesState.current;
         const [, setEdges] = edgesState.current;
 
+        // 先准备Symbol数据的副本（在produce之前）
+        const symbolDataMap = new Map();
+        decisionGraph.nodes.forEach((node) => {
+          if (node[privateSymbol]) {
+            symbolDataMap.set(node.id, { ...node[privateSymbol] });
+          }
+        });
+
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           const chosenNode = draft.nodes.find((n) => n.id === id);
           if (!chosenNode) {
@@ -796,7 +814,25 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             .otherwise(() => !chosenNode[privateSymbol]?.selected);
         });
 
-        setNodes(mapToGraphNodes(newDecisionGraph.nodes));
+        // 使用预先保存的Symbol数据构建新节点数组
+        const safeNodes = newDecisionGraph.nodes.map((node) => {
+          const result = { ...node };
+          const savedSymbolData = symbolDataMap.get(node.id);
+
+          // 根据 mode 更新 selected 状态
+          if (node.id === id) {
+            const newSelected = mode === 'only' ? true : !savedSymbolData?.selected;
+            result[privateSymbol] = savedSymbolData ? { ...savedSymbolData, selected: newSelected } : { selected: newSelected };
+          } else if (mode === 'only' && savedSymbolData) {
+            result[privateSymbol] = { ...savedSymbolData, selected: false };
+          } else if (savedSymbolData) {
+            result[privateSymbol] = { ...savedSymbolData };
+          }
+
+          return result;
+        });
+
+        setNodes(mapToGraphNodes(safeNodes));
         if (mode == 'only') {
           setEdges((edges) =>
             edges.map((e) => ({
@@ -805,8 +841,14 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
             })),
           );
         }
-        stateStore.setState({ decisionGraph: newDecisionGraph });
-        listenerStore.getState().onChange?.(newDecisionGraph);
+
+        // 使用安全的节点数组更新状态
+        const safeDecisionGraph = {
+          ...newDecisionGraph,
+          nodes: safeNodes,
+        };
+        stateStore.setState({ decisionGraph: safeDecisionGraph });
+        listenerStore.getState().onChange?.(safeDecisionGraph);
       },
 
       // eventClik 和业务相关的点击事件
