@@ -23,7 +23,7 @@ export {
   useNodeDiff,
   useEdgeDiff,
   NodeTypeKind,
-  DecisionGraphStoreType
+  type DecisionGraphStoreType
 } from './context/dg-store.context';
 export { NodeColor } from './nodes/specifications/colors';
 
