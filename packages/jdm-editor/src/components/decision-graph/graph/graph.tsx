@@ -44,7 +44,6 @@ import type { MinimalNodeProps } from '../nodes/specifications/specification-typ
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
-
 /**
  * Graph组件的属性
  */
@@ -603,10 +602,10 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
             <div className={'grl-dg__aside__menu__heading'}>
               <div className={'grl-dg__aside__menu__heading__text'}>
                 <Typography.Text strong style={{ marginBottom: 0 }}>
-                  组件
+                  {t('components')}
                 </Typography.Text>{' '}
                 <Typography.Text type='secondary' style={{ fontSize: 10, marginLeft: 5 }}>
-                  (拖放操作)
+                  {t('dragAndDrop')}
                 </Typography.Text>
               </div>
               <Button
