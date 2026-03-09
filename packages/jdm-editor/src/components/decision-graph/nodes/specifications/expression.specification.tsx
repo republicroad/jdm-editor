@@ -8,6 +8,7 @@ import { HashIcon } from 'lucide-react';
 import React from 'react';
 import type { z } from 'zod';
 
+import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import type { expressionNodeSchema } from '../../../../helpers/schema';
 import { DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
@@ -37,7 +38,7 @@ export type NodeExpressionData = Omit<InferredContent, 'expressions'> &
 export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.Expression,
   icon: <HashIcon size='1em' />,
-  displayName: '表达式',
+  displayName: 'expression',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
   renderTab: ({ id, manager }) => <TabExpression id={id} manager={manager} />,
@@ -174,6 +175,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
     },
   }),
   renderNode: ({ id, data, selected, specification }) => {
+    const { t } = useTranslation();
     const graphActions = useDecisionGraphActions();
     const { passThrough, executionMode } = useDecisionGraphState(({ decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData;
@@ -191,7 +193,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
         isSelected={selected}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
-            Edit Expression
+            {t('editExpression')}
           </Button>,
         ]}
         helper={[executionMode === 'loop' && <SyncOutlined />, passThrough && <ArrowRightOutlined />]}
@@ -199,6 +201,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
     );
   },
   renderSettings: ({ id }) => {
+    const { t } = useTranslation();
     const graphActions = useDecisionGraphActions();
     const inputType = useNodeType(id);
     const { contentDiff } = useNodeDiff(id);
@@ -224,7 +227,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
 
     return (
       <div className={'settings-form'}>
-        <Form.Item label='Passthrough'>
+        <Form.Item label={t('passThrough')}>
           <DiffSwitch
             disabled={disabled}
             size={'small'}
@@ -234,7 +237,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             onChange={(e) => updateNode({ passThrough: e })}
           />
         </Form.Item>
-        <Form.Item label='Input field'>
+        <Form.Item label={t('inputField')}>
           <DiffCodeEditor
             variableType={inputType}
             disabled={disabled}
@@ -249,7 +252,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             }}
           />
         </Form.Item>
-        <Form.Item label='Output path'>
+        <Form.Item label={t('outputPath')}>
           <DiffInput
             size={'small'}
             readOnly={disabled}
@@ -259,7 +262,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             onChange={(e) => updateNode({ outputPath: e?.target?.value?.trim() || null })}
           />
         </Form.Item>
-        <Form.Item label='Execution mode'>
+        <Form.Item label={t('executionMode')}>
           <DiffRadio
             size={'small'}
             disabled={disabled}
@@ -270,11 +273,11 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             options={[
               {
                 value: 'single',
-                label: 'Single',
+                label: t('single'),
               },
               {
                 value: 'loop',
-                label: 'Loop',
+                label: t('loop'),
               },
             ]}
           />

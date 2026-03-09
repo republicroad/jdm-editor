@@ -1,3 +1,4 @@
+import { useTranslation, type TranslationKey } from '../../../locales';
 import { BookOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Button, Modal, Typography } from 'antd';
@@ -44,6 +45,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const [currentDetails, setCurrentDetails] = usePersistentState<Details>(`node:details:${id}`, Details.Settings);
     const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
     const graphActions = useDecisionGraphActions();
@@ -81,22 +83,22 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       !displayError && {
         key: 'duplicate',
         disabled,
-        label: <SpacedText left='复制' right={platform.shortcut('Ctrl + D')} />,
+        label: <SpacedText left={t("copy")} right={platform.shortcut('Ctrl + D')} />,
         onClick: () => graphActions.duplicateNodes([id]),
       },
       !displayError && { key: 'divider-2', type: 'divider' },
       {
         key: 'delete',
         danger: true,
-        label: <SpacedText left='删除' right={platform.shortcut('Backspace')} />,
+        label: <SpacedText left={t("delete")} right={platform.shortcut('Backspace')} />,
         disabled,
         onClick: () =>
           Modal.confirm({
             icon: null,
-            title: '删除节点',
+            title: `${t("deleteNode")|| '删除节点'}`,
             content: (
               <Typography.Text>
-                你确定要删除 <Typography.Text strong>{name}</Typography.Text> 节点吗？
+                {t("confirmToDelete")}  <Typography.Text strong>{name}</Typography.Text>   {t("nodeQuestion")}
               </Typography.Text>
             ),
             okButtonProps: { danger: true },

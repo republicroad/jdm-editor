@@ -1,3 +1,4 @@
+import { useTranslation } from '../../locales';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import type { Row } from '@tanstack/react-table';
 import { Typography, Tabs, AutoComplete, Button, Input, Popconfirm, Select } from 'antd';
@@ -28,6 +29,7 @@ export type ExpressionItemProps = {
 };
 
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType, menuList, customFunctions }) => {
+  const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
   const [editMode, setEditMode] = useState<'code' | 'function'>('function');
   const expressionRef = useRef<HTMLDivElement>(null);
@@ -114,7 +116,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           name: funcName,
           arguments: args.map((arg, index) => ({
             arg_name: `arg${index}`,
-            comments: `参数${index + 1}`
+            comments: `${t('parameter')}${index + 1}`
           }))
         },
         arg_exprs: args.reduce((acc, arg, index) => {

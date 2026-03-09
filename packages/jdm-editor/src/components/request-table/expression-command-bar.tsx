@@ -3,6 +3,7 @@ import { Button, message, Select } from 'antd';
 import React, { useRef } from 'react';
 import { v4 } from 'uuid';
 
+import { useTranslation } from '../../locales';
 import { saveFile } from '../../helpers/file-helpers';
 import { Stack } from '../stack';
 
@@ -19,6 +20,7 @@ const parserPipe = '|';
 
 
 export const ExpressTableCommandBar: React.FC = () => {
+  const { t } = useTranslation();
   // const { t } = useDecisionGraphRaw()
   const expressionRef = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -94,7 +96,7 @@ export const ExpressTableCommandBar: React.FC = () => {
               fileInput?.current?.click?.();
             }}
           >
-            导入JSON文件
+            {t('importJsonFile')}
           </Button>
           <Button
             type='text'
@@ -106,7 +108,7 @@ export const ExpressTableCommandBar: React.FC = () => {
               downloadJDM();
             }}
           >
-            下载JSON文件
+            {t('downloadJsonFile')}
           </Button>
         </Stack>
       </Stack>

@@ -3,6 +3,7 @@ import type { MenuProps } from 'antd';
 import { Button, Dropdown, Tooltip, message } from 'antd';
 import React, { Fragment, useRef, useState } from 'react';
 
+import { useTranslation } from '../../../locales';
 import type { ParsedExcelData } from '../../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../../helpers/excel';
 import { decisionModelSchema } from '../../../helpers/schema';
@@ -21,6 +22,7 @@ export type GraphSideToolbarProps = {
 };
 
 export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, projectId }) => {
+  const { t } = useTranslation();
   const decisionGraphRaw = useDecisionGraphRaw();
   const fileInput = useRef<HTMLInputElement>(null);
   const excelFileInput = useRef<HTMLInputElement>(null);
@@ -396,16 +398,16 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
         }));
 
       await exportDecisionTable(fileName, decisionTableNodes);
-      message.success('Excel file has been downloaded successfully!');
+      message.success(t('excelDownloadSuccess'));
     } catch {
-      message.error('Failed to download Excel file!');
+      message.error(t('excelDownloadFailed'));
     }
   };
 
   const uploadItems: MenuProps['items'] = [
     !viewConfig?.enabled && {
       key: 'upload-json',
-      label: 'Upload JSON',
+      label: t('uploadJson'),
       onClick: () => fileInput?.current?.click?.(),
     },
     // {
@@ -418,7 +420,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
   const downloadItems: MenuProps['items'] = [
     !viewConfig?.enabled && {
       key: 'download-json',
-      label: 'Download JSON',
+      label: t('downloadJson'),
       onClick: () => downloadJDM(),
     },
     // {

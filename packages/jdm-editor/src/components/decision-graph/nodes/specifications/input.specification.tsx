@@ -6,6 +6,7 @@ import { ArrowRightToLineIcon } from 'lucide-react';
 import React from 'react';
 import type { z } from 'zod';
 
+import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import { platform } from '../../../../helpers/platform';
 import { type inputNodeSchema } from '../../../../helpers/schema';
@@ -31,7 +32,7 @@ export type NodeInputData = Omit<InferredContent, 'expressions'> &
 export const inputSpecification: NodeSpecification<NodeInputData> = {
   type: NodeKind.Input,
   icon: <ArrowRightToLineIcon size='1em' />,
-  displayName: '请求',
+  displayName: 'request',
   color: NodeColor.Green,
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions',
   shortDescription: 'Provides input context',
@@ -46,6 +47,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
   }),
   renderTab: ({ id, manager }) => <TabRequest id={id} manager={manager} type={'input'} />,
   renderNode: ({ id, data, selected, specification }) => {
+    const { t } = useTranslation();
     const graphActions = useDecisionGraphActions();
     const { disabled } = useDecisionGraphState(({ disabled, decisionGraph }) => {
       const content = (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeInputData;
@@ -64,7 +66,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         helper={[]}
         actions={[
           <Button key='edit-table' type='text' onClick={() => graphActions.openTab(id)}>
-            Edit Request
+            {t('editRequest')}
           </Button>,
         ]}
         menuItems={[
@@ -78,15 +80,15 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
             key: 'delete',
             icon: <DeleteOutlined />,
             danger: true,
-            label: <SpacedText left='Delete' right={platform.shortcut('Backspace')} />,
+            label: <SpacedText left={t('delete')} right={platform.shortcut('Backspace')} />,
             disabled,
             onClick: () =>
               Modal.confirm({
                 icon: null,
-                title: '删除节点',
+                title: t('deleteNode'),
                 content: (
                   <Typography.Text>
-                    你确定要删除 <Typography.Text strong>{data.name}</Typography.Text> 节点吗？
+                    {t('confirmToDelete')} <Typography.Text strong>{data.name}</Typography.Text> {t('nodeQuestion')}
                   </Typography.Text>
                 ),
                 okButtonProps: { danger: true },

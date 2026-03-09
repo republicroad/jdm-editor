@@ -10,6 +10,7 @@ import { useInView } from 'react-intersection-observer';
 import { Handle, Position } from 'reactflow';
 import { P, match } from 'ts-pattern';
 
+import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import { DiffCodeEditor } from '../../../shared/diff-ce';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
@@ -35,7 +36,7 @@ export type NodeSwitchData = {
 export const switchSpecification: NodeSpecification<NodeSwitchData> = {
   type: NodeKind.Switch,
   icon: <SplitIcon size='1em' />,
-  displayName: '条件分支',
+  displayName: 'switchNode',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/switch',
   shortDescription: 'Conditional branching',
   color: NodeColor.Purple,
@@ -116,6 +117,7 @@ const SwitchNode: React.FC<
     specification: Pick<NodeSpecification, 'displayName' | 'icon' | 'documentationUrl'>;
   }
 > = ({ id, data, selected, specification }) => {
+  const { t } = useTranslation();
   const graphActions = useDecisionGraphActions();
   const { ref: inViewRef, inView } = useInView({ delay: 1_000 });
   const { content, disabled, nodeTrace, compactMode, isGraphActive } = useDecisionGraphState(
@@ -185,7 +187,7 @@ const SwitchNode: React.FC<
             }
           }}
         >
-          Add Condition
+          {t('addCondition')}
         </Button>,
         <Dropdown
           key='hitPolicy'
@@ -195,13 +197,13 @@ const SwitchNode: React.FC<
             items: [
               {
                 key: 'first',
-                label: 'First',
+                label: t('first'),
                 onClick: () => changeHitPolicy('first'),
                 disabled,
               },
               {
                 key: 'collect',
-                label: 'Collect',
+                label: t('collect'),
                 disabled,
                 onClick: () => {
                   graphActions.updateNode(id, (draft) => {
@@ -222,7 +224,7 @@ const SwitchNode: React.FC<
           }}
         >
           <Button type='text' style={{ textTransform: 'capitalize', marginLeft: 'auto' }}>
-            {hitPolicy} <DownOutlined />
+            {hitPolicy === 'first' ? t('first') : t('collect')} <DownOutlined />
           </Button>
         </Dropdown>,
       ]}
@@ -231,7 +233,7 @@ const SwitchNode: React.FC<
         <div className='switchNode__body edit nodrag'>
           {!(statements?.length > 0) && (
             <Typography.Text type={'secondary'} className={'no-conditions'}>
-              No conditions
+              {t('noConditions')}
             </Typography.Text>
           )}
           {statements.map((statement, index) => (
@@ -333,6 +335,7 @@ const SwitchHandle: React.FC<{
   hitPolicy,
   variableType,
 }) => {
+  const { t } = useTranslation();
   const [inner, setInner] = useState(value);
   useLayoutEffect(() => {
     if (inner !== value) {
@@ -401,7 +404,7 @@ const SwitchHandle: React.FC<{
           }}
         />
         {!disabled && configurable && (
-          <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
+          <Popconfirm title={t('removeConditionConfirm')} okText={t('remove')} onConfirm={() => onDelete?.()}>
             <Button className='switchNode__statement__delete' size='small' type='text' icon={<DeleteOutlined />} />
           </Popconfirm>
         )}
@@ -450,6 +453,7 @@ const SwitchHandleCompact: React.FC<{
   index: number;
   variableType?: VariableType;
 }> = ({ id, value, diff, onChange, disabled, configurable = true, onDelete, isActive, variableType }) => {
+  const { t } = useTranslation();
   const [inner, setInner] = useState(value);
   useLayoutEffect(() => {
     if (inner !== value) {
@@ -484,7 +488,7 @@ const SwitchHandleCompact: React.FC<{
       </div>
       {!disabled && configurable && (
         <div className='switchNode__statement__button'>
-          <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
+          <Popconfirm title={t('removeConditionConfirm')} okText={t('remove')} onConfirm={() => onDelete?.()}>
             <Button className='switchNode__statement__delete' size='small' type='text' icon={<DeleteOutlined />} />
           </Popconfirm>
         </div>

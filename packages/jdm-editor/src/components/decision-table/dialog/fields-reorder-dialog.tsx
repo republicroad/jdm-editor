@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { XYCoord } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';
 
+import { useTranslation } from '../../../locales';
 import { Stack } from '../../stack';
 import type { TableSchemaItem } from '../context/dt-store.context';
 
@@ -92,6 +93,7 @@ const FieldCard: React.FC<{
 
 export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
   const { isOpen, onDismiss, onSuccess, fields, getContainer } = props;
+  const { t } = useTranslation();
 
   const [columns, setColumns] = useState<TableSchemaItem[]>([]);
 
@@ -114,13 +116,13 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
 
   return (
     <Modal
-      title='Reorder fields'
+      title={t('reorderFields')}
       open={isOpen}
       onCancel={onDismiss}
       width={360}
       destroyOnClose
       bodyStyle={{ paddingTop: 17 }}
-      okText='Update'
+      okText={t('update')}
       okButtonProps={{
         htmlType: 'submit',
         form: 'fields-reorder-dialog',

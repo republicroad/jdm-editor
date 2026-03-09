@@ -1,9 +1,10 @@
 /**
  * 决策图编辑器组件
- * 
+ *
  * 基于ReactFlow的图形编辑器，用于创建和管理决策流程图。
  * 支持拖放组件、连接节点和编辑图形结构。
  */
+import { useTranslation } from '../../../locales';
 import { CloseOutlined, CompressOutlined, LeftOutlined,RightOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Modal, Tooltip, Typography, message, notification } from 'antd';
 import clsx from 'clsx';
@@ -43,7 +44,6 @@ import type { MinimalNodeProps } from '../nodes/specifications/specification-typ
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
-
 /**
  * Graph组件的属性
  */
@@ -74,6 +74,8 @@ const edgeTypes = {
 const componentsOpenedKey = 'jdm-components-opened';
 
 export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
+  // 国际化
+  const { t } = useTranslation();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
 
@@ -526,10 +528,10 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
                   const text = length > 1 ? 'nodes' : 'node';
                   Modal.confirm({
                     icon: null,
-                    title: `删除节点`,
+                    title: t('deleteNode'),
                     content: (
                       <Typography.Text>
-                        确定要删除节点吗?
+                        {t('confirmDeleteNode')}
                       </Typography.Text>
                     ),
                     okButtonProps: { danger: true },
@@ -604,10 +606,10 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
             <div className={'grl-dg__aside__menu__heading'}>
               <div className={'grl-dg__aside__menu__heading__text'}>
                 <Typography.Text strong style={{ marginBottom: 0 }}>
-                  组件
+                  {t('components')}
                 </Typography.Text>{' '}
                 <Typography.Text type='secondary' style={{ fontSize: 10, marginLeft: 5 }}>
-                  (拖放操作)
+                  {t('dragAndDrop')}
                 </Typography.Text>
               </div>
               <Button

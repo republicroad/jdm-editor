@@ -22,7 +22,7 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
   type: NodeKind.Output,
   icon: <ArrowRightFromLineIcon size='1em' />,
   color: NodeColor.Green,
-  displayName: '响应',
+  displayName: 'response',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions',
   shortDescription: 'Outputs the context',
   generateNode: () => ({ name: 'response', content: { schema: '' } }),

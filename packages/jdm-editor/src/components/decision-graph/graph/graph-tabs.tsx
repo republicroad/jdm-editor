@@ -1,3 +1,4 @@
+import { useTranslation } from '../../../locales';
 import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import type { TabsProps } from 'antd';
 import { Avatar, Button, Dropdown, Tabs } from 'antd';
@@ -20,6 +21,7 @@ type NonUndefined<T> = T extends undefined ? never : T;
 type TabItem = NonUndefined<TabsProps['items']>[number];
 
 export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraContent }) => {
+  const { t } = useTranslation();
   const graphActions = useDecisionGraphActions();
   const { openNodes, activeNodeId, viewConfig } = useDecisionGraphState(
     ({ decisionGraph, activeTab, openTabs, viewConfig }) => ({
@@ -49,7 +51,7 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
           <TabLabel
             total={openNodes?.length}
             icon={viewConfig?.enabled ? <UnorderedListOutlined /> : <DeploymentUnitOutlined />}
-            name={viewConfig?.enabled ? 'Nodes' : '规则图表'}
+            name={viewConfig?.enabled ? 'Nodes' : t('ruleGraph')}
             active={!activeNodeId || activeNodeId === 'graph'}
             onContextClick={(action) => {
               graphActions.closeTab('graph', action);
@@ -112,36 +114,37 @@ const TabLabel: React.FC<{
   active?: boolean;
   onContextClick?: (action: string) => void;
 }> = ({ total = 0, index = -1, icon, name, active, diffStatus, color = NodeColor.Blue, onClose, onContextClick }) => {
+  const { t } = useTranslation();
   const items = [
     total > 0 &&
       index !== -1 && {
         key: 'close',
-        label: 'Close',
+        label: t('closeTab'),
         onClick: () => onContextClick?.('close'),
       },
     total > 0 &&
       index !== -1 && {
         key: 'close-all',
-        label: 'Close all Tabs',
+        label: t('closeAllTabs'),
         onClick: () => onContextClick?.('close-all'),
       },
     total > 0 &&
       index !== -1 && {
         key: 'close-other',
-        label: 'Close other Tabs',
+        label: t('closeOtherTabs'),
         onClick: () => onContextClick?.('close-other'),
       },
     total > 0 &&
       index + 1 < total && {
         key: 'close-right',
-        label: 'Close Tabs to the right',
+        label: t('closeTabsToRight'),
         onClick: () => onContextClick?.('close-right'),
       },
     total > 0 &&
       index > 0 &&
       index > 0 && {
         key: 'close-left',
-        label: 'Close Tabs to the left',
+        label: t('closeTabsToLeft'),
         onClick: () => onContextClick?.('close-left'),
       },
   ].filter((item) => !!item);

@@ -1,11 +1,13 @@
 import { Dropdown } from 'antd';
 import React from 'react';
 
+import { useTranslation } from '../../../locales';
 import { SpacedText } from '../../spaced-text';
 import { useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 
 const ContextMenu: React.FC<React.PropsWithChildren> = (props) => {
   const { children } = props;
+  const { t } = useTranslation();
 
   const tableActions = useDecisionTableActions();
   const { cursor, disabled } = useDecisionTableState(({ cursor, disabled }) => ({
@@ -25,14 +27,14 @@ const ContextMenu: React.FC<React.PropsWithChildren> = (props) => {
         items: [
           {
             key: 'addRowAbove',
-            label: <SpacedText left='Add row above' />,
+            label: <SpacedText left={t('addRowAbove')} />,
             onClick: () => {
               if (cursor) tableActions.addRowAbove(cursor?.y);
             },
           },
           {
             key: 'addRowBelow',
-            label: <SpacedText left='Add row below' />,
+            label: <SpacedText left={t('addRowBelow')} />,
             onClick: () => {
               if (cursor) tableActions.addRowBelow(cursor?.y);
             },
@@ -42,7 +44,7 @@ const ContextMenu: React.FC<React.PropsWithChildren> = (props) => {
           },
           {
             key: 'remove',
-            label: <SpacedText left='Remove row' />,
+            label: <SpacedText left={t('removeRow')} />,
             onClick: () => {
               if (cursor) tableActions.removeRow(cursor?.y);
             },

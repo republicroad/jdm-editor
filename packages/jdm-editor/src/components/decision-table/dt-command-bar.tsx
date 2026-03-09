@@ -10,6 +10,7 @@ import { Button, Divider, Popconfirm, Select, Tooltip, Typography, message } fro
 import React, { useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
+import { useTranslation } from '../../locales';
 import type { ParsedExcelData } from '../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../helpers/excel';
 import { Stack } from '../stack';
@@ -23,6 +24,7 @@ import {
 } from './context/dt-store.context';
 
 export const DecisionTableCommandBar: React.FC = () => {
+  const { t } = useTranslation();
   const [excelData, setExcelData] = useState<ParsedExcelData[] | null>();
 
   const handleDataMapping = (mappedExcelData: MappedExcelData) => {
@@ -138,10 +140,10 @@ export const DecisionTableCommandBar: React.FC = () => {
       await exportDecisionTable(name ?? 'table', [
         { ...decisionTable, name: 'decision table', id: crypto.randomUUID() },
       ]);
-      message.success('Excel file has been downloaded successfully!');
+      message.success(t('excelDownloadSuccess'));
     } catch (e) {
       console.error('Failed to download Excel file!', e);
-      message.error('Failed to download Excel file!');
+      message.error(t('excelDownloadFailed'));
     }
   };
 
@@ -164,13 +166,15 @@ export const DecisionTableCommandBar: React.FC = () => {
 
         if (excelData.length === 1) {
           setExcelData(excelData);
-          message.success('Excel file has been uploaded successfully!');
+          message.success(t('excelUploadSuccess'));
+          // message.success('Excel file has been uploaded successfully!');
         } else {
-          message.error('Only excel file with a single data sheet can be handled in a table view.');
+          message.error(t('excelUploadFailed'));
+          // message.error('Only excel file with a single data sheet can be handled in a table view.');
         }
       };
     } catch {
-      message.error('Failed to upload Excel!');
+      message.error(t('excelUploadFailed'));
     }
   };
 
@@ -190,7 +194,7 @@ export const DecisionTableCommandBar: React.FC = () => {
       <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'grl-dt__command-bar'}>
         <Stack gap={8} horizontal className='full-width'>
           <Button type='text' size={'small'} icon={<ExportOutlined />} onClick={exportExcel}>
-            Export Excel
+            {t('exportExcel')}
           </Button>
           <Button
             type='text'
@@ -199,7 +203,7 @@ export const DecisionTableCommandBar: React.FC = () => {
             icon={<ImportOutlined />}
             onClick={() => importExcel()}
           >
-            Import Excel
+            {t('importExcel')}
           </Button>
           {cursor && !disabled && (
             <>
@@ -209,7 +213,7 @@ export const DecisionTableCommandBar: React.FC = () => {
                   height: 24,
                 }}
               />
-              <Tooltip title={'Add row below'}>
+              <Tooltip title={t('addRowBelow')}>
                 <Button
                   type='text'
                   size={'small'}
@@ -217,7 +221,7 @@ export const DecisionTableCommandBar: React.FC = () => {
                   onClick={() => tableActions.addRowBelow(cursor?.y)}
                 />
               </Tooltip>
-              <Tooltip title={'Add row above'}>
+              <Tooltip title={t('addRowAbove')}>
                 <Button
                   type='text'
                   size={'small'}
@@ -226,19 +230,19 @@ export const DecisionTableCommandBar: React.FC = () => {
                 />
               </Tooltip>
               <Tooltip>
-                <Popconfirm title='Remove row?' okText='Remove' onConfirm={() => tableActions.removeRow(cursor?.y)}>
+                <Popconfirm title={t('removeRowConfirm')} okText={t('remove')} onConfirm={() => tableActions.removeRow(cursor?.y)}>
                   <Button type='text' danger size={'small'} icon={<DeleteOutlined />} />
                 </Popconfirm>
               </Tooltip>
               <Button type='text' size={'small'} icon={<CloseOutlined />} onClick={() => tableActions.setCursor(null)}>
-                Deselect
+                {t('deselect')}
               </Button>
             </>
           )}
         </Stack>
         {traceIndexOptions && (
           <Stack horizontal verticalAlign='center' horizontalAlign='end'>
-            <Typography.Text style={{ fontSize: 12 }}>Simulation index:</Typography.Text>
+            <Typography.Text style={{ fontSize: 12 }}>{t('simulationIndex')}</Typography.Text>
             <Select
               size='small'
               style={{ fontSize: 12, minWidth: 60 }}

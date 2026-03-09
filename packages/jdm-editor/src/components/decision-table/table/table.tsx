@@ -8,6 +8,7 @@ import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
+import { useTranslation } from '../../../locales';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
 import { TableDefaultCell } from './table-default-cell';
@@ -44,6 +45,7 @@ const loadColumnSizing = (id?: string) => {
 };
 
 export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
 
   const tableActions = useDecisionTableActions();
@@ -120,7 +122,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
         size: colWidth,
       },
     ],
-    [permission, disabled, inputs, outputs],
+    [permission, disabled, inputs, outputs, t],
   );
 
   const table = useReactTable({
@@ -233,7 +235,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
                   icon={<PlusCircleOutlined />}
                   onClick={() => tableActions.addRowBelow()}
                 >
-                  Add row
+                  {t('addRow')}
                 </Button>
               </div>
             </td>

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { useTranslation } from '../../../locales';
 import { useDecisionGraphActions, useDecisionGraphListeners, useDecisionGraphState } from '../context/dg-store.context';
 import { type DecisionNode } from '../dg-types';
 import { NodeColor } from '../nodes/specifications/colors';
@@ -17,6 +18,7 @@ export type GraphComponentsProps = {
 };
 
 export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ className }) => {
+  const { t } = useTranslation();
   const { decisionGraph, customComponents, viewConfig, viewConfigCta } = useDecisionGraphState((store) => ({
     decisionGraph: store.decisionGraph || [],
     customComponents: store.components,
@@ -145,10 +147,10 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
             <>
               {decisionGraph?.nodes?.length > 0 ? (
                 <Text type='secondary'>
-                  This decision model contains multiple components, but no view has been configured yet.
+                  {t('multipleComponentsNoView')}
                 </Text>
               ) : (
-                <Text type='secondary'>{`This decision model doesn't contain any component.`}</Text>
+                <Text type='secondary'>{t('noComponent')}</Text>
               )}
             </>
           )}
@@ -158,7 +160,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
           <div className={'grl-dg__view__content__search'}>
             <Space>
               <Input
-                placeholder='Search nodes'
+                placeholder={t('searchNodes')}
                 prefix={<SearchOutlined />}
                 style={{ width: 350 }}
                 onChange={(e) => setSearch(e.target.value)}
@@ -166,7 +168,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
               />
               {search?.trim()?.length > 0 && (
                 <Button type='text' size={'small'} icon={<CloseOutlined />} onClick={() => setSearch('')}>
-                  Clear
+                  {t('clear')}
                 </Button>
               )}
             </Space>
@@ -176,7 +178,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
                 whiteSpace: 'nowrap',
               }}
             >
-              {nodes?.length || 0} configurable items
+              {nodes?.length || 0} {t('configurableItems')}
             </Text>
           </div>
         )}
