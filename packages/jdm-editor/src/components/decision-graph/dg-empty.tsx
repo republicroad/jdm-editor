@@ -3,6 +3,8 @@ import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import type { DictionaryMap } from '../../theme';
+import type { JdmUiMode } from '../decision-table/context/dt-store.context';
 import {
   type DecisionGraphStoreType,
   useDecisionGraphActions,
@@ -21,6 +23,8 @@ export type DecisionGraphEmptyType = {
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
 
+  hideLeftToolbar?: DecisionGraphStoreType['state']['hideLeftToolbar'];
+
   name?: DecisionGraphStoreType['state']['name'];
 
   viewConfigCta?: DecisionGraphStoreType['state']['viewConfigCta'];
@@ -32,6 +36,9 @@ export type DecisionGraphEmptyType = {
   onPanelsChange?: DecisionGraphStoreType['listeners']['onPanelsChange'];
 
   simulate?: DecisionGraphStoreType['state']['simulate'];
+
+  dictionaries?: DictionaryMap;
+  mode?: JdmUiMode;
 
   onChange?: DecisionGraphStoreType['listeners']['onChange'];
   onReactFlowInit?: DecisionGraphStoreType['listeners']['onReactFlowInit'];
@@ -50,8 +57,11 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   components,
   customNodes,
   defaultActivePanel,
+  hideLeftToolbar,
   panels,
   simulate,
+  dictionaries,
+  mode,
   viewConfigCta,
   viewConfig,
   onViewConfigCta,
@@ -93,8 +103,11 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       panels,
       viewConfig,
       viewConfigCta,
+      hideLeftToolbar,
+      dictionaries,
+      mode,
     });
-  }, [id, disabled, components, customNodes, panels, viewConfig, viewConfigCta]);
+  }, [id, disabled, components, customNodes, panels, viewConfig, viewConfigCta, hideLeftToolbar, dictionaries, mode]);
 
   useEffect(() => {
     stateStore.setState({ name: name ?? 'graph.json' });
@@ -133,6 +146,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
 
     stateStore.setState({
       activePanel: defaultActivePanel,
+      hideLeftToolbar,
     });
     mountedRef.current = true;
   }, []);

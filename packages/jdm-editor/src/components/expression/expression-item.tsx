@@ -91,23 +91,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           )}
         </div>
       </div>
-      <div
-        className='expression-list-item__key'
-        onClick={(e) => {
-          if (e.target instanceof HTMLTextAreaElement) {
-            return;
-          }
-
-          const inputElement = e.currentTarget.querySelector<HTMLTextAreaElement>('textarea');
-          if (!inputElement) {
-            return;
-          }
-
-          inputElement.focus();
-          const inputLength = inputElement.value.length;
-          inputElement.setSelectionRange(inputLength, inputLength);
-        }}
-      >
+      <div className='expression-list-item__key'>
         <ExpressionItemContextMenu index={index}>
           <DiffAutosizeTextArea
             noStyle
@@ -118,7 +102,6 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
             previousValue={expression?._diff?.fields?.key?.previousValue}
             value={expression?.key}
             onChange={(e) => onChange({ key: e.target.value })}
-            autoComplete='off'
           />
         </ExpressionItemContextMenu>
       </div>
@@ -158,7 +141,7 @@ const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) =>
 
     return {
       inputData: calculatedInputData,
-      initial: snapshot && trace ? { expression: snapshot.value, result: safeJson(trace.result) } : undefined,
+      initial: snapshot && trace ? { expression: snapshot.value, result: trace.result } : undefined,
     };
   });
 
@@ -173,23 +156,15 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
   const { trace } = useExpressionStore(({ debug, debugIndex }) => ({
     trace: getTrace(debug?.trace?.traceData, debugIndex)?.[expression.key]?.result,
   }));
-  if (!trace) {
+  if (trace === undefined) {
     return null;
   }
 
   return (
     <div className='expression-list-item__resultOverlay'>
       <Typography.Text ellipsis={{ tooltip: trace }} style={{ maxWidth: 60, overflow: 'hidden' }}>
-        = {trace as string}
+        = {JSON.stringify(trace)}
       </Typography.Text>
     </div>
   );
-};
-
-const safeJson = (data: string) => {
-  try {
-    return JSON.parse(data);
-  } catch (err: any) {
-    return err.toString();
-  }
 };

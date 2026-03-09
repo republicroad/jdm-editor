@@ -2,11 +2,14 @@ import type { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';
 import React, { useMemo } from 'react';
+import { P, match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
 
 import type { SchemaSelectProps } from '../../../helpers/components';
 import { type GetNodeDataResult } from '../../../helpers/node-data';
+import type { ColumnFieldType, OutputFieldType } from '../../../helpers/schema';
+import type { DictionaryMap } from '../../../theme';
 import type { SimulationTrace, SimulationTraceDataTable } from '../../decision-graph';
 import type { Diff, DiffMetadata } from '../../decision-graph/dg-types';
 import type { TableCellProps } from '../table/table-default-cell';
@@ -20,11 +23,15 @@ export type TableCursor = {
   y: number;
 };
 
+export type { ColumnFieldType, OutputFieldType };
+
 export type TableSchemaItem = {
   id: string;
   name: string;
   field?: string;
   defaultValue?: string;
+  fieldType?: ColumnFieldType;
+  outputFieldType?: OutputFieldType;
   _diff?: DiffMetadata;
 };
 
@@ -33,7 +40,7 @@ export type ColumnType = 'inputs' | 'outputs';
 
 export type DecisionTableType = {
   hitPolicy: HitPolicy | string;
-  passThorough?: boolean;
+  passThrough?: boolean;
   inputField?: string;
   outputPath?: string;
   executionMode?: 'single' | 'loop';
@@ -42,11 +49,24 @@ export type DecisionTableType = {
   rules: Record<string, string>[];
 } & Diff;
 
+const outputTypeDefault = (schemaItem: TableSchemaItem): string => {
+  const type = schemaItem.outputFieldType?.type;
+  if (!type) return '';
+  return match(type)
+    .with('string', () => '""')
+    .with('string-array', () => '[]')
+    .with('boolean', () => 'false')
+    .with('number', () => '0')
+    .with('date', () => `d('${new Date().toISOString().slice(0, 10)}')`)
+    .otherwise(() => '');
+};
+
 const cleanupTableRule = (
   decisionTable: DecisionTableType,
   rule: Record<string, string>,
   defaultId?: string,
 ): Record<string, string> => {
+  const outputIds = new Set(decisionTable.outputs.map((o) => o.id));
   const schemaItems = [...decisionTable.inputs, ...decisionTable.outputs];
   const newRule: Record<string, string> = {
     _id: rule._id || crypto.randomUUID(),
@@ -54,7 +74,8 @@ const cleanupTableRule = (
   };
   schemaItems.forEach((schemaItem) => {
     if (defaultId && newRule._id === defaultId) {
-      return (newRule[schemaItem.id] = rule?.[schemaItem.id] || schemaItem?.defaultValue || '');
+      const fallback = outputIds.has(schemaItem.id) ? outputTypeDefault(schemaItem) : '';
+      return (newRule[schemaItem.id] = rule?.[schemaItem.id] || schemaItem?.defaultValue || fallback);
     }
     newRule[schemaItem.id] = rule?.[schemaItem.id] || '';
   });
@@ -63,20 +84,7 @@ const cleanupTableRule = (
 
 const cleanupTableRules = (decisionTable: DecisionTableType, defaultId?: string): Record<string, string>[] => {
   const rules = decisionTable?.rules || [];
-  const schemaItems = [...decisionTable.inputs, ...decisionTable.outputs];
-  return rules.map((rule) => {
-    const newRule: Record<string, string> = {
-      _id: rule._id || crypto.randomUUID(),
-      _description: rule._description,
-    };
-    schemaItems.forEach((schemaItem) => {
-      if (defaultId && newRule._id === defaultId) {
-        return (newRule[schemaItem.id] = rule?.[schemaItem.id] || schemaItem?.defaultValue || '');
-      }
-      newRule[schemaItem.id] = rule?.[schemaItem.id] || '';
-    });
-    return newRule;
-  });
+  return rules.map((rule) => cleanupTableRule(decisionTable, rule, defaultId));
 };
 
 export const parseDecisionTable = (decisionTable?: DecisionTableType) => {
@@ -85,12 +93,15 @@ export const parseDecisionTable = (decisionTable?: DecisionTableType) => {
     inputs: decisionTable?.inputs || [],
     outputs: decisionTable?.outputs || [],
     rules: decisionTable?.rules || [],
-    passThorough: decisionTable?.passThorough ?? false,
+    passThrough: decisionTable?.passThrough ?? false,
     inputField: decisionTable?.inputField,
     outputPath: decisionTable?.outputPath,
     executionMode: decisionTable?.executionMode ?? 'single',
-    _diff: decisionTable?._diff,
   };
+
+  if (decisionTable?._diff) {
+    dt._diff = decisionTable._diff;
+  }
 
   if (dt.inputs?.length === 0) {
     dt.inputs = [
@@ -111,18 +122,19 @@ export const parseDecisionTable = (decisionTable?: DecisionTableType) => {
     ];
   }
 
-  dt.rules.forEach((r) => {
-    if (typeof (r as Record<string, unknown>)._id === 'string' && r._id.length > 0) {
-      return;
-    }
-
-    r._id = crypto.randomUUID();
-  });
+  dt.rules = dt.rules.map((r) =>
+    match(r)
+      .with({ _id: P.string.minLength(1) }, () => r)
+      .otherwise((r) => ({ ...r, _id: crypto.randomUUID() })),
+  );
 
   return dt;
 };
 
 export type DecisionTablePermission = 'edit:full' | 'edit:rules' | 'edit:values';
+export type JdmUiMode = 'dev' | 'business';
+/** @deprecated Use JdmUiMode instead */
+export type DecisionTableMode = JdmUiMode;
 
 export type DecisionTableStoreType = {
   state: {
@@ -138,6 +150,8 @@ export type DecisionTableStoreType = {
     colWidth: number;
 
     permission?: DecisionTablePermission;
+    mode: JdmUiMode;
+    dictionaries?: DictionaryMap;
 
     inputVariableType?: VariableType;
     derivedVariableTypes: Record<string, VariableType>;
@@ -211,6 +225,7 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
         inputsSchema: undefined,
         outputsSchema: undefined,
 
+        mode: 'dev',
         derivedVariableTypes: {},
         inputVariableType: undefined,
         debugIndex: 0,
@@ -339,6 +354,8 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
                 name: data?.name,
                 field: data?.field,
                 defaultValue: data?.defaultValue,
+                fieldType: data?.fieldType,
+                outputFieldType: data?.outputFieldType,
               };
             }
             return item;
@@ -423,4 +440,5 @@ export function useDecisionTableActions(): DecisionTableStoreType['actions'] {
 }
 
 export const useDecisionTableRaw = () => React.useContext(DecisionTableStoreContext);
+
 export default DecisionTableProvider;
