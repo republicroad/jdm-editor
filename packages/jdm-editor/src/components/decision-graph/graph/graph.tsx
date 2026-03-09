@@ -73,7 +73,7 @@ const edgeTypes = {
 
 const componentsOpenedKey = 'jdm-components-opened';
 
-export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
+export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions }, ref) {
   // 国际化
   const { t } = useTranslation();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
