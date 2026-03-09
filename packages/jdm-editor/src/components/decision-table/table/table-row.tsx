@@ -3,7 +3,7 @@ import { flexRender } from '@tanstack/react-table';
 import type { VirtualItem } from '@tanstack/react-virtual';
 import { Typography } from 'antd';
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { P, match } from 'ts-pattern';
 
@@ -57,6 +57,11 @@ export const TableRow: React.FC<{
         if (!entry.target.hasAttribute('data-virtual-index')) {
           return;
         }
+        // Skip 0-height measurements from display:none (tab hidden) to avoid
+        // the virtualizer caching incorrect sizes and causing a layout jump on return.
+        if (entry.contentRect.height === 0) {
+          return;
+        }
 
         onResize?.(entry.target as HTMLElement);
       });
@@ -68,13 +73,14 @@ export const TableRow: React.FC<{
     };
   }, []);
 
-  const { rowValue } = useDecisionTableState(({ decisionTable }) => ({
-    rowValue: (decisionTable?.rules || [])?.find((rule) => rule._id === row?.original?._id),
-  }));
+  const diff = useDecisionTableState(({ decisionTable }) => {
+    if (!decisionTable._diff) {
+      return undefined;
+    }
 
-  const diff = useMemo(() => {
-    return rowValue?._diff as DiffMetadata;
-  }, [rowValue]);
+    return decisionTable.rules.find((r) => r._id === row.original._id)?._diff as DiffMetadata | undefined;
+  });
+
   const diffStatus = diff?.status;
 
   return (

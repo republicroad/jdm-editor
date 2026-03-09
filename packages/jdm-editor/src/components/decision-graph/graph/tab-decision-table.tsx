@@ -19,8 +19,8 @@ export type TabDecisionTableProps = {
 
 export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager }) => {
   const graphActions = useDecisionGraphActions();
-  const { nodeName, nodeTrace, inputData, nodeSnapshot, viewConfig } = useDecisionGraphState(
-    ({ simulate, decisionGraph, viewConfig }) => ({
+  const { nodeName, nodeTrace, inputData, nodeSnapshot, viewConfig, dictionaries, mode } = useDecisionGraphState(
+    ({ simulate, decisionGraph, viewConfig, dictionaries, mode }) => ({
       nodeName: decisionGraph.nodes.find((n) => n.id === id)?.name,
       nodeTrace: match(simulate)
         .with({ result: P.nonNullable }, ({ result }) => result.trace[id] as SimulationTrace<SimulationTraceDataTable>)
@@ -31,10 +31,12 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       nodeSnapshot: match(simulate)
         .with(
           { result: P.nonNullable },
-          ({ result }) => result.snapshot?.nodes?.find((n) => n.id === id)?.content as DecisionTableType,
+          ({ result }) => (result.snapshot?.nodes || []).find((n) => n.id === id)?.content as DecisionTableType,
         )
         .otherwise(() => null),
       viewConfig,
+      dictionaries,
+      mode,
     }),
   );
 
@@ -78,6 +80,8 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       manager={manager}
       disabled={disabled}
       permission={viewConfig?.enabled ? (viewConfig?.permissions?.[id] as DecisionTablePermission) : 'edit:full'}
+      dictionaries={dictionaries}
+      mode={mode}
       debug={debug}
       onChange={(val) => {
         graphActions.updateNode(id, (draft) => {

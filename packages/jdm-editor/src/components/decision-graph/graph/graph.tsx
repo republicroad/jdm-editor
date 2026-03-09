@@ -4,7 +4,7 @@
  * 基于ReactFlow的图形编辑器，用于创建和管理决策流程图。
  * 支持拖放组件、连接节点和编辑图形结构。
  */
-import { CloseOutlined, CompressOutlined, LeftOutlined, WarningOutlined } from '@ant-design/icons';
+import { CloseOutlined, CompressOutlined, LeftOutlined,RightOutlined, WarningOutlined } from '@ant-design/icons';
 import { Button, Modal, Tooltip, Typography, message, notification } from 'antd';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
@@ -71,12 +71,9 @@ const edgeTypes = {
   edge: React.memo(edgeFunction(null)),
 };
 
-/**
- * Graph组件的主要实现
- * 提供决策图编辑器的核心功能
- */
-export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions }, ref) {
-  // DOM元素和ReactFlow实例的引用
+const componentsOpenedKey = 'jdm-components-opened';
+
+export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
 
@@ -84,16 +81,25 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const nodesState = useNodesState([]);
   const edgesState = useEdgesState([]);
 
-  // 组件面板的UI状态
-  const [componentsOpened, setComponentsOpened] = useState(true);
+  const [componentsOpened, setComponentsOpened] = useState(() => {
+    // 组件面板的UI状态
+    const localStorageKey = localStorage.getItem(componentsOpenedKey);
+    if (!localStorageKey) {
+      localStorage.setItem(componentsOpenedKey, 'true');
+      return true;
+    }
+    return localStorage.getItem(componentsOpenedKey) === 'true';
+  });
+
 
   // 访问决策图存储和动作
   const raw = useDecisionGraphRaw();
   const graphActions = useDecisionGraphActions();
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
-  const { disabled, hasInputNode, components, customNodes } = useDecisionGraphState(
-    ({ disabled, components, customNodes, decisionGraph }) => ({
+  const { disabled, hasInputNode, components, customNodes, id } = useDecisionGraphState(
+    ({ id, disabled, components, customNodes, decisionGraph }) => ({
+      id,
       disabled,
       components,
       customNodes,
@@ -583,19 +589,18 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
               onEdgeMouseEnter={(_, edge) => graphActions.setHoveredEdgeId(edge.id)}
               onEdgeMouseLeave={() => graphActions.setHoveredEdgeId(null)}
             >
-              {/* 图表控制按钮 */}
               <Controls showInteractive={false}>
                 <ControlButton onClick={() => graphActions.toggleCompactMode()}>
                   <CompressOutlined />
                 </ControlButton>
               </Controls>
-              <Background color='var(--grl-color-border)' gap={20} />
+              <Background id={id} color='var(--grl-color-border)' gap={20} />
             </ReactFlow>
           </div>
         </div>
         {/* 组件面板 - 启用时可见 */}
-        {!disabled && componentsOpened && (
-          <div className={'grl-dg__aside__menu'}>
+        {!disabled && (
+          <div className={clsx('grl-dg__aside__menu', !componentsOpened && 'collapsed')}>
             <div className={'grl-dg__aside__menu__heading'}>
               <div className={'grl-dg__aside__menu__heading__text'}>
                 <Typography.Text strong style={{ marginBottom: 0 }}>
@@ -608,12 +613,22 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
               <Button
                 type={'text'}
                 size='small'
-                icon={<CloseOutlined style={{ fontSize: 12 }} />}
-                onClick={() => setComponentsOpened(false)}
+                icon={
+                  componentsOpened ? (
+                    <RightOutlined style={{ fontSize: 12 }} />
+                  ) : (
+                    <LeftOutlined style={{ fontSize: 12 }} />
+                  )
+                }
+                onClick={() => {
+                  const value = !componentsOpened;
+                  setComponentsOpened(!componentsOpened);
+                  localStorage.setItem(componentsOpenedKey, `${value}`);
+                }}
               />
             </div>
             <div className={'grl-dg__aside__menu__content'}>
-              <GraphComponents inputDisabled={hasInputNode} disabled={disabled} />
+              <GraphComponents inputDisabled={hasInputNode} collapsed={!componentsOpened} disabled={disabled} />
             </div>
           </div>
         )}

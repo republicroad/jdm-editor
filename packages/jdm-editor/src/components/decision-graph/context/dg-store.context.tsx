@@ -14,7 +14,9 @@ import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
 
+import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
+import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
@@ -85,6 +87,7 @@ export type DecisionGraphStoreType = {
   // 状态部分
   state: {
     id?: string;
+    hideLeftToolbar?: boolean;
     components: NodeSpecification[];
     disabled?: boolean;
     decisionGraph: DecisionGraphType;
@@ -108,7 +111,10 @@ export type DecisionGraphStoreType = {
     simulatorRequest?: string;
     simulatorLoading: boolean;
 
-    compactMode?: boolean;          // 是否启用紧凑模式
+    compactMode?: boolean;
+
+    dictionaries?: DictionaryMap;
+    mode?: JdmUiMode;
 
     nodeTypes: Record<string, Partial<Record<NodeTypeKind, VariableType>>>;  // 节点类型映射
     globalType: Record<string, VariableType>;  // 全局类型映射

@@ -3,6 +3,122 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.51.3](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.51.2...@gorules/jdm-editor@1.51.3) (2026-03-04)
+
+### Bug Fixes
+
+- expression builder ([#234](https://github.com/gorules/jdm-editor/issues/234)) ([4994e87](https://github.com/gorules/jdm-editor/commit/4994e87bee4a135ff4b8852fa470851aff406619))
+
+## [1.51.2](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.51.1...@gorules/jdm-editor@1.51.2) (2026-02-13)
+
+### Bug Fixes
+
+- add expression builder defaults ([#233](https://github.com/gorules/jdm-editor/issues/233)) ([46dda06](https://github.com/gorules/jdm-editor/commit/46dda06568554b13adfc245d67189480df14e01d))
+
+## [1.51.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.51.0...@gorules/jdm-editor@1.51.1) (2026-02-13)
+
+### Bug Fixes
+
+- minor expression builder fixes ([#232](https://github.com/gorules/jdm-editor/issues/232)) ([20f9e27](https://github.com/gorules/jdm-editor/commit/20f9e275943ddc22cb5c782fbb65dea248491773))
+
+# [1.51.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.6...@gorules/jdm-editor@1.51.0) (2026-02-12)
+
+### Features
+
+- ui expression builder ([#231](https://github.com/gorules/jdm-editor/issues/231)) ([8fd7621](https://github.com/gorules/jdm-editor/commit/8fd76212ed5218e3267d0ea6bbc8a70ad443cd3d))
+
+## [1.50.6](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.5...@gorules/jdm-editor@1.50.6) (2026-01-19)
+
+**Note:** Version bump only for package @gorules/jdm-editor
+
+## [1.50.5](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.4...@gorules/jdm-editor@1.50.5) (2026-01-14)
+
+### Bug Fixes
+
+- allow external control of variable type for tables and expressions ([#220](https://github.com/gorules/jdm-editor/issues/220)) ([e86f199](https://github.com/gorules/jdm-editor/commit/e86f19923203a5e24ddd5d61405f5baa5481f74f))
+
+## [1.50.4](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.3...@gorules/jdm-editor@1.50.4) (2025-11-26)
+
+### Bug Fixes
+
+- code highlighter line breaks ([#218](https://github.com/gorules/jdm-editor/issues/218)) ([ff1b613](https://github.com/gorules/jdm-editor/commit/ff1b6136a2c66b31ed1199be2442ad590408f087))
+
+## [1.50.3](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.2...@gorules/jdm-editor@1.50.3) (2025-11-25)
+
+### Bug Fixes
+
+- table cell style ([#217](https://github.com/gorules/jdm-editor/issues/217)) ([7fff728](https://github.com/gorules/jdm-editor/commit/7fff7281eb955f8fdcee145a4b45ea19da7f5527))
+
+## [1.50.2](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.1...@gorules/jdm-editor@1.50.2) (2025-11-25)
+
+### Bug Fixes
+
+- safe assign diff ([#216](https://github.com/gorules/jdm-editor/issues/216)) ([56f5ef7](https://github.com/gorules/jdm-editor/commit/56f5ef71debf2b4b1c8b0a2f76fb7a43c1519a20))
+
+## [1.50.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.50.0...@gorules/jdm-editor@1.50.1) (2025-11-25)
+
+### Bug Fixes
+
+- improve decision table performance ([#215](https://github.com/gorules/jdm-editor/issues/215)) ([cb35cca](https://github.com/gorules/jdm-editor/commit/cb35ccaa3e478e3a7b38c9cce6c40abcf982d4fd))
+
+# [1.50.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.49.2...@gorules/jdm-editor@1.50.0) (2025-11-24)
+
+### Bug Fixes
+
+- **GRL-300:** incorrect simulation trace type ([#210](https://github.com/gorules/jdm-editor/issues/210)) ([a51447d](https://github.com/gorules/jdm-editor/commit/a51447d5ec8b1ab21ab224a53f717559a6f62671))
+- **GRL-301:** use for-const-of for generator iteration ([#211](https://github.com/gorules/jdm-editor/issues/211)) ([88ea3ac](https://github.com/gorules/jdm-editor/commit/88ea3ac62ce558433cf3a35ffd98d3ed33c50ecd))
+- **GRL-302:** prevent mutation of frozen object ([#212](https://github.com/gorules/jdm-editor/issues/212)) ([3f44439](https://github.com/gorules/jdm-editor/commit/3f44439cdb34ca9e4f317e0ddf0570c5cd90b2f1))
+- **GRL-303:** codemirror cursor out of bounds ([#213](https://github.com/gorules/jdm-editor/issues/213)) ([675e123](https://github.com/gorules/jdm-editor/commit/675e123751293cebbda825a94dfc383eb5507782))
+- remove omitNodes fn options ([#214](https://github.com/gorules/jdm-editor/issues/214)) ([9df3374](https://github.com/gorules/jdm-editor/commit/9df3374acf3d75e9b2aebf603a5c0a61146f02e8))
+
+## [1.49.2](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.49.1...@gorules/jdm-editor@1.49.2) (2025-11-17)
+
+### Bug Fixes
+
+- trace not showing for falsy values ([#208](https://github.com/gorules/jdm-editor/issues/208)) ([98660af](https://github.com/gorules/jdm-editor/commit/98660af3dbfb491ce5ce04516aa4f6ecd229e0aa))
+
+## [1.49.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.49.0...@gorules/jdm-editor@1.49.1) (2025-11-17)
+
+### Bug Fixes
+
+- incorrect expression trace ([#207](https://github.com/gorules/jdm-editor/issues/207)) ([0bdc7ab](https://github.com/gorules/jdm-editor/commit/0bdc7abcb722e61a15b94ee05641c4c089bb2942))
+
+# [1.49.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.48.1...@gorules/jdm-editor@1.49.0) (2025-11-13)
+
+### Features
+
+- branches ([#205](https://github.com/gorules/jdm-editor/issues/205)) ([6acca06](https://github.com/gorules/jdm-editor/commit/6acca063de3dc7fe92d98aa1866a2f3b50f0b7c1))
+
+## [1.48.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.48.0...@gorules/jdm-editor@1.48.1) (2025-11-08)
+
+### Bug Fixes
+
+- **excel-import:** excel data mapping improvements ([#206](https://github.com/gorules/jdm-editor/issues/206)) ([286c717](https://github.com/gorules/jdm-editor/commit/286c717467aefe6caaf47c748a836abecd0180dc))
+
+# [1.48.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.47.0...@gorules/jdm-editor@1.48.0) (2025-11-07)
+
+### Features
+
+- **jdm-editor:** excel data mapping ([#200](https://github.com/gorules/jdm-editor/issues/200)) ([912c16e](https://github.com/gorules/jdm-editor/commit/912c16e5be2bbc5dc435398c700aea4e974acbc5))
+
+# [1.47.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.46.0...@gorules/jdm-editor@1.47.0) (2025-09-11)
+
+### Features
+
+- add http auth types ([#198](https://github.com/gorules/jdm-editor/issues/198)) ([dde7887](https://github.com/gorules/jdm-editor/commit/dde7887786aaf00f741aa9b1c76bab214efb2988))
+
+# [1.46.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.45.0...@gorules/jdm-editor@1.46.0) (2025-08-25)
+
+### Features
+
+- add variable deserializer ([#195](https://github.com/gorules/jdm-editor/issues/195)) ([c249772](https://github.com/gorules/jdm-editor/commit/c249772ec1c53073824506e11b877b6c805ae5c7))
+
+# [1.45.0](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.44.1...@gorules/jdm-editor@1.45.0) (2025-07-03)
+
+### Features
+
+- function settings ([#191](https://github.com/gorules/jdm-editor/issues/191)) ([67a7b63](https://github.com/gorules/jdm-editor/commit/67a7b63090afd26f55a01f9ab7482e1f9a86251f))
+
 ## [1.44.1](https://github.com/gorules/jdm-editor/compare/@gorules/jdm-editor@1.44.0...@gorules/jdm-editor@1.44.1) (2025-06-25)
 
 **Note:** Version bump only for package @gorules/jdm-editor

@@ -7,15 +7,110 @@ import {
   ImportOutlined,
 } from '@ant-design/icons';
 import { Button, Divider, Popconfirm, Select, Tooltip, Typography, message } from 'antd';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
-import type { DecisionNode } from '../decision-graph';
+import type { ParsedExcelData } from '../../helpers/excel';
+import { exportDecisionTable, getExcelData } from '../../helpers/excel';
 import { Stack } from '../stack';
-import { useDecisionTableActions, useDecisionTableRaw, useDecisionTableState } from './context/dt-store.context';
-import { exportDecisionTable, readDecisionTableFile } from './excel';
+import type { MappedExcelData } from './components/dt-excel-dialog';
+import { DtExcelDialog } from './components/dt-excel-dialog';
+import {
+  parseDecisionTable,
+  useDecisionTableActions,
+  useDecisionTableRaw,
+  useDecisionTableState,
+} from './context/dt-store.context';
 
 export const DecisionTableCommandBar: React.FC = () => {
+  const [excelData, setExcelData] = useState<ParsedExcelData[] | null>();
+
+  const handleDataMapping = (mappedExcelData: MappedExcelData) => {
+    const items = mappedExcelData.items;
+    const rules = mappedExcelData.rules;
+
+    const existingInputs = table.inputs;
+    const existingOutputs = table.outputs;
+
+    const idRemap: Record<string, string> = {};
+
+    const inputs = items
+      .filter((item) => item.type === 'input')
+      .map((item) => {
+        const existing = existingInputs.find((c) => c.name?.toLowerCase() === item.label?.toLowerCase());
+        const newId = existing?.id ?? item.id;
+        if (newId !== item.id) {
+          idRemap[item.id] = newId;
+        }
+        return {
+          id: newId,
+          name: item.label,
+          field: item.value
+            ?.replace(/[^a-zA-Z0-9\s._]/g, '')
+            .trim()
+            .replace(/\s+/g, '.')
+            .toLowerCase(),
+          fieldType: existing?.fieldType,
+          defaultValue: existing?.defaultValue,
+        };
+      });
+
+    const outputs = items
+      .filter((item) => item.type === 'output')
+      .map((item) => {
+        const existing = existingOutputs.find((c) => c.name?.toLowerCase() === item.label?.toLowerCase());
+        const newId = existing?.id ?? item.id;
+        if (newId !== item.id) {
+          idRemap[item.id] = newId;
+        }
+        return {
+          id: newId,
+          name: item.label,
+          field: item.value
+            ?.replace(/[^a-zA-Z0-9\s._]/g, '')
+            .trim()
+            .split(/\s+/)
+            .map((word, index) =>
+              index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+            )
+            .join(''),
+          outputFieldType: existing?.outputFieldType,
+          defaultValue: existing?.defaultValue,
+        };
+      });
+
+    const existingRules = table.rules ?? [];
+    const reducedRules = rules.map((rule, index) =>
+      rule.reduce(
+        (acc: Record<string, any> & { _id: string }, item) => {
+          const mappedId = idRemap[item.headerId] ?? item.headerId;
+          acc[mappedId] = item.value;
+          return acc;
+        },
+        {
+          _id: existingRules[index]?._id ?? crypto.randomUUID(),
+        },
+      ),
+    );
+
+    const newTable = parseDecisionTable({
+      executionMode: 'single',
+      hitPolicy: 'first',
+      inputs,
+      outputs,
+      rules: reducedRules,
+      passThrough: false,
+    });
+
+    tableActions.setDecisionTable(newTable);
+    listenerStore.getState().onChange?.(newTable);
+
+    setExcelData(null);
+  };
+
+  const handleCancel = () => {
+    setExcelData(null);
+  };
   const tableActions = useDecisionTableActions();
   const { disabled, debugIndex, traceCount, cursor } = useDecisionTableState(
     ({ disableHitPolicy, disabled, permission, decisionTable, cursor, debugIndex, debug }) => ({
@@ -34,6 +129,8 @@ export const DecisionTableCommandBar: React.FC = () => {
 
   const { listenerStore, stateStore } = useDecisionTableRaw();
   const fileInput = useRef<HTMLInputElement>(null);
+
+  const table = stateStore.getState().decisionTable;
 
   const exportExcel = async () => {
     try {
@@ -63,14 +160,15 @@ export const DecisionTableCommandBar: React.FC = () => {
 
         if (!buffer) return;
 
-        const table = stateStore.getState().decisionTable;
-        const nodes: DecisionNode[] = await readDecisionTableFile(buffer, table);
-        const newTable = nodes[0].content;
+        const excelData = await getExcelData(buffer, table);
 
-        tableActions.setDecisionTable(newTable);
-        listenerStore.getState().onChange?.(newTable);
+        if (excelData.length === 1) {
+          setExcelData(excelData);
+          message.success('Excel file has been uploaded successfully!');
+        } else {
+          message.error('Only excel file with a single data sheet can be handled in a table view.');
+        }
       };
-      message.success('Excel file has been uploaded successfully!');
     } catch {
       message.error('Failed to upload Excel!');
     }
@@ -163,6 +261,7 @@ export const DecisionTableCommandBar: React.FC = () => {
           (event.target as any).value = null;
         }}
       />
+      <DtExcelDialog excelData={excelData} handleSuccess={handleDataMapping} handleCancel={handleCancel} />
     </>
   );
 };
