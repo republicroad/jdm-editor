@@ -379,7 +379,16 @@ export const validationSchema = z.object({
   outputSchema: z.any().nullish().default(null),
 });
 
+export const decisionMetadataSchema = z.object({
+  version: z.string().optional(),
+  author: z.string().optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
 export const decisionModelSchema = z.object({
+  id: z.string().optional(),
+  metadata: decisionMetadataSchema.optional(),
   nodes: z.array(nodeSchema).default([]),
   edges: z.array(edgeSchema).default([]),
 });

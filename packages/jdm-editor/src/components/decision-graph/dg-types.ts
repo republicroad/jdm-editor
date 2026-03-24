@@ -55,7 +55,16 @@ export type DecisionEdge = {
   };
 };
 
+export type DecisionGraphMetadata = {
+  version?: string;
+  author?: string;
+  description?: string;
+  tags?: string[];
+};
+
 export type DecisionGraphType = {
+  id?: string;
+  metadata?: DecisionGraphMetadata;
   nodes: DecisionNode[];
   edges: DecisionEdge[];
 };

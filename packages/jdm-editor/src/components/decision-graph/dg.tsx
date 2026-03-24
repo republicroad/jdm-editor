@@ -33,6 +33,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
               tabBarExtraContent={tabBarExtraContent}
               userId={props.userId}
               projectId={props.projectId}
+              ruleMetadata={props.ruleMetadata}
               menuList={props.menuList}
               customFunctions={props.customFunctions}
             />

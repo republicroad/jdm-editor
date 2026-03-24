@@ -72,12 +72,21 @@ export const fJson = (arr: InputCell[]) => {
           inject(item.key, source, item.value);
         }
         break;
-      case 'object':
-        // 支持对象类型，直接使用对象值
-        if (typeof item.value === 'object' && item.value !== null && !Array.isArray(item.value)) {
-          inject(item.key, source, item.value);
+      case 'object': {
+        // 支持对象类型：value 可能是对象，也可能是 JSON 字符串
+        let objValue = item.value;
+        if (typeof objValue === 'string') {
+          try {
+            objValue = JSON.parse(objValue);
+          } catch {
+            break;
+          }
+        }
+        if (typeof objValue === 'object' && objValue !== null && !Array.isArray(objValue)) {
+          inject(item.key, source, objValue);
         }
         break;
+      }
       case 'function':
         // Array.isArray(item.value) && inject(item.key, source, `${item.key}(${item.value.join(',')})`);
         break;

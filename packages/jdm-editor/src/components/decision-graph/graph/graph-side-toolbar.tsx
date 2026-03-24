@@ -16,12 +16,20 @@ import { GraphExcelDialog } from './graph-excel-dialog';
 
 const DecisionContentType = 'application/vnd.gorules.decision';
 
-export type GraphSideToolbarProps = {
-  userId?: string;
-  projectId?: string | null ;
+export type GraphRuleMetadata = {
+  version?: string;
+  author?: string;
+  description?: string;
+  tags?: string[];
 };
 
-export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, projectId }) => {
+export type GraphSideToolbarProps = {
+  userId?: string;
+  projectId?: string | null;
+  ruleMetadata?: GraphRuleMetadata;
+};
+
+export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, projectId, ruleMetadata }) => {
   const { t } = useTranslation();
   const decisionGraphRaw = useDecisionGraphRaw();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -197,6 +205,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
           return node;
         }) || []
         const modelParsed = decisionModelSchema.safeParse({
+          id: crypto.randomUUID(),
+          metadata: ruleMetadata ?? parsed?.metadata,
           nodes:nodeMid,
           edges,
           settings: parsed?.settings,
@@ -358,6 +368,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
       const fileName = `${name.replaceAll('.json', '')}.json`;
       const json = JSON.stringify(
         {
+          id: decisionGraph.id,
+          metadata: decisionGraph.metadata,
           contentType: DecisionContentType,
           nodes: decisionGraph.nodes,
           edges: decisionGraph.edges,

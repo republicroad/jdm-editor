@@ -12,6 +12,7 @@ import './dg.scss';
 import type { GraphRef } from './graph/graph';
 import { Graph } from './graph/graph';
 import { GraphNodes } from './graph/graph-nodes';
+import type { GraphRuleMetadata } from './graph/graph-side-toolbar';
 import { GraphSideToolbar } from './graph/graph-side-toolbar';
 import type { GraphTabsProps } from './graph/graph-tabs';
 import { GraphTabs } from './graph/graph-tabs';
@@ -27,7 +28,8 @@ export type DecisionGraphWrapperProps = {
   reactFlowProOptions?: ProOptions;
   tabBarExtraContent?: GraphTabsProps['tabBarExtraContent'];
   userId?: string;
-  projectId?: string | null ;
+  projectId?: string | null;
+  ruleMetadata?: GraphRuleMetadata;
   menuList?: any;
   customFunctions?: any;
   getTabData?: (tabId: string) => { menuList?: any[], customFunctions?: any[] };
@@ -35,7 +37,7 @@ export type DecisionGraphWrapperProps = {
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent, userId, projectId, menuList, customFunctions, getTabData },
+    { reactFlowProOptions, tabBarExtraContent, userId, projectId, ruleMetadata, menuList, customFunctions, getTabData },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -51,7 +53,7 @@ export const DecisionGraphWrapper = React.memo(
 
     return (
       <>
-        {!hideLeftToolbar && <GraphSideToolbar userId={userId} projectId={projectId} />}
+        {!hideLeftToolbar && <GraphSideToolbar userId={userId} projectId={projectId} ruleMetadata={ruleMetadata} />}
         <div className={'grl-dg__graph'}>
           <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
 
