@@ -101,6 +101,9 @@
       border-bottom: 1px solid var(--grl-color-border-fade);
       align-items: center;
       text-decoration: none;
+      img {
+        width: 18px;
+      }
 
       &__actions {
         margin-left: auto;

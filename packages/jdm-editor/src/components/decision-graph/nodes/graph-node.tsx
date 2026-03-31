@@ -75,16 +75,16 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       //     }
       //   : null,
       specification.documentationUrl ? { key: 'divider-1', type: 'divider' } : null,
-      // !displayError && {
-      //   key: 'copy-clipboard',
-      //   label: <SpacedText left='复制' right={platform.shortcut('Ctrl + C')} />,
-      //   onClick: () => graphActions.copyNodes([id]),
-      // },
       !displayError && {
         key: 'duplicate',
         disabled,
         label: <SpacedText left={t("copy")} right={platform.shortcut('Ctrl + D')} />,
         onClick: () => graphActions.duplicateNodes([id]),
+      },
+      !displayError && {
+        key: 'copy-clipboard',
+        label: <SpacedText left={t('copyToClipboard')} right={platform.shortcut('Ctrl + C')} />,
+        onClick: () => graphActions.copyNodes([id]),
       },
       !displayError && { key: 'divider-2', type: 'divider' },
       {
