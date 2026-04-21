@@ -90,7 +90,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
                 id: expr.id,
                 key: expr.key,
                 value: expr.value || '',
-                type: expr.type || 'function'
+                type: expr.type || 'function',
+                returnSchema: expr.returnSchema,
               }));
               
               // 生成或更新expr_asts
@@ -147,7 +148,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
                     id: input.id,
                     key: input.key,
                     value: expressionValue,
-                    type: 'function'
+                    type: 'function',
+                    returnSchema: input.returnSchema,
                   };
                 }
                 // 非函数类型保持简单结构
@@ -155,7 +157,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
                   id: input.id,
                   key: input.key,
                   value: input.value || '',
-                  type: input.type
+                  type: input.type,
+                  returnSchema: input.returnSchema,
                 };
               });
               

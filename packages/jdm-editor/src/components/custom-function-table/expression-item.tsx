@@ -3,6 +3,7 @@ import type { VariableType } from '@gorules/zen-engine-wasm';
 import type { Row } from '@tanstack/react-table';
 import { Typography, Tabs, AutoComplete, Button, Input, Popconfirm, Select } from 'antd';
 import clsx from 'clsx';
+import equal from 'fast-deep-equal/es6/react';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
@@ -28,11 +29,42 @@ export type ExpressionItemProps = {
   customFunctions?: any;
 };
 
+const emptyReturnSchema = {};
+
+const normalizeFunctionDefinition = (func: any, namespace?: string) => ({
+  ...func,
+  namespace: func?.namespace ?? namespace,
+  returns: {
+    ...func?.returns,
+    content: {
+      ...func?.returns?.content,
+      schema: func?.returns?.content?.schema ?? {},
+    },
+  },
+});
+
+const normalizeCustomFunctions = (customFunctions?: any): any[] => {
+  if (!Array.isArray(customFunctions)) {
+    return [];
+  }
+
+  return customFunctions.flatMap((item: any) => {
+    if (Array.isArray(item?.tools)) {
+      return item.tools.map((tool: any) => normalizeFunctionDefinition(tool, item?.name));
+    }
+
+    return item?.name ? [normalizeFunctionDefinition(item)] : [];
+  });
+};
+
+const getFunctionReturnSchema = (funcmeta?: any) => funcmeta?.returns?.content?.schema ?? emptyReturnSchema;
+
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType, menuList, customFunctions }) => {
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
   const [editMode, setEditMode] = useState<'code' | 'function'>('function');
   const expressionRef = useRef<HTMLDivElement>(null);
+  const normalizedCustomFunctions = useMemo(() => normalizeCustomFunctions(customFunctions), [customFunctions]);
 
   // 优化的智能分割函数，正确处理引号内的;;分隔符
   const smartSplit = (str: string): string[] => {
@@ -98,7 +130,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   
 
   // 解析;;分隔的value字符串，用于函数模式显示
-  const parseFunctionValue = (value: string) => {
+  const parseFunctionValue = (value: string, fallbackReturnSchema: any = expression.returnSchema ?? emptyReturnSchema) => {
     if (!value || typeof value !== 'string') return null;
 
     const parts = smartSplit(value);
@@ -108,7 +140,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     const args = parts.slice(1);
 
     // 从customFunctions中找到对应的函数定义
-    const funcDef = customFunctions?.find((f: any) => f.name === funcName);
+    const funcDef = normalizedCustomFunctions.find((f: any) => f.name === funcName);
 
     if (!funcDef) {
       // 如果找不到函数定义，创建一个基本的结构以避免UI崩溃（使用新格式）
@@ -128,7 +160,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
             properties,
             type: 'object',
             title: funcName
-          }
+          },
+          returns: {
+            content: {
+              schema: fallbackReturnSchema,
+            },
+          },
         },
         arg_exprs: args.reduce((acc, arg, index) => {
           acc[`arg${index}`] = arg;
@@ -181,7 +218,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           // 如果arg_exprs[argName]是对象（错误情况），尝试从expression.value重新解析
           if (currentValue && typeof currentValue === 'object') {
             // 从value字符串重新解析
-            const parsed = parseFunctionValue(expression.value);
+            const parsed = parseFunctionValue(expression.value, expression.returnSchema ?? emptyReturnSchema);
             argExprs[argName] = parsed?.arg_exprs?.[argName] || properties[argName].default || '';
           } else {
             // 正常情况：使用字符串值
@@ -204,7 +241,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
 
     // 否则解析value字符串
     return parseFunctionValue(expression.value);
-  }, [expression.type, expression.funcmeta, expression.arg_exprs, expression.value, customFunctions]);
+  }, [expression.type, expression.funcmeta, expression.arg_exprs, expression.value, normalizedCustomFunctions]);
 
 
   const { updateRow, removeRow, swapRows, disabled, permission, configurable } = useExpressionStore(
@@ -217,6 +254,25 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       configurable: configurable ?? (permission === 'edit:full'),
     }),
   );
+
+  useEffect(() => {
+    const isFunctionType =
+      expression.type === 'function' ||
+      (typeof expression.value === 'string' && expression.value.includes(';;'));
+    if (!isFunctionType || !currentFunctionInfo?.funcmeta) {
+      return;
+    }
+
+    const nextReturnSchema = getFunctionReturnSchema(currentFunctionInfo.funcmeta);
+    if (equal(expression.returnSchema, nextReturnSchema)) {
+      return;
+    }
+
+    updateRow(index, {
+      type: 'function',
+      returnSchema: nextReturnSchema,  
+    });
+  }, [index, expression.type, expression.value, expression.returnSchema, currentFunctionInfo, updateRow]);
 
   const onChange = (update: Partial<Omit<ExpressionEntry, 'id'>>) => {
     // 如果是函数类型的更新，构建;;分隔的value字符串
@@ -239,7 +295,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       const simplifiedUpdate = {
         key: update.key || expression.key,
         value: expressionValue,
-        type: 'function'
+        type: 'function',
+        returnSchema: update.returnSchema ?? getFunctionReturnSchema(update.funcmeta),
       };
       
       updateRow(index, simplifiedUpdate);
@@ -295,17 +352,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   };
 
   const fun = () => {
-    const funColl: any = []
-    
-    if (customFunctions && Array.isArray(customFunctions) && customFunctions.length > 0) {
-      customFunctions.forEach((e: any, index: number) => {
-        if (e && e.name) {
-          funColl.push({ value: e.name, label: `${e.name}`, name: 'function', fun: e})
-        }
-      })
-    }
-    
-    return funColl
+    return normalizedCustomFunctions.map((func: any) => ({
+      value: func.name,
+      label: `${func.name}`,
+      name: 'function',
+      fun: func,
+    }));
   }
 
   const onRemove = () => {

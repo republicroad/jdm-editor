@@ -23,6 +23,7 @@ export type ExpressionEntry = {
   value: string;
   _diff?: DiffMetadata;
   type?: string;
+  returnSchema?: any;
   // 保留这些字段用于向后兼容，但在新的存储结构中不再使用
   funcmeta?: any;
   arg_exprs?: Record<string, any>;

@@ -6,18 +6,23 @@ import { P, match } from 'ts-pattern';
 
 import type { GraphWalker } from '../../helpers/traversal';
 import { createGraphWalker } from '../../helpers/traversal';
-import { isWasmAvailable } from '../../helpers/wasm';
+import { isWasmAvailable, useWasmReady } from '../../helpers/wasm';
 import type { DecisionGraphStoreType } from './context/dg-store.context';
 import { NodeTypeKind, useDecisionGraphRaw } from './context/dg-store.context';
 import type { NodeKind } from './nodes/specifications/specification-types';
 import { nodeSpecification } from './nodes/specifications/specifications';
 
+const shouldLogGraphInference = import.meta.env.DEV;
+const shouldLogNodeInference = (nodeType?: string) =>
+  nodeType === 'decisionTable' || nodeType === 'customNode' || nodeType === 'inputNode';
+
 export const DecisionGraphInferTypes = () => {
   const { stateStore } = useDecisionGraphRaw();
+  const wasmReady = useWasmReady();
 
   // Set variable types based on trace
   useEffect(() => {
-    if (!isWasmAvailable()) {
+    if (!wasmReady || !isWasmAvailable()) {
       return;
     }
 
@@ -66,11 +71,11 @@ export const DecisionGraphInferTypes = () => {
         console.error('error occurred while setting up variable types from trace', err);
       }
     });
-  }, []);
+  }, [stateStore, wasmReady]);
 
   // Infer types for nodes
   useEffect(() => {
-    if (!isWasmAvailable()) {
+    if (!wasmReady || !isWasmAvailable()) {
       return;
     }
 
@@ -92,10 +97,10 @@ export const DecisionGraphInferTypes = () => {
         console.error('error occurred during node type inference', err);
       }
     });
-  }, []);
+  }, [stateStore, wasmReady]);
 
   useEffect(() => {
-    if (!isWasmAvailable()) {
+    if (!wasmReady || !isWasmAvailable()) {
       return;
     }
 
@@ -123,7 +128,7 @@ export const DecisionGraphInferTypes = () => {
         console.error('error occurred while global node types', err);
       }
     });
-  }, []);
+  }, [stateStore, wasmReady]);
 
   return null;
 };
@@ -140,17 +145,61 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
   let isModified = false;
   const newNodeTypes = produce(nodeTypes, (draft) => {
     for (const { node, incomers } of graphWalker.walk(decisionGraph)) {
+      const inferTypes =
+        nodeSpecification[node.type as NodeKind]?.inferTypes ??
+        customNodes.find((n) => n.kind === node.type)?.inferTypes;
+      const prevContent = prevState.decisionGraph.nodes.find((n) => n.id === node.id)?.content;
+
       if (node.type === 'inputNode') {
-        return;
+        if (!inferTypes) {
+          continue;
+        }
+
+        const inferredOutputType = inferTypes.determineOutputType({
+          input: VariableType.fromJson({ Object: {} }),
+          content: node.content,
+        });
+        const currentOutputType = draft?.[node.id]?.[NodeTypeKind.InferredOutput];
+        const needsUpdate = inferTypes.needsUpdate(node.content, prevContent);
+        if (!needsUpdate && currentOutputType) {
+          continue;
+        }
+
+        if (!currentOutputType?.equal(inferredOutputType)) {
+          isModified = true;
+          draft[node.id] ??= {};
+          draft[node.id][NodeTypeKind.InferredOutput] = inferredOutputType;
+
+          if (shouldLogGraphInference && shouldLogNodeInference(node.type)) {
+            console.log('[dg-infer] updated inferred output', {
+              nodeId: node.id,
+              nodeName: node.name,
+              nodeType: node.type,
+              inputType: {},
+              inferredOutputType: inferredOutputType.toJson(),
+            });
+          }
+        }
+
+        continue;
       }
 
-      const incomerTypes = incomers
+      const incomerInfos = incomers
         .map((inc) => {
           const type = draft[inc.id] ?? {};
-          return type[NodeTypeKind.Output] ?? type[NodeTypeKind.InferredOutput];
+          const outputType = type[NodeTypeKind.Output] ?? type[NodeTypeKind.InferredOutput];
+
+          return {
+            id: inc.id,
+            name: inc.name,
+            type: inc.type,
+            outputType,
+          };
         })
-        .filter((t) => !!t)
-        .map((t) => t.clone());
+        .filter(
+          (inc): inc is typeof inc & { outputType: VariableType } => !!inc.outputType,
+        );
+      const incomerTypes = incomerInfos.map((inc) => inc.outputType.clone());
       const inferredInputType = match(incomerTypes.length)
         .with(1, () => incomerTypes[0])
         .otherwise(() => VariableType.fromIncoming(incomerTypes));
@@ -161,13 +210,25 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         isModified = true;
         draft[node.id] ??= {};
         draft[node.id][NodeTypeKind.InferredInput] = inferredInputType;
+
+        if (shouldLogGraphInference && shouldLogNodeInference(node.type)) {
+          console.log('[dg-infer] updated inferred input', {
+            nodeId: node.id,
+            nodeName: node.name,
+            nodeType: node.type,
+            incomers: incomerInfos.map((inc) => ({
+              id: inc.id,
+              name: inc.name,
+              type: inc.type,
+              outputType: inc.outputType.toJson(),
+            })),
+            inferredInputType: inferredInputType.toJson(),
+          });
+        }
       }
 
-      const inferTypes =
-        nodeSpecification[node.type as NodeKind]?.inferTypes ??
-        customNodes.find((n) => n.kind === node.type)?.inferTypes;
       if (!inferTypes) {
-        return;
+        continue;
       }
 
       const input =
@@ -180,10 +241,9 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         prevState.nodeTypes?.[node.id]?.[NodeTypeKind.InferredInput] ??
         VariableType.fromJson('Any');
 
-      const prevContent = prevState.decisionGraph.nodes.find((n) => n.id === node.id)?.content;
       const needsUpdate = inferTypes.needsUpdate(node.content, prevContent) || !input.equal(prevInput);
       if (!needsUpdate && draft?.[node.id]?.[NodeTypeKind.InferredOutput]) {
-        return;
+        continue;
       }
 
       const inferredOutputType = inferTypes.determineOutputType({ input, content: node.content });
@@ -193,6 +253,16 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         isModified = true;
         draft[node.id] ??= {};
         draft[node.id][NodeTypeKind.InferredOutput] = inferredOutputType;
+
+        if (shouldLogGraphInference && shouldLogNodeInference(node.type)) {
+          console.log('[dg-infer] updated inferred output', {
+            nodeId: node.id,
+            nodeName: node.name,
+            nodeType: node.type,
+            inputType: input.toJson(),
+            inferredOutputType: inferredOutputType.toJson(),
+          });
+        }
       }
     }
   });

@@ -9,6 +9,7 @@ import React, { useMemo } from 'react';
 import type { z } from 'zod';
 
 import { useTranslation } from '../../../../locales';
+import { jsonSchemaToVariableType } from '../../../../helpers/json-schema';
 import { useNodeType } from '../../../../helpers/node-type';
 import type { customNodeSchema } from '../../../../helpers/schema';
 import { DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
@@ -31,6 +32,9 @@ export type Expression = {
 type InferredContent = z.infer<typeof customNodeSchema>['content'];
 
 export type NodeExpressionData = InferredContent & Diff;
+
+const shouldLogCustomFunctionInfer = import.meta.env.DEV;
+const emptyReturnSchema = {};
 
 export const customFunctionSpecification: NodeSpecification<NodeExpressionData> = {
   type: NodeKind.CustomFunction,
@@ -125,6 +129,7 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
     determineOutputType: ({ input, content }) => {
       let nodeInput = input.clone();
       let determinedType = VariableType.fromJson({ Object: {} });
+      let usedFunctionReturnSchema = false;
       if (content.config.inputField) {
         nodeInput = input.calculateType(content.config.inputField);
       }
@@ -138,7 +143,23 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
           return;
         }
 
-        const calculatedType = nodeInput.calculateType(expression.value);
+        const isFunctionExpression =
+          expression.type === 'function' ||
+          (typeof expression.value === 'string' && expression.value.includes(';;'));
+        const calculatedType = isFunctionExpression
+          ? jsonSchemaToVariableType(expression.returnSchema ?? emptyReturnSchema)
+          : nodeInput.calculateType(expression.value);
+
+        if (shouldLogCustomFunctionInfer && isFunctionExpression) {
+          usedFunctionReturnSchema = true;
+          console.log('[custom-node infer] resolved function expression return type', {
+            key: expression.key,
+            value: expression.value,
+            expressionType: expression.type ?? 'expression',
+            returnSchema: expression.returnSchema ?? emptyReturnSchema,
+            calculatedType: calculatedType.toJson(),
+          });
+        }
 
         nodeInput.set(`$.${expression.key}`, calculatedType);
         determinedType.set(expression.key, calculatedType);
@@ -156,6 +177,16 @@ export const customFunctionSpecification: NodeSpecification<NodeExpressionData> 
 
       if (content.config.passThrough) {
         determinedType = input.merge(determinedType);
+      }
+
+      if (shouldLogCustomFunctionInfer && usedFunctionReturnSchema) {
+        console.log('[custom-node infer] resolved node output type', {
+          inputField: content.config.inputField ?? null,
+          executionMode: content.config.executionMode ?? 'single',
+          outputPath: content.config.outputPath ?? null,
+          passThrough: content.config.passThrough ?? false,
+          inferredOutputType: determinedType.toJson(),
+        });
       }
 
       return determinedType;

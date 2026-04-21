@@ -6,7 +6,7 @@ import {
   NodeTypeKind,
   useDecisionGraphState,
 } from '../components/decision-graph/context/dg-store.context';
-import { isWasmAvailable } from './wasm';
+import { isWasmAvailable, useWasmReady } from './wasm';
 
 type NodeTypeParams = {
   attachGlobals?: boolean;
@@ -19,16 +19,11 @@ const getNodeType = (nodeTypes: DecisionGraphStoreType['state']['nodeTypes'], id
   VariableType.fromJson({ Object: {} });
 
 export const useNodeType = (id: string, { attachGlobals = true, disabled = false }: NodeTypeParams = {}) => {
-  const typeInfo = useDecisionGraphState(({ nodeTypes, globalType }) => {
-    if (!isWasmAvailable() || disabled) {
-      return undefined;
-    }
-
-    return { nodeTypes, globalType };
-  });
+  const wasmReady = useWasmReady();
+  const typeInfo = useDecisionGraphState(({ nodeTypes, globalType }) => ({ nodeTypes, globalType }));
 
   return useMemo(() => {
-    if (!typeInfo?.nodeTypes) {
+    if (!wasmReady || !isWasmAvailable() || disabled || !typeInfo?.nodeTypes) {
       return undefined;
     }
 
@@ -39,5 +34,5 @@ export const useNodeType = (id: string, { attachGlobals = true, disabled = false
 
     Object.entries(typeInfo?.globalType ?? {}).forEach(([k, v]) => nodeType.set(k, v));
     return nodeType;
-  }, [typeInfo?.globalType, typeInfo?.nodeTypes, attachGlobals]);
+  }, [wasmReady, disabled, id, typeInfo?.globalType, typeInfo?.nodeTypes, attachGlobals]);
 };

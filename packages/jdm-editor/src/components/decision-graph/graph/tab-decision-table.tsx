@@ -1,16 +1,19 @@
 import type { DragDropManager } from 'dnd-core';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { getNodeData } from '../../../helpers/node-data';
+import { useNodeType } from '../../../helpers/node-type';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import type { DecisionTableType } from '../../decision-table';
 import { DecisionTable } from '../../decision-table';
 import type { DecisionTablePermission } from '../../decision-table/context/dt-store.context';
-import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
+import { NodeTypeKind, useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { NodeDecisionTableData } from '../nodes/specifications/decision-table.specification';
 import type { SimulationTrace, SimulationTraceDataTable } from '../simulator/simulation.types';
+
+const shouldLogDecisionTableContext = import.meta.env.DEV;
 
 export type TabDecisionTableProps = {
   id: string;
@@ -19,6 +22,7 @@ export type TabDecisionTableProps = {
 
 export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager }) => {
   const graphActions = useDecisionGraphActions();
+  const nodeType = useNodeType(id, { attachGlobals: false });
   const { nodeName, nodeTrace, inputData, nodeSnapshot, viewConfig, dictionaries, mode } = useDecisionGraphState(
     ({ simulate, decisionGraph, viewConfig, dictionaries, mode }) => ({
       nodeName: decisionGraph.nodes.find((n) => n.id === id)?.name,
@@ -40,10 +44,59 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
     }),
   );
 
-  const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
+  const { disabled, content, globalType, upstreamNodeOutputs } = useDecisionGraphState(({ disabled, decisionGraph, globalType, nodeTypes }) => ({
     disabled,
     content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeDecisionTableData,
+    globalType,
+    upstreamNodeOutputs: (decisionGraph?.edges ?? [])
+      .filter((edge) => edge.targetId === id)
+      .map((edge) => (decisionGraph?.nodes ?? []).find((node) => node.id === edge.sourceId))
+      .filter((node): node is NonNullable<typeof node> => !!node)
+      .map((node) => ({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        outputType:
+          nodeTypes[node.id]?.[NodeTypeKind.Output]?.toJson() ??
+          nodeTypes[node.id]?.[NodeTypeKind.InferredOutput]?.toJson() ??
+          null,
+      })),
   }));
+
+  const inputVariableType = useMemo(() => {
+    if (!nodeType) {
+      return undefined;
+    }
+
+    let scopedType = nodeType.clone();
+    if (content?.inputField) {
+      scopedType = scopedType.calculateType(content.inputField);
+    }
+
+    if (content?.executionMode === 'loop') {
+      scopedType = scopedType.arrayItem();
+    }
+
+    Object.entries(globalType ?? {}).forEach(([key, value]) => scopedType.set(key, value));
+
+    return scopedType;
+  }, [nodeType, content?.inputField, content?.executionMode, globalType]);
+
+  useEffect(() => {
+    if (!shouldLogDecisionTableContext) {
+      return;
+    }
+
+    console.log('[decision-table-context] resolved input variable type', {
+      nodeId: id,
+      nodeName,
+      inputField: content?.inputField ?? null,
+      executionMode: content?.executionMode ?? 'single',
+      upstreamNodeOutputs,
+      nodeInputType: nodeType?.toJson(),
+      resolvedInputType: inputVariableType?.toJson(),
+    });
+  }, [id, nodeName, content?.inputField, content?.executionMode, upstreamNodeOutputs, nodeType, inputVariableType]);
 
   const debug = useMemo(() => {
     if (!nodeTrace || !inputData) {
@@ -81,6 +134,7 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       disabled={disabled}
       permission={viewConfig?.enabled ? (viewConfig?.permissions?.[id] as DecisionTablePermission) : 'edit:full'}
       dictionaries={dictionaries}
+      inputVariableType={inputVariableType}
       mode={mode}
       debug={debug}
       onChange={(val) => {

@@ -1,11 +1,14 @@
 import { ArrowRightOutlined, BookOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
+import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Form, Modal, Typography } from 'antd';
 import { produce } from 'immer';
+import json5 from 'json5';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';
 import React from 'react';
 import type { z } from 'zod';
 
+import { jsonSchemaToVariableType } from '../../../../helpers/json-schema';
 import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import { platform } from '../../../../helpers/platform';
@@ -28,6 +31,8 @@ export type NodeInputData = Omit<InferredContent, 'expressions'> &
   Diff & {
     expressions: (InferredContent['expressions'][0] & Diff)[];
   };
+
+const shouldLogInputSchemaInfer = import.meta.env.DEV;
 
 export const inputSpecification: NodeSpecification<NodeInputData> = {
   type: NodeKind.Input,
@@ -98,6 +103,36 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         ]}
       />
     );
+  },
+  inferTypes: {
+    needsUpdate: (content, prevContent) => (content?.schema ?? '').trim() !== (prevContent?.schema ?? '').trim(),
+    determineOutputType: ({ content }) => {
+      const schemaSource = content?.schema?.trim();
+      if (!schemaSource) {
+        return VariableType.fromJson({ Object: {} });
+      }
+
+      try {
+        const parsedSchema = json5.parse(schemaSource);
+        const inferredOutputType = jsonSchemaToVariableType(parsedSchema);
+
+        if (shouldLogInputSchemaInfer) {
+          console.log('[input-node infer] resolved schema output type', {
+            schema: parsedSchema,
+            inferredOutputType: inferredOutputType.toJson(),
+          });
+        }
+
+        return inferredOutputType;
+      } catch (error) {
+        console.warn('[input-node infer] failed to parse schema', {
+          schema: schemaSource,
+          error,
+        });
+
+        return VariableType.fromJson({ Object: {} });
+      }
+    },
   },
   // renderSettings: ({ id }) => {
   //   const graphActions = useDecisionGraphActions();
