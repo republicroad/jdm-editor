@@ -80,19 +80,34 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
 
   const groups = useMemo<Record<string, NodeSpecification[]>>(() => {
     return Object.keys(innerGroups).reduce((acc, key) => {
+      const searchValue = search.toLowerCase();
+
       return {
         ...acc,
         [key]: (innerGroups[key] || []).filter(
-          (el) =>
-            !(search?.trim?.().length > 0) ||
-            (el.type || '').toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-            ((el.displayName || '') as string).toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-            (el.shortDescription || '').toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-            (el.group || '').toLowerCase().indexOf(search.toLowerCase()) > -1,
+          (el) => {
+            if (!(search?.trim?.().length > 0)) {
+              return true;
+            }
+
+            const displayName =
+              typeof el.displayName === 'string' ? t(el.displayName as TranslationKey) : String(el.displayName || '');
+            const shortDescription =
+              typeof el.shortDescription === 'string'
+                ? t(el.shortDescription as TranslationKey)
+                : String(el.shortDescription || '');
+
+            return (
+              (el.type || '').toLowerCase().indexOf(searchValue) > -1 ||
+              displayName.toLowerCase().indexOf(searchValue) > -1 ||
+              shortDescription.toLowerCase().indexOf(searchValue) > -1 ||
+              (el.group || '').toLowerCase().indexOf(searchValue) > -1
+            );
+          },
         ),
       };
     }, {});
-  }, [innerGroups, search]);
+  }, [innerGroups, search, t]);
 
   const customCount = customComponents.length + customNodes.length;
 
@@ -171,6 +186,9 @@ const DragDecisionNode: React.FC<
   const displayName = typeof specification.displayName === 'string'
     ? t(specification.displayName as TranslationKey)
     : specification.displayName;
+  const shortDescription = typeof specification.shortDescription === 'string'
+    ? t(specification.shortDescription as TranslationKey)
+    : specification.shortDescription;
   return (
     <div className={clsx('draggable-component')} draggable={!disabled} {...props}>
       <div style={{ pointerEvents: 'none' }}>
@@ -180,7 +198,7 @@ const DragDecisionNode: React.FC<
           color={specification.color}
           icon={specification.icon}
           name={collapsed ? undefined : (displayName as string)}
-          type={specification.shortDescription}
+          type={shortDescription}
         />
       </div>
     </div>

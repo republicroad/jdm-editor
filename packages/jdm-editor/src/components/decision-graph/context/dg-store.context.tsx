@@ -60,6 +60,12 @@ export type ViewConfig = {
   permissions?: Record<string, ViewConfigPermission | null | undefined> | null;  // 权限配置
 };
 
+export type SimulatorExampleBinding = {
+  nodeId: string;
+  sourceIndex: number;
+  sourceName?: string;
+} | null;
+
 /**
  * 节点类型种类枚举
  * 定义了节点可能的类型种类
@@ -109,6 +115,7 @@ export type DecisionGraphStoreType = {
     simulate?: Simulation;
     simulatorOpen: boolean;
     simulatorRequest?: string;
+    simulatorExampleBinding?: SimulatorExampleBinding;
     simulatorLoading: boolean;
 
     compactMode?: boolean;
@@ -159,6 +166,7 @@ export type DecisionGraphStoreType = {
     setCompactMode: (mode: boolean) => void;                 // 设置紧凑模式
     toggleCompactMode: () => void;                           // 切换紧凑模式
     setSimulatorRequest: (req: string) => void;
+    setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
 
     setNodeType: (id: string, kind: NodeTypeKind, vt: VariableType) => void;  // 设置节点类型
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;                // 删除节点类型
@@ -232,6 +240,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         globalType: {},
         simulatorLoading: false,
         simulatorOpen: false,
+        simulatorExampleBinding: null,
       })),
     [],
   );
@@ -265,6 +274,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       setSimulatorRequest: (request: string) => {
         stateStore.setState({
           simulatorRequest: request,
+        });
+      },
+      setSimulatorExampleBinding: (binding) => {
+        stateStore.setState({
+          simulatorExampleBinding: binding ?? null,
         });
       },
       handleNodesChange: (changes = []) => {

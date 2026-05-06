@@ -2,13 +2,16 @@ import { ArrowRightOutlined, BookOutlined, DeleteOutlined, SyncOutlined } from '
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Form, Modal, Typography } from 'antd';
 import { produce } from 'immer';
-import json5 from 'json5';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';
 import React from 'react';
 import type { z } from 'zod';
 
 import { jsonSchemaToVariableType } from '../../../../helpers/json-schema';
+import {
+  resolveRequestSchemaValue,
+  stringifyResolvedRequestSchemaValue,
+} from '../../../../helpers/request-schema';
 import { useTranslation } from '../../../../locales';
 import { useNodeType } from '../../../../helpers/node-type';
 import { platform } from '../../../../helpers/platform';
@@ -40,7 +43,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
   displayName: 'request',
   color: NodeColor.Green,
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions',
-  shortDescription: 'Provides input context',
+  shortDescription: 'requestShortDescription',
   generateNode: () => ({
     name: 'request',
     content: {
@@ -105,15 +108,17 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     );
   },
   inferTypes: {
-    needsUpdate: (content, prevContent) => (content?.schema ?? '').trim() !== (prevContent?.schema ?? '').trim(),
+    needsUpdate: (content, prevContent) =>
+      stringifyResolvedRequestSchemaValue(content).trim() !== stringifyResolvedRequestSchemaValue(prevContent).trim(),
     determineOutputType: ({ content }) => {
-      const schemaSource = content?.schema?.trim();
-      if (!schemaSource) {
+      const schemaSource = stringifyResolvedRequestSchemaValue(content).trim();
+      const parsedSchema = resolveRequestSchemaValue(content);
+
+      if (!schemaSource || !parsedSchema) {
         return VariableType.fromJson({ Object: {} });
       }
 
       try {
-        const parsedSchema = json5.parse(schemaSource);
         const inferredOutputType = jsonSchemaToVariableType(parsedSchema);
 
         if (shouldLogInputSchemaInfer) {
@@ -222,9 +227,12 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};
 
-      if ((current?.schema || '')?.trim?.() !== (previous?.schema || '')?.trim?.()) {
+      const currentSchema = stringifyResolvedRequestSchemaValue(current);
+      const previousSchema = stringifyResolvedRequestSchemaValue(previous);
+
+      if (currentSchema.trim() !== previousSchema.trim()) {
         _.set(fields, 'schema', {
-          previousValue: previous?.schema || '',
+          previousValue: previousSchema,
           status: 'modified',
         });
       }

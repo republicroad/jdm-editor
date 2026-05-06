@@ -6,6 +6,7 @@ import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 import toJsonSchema from 'to-json-schema';
 
+import { useTranslation } from '../../../locales';
 import { copyToClipboard } from '../../../helpers/utility';
 
 export type JsonToJsonSchemaDialogProps = {
@@ -19,6 +20,7 @@ export type JsonToJsonSchemaDialogProps = {
 export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (props) => {
   const { isOpen, onDismiss, onSuccess, model } = props;
 
+  const { t } = useTranslation();
   const { token } = theme.useToken();
 
   const [value, setValue] = useState<string>('');
@@ -31,12 +33,12 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
 
   return (
     <Modal
-      title='Convert to JSON Schema'
+      title={t('convertToJsonSchema')}
       open={isOpen}
       destroyOnClose
       onCancel={onDismiss}
       width={540}
-      okText='Convert'
+      okText={t('convert')}
       onOk={() => {
         try {
           onSuccess?.({
@@ -48,7 +50,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
         }
       }}
     >
-      <Typography.Text>Type or paste JSON or JSON5 model here and covert it to JSON Schema</Typography.Text>
+      <Typography.Text>{t('typeOrPasteJson')}</Typography.Text>
       <Editor
         loading={<Spin size='large' />}
         language='javascript'
@@ -68,21 +70,21 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
 
           editor.addAction({
             id: 'copy-json',
-            label: 'Copy JSON',
+            label: t('copyJson'),
             contextMenuGroupId: 'utils',
             run: async (editor) => {
               try {
                 await copyToClipboard(JSON.stringify(json5.parse(editor.getValue())));
-                message.success('Copied to clipboard!');
+                message.success(t('copiedToClipboard'));
               } catch {
-                message.error('Failed to copy to clipboard.');
+                message.error(t('copyFailed'));
               }
             },
           });
 
           editor.addAction({
             id: 'format',
-            label: 'Format',
+            label: t('format'),
             contextMenuGroupId: 'utils',
             precondition: '!editorReadonly',
             run: (editor) => {

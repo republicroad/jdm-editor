@@ -155,11 +155,41 @@
       &__content {
         flex: 1;
         overflow-y: auto;
+
+        &--request {
+          position: relative;
+          overflow: hidden;
+        }
       }
     }
 
     &__request {
       width: 300px;
+    }
+
+    &__request-editor {
+      height: 100%;
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        filter 0.22s ease;
+
+      &--switching {
+        opacity: 0.42;
+        transform: scale(0.995);
+        filter: saturate(0.9);
+      }
+    }
+
+    &__request-switching {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      animation: grl-simulator-request-switching-in 0.22s ease;
+      z-index: 2;
     }
 
     &__nodes {
@@ -199,6 +229,20 @@
 
       &__content {
         flex-grow: 1;
+      }
+
+      &__title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      &__meta {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       &__actions {
@@ -503,7 +547,7 @@
 
           .grl-dn__header__icon {
             transition: var(--grl-transition);
-            filter: opacity(0.5) grayscale(0.3);
+            filter: opacity(1) grayscale(0.1);
           }
         }
       }
@@ -705,6 +749,18 @@
         }
       }
     }
+  }
+}
+
+@keyframes grl-simulator-request-switching-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

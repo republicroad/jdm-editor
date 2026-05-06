@@ -8,8 +8,13 @@ import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
+import {
+  emptyCustomFunctionReturnSchema,
+  getFunctionReturnSchema,
+  normalizeCustomFunctions,
+  normalizeFunctionReturns,
+} from '../../helpers/custom-function-schema';
 import { getTrace } from '../../helpers/trace';
-import { smartSplit } from '../../helpers/utility';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
@@ -29,35 +34,7 @@ export type ExpressionItemProps = {
   customFunctions?: any;
 };
 
-const emptyReturnSchema = {};
-
-const normalizeFunctionDefinition = (func: any, namespace?: string) => ({
-  ...func,
-  namespace: func?.namespace ?? namespace,
-  returns: {
-    ...func?.returns,
-    content: {
-      ...func?.returns?.content,
-      schema: func?.returns?.content?.schema ?? {},
-    },
-  },
-});
-
-const normalizeCustomFunctions = (customFunctions?: any): any[] => {
-  if (!Array.isArray(customFunctions)) {
-    return [];
-  }
-
-  return customFunctions.flatMap((item: any) => {
-    if (Array.isArray(item?.tools)) {
-      return item.tools.map((tool: any) => normalizeFunctionDefinition(tool, item?.name));
-    }
-
-    return item?.name ? [normalizeFunctionDefinition(item)] : [];
-  });
-};
-
-const getFunctionReturnSchema = (funcmeta?: any) => funcmeta?.returns?.content?.schema ?? emptyReturnSchema;
+const emptyReturnSchema = emptyCustomFunctionReturnSchema;
 
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType, menuList, customFunctions }) => {
   const { t } = useTranslation();
@@ -161,11 +138,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
             type: 'object',
             title: funcName
           },
-          returns: {
-            content: {
-              schema: fallbackReturnSchema,
-            },
-          },
+          returns: normalizeFunctionReturns(fallbackReturnSchema),
         },
         arg_exprs: args.reduce((acc, arg, index) => {
           acc[`arg${index}`] = arg;
@@ -438,14 +411,13 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         <ExpressionItemContextMenu index={index}>
           <DiffAutosizeTextArea
             noStyle
-            placeholder='Key'
+            placeholder={t('key')}
             maxRows={10}
             readOnly={permission !== 'edit:full' || disabled}
             displayDiff={expression?._diff?.fields?.key?.status === 'modified'}
             previousValue={expression?._diff?.fields?.key?.previousValue}
             value={expression?.key}
             onChange={(e) => onChange({ key: e.target.value })}
-            autoComplete='off'
           />
         </ExpressionItemContextMenu>
       </div>
@@ -457,7 +429,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           items={[
             {
               key: 'function',
-              label: 'Function',
+              label: t('function'),
               children: (
                 <div className="function-mode-container">
                   <div className="function-select-container">
@@ -501,8 +473,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                 style={{  minWidth: 120, width: 180 }}
                                 value={value}
                                 popupMatchSelectWidth={180}
-                                onChange={(e) => {
-                                  inputChange({ value: e?.target?.value || e, type: currentFunctionInfo?.funcmeta?.name, key: argName });
+                                onChange={(nextValue) => {
+                                  inputChange({ value: nextValue, type: currentFunctionInfo?.funcmeta?.name, key: argName });
                                 }}
                                 onFocus={() => {
                                   getList(currentFunctionInfo?.funcmeta?.name || '')
@@ -527,7 +499,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                         onClick={(e) => goLink(e, option)}
                                         rel="noopener noreferrer"
                                       >
-                                        更多详情
+                                        {t('moreDetails')}
                                       </a>
                                     </div>
                                   </AutoComplete.Option>
@@ -723,18 +695,21 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                 }
                                 disabled={!configurable || disabled}
                               >
-                                {[{name: '查询'}, {name: '计算'}].filter((option) => option.name).map((option) => (
+                                {[
+                                  { value: '查询', label: t('query') },
+                                  { value: '计算', label: t('calculate') },
+                                ].map((option) => (
                                   <AutoComplete.Option
-                                    key={option.name}
-                                    value={`"${option.name}"`}
-                                    label={option.name}
+                                    key={option.value}
+                                    value={`"${option.value}"`}
+                                    label={option.label}
                                   >
                                     <div className="flex items-center justify-between gap-2">
                                       <div
                                         className="max-w-[230px] overflow-hidden whitespace-nowrap"
                                         style={{ textOverflow: 'ellipsis' }}
                                       >
-                                        {option.name}
+                                        {option.label}
                                       </div>
                                     </div>
                                   </AutoComplete.Option>
@@ -764,13 +739,13 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
             },
             {
               key: 'code',
-              label: 'Code',
+              label: t('code'),
               children: (
                 <ExpressionItemContextMenu index={index}>
                   <div>
                     <DiffCodeEditor
                       className='expression-list-item__value'
-                      placeholder='Expression'
+                      placeholder={t('expression')}
                       maxRows={9}
                       disabled={disabled}
                       value={expression?.value}
@@ -833,7 +808,11 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
   );
 };
 
-const safeJson = (data: string) => {
+const safeJson = (data: unknown) => {
+  if (typeof data !== 'string') {
+    return data;
+  }
+
   try {
     return JSON.parse(data);
   } catch (err: any) {
