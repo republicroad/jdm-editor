@@ -1,4 +1,7 @@
 import { v4 } from "uuid";
+
+let fallbackClipboardText = '';
+
 const unsecuredCopyToClipboard = (text: string) => {
   const textArea = document.createElement('textarea');
   textArea.value = text;
@@ -14,6 +17,8 @@ const unsecuredCopyToClipboard = (text: string) => {
 };
 
 export const copyToClipboard = async (content: string) => {
+  fallbackClipboardText = content;
+
   if (window.isSecureContext && navigator.clipboard) {
     await navigator.clipboard.writeText(content);
   } else {
@@ -23,9 +28,14 @@ export const copyToClipboard = async (content: string) => {
 
 export const pasteFromClipboard = async (): Promise<string> => {
   try {
-    return navigator.clipboard.readText();
+    if (window.isSecureContext && navigator.clipboard?.readText) {
+      const clipboardText = await navigator.clipboard.readText();
+      return clipboardText || fallbackClipboardText;
+    }
+
+    return fallbackClipboardText;
   } catch {
-    return '';
+    return fallbackClipboardText;
   }
 };
 

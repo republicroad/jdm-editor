@@ -9,6 +9,28 @@ import toJsonSchema from 'to-json-schema';
 import { useTranslation } from '../../../locales';
 import { copyToClipboard } from '../../../helpers/utility';
 
+const invisibleFormatCharacters = /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/g;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const normalizeJsonModelKey = (key: string) => key.normalize('NFKC').replace(invisibleFormatCharacters, '').trim();
+
+const normalizeJsonModel = (model: unknown): unknown => {
+  if (Array.isArray(model)) {
+    return model.map(normalizeJsonModel);
+  }
+
+  if (!isRecord(model)) {
+    return model;
+  }
+
+  return Object.entries(model).reduce<Record<string, unknown>>((normalizedModel, [key, value]) => {
+    normalizedModel[normalizeJsonModelKey(key)] = normalizeJsonModel(value);
+    return normalizedModel;
+  }, {});
+};
+
 export type JsonToJsonSchemaDialogProps = {
   id?: string;
   onSuccess?: (payload: { schema: string; model: string }) => void;
@@ -41,9 +63,10 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
       okText={t('convert')}
       onOk={() => {
         try {
+          const normalizedModel = normalizeJsonModel(json5.parse(value));
           onSuccess?.({
-            schema: JSON.stringify(toJsonSchema(json5.parse(value)), null, 2),
-            model: value,
+            schema: JSON.stringify(toJsonSchema(normalizedModel), null, 2),
+            model: JSON.stringify(normalizedModel, null, 2),
           });
         } catch (e: any) {
           message.error(e?.message);

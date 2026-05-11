@@ -29,7 +29,7 @@ import {
   buildRequestSchemaFromDefinitions,
   getRequestDefinitions,
   getRequestExampleSources,
-  mergeRequestExampleDataWithTemplate,
+  normalizeRequestFieldKey,
   normalizeRequestExampleDataByDefinitions,
   parseRequestSchemaValue,
   resolveRequestSchemaValue,
@@ -91,9 +91,6 @@ const hasOwn = (value: object, key: string) => Object.prototype.hasOwnProperty.c
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const hasExampleSourceData = (value: unknown): value is Record<string, unknown> =>
-  isRecord(value) && Object.keys(value).length > 0;
 
 const buildDefinitionPath = (parentPath: string | null | undefined, name: string) => (parentPath ? `${parentPath}.${name}` : name);
 
@@ -484,8 +481,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const [collapsedExamplePaths, setCollapsedExamplePaths] = useState<Record<string, true>>({});
   const [exampleDraftsBySourceId, setExampleDraftsBySourceId] = useState<Record<string, ExampleItemDraft[]>>({});
 
-  const { disabled, content, nodeName, panels, activePanel, activeGraphTabId, simulatorExampleBinding } = useDecisionGraphState(
-    ({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding }) => ({
+  const { disabled, content, nodeName, panels, activePanel, activeGraphTabId, simulatorExampleBinding, simulatorRequest } = useDecisionGraphState(
+    ({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding, simulatorRequest }) => ({
       disabled,
       content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
       nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
@@ -493,6 +490,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       activePanel,
       activeGraphTabId: activeTab,
       simulatorExampleBinding,
+      simulatorRequest,
     }),
   );
 
@@ -523,10 +521,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const contentSchemaRef = useRef(content?.schema);
   const previousNodeIdRef = useRef(id);
   const pendingSchemaCommitRef = useRef<string | null>(null);
-  const exampleTemplate = useMemo(
-    () => buildRequestExampleTemplateFromDefinitions(definitionDrafts),
-    [definitionDrafts],
-  );
+  const hasRestoredActiveSourceFromBindingRef = useRef(false);
 
   const applyExternalSchemaDraft = (nextValue: string, options?: { dirty?: boolean }) => {
     pendingExternalSchemaDraftValueRef.current = nextValue;
@@ -558,6 +553,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     previousNodeIdRef.current = id;
     pendingSchemaCommitRef.current = null;
     pendingDefinitionSyncSignatureRef.current = null;
+    hasRestoredActiveSourceFromBindingRef.current = false;
     applyExternalSchemaDraft(persistedSchemaText, { dirty: false });
   }, [id, persistedSchemaText]);
 
@@ -655,18 +651,12 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   );
   const getExampleSourceName = (index: number) => formatRequestExampleSourceName(index, t('requestDataLabel'));
   const activeSource = exampleSources[activeSourceIndex] ?? null;
-  const normalizeExampleData = (
-    data?: Record<string, unknown>,
-    definitions = definitionDrafts,
-    template = exampleTemplate,
-  ) => {
-    const baseData = hasExampleSourceData(data) ? data : mergeRequestExampleDataWithTemplate(template, data);
-    return normalizeRequestExampleDataByDefinitions(baseData, definitions);
-  };
+  const normalizeExampleData = (data?: Record<string, unknown>, definitions = definitionDrafts) =>
+    normalizeRequestExampleDataByDefinitions(isRecord(data) ? data : {}, definitions);
   const getPreparedExampleData = (data?: Record<string, unknown>) => normalizeExampleData(data);
   const persistedActiveExampleDrafts = useMemo(
     () => flattenExampleData(getPreparedExampleData(activeSource?.data ?? {})),
-    [activeSource?.data, activeSource?.id, exampleTemplate],
+    [activeSource?.data, activeSource?.id, definitionDrafts],
   );
   const activeExampleDrafts = useMemo(() => {
     if (!activeSource) {
@@ -698,6 +688,29 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   }, [activeSourceIndex, exampleSources.length]);
 
   useEffect(() => {
+    if (hasRestoredActiveSourceFromBindingRef.current) {
+      return;
+    }
+
+    if (simulatorExampleBinding?.nodeId !== id) {
+      hasRestoredActiveSourceFromBindingRef.current = true;
+      return;
+    }
+
+    if (simulatorExampleBinding.sourceIndex < 0 || simulatorExampleBinding.sourceIndex >= exampleSources.length) {
+      return;
+    }
+
+    if (simulatorExampleBinding.sourceIndex === activeSourceIndex) {
+      hasRestoredActiveSourceFromBindingRef.current = true;
+      return;
+    }
+
+    setActiveSourceIndex(simulatorExampleBinding.sourceIndex);
+    hasRestoredActiveSourceFromBindingRef.current = true;
+  }, [activeSourceIndex, exampleSources.length, id, simulatorExampleBinding]);
+
+  useEffect(() => {
     if (!activeSource) {
       return;
     }
@@ -722,6 +735,15 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       return;
     }
 
+    if (
+      simulatorExampleBinding?.nodeId === id &&
+      simulatorExampleBinding.sourceIndex !== activeSourceIndex &&
+      simulatorExampleBinding.sourceIndex >= 0 &&
+      simulatorExampleBinding.sourceIndex < exampleSources.length
+    ) {
+      return;
+    }
+
     const hasMatchedBinding =
       simulatorExampleBinding?.nodeId === id &&
       simulatorExampleBinding.sourceIndex === activeSourceIndex &&
@@ -736,7 +758,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       sourceIndex: activeSourceIndex,
       sourceName: activeSource.name,
     });
-  }, [activeGraphTabId, activeSource, activeSourceIndex, graphActions, id, simulatorExampleBinding]);
+  }, [activeGraphTabId, activeSource, activeSourceIndex, exampleSources.length, graphActions, id, simulatorExampleBinding]);
 
   const openSimulatorPanel = () => {
     const simulatorPanel = panels?.find((panel) => panel.id === 'simulator');
@@ -863,6 +885,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
 
   const syncExampleToSimulator = (source?: RequestExampleSource | null, sourceIndex = activeSourceIndex) => {
     if (!source) {
+      graphActions.setSimulatorRequest('');
       graphActions.setSimulatorExampleBinding(null);
       return;
     }
@@ -879,11 +902,72 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     openSimulatorPanel();
   };
 
+  const getExampleSourcesWithActiveSimulatorDraft = (): RequestExampleSource[] | null => {
+    if (
+      !activeSource ||
+      simulatorExampleBinding?.nodeId !== id ||
+      simulatorExampleBinding.sourceIndex !== activeSourceIndex ||
+      typeof simulatorRequest !== 'string'
+    ) {
+      return null;
+    }
+
+    try {
+      const parsed = simulatorRequest.trim().length === 0 ? {} : json5.parse(simulatorRequest);
+      if (!isRecord(parsed)) {
+        return null;
+      }
+
+      const preparedDraftData = normalizeRequestExampleDataByDefinitions(
+        parsed as Record<string, unknown>,
+        definitionDrafts,
+      );
+      const preparedSourceData = getPreparedExampleData(activeSource.data);
+
+      if (JSON.stringify(preparedDraftData) === JSON.stringify(preparedSourceData)) {
+        return null;
+      }
+
+      return exampleSources.map((source, index) =>
+        index === activeSourceIndex
+          ? {
+              ...source,
+              data: preparedDraftData,
+              source: 'schema.examples',
+            }
+          : source,
+      );
+    } catch {
+      return null;
+    }
+  };
+
   const persistDefinitions = (nextDefinitions: RequestDefinition[]) => {
     const normalizedDefinitions = normalizeRequestDefinitionOrders(nextDefinitions);
+    const hasValidDefinitions = normalizedDefinitions.some(
+      (definition) => definition.name.trim() && definition.path.trim(),
+    );
     pendingDefinitionSyncSignatureRef.current = createRequestDefinitionSyncSignature(normalizedDefinitions);
-    const nextExampleTemplate = buildRequestExampleTemplateFromDefinitions(normalizedDefinitions);
-    const nextExampleSources = exampleSources.map((source) => ({
+    setDefinitionDrafts(normalizedDefinitions);
+
+    if (!hasValidDefinitions) {
+      const currentSchema = parseRequestSchemaValue(content?.schema);
+      const nextSchemaObject =
+        currentSchema && Array.isArray(currentSchema.examples)
+          ? {
+              ...currentSchema,
+              type: 'object',
+              properties: {},
+            }
+          : null;
+
+      setActiveSourceIndex(0);
+      updateNodeSchema(nextSchemaObject ? stringifyRequestSchemaValue(nextSchemaObject) : '');
+      return;
+    }
+
+    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
+    const nextExampleSources = baseExampleSources.map((source) => ({
       ...source,
       data: normalizeRequestExampleDataByDefinitions(
         syncRequestExampleDataWithDefinitionChanges(source.data, definitionDrafts, normalizedDefinitions),
@@ -891,13 +975,12 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       ),
     }));
 
-    setDefinitionDrafts(normalizedDefinitions);
     setExampleDraftsBySourceId((previousDraftsBySourceId) => ({
       ...previousDraftsBySourceId,
       ...Object.fromEntries(
         nextExampleSources.map((source) => [
           source.id,
-          flattenExampleData(normalizeExampleData(source.data, normalizedDefinitions, nextExampleTemplate)),
+          flattenExampleData(normalizeExampleData(source.data, normalizedDefinitions)),
         ]),
       ),
     }));
@@ -974,14 +1057,14 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       return;
     }
 
+    const normalizedName = normalizeRequestFieldKey(name);
     const hasChildDefinitions = definitionDrafts.some((definition) => definition.parentPath === target.path);
-    if (hasChildDefinitions && !name.trim()) {
+    if (hasChildDefinitions && !normalizedName) {
       return;
     }
 
-    const trimmedName = name.trim();
-    const nextPath = trimmedName
-      ? buildDefinitionPath(target.parentPath, trimmedName)
+    const nextPath = normalizedName
+      ? buildDefinitionPath(target.parentPath, normalizedName)
       : buildDefinitionDraftPath(target.parentPath, target.id);
     const nextDefinitions = definitionDrafts.map((definition) => {
       if (definition.path !== target.path && !definition.path.startsWith(`${target.path}.`)) {
@@ -991,7 +1074,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       if (definition.path === target.path) {
         return {
           ...definition,
-          name,
+          name: normalizedName,
           path: nextPath,
         };
       }
@@ -1487,12 +1570,16 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   };
 
   const addExampleSource = () => {
+    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
     const nextSources = [
-      ...exampleSources,
+      ...baseExampleSources,
       {
         id: crypto.randomUUID(),
-        name: getExampleSourceName(exampleSources.length),
-        data: getPreparedExampleData({}),
+        name: getExampleSourceName(baseExampleSources.length),
+        data: normalizeRequestExampleDataByDefinitions(
+          buildRequestExampleTemplateFromDefinitions(definitionDrafts),
+          definitionDrafts,
+        ),
         source: 'schema.examples' as const,
       },
     ];
@@ -1501,7 +1588,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   };
 
   const removeExampleSource = (index: number) => {
-    const nextSources = exampleSources.filter((_, currentIndex) => currentIndex !== index);
+    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
+    const nextSources = baseExampleSources.filter((_, currentIndex) => currentIndex !== index);
     persistExamples(nextSources, Math.max(index - 1, 0));
   };
 
@@ -1742,6 +1830,12 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                               index === activeSourceIndex ? 'grl-request-tab__source-card--active' : ''
                             }`}
                             onClick={() => {
+                              const nextSources = getExampleSourcesWithActiveSimulatorDraft();
+                              if (nextSources) {
+                                persistExamples(nextSources, index);
+                                return;
+                              }
+
                               setActiveSourceIndex(index);
                               syncExampleToSimulator(source, index);
                             }}

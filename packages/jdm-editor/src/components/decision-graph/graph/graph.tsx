@@ -242,7 +242,6 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
     const customSpecification = match(type)
       .with('customNode', () => {
         let custom = customNodes.find((node) => node.kind === component)
-        console.log('customNodes', customNodes);
         const allSpecifications = [...Object.values(nodeSpecification), ...components];
         let middle = allSpecifications.find((s) => s.type === type) || {};
         Object.assign(middle, { icon: custom?.icon });
@@ -458,9 +457,12 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
       className={clsx(['tab-content', className])}
       tabIndex={0}
       onKeyDown={(e) => {
+        const key = e.key.toLowerCase();
+        const isPrimaryShortcut = e.metaKey || e.ctrlKey;
         // 处理粘贴快捷键
-        if (e.key === 'v' && e.metaKey && !disabled) {
+        if (key === 'v' && isPrimaryShortcut && !disabled) {
           graphActions.pasteNodes();
+          e.preventDefault();
         }
       }}
     >
@@ -494,21 +496,23 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
           onKeyDown={(e) => {
             const [nodes] = nodesState;
             const [edges] = edgesState;
-
+            const key = e.key.toLowerCase();
+            const isPrimaryShortcut = e.metaKey || e.ctrlKey;
+            const selectedNodeIds = nodes.filter((n) => n.selected).map(({ id }) => id);
+            const selectedEdgeIds = edges.filter((edge) => edge.selected).map(({ id }) => id);
+           
             // 处理复制、复制和删除操作的键盘快捷键
-            if (e.key === 'c' && e.metaKey) {
+            if (key === 'c' && isPrimaryShortcut) {
               // 复制选中的节点
-              const selectedNodeIds = nodesState[0].filter((n) => n.selected).map(({ id }) => id);
               if (selectedNodeIds.length === 0) {
                 return;
               }
 
               graphActions.copyNodes(selectedNodeIds);
               e.preventDefault();
-            } else if (e.key === 'd' && e.metaKey) {
+            } else if (key === 'd' && isPrimaryShortcut) {
               // 复制选中的节点
               if (!disabled) {
-                const selectedNodeIds = nodes.filter((n) => n.selected).map(({ id }) => id);
                 if (selectedNodeIds.length === 0) {
                   return;
                 }

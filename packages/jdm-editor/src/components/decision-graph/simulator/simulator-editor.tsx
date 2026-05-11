@@ -1,7 +1,7 @@
 import { Editor } from '@monaco-editor/react';
 import { Spin, message, theme } from 'antd';
 import json5 from 'json5';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import '../../../helpers/monaco';
 import { copyToClipboard } from '../../../helpers/utility';
@@ -9,11 +9,17 @@ import { copyToClipboard } from '../../../helpers/utility';
 type SimulatorEditorProps = {
   value?: string;
   onChange?: (value: string | undefined) => void;
+  onBlur?: () => void;
   readOnly?: boolean;
 };
 
-export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChange, readOnly }) => {
+export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChange, onBlur, readOnly }) => {
   const { token } = theme.useToken();
+  const onBlurRef = useRef(onBlur);
+
+  useEffect(() => {
+    onBlurRef.current = onBlur;
+  }, [onBlur]);
 
   return (
     <Editor
@@ -31,6 +37,10 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
         monaco.languages.typescript.javascriptDefaults.setModeConfiguration({
           codeActions: false,
           inlayHints: false,
+        });
+
+        editor.onDidBlurEditorText(() => {
+          onBlurRef.current?.();
         });
 
         editor.addAction({

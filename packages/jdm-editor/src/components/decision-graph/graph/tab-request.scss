@@ -203,6 +203,10 @@
   gap: 12px;
   align-items: start;
   padding: 12px;
+
+  > * {
+    min-width: 0;
+  }
 }
 
 .grl-request-tab__definition-children {
@@ -238,7 +242,7 @@
 }
 
 .grl-request-tab__definition-key {
-  --depth-offset: calc(var(--definition-depth, 0) * 18px);
+  --depth-offset: min(calc(var(--definition-depth, 0) * 12px), 24px);
 }
 
 .grl-request-tab__definition-key__inner {
@@ -250,6 +254,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
+
+  > .ant-input,
+  > .ant-input-affix-wrapper {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .grl-request-tab__definition-key__guide {

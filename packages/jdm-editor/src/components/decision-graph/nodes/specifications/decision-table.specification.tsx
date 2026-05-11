@@ -22,6 +22,47 @@ import type { NodeSpecification } from './specification-types';
 
 type InferredContent = z.infer<typeof decisionTableSchema>['content'];
 
+const widenConstTypeJson = (typeJson: any): any => {
+  if (typeJson === 'Any' || typeJson === 'Null' || typeJson === 'String' || typeJson === 'Number' || typeJson === 'Bool') {
+    return typeJson;
+  }
+
+  if (!typeJson || typeof typeJson !== 'object') {
+    return 'Any';
+  }
+
+  if ('Const' in typeJson) {
+    switch (typeof typeJson.Const) {
+      case 'string':
+        return 'String';
+      case 'number':
+        return 'Number';
+      case 'boolean':
+        return 'Bool';
+      default:
+        return 'Any';
+    }
+  }
+
+  if ('Array' in typeJson) {
+    return { Array: widenConstTypeJson(typeJson.Array) };
+  }
+
+  if ('Object' in typeJson && typeJson.Object && typeof typeJson.Object === 'object') {
+    return {
+      Object: Object.fromEntries(
+        Object.entries(typeJson.Object).map(([key, value]) => [key, widenConstTypeJson(value)]),
+      ),
+    };
+  }
+
+  if ('Enum' in typeJson) {
+    return typeJson;
+  }
+
+  return 'Any';
+};
+
 export type NodeDecisionTableData = Omit<InferredContent, 'inputs' | 'outputs' | 'rules'> &
   Diff & {
     rules: (InferredContent['rules'][0] & Diff)[];
@@ -270,7 +311,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
           const calculatedType = nodeInput.calculateType(rule[output.id]);
           const jsonType = calculatedType.toJson();
           if (jsonType !== 'Any' && jsonType !== 'Null') {
-            determinedType.set(output.field, calculatedType);
+            determinedType.set(output.field, VariableType.fromJson(widenConstTypeJson(jsonType)));
             return;
           }
         }

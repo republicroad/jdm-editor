@@ -5,6 +5,25 @@ const hasOwn = (value: object, key: string) => Object.prototype.hasOwnProperty.c
 const isRecord = (value: unknown): value is Record<string, any> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const invisibleFormatCharacters = /[\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/g;
+
+export const normalizeRequestFieldKey = (key: string) => key.replace(invisibleFormatCharacters, '').trim();
+
+export const normalizeRequestJsonKeys = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(normalizeRequestJsonKeys);
+  }
+
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return Object.entries(value).reduce<Record<string, unknown>>((normalizedValue, [key, item]) => {
+    normalizedValue[normalizeRequestFieldKey(key)] = normalizeRequestJsonKeys(item);
+    return normalizedValue;
+  }, {});
+};
+
 export type RequestJsonSchema = {
   type?: string | string[];
   description?: string;
@@ -50,6 +69,12 @@ export type RequestExampleSource = {
   name: string;
   data: Record<string, unknown>;
   source: 'schema.examples' | 'content.inputs';
+};
+
+export type RequestDefinitionSyncConflict = {
+  path: string;
+  nextType: RequestDefinitionType;
+  value: unknown;
 };
 
 export const formatRequestExampleSourceName = (index: number, dataLabel = 'Data') => `${dataLabel} ${index + 1}`;
@@ -116,6 +141,8 @@ const isDateLikeFormat = (format?: unknown) => {
 };
 
 const defaultRequestDateTimeTimezone = '+08:00';
+const requestDateTimePattern =
+  /^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}:\d{2})(\.\d+)?)?(?:\s*(Z|[+-]\d{2}:?\d{2}))?$/;
 
 const normalizeRequestTimezoneOffset = (timezone?: string) => {
   if (!timezone) {
@@ -147,9 +174,7 @@ export const normalizeRequestDateTimeValue = (value: unknown): unknown => {
     return trimmed;
   }
 
-  const normalizedMatch = trimmed.match(
-    /^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}:\d{2})(\.\d+)?)?(?:\s*(Z|[+-]\d{2}:?\d{2}))?$/,
-  );
+  const normalizedMatch = trimmed.match(requestDateTimePattern);
   if (!normalizedMatch) {
     return trimmed;
   }
@@ -728,6 +753,127 @@ export const normalizeRequestExampleDataByDefinitions = (
   return normalizedData;
 };
 
+const isSkeletonLikeRequestValue = (value: unknown): boolean => {
+  if (value === '' || value === 0 || value === false) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+
+  if (isRecord(value)) {
+    const entries = Object.values(value);
+    return entries.length === 0 || entries.every((entry) => isSkeletonLikeRequestValue(entry));
+  }
+
+  return false;
+};
+
+const isRequestValueCompatibleWithDefinition = (
+  value: unknown,
+  definition: Pick<RequestDefinition, 'type'>,
+): boolean => {
+  switch (definition.type) {
+    case 'number':
+      return typeof value === 'number' && Number.isFinite(value);
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'array':
+      return Array.isArray(value);
+    case 'object':
+      return isRecord(value);
+    case 'datetime':
+      return typeof value === 'string' && requestDateTimePattern.test(value.trim());
+    default:
+      return typeof value === 'string';
+  }
+};
+
+export const prepareRequestExampleDataDefinitionSync = (
+  data: Record<string, unknown>,
+  definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type'>>,
+  options?: {
+    forceResetConflicts?: boolean;
+  },
+): {
+  data: Record<string, unknown>;
+  conflicts: RequestDefinitionSyncConflict[];
+} => {
+  const validDefinitions = definitions.filter((definition) => definition.name.trim() && definition.path.trim());
+
+  if (validDefinitions.length === 0) {
+    return {
+      data: cloneRequestExampleValue(data) as Record<string, unknown>,
+      conflicts: [],
+    };
+  }
+
+  const forceResetConflicts = options?.forceResetConflicts ?? false;
+  const syncedData = buildRequestExampleTemplateFromDefinitions(validDefinitions);
+  const conflicts: RequestDefinitionSyncConflict[] = [];
+
+  validDefinitions
+    .slice()
+    .sort((left, right) => left.path.split('.').length - right.path.split('.').length)
+    .forEach((definition) => {
+      const definitionPath = definition.path.trim();
+      if (!definitionPath) {
+        return;
+      }
+
+      const currentValue = getPathValue(data, definitionPath);
+      if (currentValue === undefined) {
+        return;
+      }
+
+      const isCompatible = isRequestValueCompatibleWithDefinition(currentValue, definition);
+      if (!isCompatible) {
+        if (!isSkeletonLikeRequestValue(currentValue) && !forceResetConflicts) {
+          conflicts.push({
+            path: definitionPath,
+            nextType: definition.type,
+            value: cloneRequestExampleValue(currentValue),
+          });
+          return;
+        }
+
+        return;
+      }
+
+      if (definition.type === 'object') {
+        const hasNestedDefinitions = validDefinitions.some(
+          (item) => item.path !== definitionPath && item.path.startsWith(`${definitionPath}.`),
+        );
+
+        if (!hasNestedDefinitions && isRecord(currentValue)) {
+          setPathValue(syncedData, definitionPath, cloneRequestExampleValue(currentValue));
+        }
+
+        return;
+      }
+
+      if (definition.type === 'datetime') {
+        setPathValue(syncedData, definitionPath, normalizeRequestDateTimeValue(currentValue));
+        return;
+      }
+
+      setPathValue(syncedData, definitionPath, cloneRequestExampleValue(currentValue));
+    });
+
+  return {
+    data: normalizeRequestExampleDataByDefinitions(syncedData, validDefinitions),
+    conflicts,
+  };
+};
+
+export const syncRequestExampleDataToDefinitions = (
+  data: Record<string, unknown>,
+  definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type'>>,
+): Record<string, unknown> => {
+  return prepareRequestExampleDataDefinitionSync(data, definitions, { forceResetConflicts: true }).data;
+};
+
 export const syncRequestExampleDataWithDefinitionChanges = (
   data: Record<string, unknown>,
   previousDefinitions: Array<Pick<RequestDefinition, 'id' | 'path'>>,
@@ -941,11 +1087,15 @@ export const buildRequestSchemaFromDefinitions = (
   const normalizedDefinitions = normalizeRequestDefinitionOrders(definitions);
 
   normalizedDefinitions.forEach((definition) => {
-    if (!definition.name.trim()) {
+    if (!normalizeRequestFieldKey(definition.name)) {
       return;
     }
 
-    const key = definition.path.trim();
+    const key = definition.path
+      .split('.')
+      .map(normalizeRequestFieldKey)
+      .filter(Boolean)
+      .join('.');
     if (!key) {
       return;
     }
