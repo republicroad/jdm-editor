@@ -408,7 +408,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
         const jsonData = JSON.parse(nodeData);
         graphActions.addNodes([nodeSchema.parse({ ...jsonData, position })]);
       } catch (err) {
-        notification.error({ message: 'Failed to create a node' });
+        notification.error({ message: t('createNodeFailed') });
         console.error(err);
       }
 

@@ -1670,6 +1670,66 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     saveFile(getSafeJsonFileName(activeSource.name), new Blob([payload], { type: 'application/json' }));
   };
 
+  const renderTabBarExtraContent = () => {
+    if (activeTab === RequestTabKey.Examples) {
+      return (
+        <Space size='small' style={{ marginRight: 8 }}>
+          <Tooltip title={t('requestUploadJsonTooltip')}>
+            <Button
+              type='text'
+              size='small'
+              disabled={disabled}
+              icon={<CloudUploadOutlined />}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {t('uploadJson')}
+            </Button>
+          </Tooltip>
+          <Tooltip title={t('requestDownloadJsonTooltip')}>
+            <Button
+              type='text'
+              size='small'
+              disabled={!activeSource}
+              icon={<CloudDownloadOutlined />}
+              onClick={handleDownloadJson}
+            >
+              {t('downloadJson')}
+            </Button>
+          </Tooltip>
+        </Space>
+      );
+    }
+
+    if (activeTab === RequestTabKey.Schema) {
+      return (
+        <Space size='small' style={{ marginRight: 8 }}>
+          <Tooltip title={t('requestFormatSchema')} placement='bottomRight'>
+            <Button
+              type='text'
+              size='small'
+              shape='circle'
+              icon={<FormatPainterOutlined />}
+              onClick={() => schemaEditorRef.current?.getAction?.('editor.action.formatDocument')?.run?.()}
+              disabled={disabled}
+            />
+          </Tooltip>
+          <Tooltip title={t('convertToJsonSchema')} placement='bottomRight'>
+            <Button
+              type='text'
+              size='small'
+              shape='circle'
+              icon={<ImportOutlined />}
+              onClick={() => setJsonToJsonSchemaOpen(true)}
+              disabled={disabled}
+            />
+          </Tooltip>
+        </Space>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div
       className='grl-node-content'
@@ -1723,32 +1783,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                     ),
                   },
                 ]}
-                tabBarExtraContent={
-                  <Space size='small' style={{ marginRight: 8 }}>
-                    <Tooltip title={t('requestUploadJsonTooltip')}>
-                      <Button
-                        type='text'
-                        size='small'
-                        disabled={disabled}
-                        icon={<CloudUploadOutlined />}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        {t('uploadJson')}
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title={t('requestDownloadJsonTooltip')}>
-                      <Button
-                        type='text'
-                        size='small'
-                        disabled={!activeSource}
-                        icon={<CloudDownloadOutlined />}
-                        onClick={handleDownloadJson}
-                      >
-                        {t('downloadJson')}
-                      </Button>
-                    </Tooltip>
-                  </Space>
-                }
+                tabBarExtraContent={renderTabBarExtraContent()}
               />
               <input
                 hidden
@@ -1881,30 +1916,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                 <div className='grl-request-tab__body grl-request-tab__body--schema'>
                   <div className='grl-request-tab__surface grl-request-tab__surface--schema'>
                     <div className='grl-request-tab__schema-shell'>
-                      <div className='grl-request-tab__schema-actions'>
-                        <Tooltip title={t('requestFormatSchema')}>
-                          <Button
-                            type='text'
-                            size='small'
-                            shape='circle'
-                            className='grl-request-tab__schema-action'
-                            icon={<FormatPainterOutlined />}
-                            onClick={() => schemaEditorRef.current?.getAction?.('editor.action.formatDocument')?.run?.()}
-                            disabled={disabled}
-                          />
-                        </Tooltip>
-                        <Tooltip title={t('convertToJsonSchema')}>
-                          <Button
-                            type='text'
-                            size='small'
-                            shape='circle'
-                            className='grl-request-tab__schema-action'
-                            icon={<ImportOutlined />}
-                            onClick={() => setJsonToJsonSchemaOpen(true)}
-                            disabled={disabled}
-                          />
-                        </Tooltip>
-                      </div>
                       <div className='grl-request-tab__schema-editor'>
                         <Editor
                           height='100%'

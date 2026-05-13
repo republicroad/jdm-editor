@@ -3,6 +3,7 @@ import { type RefObject, useCallback, useMemo } from 'react';
 import type { Node, ReactFlowInstance, XYPosition } from 'reactflow';
 
 import { copyToClipboard, pasteFromClipboard } from '../../../helpers/utility';
+import { useTranslation } from '../../../locales';
 import { useDecisionGraphActions, useDecisionGraphRaw } from '../context/dg-store.context';
 import { type DecisionEdge, type DecisionNode } from '../dg-types';
 
@@ -20,6 +21,7 @@ export const useGraphClipboard = (
   reactFlow: RefObject<ReactFlowInstance | null>,
   wrapper: RefObject<HTMLDivElement | null>,
 ) => {
+  const { t } = useTranslation();
   const raw = useDecisionGraphRaw();
   const graphActions = useDecisionGraphActions();
 
@@ -59,12 +61,12 @@ export const useGraphClipboard = (
         };
 
         await copyToClipboard(JSON.stringify(clipboardData));
-        message.success('Copied to clipboard!');
+        message.success(t('copiedToClipboard'));
       } catch (e: any) {
         message.error(e.message);
       }
     },
-    [raw],
+    [raw, t],
   );
 
   const pasteNodes = useCallback(async () => {
@@ -146,7 +148,7 @@ export const useGraphClipboard = (
 
       graphActions.addNodes(nodes);
       graphActions.addEdges(edges);
-      message.success('Pasted from clipboard!');
+      message.success(t('pastedFromClipboard'));
 
       if (anchor) {
         try {
@@ -156,9 +158,9 @@ export const useGraphClipboard = (
         }
       }
     } catch {
-      message.error('Failed to paste from clipboard');
+      message.error(t('pasteFromClipboardFailed'));
     }
-  }, [reactFlow, wrapper]);
+  }, [graphActions, reactFlow, t, wrapper]);
 
   return useMemo(
     () => ({

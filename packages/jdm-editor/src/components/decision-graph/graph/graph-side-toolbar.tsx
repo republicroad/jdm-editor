@@ -246,10 +246,10 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
 
         setExcelGraphData(excelData);
 
-        message.success('Excel file has been uploaded successfully!');
+        message.success(t('excelUploadSuccess'));
       };
     } catch {
-      message.error('Failed to upload Excel!');
+      message.error(t('excelUploadFailedGeneric'));
     }
   };
 

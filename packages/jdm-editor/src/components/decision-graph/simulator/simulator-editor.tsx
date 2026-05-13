@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from 'react';
 
 import '../../../helpers/monaco';
 import { copyToClipboard } from '../../../helpers/utility';
+import { useTranslation } from '../../../locales';
 
 type SimulatorEditorProps = {
   value?: string;
@@ -14,6 +15,7 @@ type SimulatorEditorProps = {
 };
 
 export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChange, onBlur, readOnly }) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
   const onBlurRef = useRef(onBlur);
 
@@ -45,30 +47,30 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
 
         editor.addAction({
           id: 'copy-json',
-          label: 'Copy JSON',
+          label: t('copyJson'),
           contextMenuGroupId: 'utils',
           run: async (editor) => {
             try {
               await copyToClipboard(JSON.stringify(json5.parse(editor.getValue())));
-              message.success('Copied to clipboard!');
+              message.success(t('copiedToClipboard'));
             } catch {
-              message.error('Failed to copy to clipboard.');
+              message.error(t('copyFailed'));
             }
           },
         });
 
         editor.addAction({
           id: 'format',
-          label: 'Format',
+          label: t('format'),
           contextMenuGroupId: 'utils',
           precondition: '!editorReadonly',
           run: (editor) => {
             try {
               const formatted = JSON.stringify(json5.parse(editor.getValue()), null, 2);
               editor.setValue(formatted);
-              message.success('Formatted successfully!');
+              message.success(t('formatSuccess'));
             } catch (error) {
-            message.error('Failed to format. Invalid JSON format.');
+            message.error(t('formatFailed'));
             }
             
           },
