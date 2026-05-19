@@ -29,11 +29,12 @@ import {
   buildRequestSchemaFromDefinitions,
   getRequestDefinitions,
   getRequestExampleSources,
+  getRequestSchemaSourceValue,
   normalizeRequestFieldKey,
   normalizeRequestExampleDataByDefinitions,
   parseRequestSchemaValue,
   resolveRequestSchemaValue,
-  syncRequestExampleDataWithDefinitionChanges,
+  setRequestSchemaValue,
   stringifyRequestSchemaValue,
   type RequestDefinition,
   type RequestDefinitionType,
@@ -481,8 +482,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const [collapsedExamplePaths, setCollapsedExamplePaths] = useState<Record<string, true>>({});
   const [exampleDraftsBySourceId, setExampleDraftsBySourceId] = useState<Record<string, ExampleItemDraft[]>>({});
 
-  const { disabled, content, nodeName, panels, activePanel, activeGraphTabId, simulatorExampleBinding, simulatorRequest } = useDecisionGraphState(
-    ({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding, simulatorRequest }) => ({
+  const { disabled, content, nodeName, panels, activePanel, activeGraphTabId, simulatorExampleBinding } = useDecisionGraphState(
+    ({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding }) => ({
       disabled,
       content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
       nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
@@ -490,18 +491,18 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       activePanel,
       activeGraphTabId: activeTab,
       simulatorExampleBinding,
-      simulatorRequest,
     }),
   );
 
-  const sourceSchemaObject = useMemo(() => parseRequestSchemaValue(content?.schema), [content?.schema]);
+  const sourceSchemaValue = useMemo(() => getRequestSchemaSourceValue(content), [content?.schema, content?.schemaUI, content?.inputs]);
+  const sourceSchemaObject = useMemo(() => parseRequestSchemaValue(sourceSchemaValue), [sourceSchemaValue]);
   const schemaObject = useMemo(
     () => resolveRequestSchemaValue(content, { includeExamples: true }),
-    [content?.schema, content?.inputs],
+    [content?.schema, content?.schemaUI, content?.inputs],
   );
   const schemaText = useMemo(() => stringifyRequestSchemaValue(schemaObject), [schemaObject]);
-  const persistedSchemaText = useMemo(() => stringifyRequestSchemaValue(content?.schema) || schemaText, [content?.schema, schemaText]);
-  const persistedDefinitions = useMemo(() => getRequestDefinitions(content), [content?.schema, content?.inputs]);
+  const persistedSchemaText = useMemo(() => stringifyRequestSchemaValue(sourceSchemaValue) || schemaText, [sourceSchemaValue, schemaText]);
+  const persistedDefinitions = useMemo(() => getRequestDefinitions(content), [content?.schema, content?.schemaUI, content?.inputs]);
   const exampleSources = useMemo(
     () => getRequestExampleSources(content, { dataLabel: t('requestDataLabel') }),
     [content, t],
@@ -518,7 +519,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     [persistedDefinitions],
   );
   const pendingDefinitionSyncSignatureRef = useRef<string | null>(null);
-  const contentSchemaRef = useRef(content?.schema);
+  const contentSchemaRef = useRef(sourceSchemaValue);
   const previousNodeIdRef = useRef(id);
   const pendingSchemaCommitRef = useRef<string | null>(null);
   const hasRestoredActiveSourceFromBindingRef = useRef(false);
@@ -542,8 +543,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   }, [persistedSchemaText]);
 
   useEffect(() => {
-    contentSchemaRef.current = content?.schema;
-  }, [content?.schema]);
+    contentSchemaRef.current = sourceSchemaValue;
+  }, [sourceSchemaValue]);
 
   useEffect(() => {
     if (previousNodeIdRef.current === id) {
@@ -770,9 +771,10 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const updateNodeSchema = (nextSchema: string) => {
     graphActions.updateNode(id, (draft) => {
       draft.content ??= {};
-      draft.content.schema = nextSchema;
       if (type === 'input') {
-        delete (draft.content as { inputs?: unknown }).inputs;
+        setRequestSchemaValue(draft.content as Record<string, any>, nextSchema);
+      } else {
+        draft.content.schema = nextSchema;
       }
       return draft;
     });
@@ -866,7 +868,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const handleConvertToJsonSchemaSuccess = ({ schema, model }: { schema: string; model: string }) => {
     localStorage.setItem(`${id}-request-model`, model);
 
-    const currentSchema = parseRequestSchemaValue(content?.schema);
+    const currentSchema = parseRequestSchemaValue(sourceSchemaValue);
     const convertedSchema = parseRequestSchemaValue(schema);
     const nextSchemaObject =
       convertedSchema && currentSchema?.examples
@@ -902,46 +904,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     openSimulatorPanel();
   };
 
-  const getExampleSourcesWithActiveSimulatorDraft = (): RequestExampleSource[] | null => {
-    if (
-      !activeSource ||
-      simulatorExampleBinding?.nodeId !== id ||
-      simulatorExampleBinding.sourceIndex !== activeSourceIndex ||
-      typeof simulatorRequest !== 'string'
-    ) {
-      return null;
-    }
-
-    try {
-      const parsed = simulatorRequest.trim().length === 0 ? {} : json5.parse(simulatorRequest);
-      if (!isRecord(parsed)) {
-        return null;
-      }
-
-      const preparedDraftData = normalizeRequestExampleDataByDefinitions(
-        parsed as Record<string, unknown>,
-        definitionDrafts,
-      );
-      const preparedSourceData = getPreparedExampleData(activeSource.data);
-
-      if (JSON.stringify(preparedDraftData) === JSON.stringify(preparedSourceData)) {
-        return null;
-      }
-
-      return exampleSources.map((source, index) =>
-        index === activeSourceIndex
-          ? {
-              ...source,
-              data: preparedDraftData,
-              source: 'schema.examples',
-            }
-          : source,
-      );
-    } catch {
-      return null;
-    }
-  };
-
   const persistDefinitions = (nextDefinitions: RequestDefinition[]) => {
     const normalizedDefinitions = normalizeRequestDefinitionOrders(nextDefinitions);
     const hasValidDefinitions = normalizedDefinitions.some(
@@ -951,7 +913,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     setDefinitionDrafts(normalizedDefinitions);
 
     if (!hasValidDefinitions) {
-      const currentSchema = parseRequestSchemaValue(content?.schema);
+      const currentSchema = parseRequestSchemaValue(sourceSchemaValue);
       const nextSchemaObject =
         currentSchema && Array.isArray(currentSchema.examples)
           ? {
@@ -961,40 +923,11 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
             }
           : null;
 
-      setActiveSourceIndex(0);
       updateNodeSchema(nextSchemaObject ? stringifyRequestSchemaValue(nextSchemaObject) : '');
       return;
     }
 
-    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
-    const nextExampleSources = baseExampleSources.map((source) => ({
-      ...source,
-      data: normalizeRequestExampleDataByDefinitions(
-        syncRequestExampleDataWithDefinitionChanges(source.data, definitionDrafts, normalizedDefinitions),
-        normalizedDefinitions,
-      ),
-    }));
-
-    setExampleDraftsBySourceId((previousDraftsBySourceId) => ({
-      ...previousDraftsBySourceId,
-      ...Object.fromEntries(
-        nextExampleSources.map((source) => [
-          source.id,
-          flattenExampleData(normalizeExampleData(source.data, normalizedDefinitions)),
-        ]),
-      ),
-    }));
-
-    const nextSchemaWithDefinitions = buildRequestSchemaFromDefinitions(content?.schema, normalizedDefinitions);
-    const nextSchema =
-      nextExampleSources.length > 0
-        ? updateRequestSchemaExamples(
-            nextSchemaWithDefinitions,
-            nextExampleSources.map((source) => source.data),
-          )
-        : nextSchemaWithDefinitions;
-
-    updateNodeSchema(nextSchema);
+    updateNodeSchema(buildRequestSchemaFromDefinitions(sourceSchemaValue, normalizedDefinitions));
   };
 
   const persistExamples = (
@@ -1009,7 +942,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       data: normalizeExampleData(source.data),
     }));
     const nextSchema = updateRequestSchemaExamples(
-      content?.schema,
+      sourceSchemaValue,
       normalizedNextSources.map((source) => source.data),
     );
     updateNodeSchema(nextSchema);
@@ -1570,7 +1503,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   };
 
   const addExampleSource = () => {
-    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
+    const baseExampleSources = exampleSources;
     const nextSources = [
       ...baseExampleSources,
       {
@@ -1588,7 +1521,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   };
 
   const removeExampleSource = (index: number) => {
-    const baseExampleSources = getExampleSourcesWithActiveSimulatorDraft() ?? exampleSources;
+    const baseExampleSources = exampleSources;
     const nextSources = baseExampleSources.filter((_, currentIndex) => currentIndex !== index);
     persistExamples(nextSources, Math.max(index - 1, 0));
   };
@@ -1865,12 +1798,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                               index === activeSourceIndex ? 'grl-request-tab__source-card--active' : ''
                             }`}
                             onClick={() => {
-                              const nextSources = getExampleSourcesWithActiveSimulatorDraft();
-                              if (nextSources) {
-                                persistExamples(nextSources, index);
-                                return;
-                              }
-
                               setActiveSourceIndex(index);
                               syncExampleToSimulator(source, index);
                             }}

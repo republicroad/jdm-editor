@@ -75,6 +75,10 @@ export const inputNodeSchema = z
           .union([z.string(), z.record(z.string(), z.any())])
           .nullish()
           .transform((val) => stringifyRequestSchemaValue(val)),
+        schemaUI: z
+          .union([z.string(), z.record(z.string(), z.any())])
+          .nullish()
+          .transform((val) => (val == null ? undefined : stringifyRequestSchemaValue(val))),
         expressions: z.array(
           z.object({
             id,

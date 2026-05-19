@@ -8,6 +8,7 @@ export { codemirror } from './helpers/codemirror';
 export { useNodeType } from './helpers/node-type';
 export { usePersistentState } from './helpers/use-persistent-state';
 export { ensureWasmLoaded, useWasmReady } from './helpers/wasm';
+export * from './helpers/request-schema';
 export * from './helpers/schema';
 
 // for web browser https protocol, crypto is work.
@@ -27,4 +28,3 @@ if (typeof crypto.randomUUID !== 'function') {
         return s as `${string}-${string}-${string}-${string}-${string}`;
     };
 }
-

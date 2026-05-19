@@ -7,13 +7,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   formatRequestExampleSourceName,
   getRequestDefinitions,
+  getRequestExampleDataDefinitionConflicts,
   getRequestExampleSources,
   normalizeRequestJsonKeys,
   normalizeRequestExampleDataByDefinitions,
-  parseRequestSchemaValue,
   prepareRequestExampleDataDefinitionSync,
+  resolveRequestSchemaValue,
+  setRequestSchemaValue,
   updateRequestSchemaExamples,
-  type RequestDefinitionSyncConflict,
 } from '../../../helpers/request-schema';
 import { useTranslation } from '../../../locales';
 import { isWasmAvailable } from '../../../helpers/wasm';
@@ -62,7 +63,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     () => getRequestExampleSources(inputNodeContent, { dataLabel: t('requestDataLabel') }),
     [inputNodeContent, t],
   );
-  const requestDefinitions = useMemo(() => getRequestDefinitions(inputNodeContent), [inputNodeContent]);
   const boundRequestSourceIndex = useMemo(() => {
     if (!simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
       return -1;
@@ -92,23 +92,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         : null,
     [simulatorExampleBinding],
   );
-  const getDefinitionTypeLabel = (type: RequestDefinitionSyncConflict['nextType']) => {
-    switch (type) {
-      case 'number':
-        return t('requestTypeNumber');
-      case 'boolean':
-        return t('requestTypeBoolean');
-      case 'array':
-        return t('requestTypeArray');
-      case 'object':
-        return t('requestTypeObject');
-      case 'datetime':
-        return t('requestTypeDatetime');
-      default:
-        return t('requestTypeString');
-    }
-  };
-
   useEffect(
     () => () => {
       if (switchAnimationTimerRef.current !== null) {
@@ -228,25 +211,130 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     }
   }, [requestValue]);
 
+  const savePreparedRequestToExampleSource = ({
+    activeExampleBinding,
+    preparedParsed,
+    triggeredBy,
+    showSuccessMessage = true,
+  }: {
+    activeExampleBinding: NonNullable<typeof resolvedSimulatorExampleBinding>;
+    preparedParsed: Record<string, unknown>;
+    triggeredBy: 'manual-save';
+    showSuccessMessage?: boolean;
+  }) => {
+    const { decisionGraph } = stateStore.getState();
+    const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
+
+    if (!targetNode) {
+      message.error(t('simulatorBoundRequestNodeNotFound'));
+      return null;
+    }
+
+    const currentSources = getRequestExampleSources(targetNode.content, { dataLabel: t('requestDataLabel') });
+    const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
+    const formatted = JSON.stringify(preparedParsed, null, 2);
+
+    if (currentBoundSource && JSON.stringify(currentBoundSource.data) === JSON.stringify(preparedParsed)) {
+      if (import.meta.env.DEV) {
+        console.log('[simulator-request] skipped saving unchanged example source', {
+          binding: activeExampleBinding,
+          triggeredBy,
+        });
+      }
+
+      if (showSuccessMessage) {
+        message.success(t('requestDataSourceSaved'));
+      }
+
+      return {
+        context: preparedParsed,
+        formatted,
+      };
+    }
+
+    const nextSources = [...currentSources];
+
+    while (nextSources.length <= activeExampleBinding.sourceIndex) {
+      nextSources.push({
+        id: crypto.randomUUID(),
+        name: formatRequestExampleSourceName(nextSources.length, t('requestDataLabel')),
+        data: {},
+        source: 'schema.examples',
+      });
+    }
+
+    nextSources[activeExampleBinding.sourceIndex] = {
+      ...nextSources[activeExampleBinding.sourceIndex],
+      id: nextSources[activeExampleBinding.sourceIndex]?.id ?? crypto.randomUUID(),
+      name:
+        activeExampleBinding.sourceName ??
+        nextSources[activeExampleBinding.sourceIndex]?.name ??
+        formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('requestDataLabel')),
+      data: preparedParsed,
+      source: 'schema.examples',
+    };
+
+    actions.updateNode(activeExampleBinding.nodeId, (draft) => {
+      draft.content ??= {};
+      if (draft.type === 'inputNode') {
+        const currentSchema = resolveRequestSchemaValue(draft.content, { includeExamples: true });
+        setRequestSchemaValue(
+          draft.content as Record<string, any>,
+          updateRequestSchemaExamples(currentSchema, nextSources.map((source) => source.data)),
+        );
+      } else {
+        draft.content.schema = updateRequestSchemaExamples(
+          draft.content?.schema,
+          nextSources.map((source) => source.data),
+        );
+      }
+      return draft;
+    });
+
+    setRequestValue(formatted);
+    setUserHasEdited(true);
+    onChange?.(formatted);
+    actions.setSimulatorRequest(formatted);
+    actions.setSimulatorExampleBinding({
+      ...activeExampleBinding,
+      sourceName: nextSources[activeExampleBinding.sourceIndex]?.name,
+    });
+
+    if (import.meta.env.DEV) {
+      console.log('[simulator-request] saved simulator request to bound example source', {
+        binding: activeExampleBinding,
+        preparedParsed,
+        currentBoundSource,
+        nextSources,
+        triggeredBy,
+      });
+    }
+
+    if (showSuccessMessage) {
+      message.success(t('requestDataSourceSaved'));
+    }
+
+    return {
+      context: preparedParsed,
+      formatted,
+    };
+  };
+
   const persistRequestToExampleSource = (options?: {
     silentWhenUnbound?: boolean;
     showSuccessMessage?: boolean;
-    syncDefinitions?: 'always' | 'if-empty' | 'never';
-    forceResetTypeConflicts?: boolean;
-    allowTypeConflictConfirm?: boolean;
     requestValueOverride?: string;
     silentOnError?: boolean;
-    triggeredBy?: 'manual-save' | 'run' | 'format' | 'blur';
+    validateDefinitionTypes?: boolean;
+    triggeredBy?: 'manual-save';
   }) => {
     const {
       silentWhenUnbound = false,
       showSuccessMessage = true,
-      syncDefinitions = 'always',
-      forceResetTypeConflicts = false,
-      allowTypeConflictConfirm = true,
       requestValueOverride,
       silentOnError = false,
-      triggeredBy = showSuccessMessage ? 'manual-save' : 'run',
+      validateDefinitionTypes = false,
+      triggeredBy = 'manual-save',
     } = options ?? {};
 
     const activeExampleBinding = resolvedSimulatorExampleBinding;
@@ -277,141 +365,30 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         if (!silentOnError) {
           message.error(t('simulatorBoundRequestNodeNotFound'));
         }
-        return;
-      }
-
-      const requestDefinitions = getRequestDefinitions(targetNode.content);
-      const currentSources = getRequestExampleSources(targetNode.content, { dataLabel: t('requestDataLabel') });
-      const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
-      const parsedRecord = parsed as Record<string, unknown>;
-      const shouldSyncDefinitions =
-        syncDefinitions === 'always' ||
-        (syncDefinitions === 'if-empty' && Object.keys(parsedRecord).length === 0);
-      const syncResult = shouldSyncDefinitions
-        ? prepareRequestExampleDataDefinitionSync(parsedRecord, requestDefinitions, {
-            forceResetConflicts: forceResetTypeConflicts,
-          })
-        : null;
-
-      if (syncResult && syncResult.conflicts.length > 0) {
-        if (allowTypeConflictConfirm) {
-          Modal.confirm({
-            title: t('requestDefinitionSyncTypeChangeConfirmTitle'),
-            content: (
-              <div>
-                <Typography.Paragraph style={{ marginBottom: 8 }}>
-                  {t('requestDefinitionSyncTypeChangeConfirmDescription')}
-                </Typography.Paragraph>
-                <div>
-                  {syncResult.conflicts.map((conflict) => (
-                    <Typography.Text key={`${conflict.path}-${conflict.nextType}`} style={{ display: 'block' }}>
-                      {`${conflict.path} -> ${getDefinitionTypeLabel(conflict.nextType)}`}
-                    </Typography.Text>
-                  ))}
-                </div>
-              </div>
-            ),
-            okText: t('confirm'),
-            cancelText: t('cancel'),
-            onOk: () => {
-              persistRequestToExampleSource({
-                ...options,
-                forceResetTypeConflicts: true,
-                allowTypeConflictConfirm: false,
-              });
-            },
-          });
-        }
-
         return null;
       }
 
-      const preparedParsed = syncResult
-        ? syncResult.data
-        : normalizeRequestExampleDataByDefinitions(parsedRecord, requestDefinitions);
-      const preparedBoundSourceData = currentBoundSource
-        ? normalizeRequestExampleDataByDefinitions(currentBoundSource.data, requestDefinitions)
-        : null;
-      const formatted = JSON.stringify(preparedParsed, null, 2);
+      const requestDefinitions = getRequestDefinitions(targetNode.content);
+      const parsedRecord = parsed as Record<string, unknown>;
+      const definitionTypeConflicts = validateDefinitionTypes
+        ? getRequestExampleDataDefinitionConflicts(parsedRecord, requestDefinitions)
+        : [];
 
-      if (preparedBoundSourceData && JSON.stringify(preparedBoundSourceData) === JSON.stringify(preparedParsed)) {
-        if (import.meta.env.DEV) {
-          console.log('[simulator-request] skipped saving unchanged example source', {
-            binding: activeExampleBinding,
-            triggeredBy,
-          });
+      if (definitionTypeConflicts.length > 0) {
+        if (!silentOnError) {
+          message.warning(t('requestDataTypeMismatchWarning'));
         }
-
-        return {
-          context: preparedParsed,
-          formatted,
-        };
+        return null;
       }
 
-      const nextSources = [...currentSources];
+      const preparedParsed = normalizeRequestExampleDataByDefinitions(parsedRecord, requestDefinitions);
 
-      while (nextSources.length <= activeExampleBinding.sourceIndex) {
-        nextSources.push({
-          id: crypto.randomUUID(),
-          name: formatRequestExampleSourceName(nextSources.length, t('requestDataLabel')),
-          data: {},
-          source: 'schema.examples',
-        });
-      }
-
-      nextSources[activeExampleBinding.sourceIndex] = {
-        ...nextSources[activeExampleBinding.sourceIndex],
-        id: nextSources[activeExampleBinding.sourceIndex]?.id ?? crypto.randomUUID(),
-        name:
-          activeExampleBinding.sourceName ??
-          nextSources[activeExampleBinding.sourceIndex]?.name ??
-          formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('requestDataLabel')),
-        data: preparedParsed,
-        source: 'schema.examples',
-      };
-
-      actions.updateNode(activeExampleBinding.nodeId, (draft) => {
-        draft.content ??= {};
-        draft.content.schema = updateRequestSchemaExamples(
-          draft.content?.schema,
-          nextSources.map((source) => source.data),
-        );
-        if (draft.type === 'inputNode') {
-          delete (draft.content as { inputs?: unknown }).inputs;
-        }
-        return draft;
+      return savePreparedRequestToExampleSource({
+        activeExampleBinding,
+        preparedParsed,
+        triggeredBy,
+        showSuccessMessage,
       });
-
-      setRequestValue(formatted);
-      setUserHasEdited(true);
-      onChange?.(formatted);
-      actions.setSimulatorRequest(formatted);
-      actions.setSimulatorExampleBinding({
-        ...activeExampleBinding,
-        sourceName: nextSources[activeExampleBinding.sourceIndex]?.name,
-      });
-
-      if (import.meta.env.DEV) {
-        console.log('[simulator-request] saved simulator request to bound example source', {
-          binding: activeExampleBinding,
-          parsed,
-          preparedParsed,
-          shouldSyncDefinitions,
-          forceResetTypeConflicts,
-          currentBoundSource,
-          nextSources,
-          triggeredBy,
-        });
-      }
-
-      if (showSuccessMessage) {
-        message.success(t('requestDataSourceSaved'));
-      }
-
-      return {
-        context: preparedParsed,
-        formatted,
-      };
     } catch (error) {
       if (import.meta.env.DEV) {
         console.warn('[simulator-request] failed to save simulator request to example source', {
@@ -425,6 +402,140 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       if (!silentOnError) {
         message.error(t('requestSaveDataSourceFailed'));
       }
+      return null;
+    }
+  };
+
+  const getRequestValueTypeLabel = (value: unknown) => {
+    if (Array.isArray(value)) {
+      return t('requestTypeArray');
+    }
+
+    if (value === null) {
+      return 'null';
+    }
+
+    switch (typeof value) {
+      case 'number':
+        return t('requestTypeNumber');
+      case 'boolean':
+        return t('requestTypeBoolean');
+      case 'object':
+        return t('requestTypeObject');
+      default:
+        return t('requestTypeString');
+    }
+  };
+
+  const getDefinitionTypeLabel = (type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'datetime') => {
+    switch (type) {
+      case 'number':
+        return t('requestTypeNumber');
+      case 'boolean':
+        return t('requestTypeBoolean');
+      case 'array':
+        return t('requestTypeArray');
+      case 'object':
+        return t('requestTypeObject');
+      case 'datetime':
+        return t('requestTypeDatetime');
+      default:
+        return t('requestTypeString');
+    }
+  };
+
+  const syncDefinitionsToExampleSource = (options?: { forceResetConflicts?: boolean }) => {
+    const activeExampleBinding = resolvedSimulatorExampleBinding;
+    const forceResetConflicts = options?.forceResetConflicts ?? false;
+
+    if (!activeExampleBinding) {
+      message.warning(t('requestSelectDataSourceFirst'));
+      return null;
+    }
+
+    try {
+      const parsed = (requestValue || '').trim().length === 0 ? {} : json5.parse(requestValue || '{}');
+
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        message.error(t('simulatorRequestMustBeObjectToSave'));
+        return null;
+      }
+
+      const { decisionGraph } = stateStore.getState();
+      const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
+
+      if (!targetNode) {
+        message.error(t('simulatorBoundRequestNodeNotFound'));
+        return null;
+      }
+
+      const requestDefinitions = getRequestDefinitions(targetNode.content);
+      const validDefinitions = requestDefinitions.filter(
+        (definition) => definition.name.trim() && definition.path.trim(),
+      );
+      const parsedRecord = parsed as Record<string, unknown>;
+      const syncResult =
+        validDefinitions.length > 0
+          ? prepareRequestExampleDataDefinitionSync(parsedRecord, validDefinitions, {
+              forceResetConflicts,
+            })
+          : {
+              data: {},
+              conflicts: [],
+            };
+
+      if (!forceResetConflicts && syncResult.conflicts.length > 0) {
+        Modal.confirm({
+          title: t('requestDefinitionSyncTypeChangeConfirmTitle'),
+          content: (
+            <div>
+              <Typography.Paragraph style={{ marginBottom: 8 }}>
+                {t('requestDefinitionSyncTypeChangeConfirmDescription')}
+              </Typography.Paragraph>
+              {syncResult.conflicts.map((conflict) => (
+                <Typography.Text key={`${conflict.path}-${conflict.nextType}`} style={{ display: 'block' }}>
+                  {`${conflict.path}: ${getRequestValueTypeLabel(conflict.value)} -> ${getDefinitionTypeLabel(conflict.nextType)}`}
+                </Typography.Text>
+              ))}
+            </div>
+          ),
+          okText: t('confirm'),
+          cancelText: t('cancel'),
+          onOk: () => {
+            syncDefinitionsToExampleSource({ forceResetConflicts: true });
+          },
+        });
+        return null;
+      }
+
+      const formatted = JSON.stringify(syncResult.data, null, 2);
+      setRequestValue(formatted);
+      setUserHasEdited(true);
+      onChange?.(formatted);
+      actions.setSimulatorRequest(formatted);
+      message.success(t('requestSyncDefinitionsSuccess'));
+
+      if (import.meta.env.DEV) {
+        console.log('[simulator-request] synced definitions to simulator draft', {
+          binding: activeExampleBinding,
+          syncedData: syncResult.data,
+        });
+      }
+
+      return {
+        context: syncResult.data,
+        formatted,
+      };
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[simulator-request] failed to sync definitions to example source', {
+          binding: activeExampleBinding,
+          requestValue,
+          error,
+        });
+      }
+
+      message.error(t('requestSyncDefinitionsFailed'));
       return null;
     }
   };
@@ -471,7 +582,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
               <Button
                 size={'small'}
                 type={'default'}
-                style={{"marginRight":"8px"}}
+                style={{ marginRight: 8 }}
                 onClick={() => {
                   try {
                     const parsed = json5.parse(requestValue || '');
@@ -481,20 +592,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                     setUserHasEdited(true);
                     actions.setSimulatorRequest(formatted);
                     onChange?.(formatted);
-                    if (
-                      resolvedSimulatorExampleBinding &&
-                      normalizedParsed &&
-                      typeof normalizedParsed === 'object' &&
-                      !Array.isArray(normalizedParsed)
-                    ) {
-                      persistRequestToExampleSource({
-                        silentWhenUnbound: true,
-                        showSuccessMessage: false,
-                        syncDefinitions: 'never',
-                        requestValueOverride: formatted,
-                        triggeredBy: 'format',
-                      });
-                    }
                     message.success(t('formatSuccess'));
                   } catch {
                     message.error(t('formatFailed'));
@@ -506,11 +603,20 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
               <Button
                 size={'small'}
                 type={'default'}
-                style={{"marginRight":"8px"}}
-                disabled={!resolvedSimulatorExampleBinding || requestDefinitions.length === 0}
+                style={{ marginRight: 8 }}
+                disabled={!hasInputNode || !resolvedSimulatorExampleBinding}
+                onClick={() => syncDefinitionsToExampleSource()}
+              >
+                {t('requestSyncDefinitions')}
+              </Button>
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{ marginRight: 8 }}
+                disabled={!hasInputNode}
                 onClick={() => {
                   persistRequestToExampleSource({
-                    syncDefinitions: 'always',
+                    validateDefinitionTypes: true,
                   });
                 }}
               >
@@ -519,7 +625,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
               <Button
                 size={'small'}
                 type={'default'}
-                style={{"marginRight":"8px"}}
+                style={{ marginRight: 8 }}
                 onClick={async () => {
                   try {
                     if (!requestValue || requestValue.trim().length === 0) {
@@ -551,31 +657,16 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                   try {
                     const parsed = (requestValue || '').trim().length === 0 ? null : json5.parse(requestValue || '');
                     const hasRequestDefinitions = getRequestDefinitions(inputNodeContent).length > 0;
-                    const hasRequestSchema = Boolean(parseRequestSchemaValue(inputNodeContent?.schema));
+                    const hasRequestSchema = Boolean(resolveRequestSchemaValue(inputNodeContent));
 
                     if ((hasRequestDefinitions || hasRequestSchema) && parsed === null) {
                       message.warning(t('requestDataRequiredBeforeRun'));
                       return;
                     }
 
-                    const persistedResult = persistRequestToExampleSource({
-                      silentWhenUnbound: true,
-                      showSuccessMessage: false,
-                      syncDefinitions: 'if-empty',
-                      triggeredBy: 'run',
-                    });
-
-                    if (import.meta.env.DEV) {
-                      console.log('[simulator-request] run triggered with datasource sync', {
-                        hasBinding: Boolean(resolvedSimulatorExampleBinding),
-                        persisted: Boolean(persistedResult),
-                        context: persistedResult?.context ?? parsed,
-                      });
-                    }
-
                     onRun?.({
                       graph: stateStore.getState().decisionGraph,
-                      context: persistedResult?.context ?? parsed,
+                      context: parsed,
                     });
                   } catch {
                     notification.error({
@@ -600,15 +691,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         >
           <SimulatorEditor
             value={requestValue}
-            onBlur={() => {
-              persistRequestToExampleSource({
-                silentWhenUnbound: true,
-                showSuccessMessage: false,
-                syncDefinitions: 'never',
-                silentOnError: true,
-                triggeredBy: 'blur',
-              });
-            }}
             onChange={(text) => {
               setRequestValue(text);
               setUserHasEdited(true);
