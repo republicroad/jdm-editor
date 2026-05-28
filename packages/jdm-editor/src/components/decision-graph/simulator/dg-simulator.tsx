@@ -80,7 +80,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
 
   return (
     <PanelGroup className='grl-dg__simulator' direction='horizontal' autoSaveId='jdm-editor:simulator:layout'>
-      <Panel minSize={20} defaultSize={30} className='grl-dg__simulator__section grl-dg__simulator__request'>
+      <Panel minSize={20} defaultSize={38} className='grl-dg__simulator__section grl-dg__simulator__request'>
         <LeftPanel
           defaultRequest={defaultRequest}
           loading={loading}
@@ -176,7 +176,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
         </div>
       </Panel>
       <PanelResizeHandle />
-      <Panel minSize={30} defaultSize={50} className={'grl-dg__simulator__section grl-dg__simulator__response'}>
+      <Panel minSize={30} defaultSize={42} className={'grl-dg__simulator__section grl-dg__simulator__response'}>
         <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--response'}>
           <Tabs
             rootClassName='grl-inline-tabs'
