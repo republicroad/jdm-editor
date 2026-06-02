@@ -1,9 +1,9 @@
 import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Modal, Typography, message, notification } from 'antd';
+import { App, Button, Typography, message, notification } from 'antd';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { Connection, Node, ProOptions, ReactFlowInstance, XYPosition } from 'reactflow';
+import type { Connection, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from 'reactflow';
 import ReactFlow, {
   Background,
   ControlButton,
@@ -26,6 +26,7 @@ import {
   useDecisionGraphReferences,
   useDecisionGraphState,
 } from '../context/dg-store.context';
+import { type DecisionGraphSnapshot, useGraphSerializer, useSerializerRegistry } from '../context/serializer.context';
 import { edgeFunction } from '../custom-edge';
 import { type DecisionNode } from '../dg-types';
 import { mapToDecisionEdge } from '../dg-util';
@@ -38,6 +39,8 @@ import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
 
+type TabsSlice = { openTabs: string[]; activeTab: string };
+
 export type GraphProps = {
   className?: string;
   onDisableTabs?: (val: boolean) => void;
@@ -46,6 +49,8 @@ export type GraphProps = {
 
 export type GraphRef = DecisionGraphStoreType['actions'] & {
   stateStore: ExposedStore<DecisionGraphStoreType['state']>;
+  serialize: () => DecisionGraphSnapshot;
+  restore: (snapshot: DecisionGraphSnapshot) => void;
 };
 
 const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
@@ -87,10 +92,14 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     return localStorage.getItem(componentsOpenedKey) === 'true';
   });
 
+  const initialViewport = useRef<Viewport | undefined>(undefined);
+
   const raw = useDecisionGraphRaw();
+  const registry = useSerializerRegistry();
   const graphActions = useDecisionGraphActions();
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
+  const { modal } = App.useApp();
   const { disabled, hasInputNode, components, customNodes, id } = useDecisionGraphState(
     ({ id, disabled, components, customNodes, decisionGraph }) => ({
       id,
@@ -347,9 +356,39 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     graphActions.addEdges([mapToDecisionEdge(edge)]);
   };
 
+  useGraphSerializer<Viewport>('viewport', {
+    serialize: () => reactFlowInstance.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
+    restore: (viewport) => {
+      if (!viewport) return;
+      initialViewport.current = viewport;
+      reactFlowInstance.current?.setViewport(viewport);
+    },
+  });
+
+  useGraphSerializer<TabsSlice>('tabs', {
+    serialize: () => {
+      const { openTabs, activeTab } = raw.stateStore.getState();
+      return { openTabs, activeTab };
+    },
+    restore: ({ openTabs, activeTab } = { openTabs: [], activeTab: 'graph' }) => {
+      raw.stateStore.setState({ openTabs: openTabs ?? [], activeTab: activeTab ?? 'graph' });
+    },
+  });
+
+  useGraphSerializer<boolean>('componentsOpened', {
+    serialize: () => componentsOpened,
+    restore: (value) => {
+      if (typeof value !== 'boolean') return;
+      setComponentsOpened(value);
+      localStorage.setItem(componentsOpenedKey, `${value}`);
+    },
+  });
+
   useImperativeHandle(ref, () => ({
     ...graphActions,
     stateStore: raw.stateStore,
+    serialize: () => registry?.serialize() ?? {},
+    restore: (snapshot) => registry?.restore(snapshot ?? {}),
   }));
 
   return (
@@ -403,7 +442,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                 if (selectedNodes.length > 0) {
                   const length = selectedNodes.length;
                   const text = length > 1 ? 'nodes' : 'node';
-                  Modal.confirm({
+                  modal.confirm({
                     icon: null,
                     title: `Delete ${text}`,
                     content: (
@@ -437,8 +476,12 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               connectionRadius={35}
               nodes={nodesState[0]}
               edges={edgesState[0]}
+              defaultViewport={initialViewport.current}
               onInit={(instance) => {
                 (reactFlowInstance as MutableRefObject<ReactFlowInstance>).current = instance;
+                if (initialViewport.current) {
+                  instance.setViewport(initialViewport.current);
+                }
                 onReactFlowInit?.(instance);
               }}
               snapToGrid={true}
