@@ -9,16 +9,16 @@ import { CloseOutlined, CompressOutlined, LeftOutlined,RightOutlined, WarningOut
 import { Button, Modal, Tooltip, Typography, message, notification } from 'antd';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
-import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { type MutableRefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { Connection, Node, ProOptions, ReactFlowInstance, XYPosition } from 'reactflow';
 import ReactFlow, {
-  Background,
   ControlButton,
   Controls,
   SelectionMode,
   getOutgoers,
   useEdgesState,
   useNodesState,
+  useStore,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { P, match } from 'ts-pattern';
@@ -72,6 +72,58 @@ const edgeTypes = {
 };
 
 const componentsOpenedKey = 'jdm-components-opened';
+const backgroundGap = 20;
+const backgroundSize = 1;
+const backgroundOffset = 2;
+
+const isValidTransform = (transform: unknown): transform is [number, number, number] => {
+  return (
+    Array.isArray(transform) &&
+    transform.length >= 3 &&
+    transform.every((value) => typeof value === 'number' && Number.isFinite(value)) &&
+    transform[2] > 0
+  );
+};
+
+const SafeBackground: React.FC<{ id?: string }> = ({ id }) => {
+  const transform = useStore((state) => state.transform);
+  const rfId = useStore((state) => state.rfId);
+
+  if (!isValidTransform(transform)) {
+    return null;
+  }
+
+  const [translateX, translateY, zoom] = transform;
+  const scaledGap = backgroundGap * zoom || 1;
+  const radius = (backgroundSize * zoom) / backgroundOffset;
+
+  if (!Number.isFinite(scaledGap) || !Number.isFinite(radius)) {
+    return null;
+  }
+
+  const patternId = `pattern-${rfId}${id ?? ''}`;
+
+  return (
+    <svg
+      className='react-flow__background'
+      style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
+      data-testid='rf__background'
+    >
+      <pattern
+        id={patternId}
+        x={translateX % scaledGap}
+        y={translateY % scaledGap}
+        width={scaledGap}
+        height={scaledGap}
+        patternUnits='userSpaceOnUse'
+        patternTransform={`translate(-${radius},-${radius})`}
+      >
+        <circle cx={radius} cy={radius} r={radius} fill='var(--grl-color-border)' />
+      </pattern>
+      <rect x='0' y='0' width='100%' height='100%' fill={`url(#${patternId})`} />
+    </svg>
+  );
+};
 
 export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className, userId, projectId, menuList, customFunctions }, ref) {
   // 国际化
@@ -112,8 +164,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   // 更新对当前状态和实例的引用
   graphReferences.nodesState.current = nodesState;
   graphReferences.edgesState.current = edgesState;
+  graphReferences.reactFlowWrapper.current = reactFlowWrapper.current;
   graphReferences.graphClipboard.current = useGraphClipboard(reactFlowInstance, reactFlowWrapper);
   graphReferences.reactFlowInstance.current = reactFlowInstance.current;
+
+  useEffect(() => {
+    graphReferences.reactFlowWrapper.current = reactFlowWrapper.current;
+  }, [graphReferences]);
 
   /**
    * 用户定义节点类型的自定义渲染器
@@ -600,7 +657,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
                   <CompressOutlined />
                 </ControlButton>
               </Controls>
-              <Background id={id} color='var(--grl-color-border)' gap={20} />
+              <SafeBackground id={id} />
             </ReactFlow>
           </div>
         </div>

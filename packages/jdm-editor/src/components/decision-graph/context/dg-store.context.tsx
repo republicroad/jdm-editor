@@ -132,6 +132,7 @@ export type DecisionGraphStoreType = {
     nodesState: MutableRefObject<ReturnType<typeof useNodesState>>;      // 节点状态引用
     edgesState: MutableRefObject<ReturnType<typeof useEdgesState>>;      // 边状态引用
     reactFlowInstance: MutableRefObject<ReactFlowInstance | null>;       // ReactFlow实例引用
+    reactFlowWrapper: MutableRefObject<HTMLDivElement | null>;           // ReactFlow容器引用
     graphClipboard: MutableRefObject<ReturnType<typeof useGraphClipboard>>; // 图形剪贴板引用
   };
 
@@ -264,6 +265,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         edgesState: createRef() as MutableRefObject<ReturnType<typeof useEdgesState>>,
         graphClipboard: createRef() as MutableRefObject<ReturnType<typeof useGraphClipboard>>,
         reactFlowInstance: createRef() as MutableRefObject<ReactFlowInstance | null>,
+        reactFlowWrapper: createRef() as MutableRefObject<HTMLDivElement | null>,
       })),
     [],
   );
@@ -610,7 +612,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       // 设置决策图
       setDecisionGraph: (graph, options = {}) => {
         const { decisionGraph } = stateStore.getState();
-        const { edgesState, nodesState, reactFlowInstance } = referenceStore.getState();
+        const { edgesState, nodesState, reactFlowInstance, reactFlowWrapper } = referenceStore.getState();
         const { skipOnChangeEvent = false, autoFitView = false } = options;
 
         const newDecisionGraph = produce(decisionGraph, (draft) => {
@@ -631,13 +633,25 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           console.log('自动适应视图已启用，节点数量:', newDecisionGraph.nodes.length);
           // 使用 setTimeout 确保节点已经渲染完成
           setTimeout(() => {
-            if (reactFlowInstance?.current) {
+            const { activeTab } = stateStore.getState();
+            const wrapperRect = reactFlowWrapper?.current?.getBoundingClientRect();
+            const isGraphVisible =
+              activeTab === 'graph' &&
+              !!wrapperRect &&
+              Number.isFinite(wrapperRect.width) &&
+              Number.isFinite(wrapperRect.height) &&
+              wrapperRect.width > 0 &&
+              wrapperRect.height > 0;
+
+            if (reactFlowInstance?.current && isGraphVisible) {
               console.log('执行自动 fitView');
               reactFlowInstance.current.fitView({ 
                 duration: 800, 
                 maxZoom: 1, 
                 padding: 0.1 
               });
+            } else if (!isGraphVisible) {
+              console.log('跳过自动 fitView：规则图标签页未激活或容器尺寸无效');
             } else {
               console.log('ReactFlow 实例不可用');
             }

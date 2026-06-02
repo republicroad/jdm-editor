@@ -522,7 +522,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const contentSchemaRef = useRef(sourceSchemaValue);
   const previousNodeIdRef = useRef(id);
   const pendingSchemaCommitRef = useRef<string | null>(null);
-  const hasRestoredActiveSourceFromBindingRef = useRef(false);
 
   const applyExternalSchemaDraft = (nextValue: string, options?: { dirty?: boolean }) => {
     pendingExternalSchemaDraftValueRef.current = nextValue;
@@ -554,7 +553,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     previousNodeIdRef.current = id;
     pendingSchemaCommitRef.current = null;
     pendingDefinitionSyncSignatureRef.current = null;
-    hasRestoredActiveSourceFromBindingRef.current = false;
     applyExternalSchemaDraft(persistedSchemaText, { dirty: false });
   }, [id, persistedSchemaText]);
 
@@ -689,12 +687,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   }, [activeSourceIndex, exampleSources.length]);
 
   useEffect(() => {
-    if (hasRestoredActiveSourceFromBindingRef.current) {
-      return;
-    }
-
     if (simulatorExampleBinding?.nodeId !== id) {
-      hasRestoredActiveSourceFromBindingRef.current = true;
       return;
     }
 
@@ -703,12 +696,10 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     }
 
     if (simulatorExampleBinding.sourceIndex === activeSourceIndex) {
-      hasRestoredActiveSourceFromBindingRef.current = true;
       return;
     }
 
     setActiveSourceIndex(simulatorExampleBinding.sourceIndex);
-    hasRestoredActiveSourceFromBindingRef.current = true;
   }, [activeSourceIndex, exampleSources.length, id, simulatorExampleBinding]);
 
   useEffect(() => {
