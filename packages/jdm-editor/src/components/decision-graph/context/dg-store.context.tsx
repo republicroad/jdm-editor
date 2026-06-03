@@ -489,7 +489,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       // 删除节点
       removeNodes: (ids = []) => {
         const { nodesState, edgesState } = referenceStore.getState();
-        const { decisionGraph, nodeTypes } = stateStore.getState();
+        const { decisionGraph, nodeTypes, simulatorExampleBinding } = stateStore.getState();
 
         // 更新ReactFlow状态
         nodesState.current[1]?.((nodes) => nodes.filter((n) => ids.every((id) => n.id !== id)));
@@ -518,7 +518,13 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
           });
         });
 
-        stateStore.setState({ decisionGraph: newDecisionGraph, nodeTypes: newNodeTypes });
+        stateStore.setState({
+          decisionGraph: newDecisionGraph,
+          nodeTypes: newNodeTypes,
+          ...(simulatorExampleBinding?.nodeId && ids.includes(simulatorExampleBinding.nodeId)
+            ? { simulatorExampleBinding: null }
+            : {}),
+        });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
 
