@@ -221,7 +221,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
           return;
         }
 
-        setDecisionGraph(modelParsed.data);
+        setDecisionGraph(modelParsed.data, { autoFitView: true });
       } catch (e: any) {
         message.error(e.message);
       }

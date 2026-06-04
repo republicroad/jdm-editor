@@ -687,6 +687,14 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   }, [activeSourceIndex, exampleSources.length]);
 
   useEffect(() => {
+    if (exampleSources.length > 0 || simulatorExampleBinding?.nodeId !== id) {
+      return;
+    }
+
+    graphActions.setSimulatorExampleBinding(null);
+  }, [exampleSources.length, graphActions, id, simulatorExampleBinding]);
+
+  useEffect(() => {
     if (simulatorExampleBinding?.nodeId !== id) {
       return;
     }
