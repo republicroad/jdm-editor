@@ -4,7 +4,6 @@ import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';
 
 import {
-  formatRequestExampleSourceName,
   getRequestDefinitions,
   getRequestExampleSources,
   normalizeRequestExampleDataByDefinitions,
@@ -64,17 +63,17 @@ export const GraphPanel: React.FC = () => {
     return 0;
   }, [activePanel?.id, inputNodeId, simulatorExampleBinding, simulatorRequestSources.length]);
   const simulatorBindingLabel = useMemo(() => {
-    if (activePanel?.id !== 'simulator' || !simulatorExampleBinding) {
+    if (activePanel?.id !== 'simulator' || !simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
       return null;
     }
 
-    return simulatorExampleBinding.sourceName
-      ? `${t('requestCurrentDataSourceLabel')}: ${simulatorExampleBinding.sourceName}`
-      : `${t('requestCurrentDataSourceLabel')}: ${formatRequestExampleSourceName(
-          simulatorExampleBinding.sourceIndex,
-          t('requestDataLabel'),
-        )}`;
-  }, [activePanel?.id, simulatorExampleBinding, t]);
+    const boundSource = simulatorRequestSources[simulatorExampleBinding.sourceIndex];
+    if (!boundSource) {
+      return null;
+    }
+
+    return `${t('requestCurrentDataSourceLabel')}: ${boundSource.name}`;
+  }, [activePanel?.id, inputNodeId, simulatorExampleBinding, simulatorRequestSources, t]);
   const shouldShowSimulatorSourceSelect =
     Boolean(simulatorBindingLabel) && Boolean(inputNodeId) && simulatorRequestSources.length > 1;
 

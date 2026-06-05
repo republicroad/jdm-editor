@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import type { DragDropManager } from 'dnd-core';
 import json5 from 'json5';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { editor } from 'monaco-editor';
 
 import '../../../helpers/monaco';
@@ -650,12 +650,18 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   );
   const getExampleSourceName = (index: number) => formatRequestExampleSourceName(index, t('requestDataLabel'));
   const activeSource = exampleSources[activeSourceIndex] ?? null;
-  const normalizeExampleData = (data?: Record<string, unknown>, definitions = definitionDrafts) =>
-    normalizeRequestExampleDataByDefinitions(isRecord(data) ? data : {}, definitions);
-  const getPreparedExampleData = (data?: Record<string, unknown>) => normalizeExampleData(data);
+  const normalizeExampleData = useCallback(
+    (data?: Record<string, unknown>, definitions = definitionDrafts) =>
+      normalizeRequestExampleDataByDefinitions(isRecord(data) ? data : {}, definitions),
+    [definitionDrafts],
+  );
+  const getPreparedExampleData = useCallback(
+    (data?: Record<string, unknown>) => normalizeExampleData(data),
+    [normalizeExampleData],
+  );
   const persistedActiveExampleDrafts = useMemo(
     () => flattenExampleData(getPreparedExampleData(activeSource?.data ?? {})),
-    [activeSource?.data, activeSource?.id, definitionDrafts],
+    [activeSource?.data, activeSource?.id, getPreparedExampleData],
   );
   const activeExampleDrafts = useMemo(() => {
     if (!activeSource) {
@@ -677,6 +683,11 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     return map;
   }, [activeExampleDrafts]);
   const rootExampleItems = useMemo(() => exampleChildrenMap.get(exampleRootKey) ?? [], [exampleChildrenMap]);
+  const exampleSourcesSyncSignature = useMemo(
+    () => JSON.stringify(exampleSources.map((source) => ({ name: source.name, data: source.data }))),
+    [exampleSources],
+  );
+  const previousExampleSourcesSyncSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (activeSourceIndex <= Math.max(exampleSources.length - 1, 0)) {
@@ -693,6 +704,66 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
 
     graphActions.setSimulatorExampleBinding(null);
   }, [exampleSources.length, graphActions, id, simulatorExampleBinding]);
+
+  useEffect(() => {
+    const previousSignature = previousExampleSourcesSyncSignatureRef.current;
+    previousExampleSourcesSyncSignatureRef.current = exampleSourcesSyncSignature;
+
+    if (previousSignature === null || previousSignature === exampleSourcesSyncSignature) {
+      return;
+    }
+
+    const isCurrentRequestActive = activeGraphTabId === id;
+    const isSimulatorBoundToCurrentRequest = simulatorExampleBinding?.nodeId === id;
+
+    if (!isCurrentRequestActive && !isSimulatorBoundToCurrentRequest) {
+      return;
+    }
+
+    if (exampleSources.length === 0) {
+      if (activeSourceIndex !== 0) {
+        setActiveSourceIndex(0);
+      }
+
+      graphActions.setSimulatorRequest('');
+      graphActions.setSimulatorExampleBinding(null);
+      return;
+    }
+
+    const preferredSourceIndex = isSimulatorBoundToCurrentRequest
+      ? simulatorExampleBinding.sourceIndex
+      : activeSourceIndex;
+    const safeSourceIndex = Math.max(0, Math.min(preferredSourceIndex, exampleSources.length - 1));
+    const nextSource = exampleSources[safeSourceIndex];
+
+    if (!nextSource) {
+      return;
+    }
+
+    if (activeSourceIndex !== safeSourceIndex) {
+      setActiveSourceIndex(safeSourceIndex);
+    }
+
+    const preparedExampleData = getPreparedExampleData(nextSource.data);
+    const nextRequest = JSON.stringify(preparedExampleData, null, 2);
+
+    graphActions.setSimulatorRequest(nextRequest);
+    graphActions.setSimulatorExampleBinding({
+      nodeId: id,
+      sourceIndex: safeSourceIndex,
+      sourceName: nextSource.name,
+    });
+  }, [
+    activeGraphTabId,
+    activeSourceIndex,
+    exampleSources,
+    exampleSources.length,
+    exampleSourcesSyncSignature,
+    getPreparedExampleData,
+    graphActions,
+    id,
+    simulatorExampleBinding,
+  ]);
 
   useEffect(() => {
     if (simulatorExampleBinding?.nodeId !== id) {
