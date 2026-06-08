@@ -153,11 +153,12 @@ export const DecisionTableCommandBar: React.FC = () => {
 
   const readExcelFile = async (event: any) => {
     const file = event?.target?.files[0];
+    if (!file) return;
+
     const reader = new FileReader();
 
-    try {
-      reader.readAsArrayBuffer(file);
-      reader.onload = async () => {
+    reader.onload = async () => {
+      try {
         const buffer = reader.result as ArrayBuffer;
 
         if (!buffer) return;
@@ -172,10 +173,14 @@ export const DecisionTableCommandBar: React.FC = () => {
           message.error(t('excelUploadFailed'));
           // message.error('Only excel file with a single data sheet can be handled in a table view.');
         }
-      };
-    } catch {
+      } catch {
+        message.error(t('excelUploadFailed'));
+      }
+    };
+    reader.onerror = () => {
       message.error(t('excelUploadFailed'));
-    }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   const traceIndexOptions = useMemo(() => {

@@ -29,6 +29,38 @@ export type GraphSideToolbarProps = {
   ruleMetadata?: GraphRuleMetadata;
 };
 
+const isAutoMappableExcelData = (excelData: ParsedExcelData[]) =>
+  excelData.every((sheet) => {
+    const tableHeaders = sheet.headers.filter((header) => header.id !== '_description');
+    return (
+      tableHeaders.length > 0 &&
+      tableHeaders.every(
+        (header) => header.id && header.name && ['input', 'output'].includes(header._type || ''),
+      ) &&
+      tableHeaders.some((header) => header._type === 'output')
+    );
+  });
+
+const mapNativeExcelData = (excelData: ParsedExcelData[]): MergedDataItem[] =>
+  excelData.map((sheet) => ({
+    items: sheet.headers.map((header) => ({
+      id: header.id,
+      label: header.name || header.value || header.id,
+      value: header.id === '_description' ? 'description' : header.value || header.name || header.id,
+      ...(header._type && { type: header._type as 'input' | 'output' }),
+    })),
+    rules: sheet.rules,
+    id: sheet.id,
+    name: sheet.name,
+    type: sheet.type,
+    position: sheet.position,
+    hitPolicy: sheet.existingTableData.hitPolicy,
+    inputField: sheet.existingTableData.inputField,
+    outputPath: sheet.existingTableData.outputPath,
+    passThrough: sheet.existingTableData.passThrough,
+    executionMode: sheet.existingTableData.executionMode,
+  }));
+
 export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, projectId, ruleMetadata }) => {
   const { t } = useTranslation();
   const decisionGraphRaw = useDecisionGraphRaw();
@@ -232,25 +264,38 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
 
   const uploadJDMExcel = (event: any) => {
     const file = event?.target?.files[0];
+    if (!file) return;
+
     const fileReader = new FileReader();
 
-    try {
-      fileReader.readAsArrayBuffer(file);
-      fileReader.onload = async () => {
+    fileReader.onload = async () => {
+      try {
         const buffer = fileReader.result as ArrayBuffer;
 
         if (!buffer) return;
         const { decisionGraph } = decisionGraphRaw.stateStore.getState();
 
         const excelData = await getExcelData(buffer, decisionGraph);
+        if (!excelData.length) {
+          message.error(t('excelUploadFailedGeneric'));
+          return;
+        }
+
+        if (isAutoMappableExcelData(excelData)) {
+          handleDataMapping(mapNativeExcelData(excelData));
+          return;
+        }
 
         setExcelGraphData(excelData);
-
-        message.success(t('excelUploadSuccess'));
-      };
-    } catch {
+        message.info(t('excelUploadMappingRequired'));
+      } catch {
+        message.error(t('excelUploadFailedGeneric'));
+      }
+    };
+    fileReader.onerror = () => {
       message.error(t('excelUploadFailedGeneric'));
-    }
+    };
+    fileReader.readAsArrayBuffer(file);
   };
 
   const handleDataMapping = (mappedExcelData: MergedDataItem[]) => {
@@ -360,8 +405,9 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
       return;
     }
 
-    setDecisionGraph(modelParsed.data);
+    setDecisionGraph(modelParsed.data, { autoFitView: true });
     setExcelGraphData(null);
+    message.success(t('excelUploadSuccess'));
   };
 
   const downloadJDM = async () => {
@@ -400,17 +446,21 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = ({ userId, proj
 
   const downloadJDMExcel = async () => {
     try {
-      const { name, decisionGraph, viewConfig } = decisionGraphRaw.stateStore.getState();
+      const { name, decisionGraph } = decisionGraphRaw.stateStore.getState();
       const fileName = name.replaceAll('.json', '');
 
       const decisionTableNodes = decisionGraph.nodes
         .filter((node) => node.type === NodeKind.DecisionTable)
-        .filter((node) => (viewConfig?.enabled ? !!viewConfig?.permissions?.[node.id] : true))
         .map((decisionTable) => ({
-          ...decisionTable.content,
+          ...parseDecisionTable(decisionTable.content as any),
           id: decisionTable.id,
-          name: decisionTable.name,
+          name: decisionTable.name || t('decisionTable'),
         }));
+
+      if (decisionTableNodes.length === 0) {
+        message.warning(t('excelDownloadNoDecisionTables'));
+        return;
+      }
 
       await exportDecisionTable(fileName, decisionTableNodes);
       message.success(t('excelDownloadSuccess'));

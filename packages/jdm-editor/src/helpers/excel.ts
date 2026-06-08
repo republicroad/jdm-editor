@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import type { HitPolicy, TableSchemaItem } from '../components/decision-table/context/dt-store.context';
 import type { DecisionGraphType, DecisionTableType } from '../index';
-import { NodeKind } from '../index';
+import { NodeKind } from './schema';
 import { saveFile } from './file-helpers';
 
 type DecisionTableNode = {
@@ -69,10 +69,17 @@ export const exportDecisionTable = async (fileName: string, decisionTableNodes: 
 
     const worksheet = workbook.addWorksheet(worksheetName);
 
-    const columns = [
-      ...decisionTableNode.inputs.map((input: any) => ({ title: input.name, type: 'input' })),
-      ...decisionTableNode.outputs.map((output: any) => ({ title: output.name, type: 'output' })),
-      { title: 'Description', type: 'description' },
+    const schemaMeta = [
+      ...decisionTableNode.inputs.map((input: any) => ({
+        title: input.name,
+        meta: { id: input.id, name: input.field, type: 'input' },
+      })),
+      ...decisionTableNode.outputs.map((output: any) => ({
+        title: output.name,
+        meta: { id: output.id, name: output.field, type: 'output' },
+      })),
+      { title: 'Description', meta: null },
+      { title: 'Rule ID', meta: null },
     ];
 
     const schemaItems = [...decisionTableNode.inputs, ...decisionTableNode.outputs];
@@ -84,16 +91,72 @@ export const exportDecisionTable = async (fileName: string, decisionTableNodes: 
         row.push(formattedVal || '');
       });
       row.push(record?.['_description'] || '');
+      row.push(record?.['_id'] || '');
       return row;
     });
 
-    const headerRow = worksheet.addRow(columns.map((col) => col.title));
+    const inputCellsLength = schemaMeta.filter((data) => data.meta?.type === 'input').length;
+    const outputCellsLength = schemaMeta.filter((data) => data.meta?.type === 'output').length;
+    const lastColumnIndex = schemaMeta.length;
+
+    worksheet.mergeCells(1, 1, 1, lastColumnIndex);
+    const idCell = worksheet.getCell(1, 1);
+    idCell.value = decisionTableNode.id;
+    idCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    if (inputCellsLength > 0) {
+      worksheet.mergeCells(2, 1, 2, inputCellsLength);
+      const inputCell = worksheet.getCell(2, 1);
+      inputCell.value = 'Inputs';
+      inputCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      inputCell.font = { bold: true, color: { argb: 'FFFFFF' } };
+      inputCell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '5e6476' },
+      };
+    }
+
+    if (outputCellsLength > 0) {
+      worksheet.mergeCells(2, inputCellsLength + 1, 2, inputCellsLength + outputCellsLength);
+      const outputCell = worksheet.getCell(2, inputCellsLength + 1);
+      outputCell.value = 'Outputs';
+      outputCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      outputCell.font = { bold: true, color: { argb: 'FFFFFF' } };
+      outputCell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '63546c' },
+      };
+    }
+
+    const descriptionCell = worksheet.getCell(2, inputCellsLength + outputCellsLength + 1);
+    descriptionCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '63546c' },
+    };
+
+    const ruleIdCell = worksheet.getCell(2, inputCellsLength + outputCellsLength + 2);
+    ruleIdCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '63546c' },
+    };
+
+    const headerRow = worksheet.addRow(schemaMeta.map((data) => data.title));
     headerRow.eachCell((cell, colNumber) => {
-      const col = columns[colNumber - 1];
-      const cellColor = col?.type === 'input' ? '5e6476' : '63546c';
+      const meta = schemaMeta[colNumber - 1]?.meta;
+      const cellColor = meta?.type === 'input' ? '5e6476' : '63546c';
 
       cell.font = { bold: true, color: { argb: 'FFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cellColor } };
+
+      if (meta) {
+        cell.note = {
+          texts: [{ text: JSON.stringify(meta, undefined, 2) }],
+        };
+      }
     });
 
     rules.forEach((rule) => {
@@ -117,7 +180,7 @@ export const exportDecisionTable = async (fileName: string, decisionTableNodes: 
       column.width = minLength;
     });
 
-    worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+    worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 3 }];
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
@@ -132,9 +195,11 @@ const getDecisionTableData = (
 ): ParsedSheetData => {
   let headers: HeaderData[] = [];
   let rules: RuleData[][] = [];
+  const nativeHeaderRow = nodeId ? spreadSheetData[2] : undefined;
+  const hasNativeHeaderRow = !!nativeHeaderRow?.length;
 
-  if (nodeId) {
-    const columnHeaders: SpreadsheetCell[] = spreadSheetData.splice(0, 3)[2];
+  if (nodeId && hasNativeHeaderRow) {
+    const columnHeaders: SpreadsheetCell[] = nativeHeaderRow;
 
     headers = columnHeaders.map((columnHeader) => {
       if (columnHeader.value?.toLowerCase() === 'description') {
@@ -175,11 +240,18 @@ const getDecisionTableData = (
       };
     });
 
-    rules = spreadSheetData.map((data) => {
-      return data.map((d, index) => ({ value: d.value, headerId: headers[index].id }));
+    rules = spreadSheetData.slice(3).map((data) => {
+      return data
+        .map((d, index): RuleData | null => {
+          const headerId = headers[index]?.id;
+          return headerId ? { value: d.value, headerId } : null;
+        })
+        .filter((rule): rule is RuleData => !!rule);
     });
   } else {
-    headers = spreadSheetData.splice(0, 1)[0].map((columnHeader) => {
+    const columnHeaders = spreadSheetData[0] || [];
+
+    headers = columnHeaders.map((columnHeader) => {
       if (columnHeader.value?.toLowerCase() === 'description') {
         return {
           name: columnHeader.value,
@@ -193,8 +265,13 @@ const getDecisionTableData = (
       };
     });
 
-    rules = spreadSheetData.map((data) => {
-      return data.map((d, index) => ({ value: d.value, headerId: headers[index].id }));
+    rules = spreadSheetData.slice(1).map((data) => {
+      return data
+        .map((d, index): RuleData | null => {
+          const headerId = headers[index]?.id;
+          return headerId ? { value: d.value, headerId } : null;
+        })
+        .filter((rule): rule is RuleData => !!rule);
     });
   }
 
@@ -244,11 +321,15 @@ export const getExcelData = async (buffer: ArrayBuffer, defaultValues?: Decision
       spreadsheetData.push(rowData);
     });
 
+    if (!spreadsheetData.length) {
+      return;
+    }
+
     const uuidSchema = z.string().uuid().optional();
 
     let nodeId: z.infer<typeof uuidSchema>;
 
-    const nodeIdParse = uuidSchema.safeParse(spreadsheetData[0][0].value);
+    const nodeIdParse = uuidSchema.safeParse(spreadsheetData[0]?.[0]?.value);
 
     if (nodeIdParse.success) {
       nodeId = nodeIdParse.data;
