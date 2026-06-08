@@ -43,6 +43,40 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   const expressionRef = useRef<HTMLDivElement>(null);
   const normalizedCustomFunctions = useMemo(() => normalizeCustomFunctions(customFunctions), [customFunctions]);
 
+  const isCepModuleFunction = (funcmeta?: any) =>
+    funcmeta?.kind === 'cep_module' || funcmeta?.namespace === 'cep_module';
+
+  const getEnumOptions = (argDef?: any) => {
+    if (!Array.isArray(argDef?.enum) || argDef.enum.length === 0) {
+      return [];
+    }
+
+    return argDef.enum.map((item: unknown) => ({
+      label: String(item),
+      value: String(item),
+    }));
+  };
+
+  const stripExpressionStringQuotes = (value: string) => {
+    if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
+      return value.slice(1, -1);
+    }
+
+    return value;
+  };
+
+  const toEnumExpressionValue = (value: string, argDef?: any) => {
+    const isStringEnum =
+      argDef?.type === 'string' ||
+      (Array.isArray(argDef?.enum) && argDef.enum.every((item: unknown) => typeof item === 'string'));
+
+    if (isStringEnum) {
+      return JSON.stringify(value);
+    }
+
+    return value;
+  };
+
   // 优化的智能分割函数，正确处理引号内的;;分隔符
   const smartSplit = (str: string): string[] => {
     if (!str || typeof str !== 'string') {
@@ -718,6 +752,30 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                             );
                           
                           default:
+                            if (isCepModuleFunction(currentFunctionInfo?.funcmeta)) {
+                              const enumOptions = getEnumOptions(argDef);
+
+                              if (enumOptions.length > 0) {
+                                return (
+                                  <Select
+                                    key={argName}
+                                    placeholder={placeholder}
+                                    value={value ? stripExpressionStringQuotes(value) : undefined}
+                                    options={enumOptions}
+                                    style={{ minWidth: 120, width: 160 }}
+                                    onChange={(nextValue) =>
+                                      inputChange({
+                                        value: toEnumExpressionValue(nextValue, argDef),
+                                        type: currentFunctionInfo?.funcmeta?.name,
+                                        key: argName,
+                                      })
+                                    }
+                                    disabled={!configurable || disabled}
+                                  />
+                                );
+                              }
+                            }
+
                             return (
                               <Input
                                 key={argName}
