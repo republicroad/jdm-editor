@@ -156,6 +156,7 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
   const { trace } = useExpressionStore(({ debug, debugIndex }) => ({
     trace: getTrace(debug?.trace?.traceData, debugIndex)?.[expression.key]?.result,
   }));
+
   if (trace === undefined) {
     return null;
   }

@@ -153,6 +153,7 @@
       .function-mode-container {
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         align-items: flex-start;
         gap: 12px;
         padding: $pv $ph;
@@ -176,6 +177,34 @@
               margin: 0; // 重置 margin
             }
           }
+
+          .function-arg-code-editor {
+            width: 180px;
+            min-width: 140px;
+            max-width: 260px;
+            border: 1px solid var(--grl-color-border);
+            border-radius: 6px;
+            background: var(--grl-color-bg-container);
+
+            &.grl-ce {
+              --ce-verticalPadding: 4px;
+              --ce-horizontalPadding: 8px;
+            }
+
+            .cm-editor,
+            &.grl-ce-highlighter {
+              min-height: 30px;
+            }
+
+            .cm-content {
+              padding: 4px 8px;
+            }
+
+            &:focus-within {
+              border-color: var(--grl-color-primary);
+              box-shadow: 0 0 0 2px var(--grl-color-primary-bg);
+            }
+          }
         }
         
         // 响应式设计：在较小屏幕上回到垂直布局
@@ -184,6 +213,25 @@
           
           .function-select-container {
             width: 100%;
+          }
+        }
+      }
+
+      .code-mode-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px;
+        padding: $pv $ph;
+
+        .code-editor-container {
+          flex: 1 1 240px;
+          min-width: 0;
+        }
+
+        .expression-list-item__value {
+          .cm-content {
+            padding: 0;
           }
         }
       }
@@ -213,6 +261,16 @@
       max-width: 50%;
       white-space: nowrap;
       overflow-x: auto;
+
+      &--inline {
+        position: static;
+        flex: 0 1 auto;
+        align-self: flex-start;
+        transform: none;
+        margin-left: auto;
+        margin-top: 1px;
+        max-width: 240px;
+      }
 
       > span {
         font-family: var(--mono-font-family);

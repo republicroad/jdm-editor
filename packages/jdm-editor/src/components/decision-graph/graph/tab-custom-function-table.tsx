@@ -5,6 +5,7 @@ import type { z } from 'zod';
 
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
+import { useNodeType } from '../../../helpers/node-type';
 import type { customNodeSchema } from '../../../helpers/schema';
 import { get, smartSplit } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
@@ -25,9 +26,11 @@ export type TabExpressionProps = {
 
 export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager, userId, projectId,menuList, customFunctions }) => {
   const graphActions = useDecisionGraphActions();
-  const { disabled, content } = useDecisionGraphState(({ disabled, decisionGraph }) => ({
+  const nodeType = useNodeType(id, { attachGlobals: false });
+  const { disabled, content, globalType } = useDecisionGraphState(({ disabled, decisionGraph, globalType }) => ({
     disabled,
     content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content as NodeExpressionData,
+    globalType,
   }));
 
   const { nodeTrace, inputData, nodeSnapshot, viewConfig } = useDecisionGraphState(
@@ -51,6 +54,25 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
       viewConfig,
     }),
   );
+
+  const inputVariableType = useMemo(() => {
+    if (!nodeType) {
+      return undefined;
+    }
+
+    let scopedType = nodeType.clone();
+    if (content?.config?.inputField) {
+      scopedType = scopedType.calculateType(content.config.inputField);
+    }
+
+    if (content?.config?.executionMode === 'loop') {
+      scopedType = scopedType.arrayItem();
+    }
+
+    Object.entries(globalType ?? {}).forEach(([key, value]) => scopedType.set(key, value));
+
+    return scopedType;
+  }, [nodeType, content?.config?.inputField, content?.config?.executionMode, globalType]);
 
   const debug = useMemo(() => {
     if (!nodeTrace || !inputData || !nodeSnapshot) {
@@ -84,6 +106,7 @@ export const CustomFunctionTable: React.FC<TabExpressionProps> = ({ id, manager,
         menuList={menuList}
         customFunctions={customFunctions}
         debug={debug as any}
+        inputVariableType={inputVariableType}
         onChange={(val:any) => {
           graphActions.updateNode(id, (draft) => {
             draft.content.config.expressions = val;
@@ -128,4 +151,3 @@ const safeJson = (data: string): unknown => {
     return null;
   }
 };
-

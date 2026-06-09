@@ -16,13 +16,22 @@ import './expression.scss';
 
 export type CustomFunctionProps = {
   manager?: DragDropManager;
+  inputVariableType?: VariableType;
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
   menuList?: any;
   customFunctions?: any;
 } & ExpressionControllerProps;
 
-export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager,menuList, customFunctions, debug, hideCommandBar, ...props }) => {
+export const CustomFunction: React.FC<CustomFunctionProps> = ({
+  manager,
+  menuList,
+  customFunctions,
+  debug,
+  hideCommandBar,
+  inputVariableType,
+  ...props
+}) => {
   const [_, setMounted] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -53,7 +62,7 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager,menuList
             <ExpressionController {...props} />
             {!hideCommandBar && <ExpressionCommandBar />}
             <ExpressionList menuList={menuList} customFunctions={customFunctions} />
-            <SimulateDataSync debug={debug} />
+            <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
           </ExpressionStoreProvider>
         </DndProvider>
       )}
@@ -61,8 +70,15 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({ manager,menuList
   );
 };
 
-const SimulateDataSync: React.FC<Pick<CustomFunctionProps, 'debug'>> = ({ debug }) => {
+const SimulateDataSync: React.FC<Pick<CustomFunctionProps, 'debug' | 'inputVariableType'>> = ({
+  debug,
+  inputVariableType,
+}) => {
   const expressionStoreRaw = useExpressionStoreRaw();
+
+  useEffect(() => {
+    expressionStoreRaw.setState({ inputVariableType });
+  }, [inputVariableType]);
 
   useEffect(() => {
     const currentState = expressionStoreRaw.getState();

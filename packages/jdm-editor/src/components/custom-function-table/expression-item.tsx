@@ -1,7 +1,7 @@
 import { useTranslation } from '../../locales';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import type { Row } from '@tanstack/react-table';
-import { Typography, Tabs, AutoComplete, Button, Input, Popconfirm, Select } from 'antd';
+import { Typography, Tabs, AutoComplete, Button, Popconfirm, Select } from 'antd';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import { GripVerticalIcon } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
   normalizeFunctionReturns,
 } from '../../helpers/custom-function-schema';
 import { getTrace } from '../../helpers/trace';
+import { CodeEditor } from '../code-editor';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
@@ -777,21 +778,27 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                             }
 
                             return (
-                              <Input
+                              <CodeEditor
                                 key={argName}
+                                lazy
+                                noStyle
+                                lint={false}
+                                className='function-arg-code-editor'
                                 placeholder={placeholder}
                                 value={value}
-                                style={{ minWidth: 120, width: 160 }}
-                                onChange={(e) =>
-                                  inputChange({ value: e.target.value, type: currentFunctionInfo?.funcmeta?.name, key: argName })
+                                maxRows={3}
+                                disabled={!configurable || disabled}
+                                variableType={variableType}
+                                onChange={(nextValue) =>
+                                  inputChange({ value: nextValue, type: currentFunctionInfo?.funcmeta?.name, key: argName })
                                 }
-                                autoComplete="off"
                               />
                             );
                         }
                       })}
                     </div>
                   </div>
+                  <ResultOverlay expression={expression} placement='inline' />
                 </div>
               )
             },
@@ -800,22 +807,24 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
               label: t('code'),
               children: (
                 <ExpressionItemContextMenu index={index}>
-                  <div>
-                    <DiffCodeEditor
-                      className='expression-list-item__value'
-                      placeholder={t('expression')}
-                      maxRows={9}
-                      disabled={disabled}
-                      value={expression?.value}
-                      displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
-                      previousValue={expression?._diff?.fields?.value?.previousValue}
-                      onChange={(value) => onChange({ value })}
-                      variableType={variableType}
-                      onFocus={() => setIsFocused(true)}
-                      onBlur={() => setIsFocused(false)}
-                      noStyle={true}
-                    />
-                    <ResultOverlay expression={expression} />
+                  <div className='code-mode-container'>
+                    <div className='code-editor-container'>
+                      <DiffCodeEditor
+                        className='expression-list-item__value'
+                        placeholder={t('expression')}
+                        maxRows={9}
+                        disabled={disabled}
+                        value={expression?.value}
+                        displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
+                        previousValue={expression?._diff?.fields?.value?.previousValue}
+                        onChange={(value) => onChange({ value })}
+                        variableType={variableType}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        noStyle={true}
+                      />
+                    </div>
+                    <ResultOverlay expression={expression} placement='inline' />
                   </div>
                 </ExpressionItemContextMenu>
               )
@@ -849,21 +858,94 @@ const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) =>
   );
 });
 
-const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }) => {
+const ResultOverlay: React.FC<{ expression: ExpressionEntry; placement?: 'floating' | 'inline' }> = ({
+  expression,
+  placement = 'floating',
+}) => {
   const { trace } = useExpressionStore(({ debug, debugIndex }) => ({
-    trace: getTrace(debug?.trace?.traceData, debugIndex)?.[expression.key]?.result,
+    trace: resolveExpressionResult({
+      traceData: getTrace(debug?.trace?.traceData, debugIndex),
+      output: getTrace(debug?.trace?.output, debugIndex),
+      outputPath: debug?.snapshot?.outputPath,
+      key: expression.key,
+    }),
   }));
-  if (!trace) {
+
+  if (trace === undefined) {
     return null;
   }
 
+  const traceText = formatTraceText(trace);
+
   return (
-    <div className='expression-list-item__resultOverlay'>
-      <Typography.Text ellipsis={{ tooltip: trace }} style={{ maxWidth: 60, overflow: 'hidden' }}>
-        = {trace as string}
+    <div
+      className={clsx(
+        'expression-list-item__resultOverlay',
+        placement === 'inline' && 'expression-list-item__resultOverlay--inline',
+      )}
+    >
+      <Typography.Text
+        ellipsis={{ tooltip: traceText }}
+        style={{ maxWidth: placement === 'inline' ? 220 : 60, overflow: 'hidden' }}
+      >
+        = {traceText}
       </Typography.Text>
     </div>
   );
+};
+
+const resolveExpressionResult = ({
+  traceData,
+  output,
+  outputPath,
+  key,
+}: {
+  traceData: unknown;
+  output: unknown;
+  outputPath?: string | null;
+  key?: string;
+}) => {
+  if (!key) {
+    return undefined;
+  }
+
+  const traceEntry = readObjectValue(traceData, key);
+  if (isRecord(traceEntry) && Object.prototype.hasOwnProperty.call(traceEntry, 'result')) {
+    return traceEntry.result;
+  }
+
+  if (traceEntry !== undefined) {
+    return traceEntry;
+  }
+
+  const scopedOutput = outputPath ? readPathValue(output, outputPath) : output;
+  const scopedOutputValue = readObjectValue(scopedOutput, key);
+  if (scopedOutputValue !== undefined) {
+    return scopedOutputValue;
+  }
+
+  return readObjectValue(output, key);
+};
+
+const readObjectValue = (data: unknown, key: string) => {
+  if (!isRecord(data) || !Object.prototype.hasOwnProperty.call(data, key)) {
+    return undefined;
+  }
+
+  return data[key];
+};
+
+const readPathValue = (data: unknown, path: string) => {
+  return path.split('.').reduce<unknown>((current, part) => readObjectValue(current, part), data);
+};
+
+const isRecord = (data: unknown): data is Record<string, unknown> => {
+  return !!data && typeof data === 'object' && !Array.isArray(data);
+};
+
+const formatTraceText = (data: unknown) => {
+  const json = JSON.stringify(data);
+  return json === undefined ? String(data) : json;
 };
 
 const safeJson = (data: unknown) => {
