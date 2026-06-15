@@ -6,6 +6,7 @@ import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useState } from 'react';
 
 import { useTranslation } from '../../locales';
+import { jsonSchemaToVariableType } from '../../helpers/json-schema';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { useExpressionStore } from './context/expression-store.context';
 import { ExpressionItem } from './expression-item';
@@ -14,6 +15,8 @@ export type ExpressionListProps = {
   menuList?: any;
   customFunctions?: any;
 };
+
+const emptyReturnSchema = {};
 
 export const ExpressionList: React.FC<ExpressionListProps> = ({menuList, customFunctions}) => {
   const { t } = useTranslation();
@@ -39,7 +42,12 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({menuList, customF
     expressions
       .filter((e) => e.key.length > 0)
       .forEach((expr) => {
-        const calculatedType = resultingVariableType.calculateType(expr.value);
+        const isFunctionExpression =
+          expr.type === 'function' ||
+          (typeof expr.value === 'string' && expr.value.includes(';;'));
+        const calculatedType = isFunctionExpression
+          ? jsonSchemaToVariableType(expr.returnSchema ?? emptyReturnSchema)
+          : resultingVariableType.calculateType(expr.value);
         resultingVariableType.set(`$.${expr.key}`, calculatedType);
       });
 

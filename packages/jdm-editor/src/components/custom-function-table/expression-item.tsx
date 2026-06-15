@@ -139,22 +139,48 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     
     return result;
   };
-  
+
+  const splitFunctionParts = (str: string, expectedArgCount?: number): string[] => {
+    const parts = smartSplit(str);
+    if (expectedArgCount === undefined) {
+      return parts;
+    }
+
+    const expectedPartCount = expectedArgCount + 1;
+    if (parts.length === expectedPartCount) {
+      return parts;
+    }
+
+    const simpleParts = str.split(';;');
+    if (simpleParts.length === expectedPartCount) {
+      return simpleParts;
+    }
+
+    if (parts.length < expectedPartCount && simpleParts.length > expectedPartCount) {
+      return [
+        ...simpleParts.slice(0, expectedPartCount - 1),
+        simpleParts.slice(expectedPartCount - 1).join(';;'),
+      ];
+    }
+
+    return parts;
+  };
 
   // 解析;;分隔的value字符串，用于函数模式显示
   const parseFunctionValue = (value: string, fallbackReturnSchema: any = expression.returnSchema ?? emptyReturnSchema) => {
     if (!value || typeof value !== 'string') return null;
 
-    const parts = smartSplit(value);
-    if (parts.length === 0) return null;
-
-    const funcName = parts[0];
-    const args = parts.slice(1);
+    const simpleParts = value.split(';;');
+    const funcName = simpleParts[0];
 
     // 从customFunctions中找到对应的函数定义
     const funcDef = normalizedCustomFunctions.find((f: any) => f.name === funcName);
 
     if (!funcDef) {
+      const parts = smartSplit(value);
+      if (parts.length === 0) return null;
+      const args = parts.slice(1);
+
       // 如果找不到函数定义，创建一个基本的结构以避免UI崩溃（使用新格式）
       const properties: Record<string, any> = {};
       args.forEach((_arg, index) => {
@@ -187,6 +213,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     if (funcDef.parameters && funcDef.parameters.properties) {
       const properties = funcDef.parameters.properties;
       const propertyNames = Object.keys(properties);
+      const parts = splitFunctionParts(value, propertyNames.length);
+      const args = parts.slice(1);
 
       // 将args数组中的值按顺序映射到参数名
       propertyNames.forEach((argName: string, index: number) => {
@@ -219,8 +247,15 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         // 新格式：确保arg_exprs是字符串值的映射
         const argExprs: Record<string, string> = {};
         const properties = expression.funcmeta.parameters.properties;
+        const parsedFromValue = parseFunctionValue(expression.value, expression.returnSchema ?? emptyReturnSchema);
 
         Object.keys(properties).forEach((argName) => {
+          const parsedValue = parsedFromValue?.arg_exprs?.[argName];
+          if (parsedValue !== undefined && parsedValue !== null) {
+            argExprs[argName] = String(parsedValue);
+            return;
+          }
+
           const currentValue = expression.arg_exprs?.[argName];
 
           // 如果arg_exprs[argName]是对象（错误情况），尝试从expression.value重新解析
@@ -321,18 +356,25 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
 
   const inputChange = (value: any) => {
     // 如果当前表达式是函数类型，需要重新构建value字符串
-    if (expression.type === 'function' && currentFunctionInfo) {
+    const isFunctionType =
+      expression.type === 'function' ||
+      (typeof expression.value === 'string' && expression.value.includes(';;'));
+
+    if (isFunctionType && currentFunctionInfo) {
       const funcName = currentFunctionInfo.funcmeta.name || '';
       const args = currentFunctionInfo.funcmeta.parameters.properties || {};
       const argValues: string[] = [];
       // 更新参数值
       const currentArgExprs = currentFunctionInfo.arg_exprs ? { ...currentFunctionInfo.arg_exprs } : {};
       currentArgExprs[value.key] = value.value;
+      const nextArgExprs: Record<string, string> = {};
       
       // 收集所有参数值
       Object.keys(args).forEach((arg: any) => {
         const argValue = currentArgExprs[arg] ?? '';
-        argValues.push(argValue);
+        const normalizedArgValue = typeof argValue === 'object' ? '' : String(argValue);
+        nextArgExprs[arg] = normalizedArgValue;
+        argValues.push(normalizedArgValue);
       });
       
       // 构建;;分割的字符串格式
@@ -341,7 +383,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       // 更新为简化结构
       updateRow(index, {
         value: expressionValue,
-        type: 'function'
+        type: 'function',
+        arg_exprs: nextArgExprs,
       });
     } else {
       // 非函数类型保持原有逻辑（这个分支可能不再使用）
@@ -780,7 +823,6 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                             return (
                               <CodeEditor
                                 key={argName}
-                                lazy
                                 noStyle
                                 lint={false}
                                 className='function-arg-code-editor'
@@ -834,13 +876,17 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       </div>
       <div className='expression-list-item__action'>
         <ConfirmAction iconOnly disabled={permission !== 'edit:full' || disabled} onConfirm={onRemove} />
-        {isFocused && <LivePreview id={expression.id} value={expression.value} />}
+        {/* {isFocused && <LivePreview id={expression.id} value={expression.value} />} */}
       </div>
     </div>
   );
 };
 
 const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) => {
+  useEffect(() => {
+    console.log('[custom-node LivePreview] expression.value:', value);
+  }, [value]);
+
   const { inputData, initial } = useExpressionStore(({ debug, debugIndex, calculatedInputData }) => {
     const snapshot = (debug?.snapshot?.expressions ?? []).find((e) => e.id === id);
     const trace = snapshot?.key ? getTrace(debug?.trace.traceData, debugIndex)?.[snapshot.key] : undefined;
@@ -885,7 +931,9 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry; placement?: 'floati
       )}
     >
       <Typography.Text
-        ellipsis={{ tooltip: traceText }}
+        ellipsis={{
+          tooltip: <div className='expression-list-item__resultOverlayTooltip'>{traceText}</div>,
+        }}
         style={{ maxWidth: placement === 'inline' ? 220 : 60, overflow: 'hidden' }}
       >
         = {traceText}

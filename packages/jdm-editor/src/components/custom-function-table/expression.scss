@@ -170,7 +170,7 @@
           .flex {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px; // 使用 gap 替代 margin
             
             > * {
@@ -185,6 +185,9 @@
             border: 1px solid var(--grl-color-border);
             border-radius: 6px;
             background: var(--grl-color-bg-container);
+            transition:
+              border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1),
+              box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
 
             &.grl-ce {
               --ce-verticalPadding: 4px;
@@ -198,6 +201,10 @@
 
             .cm-content {
               padding: 4px 8px;
+            }
+
+            &:hover {
+              border-color: var(--grl-color-primary-hover);
             }
 
             &:focus-within {
@@ -278,6 +285,17 @@
       }
     }
 
+    &__resultOverlayTooltip {
+      max-width: min(560px, 70vw);
+      max-height: min(320px, 60vh);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--mono-font-family);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
     &__livePreview {
       position: absolute;
       top: 100%;
@@ -322,3 +340,14 @@
     }
   }
 }
+
+ .expression-list-item__resultOverlayTooltip {
+      max-width: min(560px, 70vw);
+      max-height: min(320px, 60vh);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--mono-font-family);
+      font-size: 12px;
+      line-height: 1.5;
+    }
