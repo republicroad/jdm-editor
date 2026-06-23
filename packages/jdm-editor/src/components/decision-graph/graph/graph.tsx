@@ -536,15 +536,11 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
           <div
             className={'grl-dg__components__floating'}
             style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              zIndex: 1,
             }}
           >
-            <Tooltip placement='right' title='组件'>
+            {/* <Tooltip placement='right' title='组件'>
               <Button icon={<LeftOutlined style={{ fontSize: 12 }} />} onClick={() => setComponentsOpened(true)} />
-            </Tooltip>
+            </Tooltip> */}
           </div>
         )}
         <div

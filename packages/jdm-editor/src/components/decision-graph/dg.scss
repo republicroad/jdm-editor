@@ -506,7 +506,7 @@
       flex-direction: column;
 
       &.collapsed {
-        width: 40px;
+        width: 60px;
         min-width: 40px;
       }
 
@@ -526,6 +526,10 @@
           font-size: 12px;
         }
       }
+      &.collapsed &__heading__text, &.collapsed &__components__search {
+        display: none;
+      }
+
 
       &__content {
         flex: 1;
