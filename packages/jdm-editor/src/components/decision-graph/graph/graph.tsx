@@ -5,12 +5,12 @@
  * 支持拖放组件、连接节点和编辑图形结构。
  */
 import { useTranslation } from '../../../locales';
-import { CloseOutlined, CompressOutlined, LeftOutlined,RightOutlined, WarningOutlined } from '@ant-design/icons';
-import { Button, Modal, Tooltip, Typography, message, notification } from 'antd';
-import clsx from 'clsx';
 import equal from 'fast-deep-equal';
-import React, { type MutableRefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { Connection, Node, ProOptions, ReactFlowInstance, XYPosition } from 'reactflow';
+import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@ant-design/icons';
+import { App, Button, Typography, message, notification } from 'antd';
+import clsx from 'clsx';
+import React, { type MutableRefObject, forwardRef, useImperativeHandle, useEffect, useMemo, useRef, useState } from 'react';
+import type { Connection, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from 'reactflow';
 import ReactFlow, {
   ControlButton,
   Controls,
@@ -33,6 +33,7 @@ import {
   useDecisionGraphReferences,
   useDecisionGraphState,
 } from '../context/dg-store.context';
+import { type DecisionGraphSnapshot, useGraphSerializer, useSerializerRegistry } from '../context/serializer.context';
 import { edgeFunction } from '../custom-edge';
 import { type DecisionNode } from '../dg-types';
 import { mapToDecisionEdge } from '../dg-util';
@@ -47,6 +48,9 @@ import { GraphComponents } from './graph-components';
 /**
  * Graph组件的属性
  */
+
+type TabsSlice = { openTabs: string[]; activeTab: string };
+
 export type GraphProps = {
   className?: string;
   onDisableTabs?: (val: boolean) => void;
@@ -62,6 +66,8 @@ export type GraphProps = {
  */
 export type GraphRef = DecisionGraphStoreType['actions'] & {
   stateStore: ExposedStore<DecisionGraphStoreType['state']>;
+  serialize: () => DecisionGraphSnapshot;
+  restore: (snapshot: DecisionGraphSnapshot) => void;
 };
 
 /**
@@ -147,10 +153,14 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
 
 
   // 访问决策图存储和动作
+  const initialViewport = useRef<Viewport | undefined>(undefined);
+
   const raw = useDecisionGraphRaw();
+  const registry = useSerializerRegistry();
   const graphActions = useDecisionGraphActions();
   const graphReferences = useDecisionGraphReferences((s) => s);
   const { onReactFlowInit } = useDecisionGraphListeners(({ onReactFlowInit }) => ({ onReactFlowInit }));
+  const { modal } = App.useApp();
   const { disabled, hasInputNode, components, customNodes, id } = useDecisionGraphState(
     ({ id, disabled, components, customNodes, decisionGraph }) => ({
       id,
@@ -504,9 +514,39 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
   };
 
   // 通过ref暴露动作和状态存储
+  useGraphSerializer<Viewport>('viewport', {
+    serialize: () => reactFlowInstance.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
+    restore: (viewport) => {
+      if (!viewport) return;
+      initialViewport.current = viewport;
+      reactFlowInstance.current?.setViewport(viewport);
+    },
+  });
+
+  useGraphSerializer<TabsSlice>('tabs', {
+    serialize: () => {
+      const { openTabs, activeTab } = raw.stateStore.getState();
+      return { openTabs, activeTab };
+    },
+    restore: ({ openTabs, activeTab } = { openTabs: [], activeTab: 'graph' }) => {
+      raw.stateStore.setState({ openTabs: openTabs ?? [], activeTab: activeTab ?? 'graph' });
+    },
+  });
+
+  useGraphSerializer<boolean>('componentsOpened', {
+    serialize: () => componentsOpened,
+    restore: (value) => {
+      if (typeof value !== 'boolean') return;
+      setComponentsOpened(value);
+      localStorage.setItem(componentsOpenedKey, `${value}`);
+    },
+  });
+
   useImperativeHandle(ref, () => ({
     ...graphActions,
     stateStore: raw.stateStore,
+    serialize: () => registry?.serialize() ?? {},
+    restore: (snapshot) => registry?.restore(snapshot ?? {}),
   }));
 
   return (
@@ -583,7 +623,7 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
                   // 显示节点删除确认对话框
                   const length = selectedNodes.length;
                   const text = length > 1 ? 'nodes' : 'node';
-                  Modal.confirm({
+                  modal.confirm({
                     icon: null,
                     title: t('deleteNode'),
                     content: (
@@ -619,8 +659,12 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
               connectionRadius={35}
               nodes={nodesState[0]}
               edges={edgesState[0]}
+              defaultViewport={initialViewport.current}
               onInit={(instance) => {
                 (reactFlowInstance as MutableRefObject<ReactFlowInstance>).current = instance;
+                if (initialViewport.current) {
+                  instance.setViewport(initialViewport.current);
+                }
                 onReactFlowInit?.(instance);
               }}
               snapToGrid={true}

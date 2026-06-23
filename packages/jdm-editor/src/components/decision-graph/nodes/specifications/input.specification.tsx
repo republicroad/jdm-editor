@@ -1,6 +1,6 @@
 import { ArrowRightOutlined, BookOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Form, Modal, Typography } from 'antd';
+import { App, Button, Typography,  Form, Modal } from 'antd';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';
@@ -63,6 +63,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
         disabled,
       };
     });
+    const { modal } = App.useApp();
 
     return (
       <GraphNode
@@ -91,7 +92,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
             label: <SpacedText left={t('delete')} right={platform.shortcut('Backspace')} />,
             disabled,
             onClick: () =>
-              Modal.confirm({
+              modal.confirm({
                 icon: null,
                 title: t('deleteNode'),
                 content: (

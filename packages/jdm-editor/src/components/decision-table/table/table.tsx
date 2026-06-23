@@ -21,9 +21,16 @@ import {
 import { TableHeadRow } from './table-head-row';
 import { TableRow } from './table-row';
 
+export type TableScrollApi = {
+  getTopRowIndex: () => number;
+  scrollToRowIndex: (index: number) => void;
+};
+
 export type TableProps = {
   id?: string;
   maxHeight: string | number;
+  scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
+  scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
 };
 
 type ColumnSizing = Record<string, number>;
@@ -46,7 +53,16 @@ const loadColumnSizing = (id?: string) => {
 
 export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
   const { t } = useTranslation();
+export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
   const { token } = theme.useToken();
+
+  const setContainerRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      (tableContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+      if (scrollContainerRef) scrollContainerRef.current = el;
+    },
+    [scrollContainerRef],
+  );
 
   const tableActions = useDecisionTableActions();
   const { cellRenderer } = useDecisionTableListeners(({ cellRenderer }) => ({ cellRenderer }));
@@ -197,7 +213,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
 
   return (
     <div
-      ref={tableContainerRef}
+      ref={setContainerRef}
       className='grl-dt__container'
       style={{ maxHeight, overflowY: 'auto' }}
       data-theme={token.mode}
@@ -222,7 +238,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
             ))}
         </thead>
         <TableContextMenu>
-          <TableBody tableContainerRef={tableContainerRef} table={table} />
+          <TableBody tableContainerRef={tableContainerRef} table={table} scrollApiRef={scrollApiRef} />
         </TableContextMenu>
         <tfoot>
           <tr>
@@ -247,12 +263,13 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
 };
 
 type TableBodyProps = {
-  tableContainerRef: React.RefObject<HTMLDivElement>;
+  tableContainerRef: React.RefObject<HTMLDivElement | null>;
   table: ReactTable<any>;
+  scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
 } & Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'children'>;
 
 const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ table, tableContainerRef, ...props }, ref) => {
+  ({ table, tableContainerRef, scrollApiRef, ...props }, ref) => {
     const tableActions = useDecisionTableActions();
     const { disabled, cursor } = useDecisionTableState(({ disabled, cursor }) => ({
       disabled,
@@ -267,6 +284,20 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
       count: rows.length,
       overscan: 5,
     });
+
+    useEffect(() => {
+      if (!scrollApiRef) return;
+      scrollApiRef.current = {
+        getTopRowIndex: () => {
+          const offset = tableContainerRef.current?.scrollTop ?? 0;
+          return virtualizer.getVirtualItemForOffset(offset)?.index ?? 0;
+        },
+        scrollToRowIndex: (index) => virtualizer.scrollToIndex(index, { align: 'start' }),
+      };
+      return () => {
+        if (scrollApiRef.current) scrollApiRef.current = null;
+      };
+    }, [virtualizer, scrollApiRef]);
 
     const virtualItems = virtualizer.getVirtualItems();
     const totalSize = virtualizer.getTotalSize();

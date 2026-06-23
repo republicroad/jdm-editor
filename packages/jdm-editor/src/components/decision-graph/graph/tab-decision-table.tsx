@@ -1,19 +1,22 @@
 import type { DragDropManager } from 'dnd-core';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { getNodeData } from '../../../helpers/node-data';
 import { useNodeType } from '../../../helpers/node-type';
 import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
-import type { DecisionTableType } from '../../decision-table';
+import type { DecisionTableType, TableScrollApi } from '../../decision-table';
 import { DecisionTable } from '../../decision-table';
 import type { DecisionTablePermission } from '../../decision-table/context/dt-store.context';
 import { NodeTypeKind, useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
+
+const shouldLogDecisionTableContext = import.meta.env.DEV;
+import { useTabSerializer } from '../context/serializer.context';
 import type { NodeDecisionTableData } from '../nodes/specifications/decision-table.specification';
 import type { SimulationTrace, SimulationTraceDataTable } from '../simulator/simulation.types';
 
-const shouldLogDecisionTableContext = import.meta.env.DEV;
+type TableScrollSnapshot = { rowIndex: number; scrollLeft: number };
 
 export type TabDecisionTableProps = {
   id: string;
@@ -23,6 +26,30 @@ export type TabDecisionTableProps = {
 export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager }) => {
   const graphActions = useDecisionGraphActions();
   const nodeType = useNodeType(id, { attachGlobals: false });
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const scrollApiRef = useRef<TableScrollApi | null>(null);
+
+  useTabSerializer<TableScrollSnapshot>(id, 'scroll', {
+    serialize: () => ({
+      rowIndex: scrollApiRef.current?.getTopRowIndex() ?? 0,
+      scrollLeft: scrollContainerRef.current?.scrollLeft ?? 0,
+    }),
+    restore: (snapshot) => {
+      if (!snapshot) return;
+      let attempts = 0;
+      const apply = () => {
+        const api = scrollApiRef.current;
+        const el = scrollContainerRef.current;
+        if (!api || !el || el.scrollHeight <= el.clientHeight) {
+          if (attempts++ < 60) requestAnimationFrame(apply);
+          return;
+        }
+        api.scrollToRowIndex(snapshot.rowIndex);
+        el.scrollLeft = snapshot.scrollLeft;
+      };
+      requestAnimationFrame(apply);
+    },
+  });
   const { nodeName, nodeTrace, inputData, nodeSnapshot, viewConfig, dictionaries, mode } = useDecisionGraphState(
     ({ simulate, decisionGraph, viewConfig, dictionaries, mode }) => ({
       nodeName: decisionGraph.nodes.find((n) => n.id === id)?.name,
@@ -131,6 +158,8 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       tableHeight={'100%'}
       value={content as any}
       manager={manager}
+      scrollContainerRef={scrollContainerRef}
+      scrollApiRef={scrollApiRef}
       disabled={disabled}
       permission={viewConfig?.enabled ? (viewConfig?.permissions?.[id] as DecisionTablePermission) : 'edit:full'}
       dictionaries={dictionaries}

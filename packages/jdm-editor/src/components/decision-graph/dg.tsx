@@ -14,6 +14,7 @@ import {
 } from '../../helpers/custom-function-schema';
 import type { DecisionGraphContextProps } from './context/dg-store.context';
 import { useDecisionGraphActions, useDecisionGraphState, DecisionGraphProvider } from './context/dg-store.context';
+import { SerializerProvider } from './context/serializer.context';
 import type { DecisionGraphEmptyType } from './dg-empty';
 import { DecisionGraphEmpty } from './dg-empty';
 import { DecisionGraphInferTypes } from './dg-infer';

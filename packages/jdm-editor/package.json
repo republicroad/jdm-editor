@@ -1,6 +1,6 @@
 {
   "name": "@gorules/jdm-editor",
-  "version": "1.51.3",
+  "version": "1.52.0",
   "description": "",
   "author": "GoRules <hi@gorules.io> (https://gorules.io)",
   "homepage": "https://github.com/gorules/jdm-editor",
@@ -47,7 +47,7 @@
     "@codemirror/view": "^6.36.5",
     "@gorules/lezer-zen": "0.8.1",
     "@gorules/lezer-zen-template": "0.4.0",
-    "@gorules/zen-engine-wasm": "^0.23.0",
+    "@gorules/zen-engine-wasm": "^0.23.1",
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",

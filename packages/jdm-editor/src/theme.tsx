@@ -1,5 +1,5 @@
 import type { ThemeConfig as AntThemeConfig } from 'antd';
-import { ConfigProvider, theme as antTheme, theme } from 'antd';
+import { App, ConfigProvider, theme as antTheme, theme } from 'antd';
 import React, { useContext, useMemo } from 'react';
 
 import { I18nProvider, type Locale } from './locales';
