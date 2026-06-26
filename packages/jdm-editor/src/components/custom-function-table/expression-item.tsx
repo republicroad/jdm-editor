@@ -402,8 +402,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   // 焦点重新获取函数列表
   const getList = (name: string) => {
     const type = name.split('_')[1];
-    if (name.includes('lexicon_list')) {
-      graphActions.handleEditorDomClick('lexicon_list', name);
+    if (name.includes('lexicon')) {
+      graphActions.handleEditorDomClick('lexicon', name);
       return;
     }
 
