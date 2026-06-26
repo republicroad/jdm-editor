@@ -4,6 +4,7 @@ import { Checkbox, Input, Select, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';
+import { type TranslationKey, useTranslation } from '../../../locales';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import type { CodeEditorRef } from '../../code-editor';
 import { CodeEditor } from '../../code-editor';
@@ -12,6 +13,12 @@ import { useDecisionTableState } from '../context/dt-store.context';
 import { ENUM_MODE_OPTIONS, type EnumMode, getEnumMode, parseEnumString, serializeEnumValues } from './enum-utils';
 import { FieldEditPopover } from './field-edit-popover';
 import { FieldTypeTags } from './field-type-tags';
+
+const ENUM_MODE_LABEL_KEYS: Record<EnumMode, TranslationKey> = {
+  none: 'enumMode_none',
+  inline: 'enumMode_inline',
+  ref: 'enumMode_ref',
+};
 
 type InputFieldEditProps = {
   disabled?: boolean;
@@ -40,6 +47,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
   trigger,
   onCreate,
 }) => {
+  const { t } = useTranslation();
   const dictionaries = useDecisionTableState((s) => s.dictionaries) ?? {};
   const uiMode = useDecisionTableState((s) => s.mode);
   const showAdvanced = uiMode === 'business';
@@ -124,7 +132,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
       mode={mode}
       trigger={trigger}
     >
-      <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>Input Field</Typography.Text>
+      <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>{t('inputField')}</Typography.Text>
       <CodeEditor
         ref={codeEditor}
         value={innerValue}
@@ -141,19 +149,19 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
       </div>
       {mode === 'create' && (
         <div style={{ marginTop: 12 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>Label</Typography.Text>
+          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>{t('label')}</Typography.Text>
           <Input
             ref={nameInput}
             value={innerName}
             onChange={(e) => setInnerName(e.target.value)}
-            placeholder='Field label'
+            placeholder={t('fieldLabelPlaceholder')}
             disabled={disabled}
           />
         </div>
       )}
       {showAdvanced && innerValue?.trim() && (
         <div style={{ marginTop: 16 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Type</Typography.Text>
+          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{t('type')}</Typography.Text>
           <FieldTypeTags
             options={COLUMN_FIELD_TYPE_OPTIONS}
             value={innerFieldType as ColumnFieldType['type']}
@@ -164,10 +172,12 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
       )}
       {showAdvanced && innerValue?.trim() && innerFieldType === 'string' && (
         <div style={{ marginTop: 12 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Enum</Typography.Text>
+          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{t('enum')}</Typography.Text>
           <FieldTypeTags
             options={
-              Object.keys(dictionaries).length ? ENUM_MODE_OPTIONS : ENUM_MODE_OPTIONS.filter((o) => o.value !== 'ref')
+              (Object.keys(dictionaries).length ? ENUM_MODE_OPTIONS : ENUM_MODE_OPTIONS.filter((o) => o.value !== 'ref')).map(
+                (o) => ({ ...o, label: t(ENUM_MODE_LABEL_KEYS[o.value]) }),
+              )
             }
             value={enumMode}
             onChange={setEnumMode}
@@ -184,7 +194,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
                 style={{ fontSize: 12 }}
               />
               <Typography.Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 2 }}>
-                One per line. Use {'"Label;value"'} format.
+                {t('enumInlineHelp')}
               </Typography.Text>
             </div>
           )}
@@ -193,7 +203,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
               <Select
                 value={enumRef || undefined}
                 onChange={setEnumRef}
-                placeholder='Select dictionary...'
+                placeholder={t('selectDictionary')}
                 disabled={disabled}
                 style={{ width: '100%' }}
                 size='small'
@@ -204,7 +214,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
           {enumMode !== 'none' && (
             <div style={{ marginTop: 8 }}>
               <Checkbox checked={enumLoose} onChange={(e) => setEnumLoose(e.target.checked)} disabled={disabled}>
-                <Typography.Text style={{ fontSize: 12 }}>Allow custom values</Typography.Text>
+                <Typography.Text style={{ fontSize: 12 }}>{t('allowCustomValues')}</Typography.Text>
               </Checkbox>
             </div>
           )}

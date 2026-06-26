@@ -106,6 +106,7 @@
     font-family: inherit;
     font-size: calc(var(--b-font-size) - 1px) !important;
     line-height: 1.4 !important;
+    min-height: calc((var(--b-font-size) - 1px) * 1.4) !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 4px !important;

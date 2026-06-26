@@ -775,9 +775,8 @@ const EnumValInput: React.FC<{
         <Select
           className='eb-enum'
           mode='tags'
-          maxCount={1}
           value={value?.type === 'string' && value.value ? [value.value] : []}
-          onChange={(v) => onChange({ type: 'string', value: v[0] ?? '' })}
+          onChange={(v) => onChange({ type: 'string', value: v[v.length - 1] ?? '' })}
           options={options}
           disabled={disabled}
           variant='borderless'
@@ -786,6 +785,7 @@ const EnumValInput: React.FC<{
           suffixIcon={null}
           showSearch
           filterOption={enumFilterOption}
+          tokenSeparators={[',']}
         />
       ) : (
         <Select

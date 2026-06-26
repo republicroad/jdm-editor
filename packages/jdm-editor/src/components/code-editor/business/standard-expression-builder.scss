@@ -43,6 +43,10 @@
 .seb-select {
   @include builder-select;
   flex: 1;
+
+  &.ant-select-multiple {
+    @include builder-select-multi;
+  }
 }
 
 .seb-select-multi {

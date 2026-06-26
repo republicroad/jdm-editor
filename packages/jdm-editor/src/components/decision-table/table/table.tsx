@@ -51,9 +51,8 @@ const loadColumnSizing = (id?: string) => {
   }
 };
 
-export const Table: React.FC<TableProps> = ({ id, maxHeight }) => {
-  const { t } = useTranslation();
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
 
   const setContainerRef = useCallback(
@@ -138,7 +137,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         size: colWidth,
       },
     ],
-    [permission, disabled, inputs, outputs, t],
+    [permission, disabled, inputs, outputs],
   );
 
   const table = useReactTable({

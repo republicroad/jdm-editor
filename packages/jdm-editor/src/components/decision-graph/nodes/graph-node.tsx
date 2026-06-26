@@ -75,7 +75,6 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       //       onClick: () => window.open(specification.documentationUrl, '_href'),
       //     }
       //   : null,
-      specification.documentationUrl ? { key: 'divider-1', type: 'divider' } : null,
       !displayError && {
         key: 'duplicate',
         disabled,

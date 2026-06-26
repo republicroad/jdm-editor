@@ -170,8 +170,17 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         {ftType === 'string' && enumOptions && (
           <Select
             className='seb-select'
-            value={parsed.kind === 'string' ? parsed.value : undefined}
-            onChange={(v) => onChange(formatStringValue(v))}
+            mode={enumOptions.loose ? 'tags' : undefined}
+            value={
+              enumOptions.loose
+                ? parsed.kind === 'string' && parsed.value
+                  ? [parsed.value]
+                  : []
+                : parsed.kind === 'string'
+                  ? parsed.value
+                  : undefined
+            }
+            onChange={(v) => onChange(formatStringValue(Array.isArray(v) ? (v[v.length - 1] ?? '') : v))}
             disabled={disabled}
             variant='borderless'
             size='small'
@@ -180,6 +189,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
             filterOption={enumFilterOption}
             popupMatchSelectWidth={false}
             options={enumOptions.values.map((v) => ({ label: v.label, value: v.value }))}
+            {...(enumOptions.loose ? { tokenSeparators: [','] } : {})}
           />
         )}
         {ftType === 'string-array' && (

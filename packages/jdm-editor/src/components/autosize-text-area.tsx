@@ -13,21 +13,28 @@ export type AutosizeTextAreaProps = {
   className?: string;
 } & Omit<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>, 'onChange' | 'placeholder'>;
 
+const getEditableText = (element: HTMLDivElement) => {
+  const text = element.innerText.replace(/\r\n/g, '\n');
+
+  return text.endsWith('\n') ? text.slice(0, -1) : text;
+};
+
 export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAreaProps>(
   ({ maxRows, className, value, onChange, placeholder, disabled, readOnly, style, ...props }, ref) => {
     const divRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-      if (divRef.current && divRef.current.textContent !== value) {
+      if (divRef.current && getEditableText(divRef.current) !== value) {
         divRef.current.textContent = value ?? '';
       }
     }, [value]);
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       if (onChange) {
+        const value = getEditableText(e.currentTarget);
         const syntheticEvent = {
-          target: { value: e.currentTarget.textContent ?? '' },
-          currentTarget: { value: e.currentTarget.textContent ?? '' },
+          target: { value },
+          currentTarget: { value },
         } as React.ChangeEvent<HTMLTextAreaElement>;
         onChange(syntheticEvent);
       }
