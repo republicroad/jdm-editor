@@ -130,6 +130,7 @@
   "sharedCounter": "Shared Counter",
   "httpRequest": "HTTP Request",
   "defaultOperator": "Default Operator",
+  "Sensitive":" Sensitive Library",
 
   "addRowAbove": "Add row above",
   "addRowBelow": "Add row below",

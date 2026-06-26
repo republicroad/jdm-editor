@@ -47,6 +47,11 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   const isCepModuleFunction = (funcmeta?: any) =>
     funcmeta?.kind === 'cep_module' || funcmeta?.namespace === 'cep_module';
 
+  const isLexiconListFunction = (funcmeta?: any) =>
+    funcmeta?.name === 'lexicon_list' ||
+    funcmeta?.kind === 'lexicon_list' ||
+    funcmeta?.namespace === 'lexicon_list';
+
   const getEnumOptions = (argDef?: any) => {
     if (!Array.isArray(argDef?.enum) || argDef.enum.length === 0) {
       return [];
@@ -397,6 +402,11 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   // 焦点重新获取函数列表
   const getList = (name: string) => {
     const type = name.split('_')[1];
+    if (name.includes('lexicon_list')) {
+      graphActions.handleEditorDomClick('lexicon_list', name);
+      return;
+    }
+
     name.includes('notify')&& graphActions.handleEditorDomClick(type, name);
     name.includes('list')&& graphActions.handleEditorDomClick(type, name);
     name.includes('counter')&& graphActions.handleEditorDomClick('counterDetail', name);
@@ -543,6 +553,37 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                         }
 
                         switch (argName) {
+                          case 'lexicon_id':
+                            if (isLexiconListFunction(currentFunctionInfo?.funcmeta)) {
+                              return (
+                                <Select
+                                  key={argName}
+                                  placeholder={placeholder}
+                                  style={{ minWidth: 120, width: 180 }}
+                                  value={value ? stripExpressionStringQuotes(value) : undefined}
+                                  options={menuList
+                                    ?.filter((option: any) => option.lexicon_id)
+                                    .map((option: any) => ({
+                                      value: String(option.lexicon_id),
+                                      label: option.lexicon_name || option.lexicon_id,
+                                    }))}
+                                  onChange={(nextValue) =>
+                                    inputChange({
+                                      value: JSON.stringify(nextValue),
+                                      type: currentFunctionInfo?.funcmeta?.name,
+                                      key: argName,
+                                    })
+                                  }
+                                  onFocus={() => {
+                                    getList(currentFunctionInfo?.funcmeta?.name || '');
+                                  }}
+                                  disabled={!configurable || disabled}
+                                />
+                              );
+                            }
+
+                            break;
+
                           case 'list_name':
                             return (
                               <AutoComplete
