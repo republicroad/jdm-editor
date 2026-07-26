@@ -45,6 +45,11 @@ export type {
 } from './simulator/simulation.types';
 
 export { nodeSpecification } from './nodes/specifications/specifications';
+export { inputSpecification } from './nodes/specifications/input.specification';
+export { outputSpecification } from './nodes/specifications/output.specification';
+export { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
+export { expressionSpecification } from './nodes/specifications/expression.specification';
+export { functionSpecification } from './nodes/specifications/function.specification';
 
 export { addStrikethrough, buildDiffString, compareAndUnifyLists, compareStringFields } from './diff/comparison';
 export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOptions } from './diff/utility';
@@ -57,4 +62,5 @@ export {
   type Diff,
   type Position,
   type DiffStatus,
+  type UserResolver,
 } from './dg-types';

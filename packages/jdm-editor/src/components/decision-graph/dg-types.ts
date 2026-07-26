@@ -59,3 +59,7 @@ export type DecisionGraphType = {
   nodes: DecisionNode[];
   edges: DecisionEdge[];
 };
+
+export type UserResolver = () => Promise<{
+  user?: string;
+}> | null;

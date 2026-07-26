@@ -23,7 +23,7 @@ export type DecisionGraphProps = {
 export type DecisionGraphRef = GraphRef;
 
 export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
-  ({ manager: _, reactFlowProOptions, tabBarExtraContent, ...props }, ref) => {
+  ({ manager: _, reactFlowProOptions, tabBarExtraContent, userResolver, ...props }, ref) => {
     return (
       <div className={clsx(['grl-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
         <ReactFlowProvider>
@@ -33,6 +33,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
                 ref={ref}
                 reactFlowProOptions={reactFlowProOptions}
                 tabBarExtraContent={tabBarExtraContent}
+                userResolver={userResolver}
               />
               <DecisionGraphInferTypes />
               <DecisionGraphEmpty {...props} />

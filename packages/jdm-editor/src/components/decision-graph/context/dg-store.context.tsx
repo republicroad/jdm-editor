@@ -76,6 +76,8 @@ export type DecisionGraphStoreType = {
 
     compactMode?: boolean;
 
+    user: string;
+
     dictionaries?: DictionaryMap;
     mode?: JdmUiMode;
 
@@ -167,6 +169,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         disabled: false,
         components: [],
         customNodes: [],
+        user: '',
         activePanel: undefined,
         panels: [],
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
