@@ -54,6 +54,8 @@ export { functionSpecification } from './nodes/specifications/function.specifica
 export { addStrikethrough, buildDiffString, compareAndUnifyLists, compareStringFields } from './diff/comparison';
 export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOptions } from './diff/utility';
 
+export { TabRequest, type TabRequestProps } from './graph/tab-request';
+
 export {
   type DecisionEdge,
   type DecisionNode,
@@ -64,3 +66,22 @@ export {
   type DiffStatus,
   type UserResolver,
 } from './dg-types';
+
+export {
+  type RequestDefinition,
+  type RequestDefinitionType,
+  type RequestExampleSource,
+  getRequestDefinitions,
+  getRequestExampleSources,
+  getRequestSchemaSourceValue,
+  stringifyRequestSchemaValue,
+  resolveRequestSchemaValue,
+  buildRequestSchemaFromDefinitions,
+  buildRequestExampleTemplateFromDefinitions,
+  updateRequestSchemaExamples,
+  normalizeRequestDefinitionOrders,
+  normalizeRequestFieldKey,
+  normalizeRequestJsonKeys,
+} from '../../helpers/request-schema';
+
+export { jsonSchemaToVariableType } from '../../helpers/json-schema';
