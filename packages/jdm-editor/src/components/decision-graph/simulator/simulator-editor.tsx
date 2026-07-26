@@ -65,6 +65,7 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
         fontFamily: 'var(--mono-font-family)',
         tabSize: 2,
         lineDecorationsWidth: 2,
+        padding: { top: 0 },
         find: {
           addExtraSpaceOnTop: false,
           seedSearchStringFromSelection: 'never',

@@ -155,7 +155,37 @@
       &__content {
         flex: 1;
         overflow-y: auto;
+
+        &--request {
+          position: relative;
+          overflow: hidden;
+        }
       }
+    }
+
+    &__request-editor {
+      height: 100%;
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        filter 0.22s ease;
+
+      &--switching {
+        opacity: 0.42;
+        transform: scale(0.995);
+        filter: saturate(0.9);
+      }
+    }
+
+    &__request-switching {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      animation: grl-simulator-request-switching-in 0.22s ease;
+      z-index: 2;
     }
 
     &__request {
@@ -758,7 +788,6 @@
     font-size: 13px;
   }
 }
-
 @keyframes grl-simulator-request-switching-in {
   from {
     opacity: 0;
