@@ -50,6 +50,12 @@ export type SetDecisionGraphOptions = {
   skipOnChangeEvent?: boolean;
 };
 
+export type SimulatorExampleBinding = {
+  nodeId: string;
+  sourceIndex: number;
+  sourceName?: string;
+} | null;
+
 export type DecisionGraphStoreType = {
   state: {
     id?: string;
@@ -77,6 +83,9 @@ export type DecisionGraphStoreType = {
     compactMode?: boolean;
 
     user: string;
+
+    simulatorRequest?: string;
+    simulatorExampleBinding?: SimulatorExampleBinding;
 
     dictionaries?: DictionaryMap;
     mode?: JdmUiMode;
@@ -124,6 +133,9 @@ export type DecisionGraphStoreType = {
 
     setNodeType: (id: string, kind: NodeTypeKind, vt: VariableType) => void;
     removeNodeType: (id: string, kind?: NodeTypeKind) => void;
+
+    setSimulatorRequest: (req: string) => void;
+    setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
 
     triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;
   };
@@ -610,6 +622,12 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         });
 
         stateStore.setState({ nodeTypes: newNodeTypes });
+      },
+      setSimulatorRequest: (req) => {
+        stateStore.setState({ simulatorRequest: req });
+      },
+      setSimulatorExampleBinding: (binding) => {
+        stateStore.setState({ simulatorExampleBinding: binding });
       },
       triggerNodeSelect: (id, mode) => {
         const { decisionGraph } = stateStore.getState();
