@@ -74,9 +74,30 @@ export const inputNodeSchema = z
           .string()
           .nullish()
           .transform((val) => val ?? ''),
+        fields: z
+          .array(
+            z.object({
+              field: z.string(),
+              label: z.string().optional(),
+              type: z.enum(['string', 'number', 'boolean', 'array', 'object']).optional(),
+            }),
+          )
+          .optional()
+          .default([]),
+        example: z
+          .string()
+          .nullish()
+          .transform((val) => val ?? ''),
+        jsonSchema: z
+          .string()
+          .nullish()
+          .transform((val) => val ?? ''),
       })
       .default({
         schema: '',
+        fields: [],
+        example: '',
+        jsonSchema: '',
       }),
   })
   .merge(nodeCommon);

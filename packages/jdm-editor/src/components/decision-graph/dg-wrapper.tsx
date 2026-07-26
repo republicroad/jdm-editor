@@ -154,6 +154,14 @@ const TabContents: React.FC = React.memo(() => {
                 ?? outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
             .otherwise(() => {
+              const kind = (node as any)?.content?.kind;
+              if (kind) {
+                const customSpec = customNodes?.find((n) => n.kind === kind);
+                if (customSpec?.renderTab) {
+                  return customSpec.renderTab({ id: node.id, manager: dndManager, user });
+                }
+              }
+
               const component = components.find((cmp) => cmp.type === node.type);
               if (component) {
                 return component?.renderTab?.({ id: node.id, manager: dndManager, user });

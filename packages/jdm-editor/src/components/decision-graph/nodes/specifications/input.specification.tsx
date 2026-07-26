@@ -32,6 +32,9 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     name: 'request',
     content: {
       schema: '',
+      fields: [],
+      example: '',
+      jsonSchema: '',
     },
   }),
   renderTab: ({ id, manager }) => <TabJsonSchema id={id} manager={manager} type={'input'} />,

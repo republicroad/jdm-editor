@@ -33,7 +33,7 @@ export type CustomNodeSpecification<Data extends object, Component extends strin
   group?: string;
   documentationUrl?: string;
   shortDescription?: string;
-  renderTab?: (props: { id: string; manager?: DragDropManager }) => React.ReactNode;
+  renderTab?: (props: { id: string; manager?: DragDropManager; user?: string }) => React.ReactNode;
   calculateDiff?: (current: any, previous: any) => [any, any];
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode, 'position' | 'id' | 'type' | 'content'> & {
     config?: Data;
@@ -99,6 +99,7 @@ export type BaseNode<
   handleLeft?: boolean;
   handleRight?: boolean;
   inputs?: [...Inputs];
+  renderTab?: CustomNodeSpecification<NodeData, Component>['renderTab'];
   generateNode?: CustomNodeSpecification<NodeData, Component>['generateNode'];
   renderNode?: CustomNodeSpecification<NodeData, Component>['renderNode'];
   onNodeAdd?: CustomNodeSpecification<NodeData, Component>['onNodeAdd'];
@@ -118,6 +119,7 @@ export const createJdmNode = <
     displayName: n.displayName,
     group: n.group,
     shortDescription: n.shortDescription,
+    renderTab: n.renderTab,
     generateNode:
       n.generateNode ||
       (({ index }) => ({
