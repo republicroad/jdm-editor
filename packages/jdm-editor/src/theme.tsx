@@ -2,6 +2,8 @@ import type { ThemeConfig as AntThemeConfig } from 'antd';
 import { App, ConfigProvider, theme as antTheme, theme } from 'antd';
 import React, { useContext, useMemo } from 'react';
 
+import { I18nProvider, type Locale } from './locales';
+
 import { useWasmReady } from './helpers/wasm';
 
 declare module 'antd/es/theme/interface/alias' {
@@ -28,6 +30,7 @@ export const DictionaryProvider: React.FC<React.PropsWithChildren<{ value: Dicti
 export type JdmConfigProviderProps = {
   theme?: ThemeConfig;
   prefixCls?: string;
+  locale?: Locale;
   dictionaries?: DictionaryMap;
   children?: React.ReactNode;
 };
@@ -35,6 +38,7 @@ export type JdmConfigProviderProps = {
 export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   theme: { mode = 'light' as const, token = {}, ...restTheme } = {},
   prefixCls,
+  locale = 'zh',
   dictionaries,
   children,
 }) => {
@@ -54,12 +58,14 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 
   return (
     <ConfigProvider prefixCls={prefixCls} theme={{ ...restTheme, algorithm, token: { ...token, mode, motion: false } }}>
-      <DictionaryContext.Provider value={dicts}>
-        <App style={{ height: '100%' }}>
-          <GlobalCssVariables mode={mode} />
-          {children}
-        </App>
-      </DictionaryContext.Provider>
+      <I18nProvider locale={locale}>
+        <DictionaryContext.Provider value={dicts}>
+          <App style={{ height: '100%' }}>
+            <GlobalCssVariables mode={mode} />
+            {children}
+          </App>
+        </DictionaryContext.Provider>
+      </I18nProvider>
     </ConfigProvider>
   );
 };
