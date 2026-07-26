@@ -1,16 +1,27 @@
 import { InfoCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Tooltip, Typography, notification } from 'antd';
+import { Button, Modal, Spin, Tooltip, Typography, message, notification } from 'antd';
 import json5 from 'json5';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+import {
+  formatRequestExampleSourceName,
+  getRequestDefinitions,
+  getRequestExampleDataDefinitionConflicts,
+  getRequestExampleSources,
+  normalizeRequestJsonKeys,
+  normalizeRequestExampleDataByDefinitions,
+  prepareRequestExampleDataDefinitionSync,
+  resolveRequestSchemaValue,
+  setRequestSchemaValue,
+  updateRequestSchemaExamples,
+} from '../../../helpers/request-schema';
+import { useTranslation } from '../../../locales';
 import { isWasmAvailable } from '../../../helpers/wasm';
-import { NodeTypeKind, useDecisionGraphRaw } from '../context/dg-store.context';
+import { copyToClipboard } from '../../../helpers/utility';
+import { NodeTypeKind, useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
-
-const requestTooltip =
-  'Your business context that enters through the Request node, starting the decision process. Supply JSON or JSON5 format.';
 
 export type SimulatorRequestPanelProps = {
   defaultRequest?: string;
@@ -27,8 +38,159 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   onRun,
   defaultRequest,
 }) => {
+  const { t } = useTranslation();
   const [requestValue, setRequestValue] = useState(defaultRequest);
+  const [userHasEdited, setUserHasEdited] = useState(false);
+  const [isApplyingExternalRequest, setIsApplyingExternalRequest] = useState(false);
+  const switchAnimationTimerRef = useRef<number | null>(null);
+  const previousBindingIdentityRef = useRef<string | null>(null);
+  const previousSimulatorRequestRef = useRef<string | undefined>(undefined);
   const { stateStore, actions } = useDecisionGraphRaw();
+
+  const { simulatorRequest, simulatorExampleBinding, inputNodeContent, inputNodeId } = useDecisionGraphState(
+    ({ simulatorRequest, simulatorExampleBinding, decisionGraph }) => {
+    // 获取输入节点的内容
+      const inputNode = decisionGraph?.nodes?.find((n) => n.type === 'inputNode');
+      return {
+        simulatorRequest,
+        simulatorExampleBinding,
+        inputNodeContent: inputNode?.content,
+        inputNodeId: inputNode?.id,
+      };
+    },
+  );
+  const requestSources = useMemo(
+    () => getRequestExampleSources(inputNodeContent, { dataLabel: t('requestDataLabel') }),
+    [inputNodeContent, t],
+  );
+  const boundRequestSourceIndex = useMemo(() => {
+    if (!simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
+      return -1;
+    }
+
+    return requestSources[simulatorExampleBinding.sourceIndex] ? simulatorExampleBinding.sourceIndex : -1;
+  }, [inputNodeId, requestSources, simulatorExampleBinding]);
+  const defaultRequestSourceIndex =
+    boundRequestSourceIndex >= 0 ? boundRequestSourceIndex : requestSources.length > 0 ? 0 : -1;
+  const defaultRequestSource =
+    defaultRequestSourceIndex >= 0 ? requestSources[defaultRequestSourceIndex] : undefined;
+  const resolvedSimulatorExampleBinding = useMemo(() => {
+    if (!inputNodeId || defaultRequestSourceIndex < 0 || !defaultRequestSource) {
+      return null;
+    }
+
+    return {
+      nodeId: inputNodeId,
+      sourceIndex: defaultRequestSourceIndex,
+      sourceName: defaultRequestSource.name,
+    };
+  }, [defaultRequestSource, defaultRequestSourceIndex, inputNodeId]);
+  const currentBindingIdentity = useMemo(
+    () =>
+      simulatorExampleBinding
+        ? `${simulatorExampleBinding.nodeId}:${simulatorExampleBinding.sourceIndex}`
+        : null,
+    [simulatorExampleBinding],
+  );
+  useEffect(
+    () => () => {
+      if (switchAnimationTimerRef.current !== null) {
+        window.clearTimeout(switchAnimationTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const previousBindingIdentity = previousBindingIdentityRef.current;
+    const hasSwitchedExampleSource =
+      currentBindingIdentity !== null && currentBindingIdentity !== previousBindingIdentity;
+    previousBindingIdentityRef.current = currentBindingIdentity;
+
+    if (!hasSwitchedExampleSource) {
+      return;
+    }
+
+    if (switchAnimationTimerRef.current !== null) {
+      window.clearTimeout(switchAnimationTimerRef.current);
+    }
+
+    setIsApplyingExternalRequest(true);
+    switchAnimationTimerRef.current = window.setTimeout(() => {
+      setIsApplyingExternalRequest(false);
+      switchAnimationTimerRef.current = null;
+    }, 320);
+  }, [currentBindingIdentity]);
+
+  useEffect(() => {
+    if (simulatorRequest === undefined || simulatorRequest === previousSimulatorRequestRef.current) {
+      return;
+    }
+
+    previousSimulatorRequestRef.current = simulatorRequest;
+    setRequestValue(simulatorRequest);
+    setUserHasEdited(true);
+    onChange?.(simulatorRequest);
+
+    if (import.meta.env.DEV) {
+      console.log('[simulator-request] applied external simulatorRequest', {
+        simulatorRequest,
+      });
+    }
+  }, [onChange, simulatorRequest]);
+
+  useEffect(() => {
+    if (defaultRequest !== undefined && defaultRequest !== requestValue) {
+      setRequestValue(defaultRequest);
+    }
+  }, [defaultRequest]);
+
+  useEffect(() => {
+    if (!defaultRequestSource) {
+      return;
+    }
+
+    if (
+      inputNodeId &&
+      defaultRequestSourceIndex >= 0 &&
+      resolvedSimulatorExampleBinding &&
+      (simulatorExampleBinding?.nodeId !== inputNodeId ||
+        simulatorExampleBinding.sourceIndex !== defaultRequestSourceIndex ||
+        simulatorExampleBinding.sourceName !== defaultRequestSource.name)
+    ) {
+      actions.setSimulatorExampleBinding(resolvedSimulatorExampleBinding);
+    }
+
+    if (userHasEdited) {
+      return;
+    }
+
+    const formattedContent = JSON.stringify(defaultRequestSource.data, null, 2);
+    if (formattedContent && formattedContent !== requestValue) {
+      setRequestValue(formattedContent);
+      actions.setSimulatorRequest(formattedContent);
+      onChange?.(formattedContent);
+
+      if (import.meta.env.DEV) {
+        console.log('[simulator-request] synced default request source', {
+          source: defaultRequestSource,
+          binding: simulatorExampleBinding,
+          sourceIndex: defaultRequestSourceIndex,
+          formattedContent,
+        });
+      }
+    }
+  }, [
+    actions,
+    defaultRequestSource,
+    defaultRequestSourceIndex,
+    inputNodeId,
+    onChange,
+    requestValue,
+    resolvedSimulatorExampleBinding,
+    simulatorExampleBinding,
+    userHasEdited,
+  ]);
 
   useEffect(() => {
     if (!isWasmAvailable()) {
@@ -49,24 +211,442 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     }
   }, [requestValue]);
 
+  const savePreparedRequestToExampleSource = ({
+    activeExampleBinding,
+    preparedParsed,
+    triggeredBy,
+    showSuccessMessage = true,
+  }: {
+    activeExampleBinding: NonNullable<typeof resolvedSimulatorExampleBinding>;
+    preparedParsed: Record<string, unknown>;
+    triggeredBy: 'manual-save';
+    showSuccessMessage?: boolean;
+  }) => {
+    const { decisionGraph } = stateStore.getState();
+    const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
+
+    if (!targetNode) {
+      message.error(t('simulatorBoundRequestNodeNotFound'));
+      return null;
+    }
+
+    const currentSources = getRequestExampleSources(targetNode.content, { dataLabel: t('requestDataLabel') });
+    const currentBoundSource = currentSources[activeExampleBinding.sourceIndex];
+    const formatted = JSON.stringify(preparedParsed, null, 2);
+
+    if (currentBoundSource && JSON.stringify(currentBoundSource.data) === JSON.stringify(preparedParsed)) {
+      if (import.meta.env.DEV) {
+        console.log('[simulator-request] skipped saving unchanged example source', {
+          binding: activeExampleBinding,
+          triggeredBy,
+        });
+      }
+
+      if (showSuccessMessage) {
+        message.success(t('requestDataSourceSaved'));
+      }
+
+      return {
+        context: preparedParsed,
+        formatted,
+      };
+    }
+
+    const nextSources = [...currentSources];
+
+    while (nextSources.length <= activeExampleBinding.sourceIndex) {
+      nextSources.push({
+        id: crypto.randomUUID(),
+        name: formatRequestExampleSourceName(nextSources.length, t('requestDataLabel')),
+        data: {},
+        source: 'schema.examples',
+      });
+    }
+
+    nextSources[activeExampleBinding.sourceIndex] = {
+      ...nextSources[activeExampleBinding.sourceIndex],
+      id: nextSources[activeExampleBinding.sourceIndex]?.id ?? crypto.randomUUID(),
+      name:
+        activeExampleBinding.sourceName ??
+        nextSources[activeExampleBinding.sourceIndex]?.name ??
+        formatRequestExampleSourceName(activeExampleBinding.sourceIndex, t('requestDataLabel')),
+      data: preparedParsed,
+      source: 'schema.examples',
+    };
+
+    actions.updateNode(activeExampleBinding.nodeId, (draft) => {
+      draft.content ??= {};
+      if (draft.type === 'inputNode') {
+        const currentSchema = resolveRequestSchemaValue(draft.content, { includeExamples: true });
+        setRequestSchemaValue(
+          draft.content as Record<string, any>,
+          updateRequestSchemaExamples(currentSchema, nextSources.map((source) => source.data)),
+        );
+      } else {
+        draft.content.schema = updateRequestSchemaExamples(
+          draft.content?.schema,
+          nextSources.map((source) => source.data),
+        );
+      }
+      return draft;
+    });
+
+    setRequestValue(formatted);
+    setUserHasEdited(true);
+    onChange?.(formatted);
+    actions.setSimulatorRequest(formatted);
+    actions.setSimulatorExampleBinding({
+      ...activeExampleBinding,
+      sourceName: nextSources[activeExampleBinding.sourceIndex]?.name,
+    });
+
+    if (import.meta.env.DEV) {
+      console.log('[simulator-request] saved simulator request to bound example source', {
+        binding: activeExampleBinding,
+        preparedParsed,
+        currentBoundSource,
+        nextSources,
+        triggeredBy,
+      });
+    }
+
+    if (showSuccessMessage) {
+      message.success(t('requestDataSourceSaved'));
+    }
+
+    return {
+      context: preparedParsed,
+      formatted,
+    };
+  };
+
+  const persistRequestToExampleSource = (options?: {
+    silentWhenUnbound?: boolean;
+    showSuccessMessage?: boolean;
+    requestValueOverride?: string;
+    silentOnError?: boolean;
+    validateDefinitionTypes?: boolean;
+    triggeredBy?: 'manual-save';
+  }) => {
+    const {
+      silentWhenUnbound = false,
+      showSuccessMessage = true,
+      requestValueOverride,
+      silentOnError = false,
+      validateDefinitionTypes = false,
+      triggeredBy = 'manual-save',
+    } = options ?? {};
+
+    const activeExampleBinding = resolvedSimulatorExampleBinding;
+
+    if (!activeExampleBinding) {
+      if (!silentWhenUnbound) {
+        message.warning(t('requestSelectDataSourceFirst'));
+      }
+      return null;
+    }
+
+    try {
+      const sourceRequestValue = requestValueOverride ?? requestValue;
+      const parsed =
+        (sourceRequestValue || '').trim().length === 0 ? {} : json5.parse(sourceRequestValue || '{}');
+
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        if (!silentOnError) {
+          message.error(t('simulatorRequestMustBeObjectToSave'));
+        }
+        return null;
+      }
+
+      const { decisionGraph } = stateStore.getState();
+      const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
+
+      if (!targetNode) {
+        if (!silentOnError) {
+          message.error(t('simulatorBoundRequestNodeNotFound'));
+        }
+        return null;
+      }
+
+      const requestDefinitions = getRequestDefinitions(targetNode.content);
+      const parsedRecord = parsed as Record<string, unknown>;
+      const definitionTypeConflicts = validateDefinitionTypes
+        ? getRequestExampleDataDefinitionConflicts(parsedRecord, requestDefinitions)
+        : [];
+
+      if (definitionTypeConflicts.length > 0) {
+        if (!silentOnError) {
+          message.warning(t('requestDataTypeMismatchWarning'));
+        }
+        return null;
+      }
+
+      const preparedParsed = normalizeRequestExampleDataByDefinitions(parsedRecord, requestDefinitions);
+
+      return savePreparedRequestToExampleSource({
+        activeExampleBinding,
+        preparedParsed,
+        triggeredBy,
+        showSuccessMessage,
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[simulator-request] failed to save simulator request to example source', {
+          binding: activeExampleBinding,
+          requestValue,
+          error,
+          triggeredBy,
+        });
+      }
+
+      if (!silentOnError) {
+        message.error(t('requestSaveDataSourceFailed'));
+      }
+      return null;
+    }
+  };
+
+  const getRequestValueTypeLabel = (value: unknown) => {
+    if (Array.isArray(value)) {
+      return t('requestTypeArray');
+    }
+
+    if (value === null) {
+      return 'null';
+    }
+
+    switch (typeof value) {
+      case 'number':
+        return t('requestTypeNumber');
+      case 'boolean':
+        return t('requestTypeBoolean');
+      case 'object':
+        return t('requestTypeObject');
+      default:
+        return t('requestTypeString');
+    }
+  };
+
+  const getDefinitionTypeLabel = (type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'datetime') => {
+    switch (type) {
+      case 'number':
+        return t('requestTypeNumber');
+      case 'boolean':
+        return t('requestTypeBoolean');
+      case 'array':
+        return t('requestTypeArray');
+      case 'object':
+        return t('requestTypeObject');
+      case 'datetime':
+        return t('requestTypeDatetime');
+      default:
+        return t('requestTypeString');
+    }
+  };
+
+  const syncDefinitionsToExampleSource = (options?: { forceResetConflicts?: boolean }) => {
+    const activeExampleBinding = resolvedSimulatorExampleBinding;
+    const forceResetConflicts = options?.forceResetConflicts ?? false;
+
+    if (!activeExampleBinding) {
+      message.warning(t('requestSelectDataSourceFirst'));
+      return null;
+    }
+
+    try {
+      const parsed = (requestValue || '').trim().length === 0 ? {} : json5.parse(requestValue || '{}');
+
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        message.error(t('simulatorRequestMustBeObjectToSave'));
+        return null;
+      }
+
+      const { decisionGraph } = stateStore.getState();
+      const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
+
+      if (!targetNode) {
+        message.error(t('simulatorBoundRequestNodeNotFound'));
+        return null;
+      }
+
+      const requestDefinitions = getRequestDefinitions(targetNode.content);
+      const validDefinitions = requestDefinitions.filter(
+        (definition) => definition.name.trim() && definition.path.trim(),
+      );
+      const parsedRecord = parsed as Record<string, unknown>;
+      const syncResult =
+        validDefinitions.length > 0
+          ? prepareRequestExampleDataDefinitionSync(parsedRecord, validDefinitions, {
+              forceResetConflicts,
+            })
+          : {
+              data: {},
+              conflicts: [],
+            };
+
+      if (!forceResetConflicts && syncResult.conflicts.length > 0) {
+        Modal.confirm({
+          title: t('requestDefinitionSyncTypeChangeConfirmTitle'),
+          content: (
+            <div>
+              <Typography.Paragraph style={{ marginBottom: 8 }}>
+                {t('requestDefinitionSyncTypeChangeConfirmDescription')}
+              </Typography.Paragraph>
+              {syncResult.conflicts.map((conflict) => (
+                <Typography.Text key={`${conflict.path}-${conflict.nextType}`} style={{ display: 'block' }}>
+                  {`${conflict.path}: ${getRequestValueTypeLabel(conflict.value)} -> ${getDefinitionTypeLabel(conflict.nextType)}`}
+                </Typography.Text>
+              ))}
+            </div>
+          ),
+          okText: t('confirm'),
+          cancelText: t('cancel'),
+          onOk: () => {
+            syncDefinitionsToExampleSource({ forceResetConflicts: true });
+          },
+        });
+        return null;
+      }
+
+      const formatted = JSON.stringify(syncResult.data, null, 2);
+      setRequestValue(formatted);
+      setUserHasEdited(true);
+      onChange?.(formatted);
+      actions.setSimulatorRequest(formatted);
+      message.success(t('requestSyncDefinitionsSuccess'));
+
+      if (import.meta.env.DEV) {
+        console.log('[simulator-request] synced definitions to simulator draft', {
+          binding: activeExampleBinding,
+          syncedData: syncResult.data,
+        });
+      }
+
+      return {
+        context: syncResult.data,
+        formatted,
+      };
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[simulator-request] failed to sync definitions to example source', {
+          binding: activeExampleBinding,
+          requestValue,
+          error,
+        });
+      }
+
+      message.error(t('requestSyncDefinitionsFailed'));
+      return null;
+    }
+  };
+
   return (
     <>
       <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--request'}>
-        <Tooltip title={requestTooltip}>
+        <Tooltip title={t('requestDescription')}>
           <Typography.Text style={{ fontSize: 13, cursor: 'help' }}>
-            Request
+            {t('request')}
             <InfoCircleOutlined style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }} />
           </Typography.Text>
         </Tooltip>
         <div className={'grl-dg__simulator__section__bar__actions'}>
+          {/* {inputNodeContent && userHasEdited && (
+            <Tooltip title={t('resyncInputNodeContent')}>
+              <Button
+                size={'small'}
+                type={'text'}
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  try {
+                    const formattedContent = fJson(inputNodeContent);
+                    if (formattedContent) {
+                      setRequestValue(formattedContent);
+                      setUserHasEdited(false);
+                      onChange?.(formattedContent);
+                    }
+                  } catch (error) {
+                    console.warn('Failed to sync input node content:', error);
+                  }
+                }}
+              />
+            </Tooltip>
+          )} */}
           {onRun && (
             <Tooltip
               title={
                 !hasInputNode
-                  ? 'Request node is required to run the graph. Drag-and-drop it from the Components panel.'
+                  ? t('requestNodeRequired')
                   : undefined
               }
             >
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{ marginRight: 8 }}
+                onClick={() => {
+                  try {
+                    const parsed = json5.parse(requestValue || '');
+                    const normalizedParsed = normalizeRequestJsonKeys(parsed);
+                    const formatted = JSON.stringify(normalizedParsed, null, 2);
+                    setRequestValue(formatted);
+                    setUserHasEdited(true);
+                    actions.setSimulatorRequest(formatted);
+                    onChange?.(formatted);
+                    message.success(t('formatSuccess'));
+                  } catch {
+                    message.error(t('formatFailed'));
+                  }
+                }}
+              >
+                {t('format')}
+              </Button>
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{ marginRight: 8 }}
+                disabled={!hasInputNode || !resolvedSimulatorExampleBinding}
+                onClick={() => syncDefinitionsToExampleSource()}
+              >
+                {t('requestSyncDefinitions')}
+              </Button>
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{ marginRight: 8 }}
+                disabled={!hasInputNode}
+                onClick={() => {
+                  persistRequestToExampleSource({
+                    validateDefinitionTypes: true,
+                  });
+                }}
+              >
+                {t('requestSaveDataSource')}
+              </Button>
+              <Button
+                size={'small'}
+                type={'default'}
+                style={{ marginRight: 8 }}
+                onClick={async () => {
+                  try {
+                    if (!requestValue || requestValue.trim().length === 0) {
+                      message.warning(t('nothingToCopy'));
+                      return;
+                    }
+
+                    // 验证并复制JSON（不格式化，保持原样）
+                    const parsed = json5.parse(requestValue);
+                    const jsonString = JSON.stringify(parsed);
+
+                    // 复制到剪贴板
+                    await copyToClipboard(jsonString);
+                    message.success(t('copiedToClipboard'));
+                  } catch {
+                    message.error(t('copyFailedInvalidJson'));
+                  }
+                }}
+              >
+                {t('copyJson')}
+              </Button>
               <Button
                 size={'small'}
                 type={'primary'}
@@ -76,30 +656,54 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                 onClick={() => {
                   try {
                     const parsed = (requestValue || '').trim().length === 0 ? null : json5.parse(requestValue || '');
-                    onRun?.({ graph: stateStore.getState().decisionGraph, context: parsed });
+                    const hasRequestDefinitions = getRequestDefinitions(inputNodeContent).length > 0;
+                    const hasRequestSchema = Boolean(resolveRequestSchemaValue(inputNodeContent));
+
+                    if ((hasRequestDefinitions || hasRequestSchema) && parsed === null) {
+                      message.warning(t('requestDataRequiredBeforeRun'));
+                      return;
+                    }
+
+                    onRun?.({
+                      graph: stateStore.getState().decisionGraph,
+                      context: parsed,
+                    });
                   } catch {
                     notification.error({
-                      message: 'Invalid format',
-                      description: 'Unable to format request, invalid JSON format',
+                      message: t('requestInvalidFormatTitle'),
+                      description: t('requestInvalidFormatDescription'),
                       placement: 'top',
                     });
                   }
                 }}
               >
-                Run
+                {t('run')}
               </Button>
             </Tooltip>
           )}
         </div>
       </div>
-      <div className={'grl-dg__simulator__section__content'}>
-        <SimulatorEditor
-          value={requestValue}
-          onChange={(text) => {
-            setRequestValue(text);
-            onChange?.(text ?? '');
-          }}
-        />
+      <div className={'grl-dg__simulator__section__content grl-dg__simulator__section__content--request'}>
+        <div
+          className={`grl-dg__simulator__request-editor ${
+            isApplyingExternalRequest ? 'grl-dg__simulator__request-editor--switching' : ''
+          }`}
+        >
+          <SimulatorEditor
+            value={requestValue}
+            onChange={(text) => {
+              setRequestValue(text);
+              setUserHasEdited(true);
+              actions.setSimulatorRequest(text ?? '');
+              onChange?.(text ?? '');
+            }}
+          />
+        </div>
+        {isApplyingExternalRequest && (
+          <div className='grl-dg__simulator__request-switching'>
+            <Spin size='small' />
+          </div>
+        )}
       </div>
     </>
   );
