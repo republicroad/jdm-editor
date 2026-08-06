@@ -1,3 +1,5 @@
+/// <reference path="../../../lezer-zen.d.ts" />
+
 import {
   type Completion,
   type CompletionContext,

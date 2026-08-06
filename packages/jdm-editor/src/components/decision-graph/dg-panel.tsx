@@ -53,7 +53,8 @@ export const GraphPanel: React.FC = () => {
     }
 
     if (
-      simulatorExampleBinding?.nodeId === inputNodeId &&
+      simulatorExampleBinding &&
+      simulatorExampleBinding.nodeId === inputNodeId &&
       simulatorExampleBinding.sourceIndex >= 0 &&
       simulatorExampleBinding.sourceIndex < simulatorRequestSources.length
     ) {
