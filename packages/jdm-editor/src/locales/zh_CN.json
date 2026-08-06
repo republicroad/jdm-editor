@@ -55,7 +55,7 @@
   "removeRow": "移除行？",
   "editTable": "Edit Table",
   "editFunction": "Edit Function",
-  "editExpression": "Edit Expression",
+  "editExpression": "编辑表达式",
   "editRequest": "Edit Request",
 
   "importJson": "导入 JSON",
@@ -130,7 +130,7 @@
   "sharedCounter": "共享计数器",
   "httpRequest": "HTTP请求",
   "defaultOperator": "默认算子",
-  "Sensitive":"敏感词库",
+  "Sensitive": "敏感词库",
 
   "addRowAbove": "在上方添加行",
   "addRowBelow": "在下方添加行",

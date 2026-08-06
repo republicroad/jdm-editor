@@ -8,14 +8,15 @@ import { match } from 'ts-pattern';
 
 import { useDecisionGraphRaw, useDecisionGraphState } from './context/dg-store.context';
 import { GraphPanel } from './dg-panel';
-import './dg.scss';
 import type { UserResolver } from './dg-types';
+import './dg.scss';
 import type { GraphRef } from './graph/graph';
 import { Graph } from './graph/graph';
 import { GraphNodes } from './graph/graph-nodes';
 import { GraphSideToolbar } from './graph/graph-side-toolbar';
 import type { GraphTabsProps } from './graph/graph-tabs';
 import { GraphTabs } from './graph/graph-tabs';
+import { CustomFunctionTable } from './graph/tab-custom-function-table';
 import { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
 import { expressionSpecification } from './nodes/specifications/expression.specification';
 import { functionSpecification } from './nodes/specifications/function.specification';
@@ -27,6 +28,7 @@ export type DecisionGraphWrapperProps = {
   reactFlowProOptions?: ProOptions;
   tabBarExtraContent?: GraphTabsProps['tabBarExtraContent'];
   userResolver?: UserResolver;
+  customFunctions?: any;
 };
 
 const ResolveUserEffect: React.FC<{ userResolver?: UserResolver }> = ({ userResolver }) => {
@@ -62,7 +64,7 @@ const ResolveUserEffect: React.FC<{ userResolver?: UserResolver }> = ({ userReso
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent, userResolver },
+    { reactFlowProOptions, tabBarExtraContent, userResolver, customFunctions },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -90,7 +92,7 @@ export const DecisionGraphWrapper = React.memo(
             onDisableTabs={setDisableTabs}
           />
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'active'])} />
-          <TabContents />
+          <TabContents customFunctions={customFunctions} />
         </div>
         <GraphPanel />
       </>
@@ -98,14 +100,18 @@ export const DecisionGraphWrapper = React.memo(
   }),
 );
 
-const TabContents: React.FC = React.memo(() => {
+const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFunctions }) => {
   const { openNodes, activeNodeId, components, user, customNodes } = useDecisionGraphState(
     ({ decisionGraph, openTabs, activeTab, components, user, customNodes }) => {
       const activeNodeId = (decisionGraph?.nodes ?? []).find((node) => node.id === activeTab)?.id;
       const openNodes = (decisionGraph?.nodes ?? []).filter((node) => openTabs.includes(node.id));
 
       return {
-        openNodes: openNodes.map(({ id, type }) => ({ id, type })),
+        openNodes: openNodes.map(({ id, type, content }) => ({
+          id,
+          type,
+          kind: (content as { kind?: unknown } | undefined)?.kind,
+        })),
         activeNodeId,
         components,
         user,
@@ -115,10 +121,7 @@ const TabContents: React.FC = React.memo(() => {
   );
 
   const specOverrides = useMemo(() => {
-    return components?.reduce(
-      (acc, c) => ({ ...acc, [c.type]: c }),
-      {} as Record<string, NodeSpecification>,
-    ) ?? {};
+    return components?.reduce((acc, c) => ({ ...acc, [c.type]: c }), {} as Record<string, NodeSpecification>) ?? {};
   }, [components]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -133,38 +136,59 @@ const TabContents: React.FC = React.memo(() => {
       {openNodes.map((node) => (
         <div key={node?.id} className={clsx(['tab-content', activeNodeId === node?.id && 'active'])}>
           {match(node?.type)
-            .with(NodeKind.DecisionTable, () =>
-              specOverrides[NodeKind.DecisionTable]?.renderTab?.({ id: node?.id, manager: dndManager, user })
-                ?? decisionTableSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
+            .with(
+              NodeKind.DecisionTable,
+              () =>
+                specOverrides[NodeKind.DecisionTable]?.renderTab?.({ id: node?.id, manager: dndManager, user }) ??
+                decisionTableSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
-            .with(NodeKind.Function, () =>
-              specOverrides[NodeKind.Function]?.renderTab?.({ id: node?.id, manager: dndManager, user })
-                ?? functionSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
+            .with(
+              NodeKind.Function,
+              () =>
+                specOverrides[NodeKind.Function]?.renderTab?.({ id: node?.id, manager: dndManager, user }) ??
+                functionSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
-            .with(NodeKind.Expression, () =>
-              specOverrides[NodeKind.Expression]?.renderTab?.({ id: node?.id, manager: dndManager, user })
-                ?? expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
+            .with(
+              NodeKind.Expression,
+              () =>
+                specOverrides[NodeKind.Expression]?.renderTab?.({ id: node?.id, manager: dndManager, user }) ??
+                expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
-            .with(NodeKind.Input, () =>
-              specOverrides[NodeKind.Input]?.renderTab?.({ id: node?.id, manager: dndManager, user })
-                ?? inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
+            .with(
+              NodeKind.Input,
+              () =>
+                specOverrides[NodeKind.Input]?.renderTab?.({ id: node?.id, manager: dndManager, user }) ??
+                inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
-            .with(NodeKind.Output, () =>
-              specOverrides[NodeKind.Output]?.renderTab?.({ id: node?.id, manager: dndManager, user })
-                ?? outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
+            .with(
+              NodeKind.Output,
+              () =>
+                specOverrides[NodeKind.Output]?.renderTab?.({ id: node?.id, manager: dndManager, user }) ??
+                outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager, user }),
             )
             .otherwise(() => {
-              const kind = (node as any)?.content?.kind;
+              const kind = (node as any)?.kind;
               if (kind) {
                 const customSpec = customNodes?.find((n) => n.kind === kind);
                 if (customSpec?.renderTab) {
-                  return customSpec.renderTab({ id: node.id, manager: dndManager, user });
+                  return customSpec.renderTab({ id: node.id, manager: dndManager, user, customFunctions });
                 }
               }
 
               const component = components.find((cmp) => cmp.type === node.type);
               if (component) {
-                return component?.renderTab?.({ id: node.id, manager: dndManager, user });
+                return component?.renderTab?.({ id: node.id, manager: dndManager, user, customFunctions });
+              }
+
+              if (kind) {
+                return (
+                  <CustomFunctionTable
+                    id={node.id}
+                    manager={dndManager}
+                    user={user}
+                    customFunctions={customFunctions}
+                  />
+                );
               }
 
               return null;

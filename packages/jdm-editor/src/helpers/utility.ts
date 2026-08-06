@@ -31,3 +31,12 @@ export const pasteFromClipboard = async (): Promise<string> => {
 export const get = <T>(obj: any, path: string, defaultValue: T): T => {
   return path.split('.').reduce((a, c) => (a && a[c] ? a[c] : defaultValue || null), obj) as T;
 };
+
+export const smartSplit = (str: string): string[] => {
+  if (!str || typeof str !== 'string') {
+    return [''];
+  }
+
+  const regex = /;;(?=(?:[^"'`]*["'`][^"'`]*["'`])*[^"'`]*$)/;
+  return str.split(regex);
+};

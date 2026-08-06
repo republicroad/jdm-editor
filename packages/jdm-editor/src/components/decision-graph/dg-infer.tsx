@@ -165,7 +165,7 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
 
       const inferTypes =
         nodeSpecification[node.type as NodeKind]?.inferTypes ??
-        customNodes.find((n) => n.kind === node.type)?.inferTypes;
+        customNodes.find((n) => n.kind === node.content?.kind || n.kind === node.type)?.inferTypes;
       if (!inferTypes) {
         return;
       }
@@ -228,7 +228,8 @@ const inferTypesNeedsUpdate = (
 ) => {
   const nodesNeedUpdate = decisionGraph.nodes.map((node) => {
     const inferTypes =
-      nodeSpecification[node.type as NodeKind]?.inferTypes ?? customNodes.find((n) => n.kind === node.type)?.inferTypes;
+      nodeSpecification[node.type as NodeKind]?.inferTypes ??
+      customNodes.find((n) => n.kind === node.content?.kind || n.kind === node.type)?.inferTypes;
 
     if (!inferTypes) {
       return false;

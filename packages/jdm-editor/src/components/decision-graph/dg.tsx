@@ -34,6 +34,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
                 reactFlowProOptions={reactFlowProOptions}
                 tabBarExtraContent={tabBarExtraContent}
                 userResolver={userResolver}
+                customFunctions={props.customFunctions}
               />
               <DecisionGraphInferTypes />
               <DecisionGraphEmpty {...props} />

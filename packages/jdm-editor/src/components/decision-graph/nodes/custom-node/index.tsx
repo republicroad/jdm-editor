@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import type { XYPosition } from 'reactflow';
 import { match } from 'ts-pattern';
 
+import { useTranslation } from '../../../../locales';
 import { CodeEditor } from '../../../code-editor';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import { type DecisionNode } from '../../dg-types';
@@ -33,7 +34,12 @@ export type CustomNodeSpecification<Data extends object, Component extends strin
   group?: string;
   documentationUrl?: string;
   shortDescription?: string;
-  renderTab?: (props: { id: string; manager?: DragDropManager; user?: string }) => React.ReactNode;
+  renderTab?: (props: {
+    id: string;
+    manager?: DragDropManager;
+    user?: string;
+    customFunctions?: any;
+  }) => React.ReactNode;
   calculateDiff?: (current: any, previous: any) => [any, any];
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode, 'position' | 'id' | 'type' | 'content'> & {
     config?: Data;
@@ -103,6 +109,7 @@ export type BaseNode<
   generateNode?: CustomNodeSpecification<NodeData, Component>['generateNode'];
   renderNode?: CustomNodeSpecification<NodeData, Component>['renderNode'];
   onNodeAdd?: CustomNodeSpecification<NodeData, Component>['onNodeAdd'];
+  inferTypes?: CustomNodeSpecification<NodeData, Component>['inferTypes'];
 };
 
 export const createJdmNode = <
@@ -126,12 +133,14 @@ export const createJdmNode = <
         name: `${n.kind || n.displayName}${index}`,
       })),
     onNodeAdd: n.onNodeAdd,
+    inferTypes: n.inferTypes,
     renderNode: n.renderNode
       ? n.renderNode
       : ({ id, specification, data, selected }) => {
           const [open, setOpen] = useState(false);
           const { token } = theme.useToken();
-          const { updateNode } = useDecisionGraphActions();
+          const { t } = useTranslation();
+          const { updateNode, openTab } = useDecisionGraphActions();
           const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
           const nodeData = node?.content?.config;
           return (
@@ -143,8 +152,11 @@ export const createJdmNode = <
               noBodyPadding
               handleLeft={n.handleLeft}
               handleRight={n.handleRight}
-              actions={
-                n?.inputs
+              actions={[
+                <Button key='edit-expression' type='text' onClick={() => openTab(id)}>
+                  {t('editExpression')}
+                </Button>,
+                ...(n?.inputs
                   ? [
                       <Button
                         key='edit-table'
@@ -155,8 +167,8 @@ export const createJdmNode = <
                         <DownOutlined />
                       </Button>,
                     ]
-                  : undefined
-              }
+                  : []),
+              ]}
             >
               {open && n?.inputs && (
                 <Form

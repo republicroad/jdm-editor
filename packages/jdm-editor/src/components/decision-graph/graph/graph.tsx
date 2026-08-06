@@ -17,6 +17,7 @@ import 'reactflow/dist/style.css';
 import { P, match } from 'ts-pattern';
 
 import { nodeSchema } from '../../../helpers/schema';
+import { useTranslation } from '../../../locales';
 import {
   type DecisionGraphStoreType,
   type ExposedStore,
@@ -118,6 +119,8 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const customNodeRenderer = useMemo(() => {
     return React.memo(
       (props: MinimalNodeProps) => {
+        const { t } = useTranslation();
+        const { openTab } = useDecisionGraphActions();
         const node = customNodes.find((node) => node.kind === props?.data?.kind) as CustomNodeSpecification<
           object,
           string
@@ -139,6 +142,11 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               noBodyPadding
               handleLeft={true}
               handleRight={true}
+              actions={[
+                <Button key='edit-expression' type='text' onClick={() => openTab(props.id)}>
+                  {t('editExpression')}
+                </Button>,
+              ]}
             />
           );
         }
