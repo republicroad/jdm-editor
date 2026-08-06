@@ -1,11 +1,14 @@
 {
   "name": "@gorules/jdm-monorepo",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "lerna": "lerna",
-    "build": "lerna run build",
-    "test": "lerna run test",
-    "typecheck": "lerna run typecheck",
+    "build": "bun run --cwd packages/jdm-editor build",
+    "test": "bun run --cwd packages/jdm-editor test",
+    "typecheck": "bun run --cwd packages/jdm-editor typecheck",
     "lint": "eslint --ext js,ts,jsx,tsx .",
     "lint:fix": "pnpm lint --fix",
     "prettier": "prettier --check .",
