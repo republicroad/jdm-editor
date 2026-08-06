@@ -7,7 +7,7 @@ import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
 import { useNodeType } from '../../../helpers/node-type';
 import type { customNodeSchema } from '../../../helpers/schema';
-import { get, smartSplit } from '../../../helpers/utility';
+import { get, toOperatorExprArray } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { CustomFunction } from '../../custom-function-table';
 import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
@@ -112,7 +112,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, mana
             draft.content.config.expr_asts = (val ?? []).map((expr: any) => ({
               id: expr?.id,
               key: expr?.key,
-              value: expr?.value ? smartSplit(expr.value) : [''],
+              value: expr?.value ? toOperatorExprArray(expr.value) : [''],
             }));
 
             draft.content.config.meta = {

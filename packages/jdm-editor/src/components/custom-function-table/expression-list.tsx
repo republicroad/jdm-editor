@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useState } from 'react';
 
+import { isFunctionExpressionValue } from '../../helpers/custom-function-schema';
 import { jsonSchemaToVariableType } from '../../helpers/json-schema';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { useTranslation } from '../../locales';
@@ -42,10 +43,10 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions 
       .filter((e) => e.key.length > 0)
       .forEach((expr) => {
         const isFunctionExpression =
-          expr.type === 'function' || (typeof expr.value === 'string' && expr.value.includes(';;'));
+          expr.type === 'function' || isFunctionExpressionValue(expr.value);
         const calculatedType = isFunctionExpression
           ? jsonSchemaToVariableType(expr.returnSchema ?? emptyReturnSchema)
-          : resultingVariableType.calculateType(expr.value);
+          : resultingVariableType.calculateType(Array.isArray(expr.value) ? expr.value.join(';;') : expr.value);
         resultingVariableType.set(`$.${expr.key}`, calculatedType);
       });
 

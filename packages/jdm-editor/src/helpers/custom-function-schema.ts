@@ -32,13 +32,18 @@ export const normalizeCustomFunctions = (customFunctions?: any): any[] => {
 
 export const getFunctionReturnSchema = (funcmeta?: any) => normalizeFunctionReturns(funcmeta?.returns);
 
-export const isFunctionExpressionValue = (value: unknown): value is string =>
-  typeof value === 'string' && value.includes(';;');
+export const isFunctionExpressionValue = (value: unknown): value is string | string[] =>
+  Array.isArray(value) || (typeof value === 'string' && value.includes(';;'));
 
 export const isFunctionExpression = (expression?: { type?: string; value?: unknown } | null) =>
   expression?.type === 'function' || isFunctionExpressionValue(expression?.value);
 
 export const getFunctionNameFromValue = (value?: unknown): string | null => {
+  if (Array.isArray(value)) {
+    const functionName = value[0]?.trim();
+    return functionName ? functionName : null;
+  }
+
   if (typeof value !== 'string' || !value.trim()) {
     return null;
   }

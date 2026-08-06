@@ -20,7 +20,7 @@ const ExpressionStoreContext = React.createContext<
 export type ExpressionEntry = {
   id: string;
   key: string;
-  value: string;
+  value: string | string[];
   _diff?: DiffMetadata;
   type?: string;
   returnSchema?: any;

@@ -9,6 +9,7 @@ import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
 
+import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
@@ -502,6 +503,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           Object.assign(draft, graph);
+          if (draft.nodes) {
+            draft.nodes = normalizeCustomNodeExpressions(draft.nodes);
+          }
         });
 
         edgesState?.current?.[1](mapToGraphEdges(newDecisionGraph?.edges ?? []));

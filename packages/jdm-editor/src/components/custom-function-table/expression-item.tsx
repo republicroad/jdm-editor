@@ -15,7 +15,7 @@ import {
   normalizeFunctionReturns,
 } from '../../helpers/custom-function-schema';
 import { getTrace } from '../../helpers/trace';
-import { smartSplit } from '../../helpers/utility';
+import { parseOperatorExprInput, smartSplit, toOperatorExprArray, toOperatorExprDisplay } from '../../helpers/utility';
 import { useTranslation } from '../../locales';
 import { CodeEditor } from '../code-editor';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
@@ -75,7 +75,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     return value;
   };
 
-  const splitFunctionParts = (str: string, expectedArgCount?: number): string[] => {
+  const splitFunctionParts = (value: string | string[], expectedArgCount?: number): string[] => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+
+    const str = value;
     const parts = smartSplit(str);
     if (expectedArgCount === undefined) {
       return parts;
@@ -99,18 +104,18 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   };
 
   const parseFunctionValue = (
-    value: string,
+    value: string | string[],
     fallbackReturnSchema: any = expression.returnSchema ?? emptyReturnSchema,
   ) => {
-    if (!value || typeof value !== 'string') {
+    if (!value || (typeof value === 'string' && !value.trim())) {
       return null;
     }
 
-    const funcName = smartSplit(value)[0];
+    const parts = toOperatorExprArray(value);
+    const funcName = parts[0];
 
     const funcDef = normalizedCustomFunctions.find((f: any) => f.name === funcName);
     if (!funcDef) {
-      const parts = smartSplit(value);
       if (parts.length === 0) {
         return null;
       }
@@ -149,8 +154,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     if (funcDef.parameters && funcDef.parameters.properties) {
       const properties = funcDef.parameters.properties;
       const propertyNames = Object.keys(properties);
-      const parts = splitFunctionParts(value, propertyNames.length);
-      const args = parts.slice(1);
+      const partsForArgs = splitFunctionParts(value, propertyNames.length);
+      const args = partsForArgs.slice(1);
 
       propertyNames.forEach((argName: string, index: number) => {
         const argValue = args[index];
@@ -245,10 +250,10 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     updateRow(index, update);
   };
 
-  const buildFunctionValue = (funcmeta: any, argExprs: Record<string, any>) => {
+  const buildFunctionValue = (funcmeta: any, argExprs: Record<string, any>): string[] => {
     const properties = funcmeta?.parameters?.properties ?? {};
     const argValues = Object.keys(properties).map((argName) => String(argExprs?.[argName] ?? ''));
-    return [funcmeta?.name ?? '', ...argValues].join(';;');
+    return [funcmeta?.name ?? '', ...argValues];
   };
 
   const onSelectFunction = (funcName: string, option: any) => {
@@ -450,10 +455,10 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                         placeholder='Expression'
                         maxRows={9}
                         disabled={disabled}
-                        value={expression?.value}
+                        value={toOperatorExprDisplay(expression?.value)}
                         displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
-                        previousValue={expression?._diff?.fields?.value?.previousValue}
-                        onChange={(value) => onChange({ value })}
+                        previousValue={toOperatorExprDisplay(expression?._diff?.fields?.value?.previousValue ?? '')}
+                        onChange={(value) => onChange({ value: parseOperatorExprInput(value) })}
                         variableType={variableType}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
@@ -476,20 +481,20 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   );
 };
 
-const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) => {
+const LivePreview = React.memo<{ id: string; value: string | string[] }>(({ id, value }) => {
   const { inputData, initial } = useExpressionStore(({ debug, debugIndex, calculatedInputData }) => {
     const snapshot = (debug?.snapshot?.expressions ?? []).find((e) => e.id === id);
     const trace = snapshot?.key ? getTrace(debug?.trace.traceData, debugIndex)?.[snapshot.key] : undefined;
 
     return {
       inputData: calculatedInputData,
-      initial: snapshot && trace ? { expression: snapshot.value, result: trace.result } : undefined,
+      initial: snapshot && trace ? { expression: toOperatorExprDisplay(snapshot.value), result: trace.result } : undefined,
     };
   });
 
   return (
     <div className='expression-list-item__livePreview'>
-      <CodeEditorPreview expression={value} inputData={inputData} initial={initial} />
+      <CodeEditorPreview expression={toOperatorExprDisplay(value)} inputData={inputData} initial={initial} />
     </div>
   );
 });
