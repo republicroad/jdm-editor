@@ -99,7 +99,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
           />
           <div className={'grl-dg__simulator__section__bar__actions'}>
             {onClear && (
-              <Tooltip title={'Clear'}>
+              <Tooltip title={'Clear'} placement='bottomRight'>
                 <Button
                   size={'small'}
                   type={'text'}
@@ -186,7 +186,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               label: s,
             }))}
             tabBarExtraContent={
-              <Tooltip title='Close panel'>
+              <Tooltip title='Close panel' placement='bottomRight'>
                 <Button
                   type='text'
                   icon={<CloseOutlined style={{ fontSize: 12 }} />}
