@@ -31,6 +31,7 @@ export type RequestJsonSchema = {
   properties?: Record<string, RequestJsonSchema>;
   items?: RequestJsonSchema | RequestJsonSchema[];
   examples?: unknown[];
+  'x-examples-meta'?: RequestExampleMeta[];
   'x-order'?: number;
   [key: string]: unknown;
 };
@@ -63,11 +64,18 @@ export type RequestDefinition = {
   depth: number;
   parentPath: string | null;
   source: 'schema.properties' | 'content.inputs';
+  defaultValue?: string;
+};
+
+export type RequestExampleMeta = {
+  name?: string;
+  description?: string;
 };
 
 export type RequestExampleSource = {
   id: string;
   name: string;
+  description?: string;
   data: Record<string, unknown>;
   source: 'schema.examples' | 'content.inputs';
 };
@@ -496,6 +504,7 @@ const flattenSchemaProperties = (
       depth,
       parentPath: parentPath || null,
       source: 'schema.properties',
+      defaultValue: propertySchema?.default !== undefined ? String(propertySchema.default) : undefined,
     });
 
     if (isRecord(propertySchema?.properties)) {
@@ -1032,14 +1041,19 @@ export const getRequestExampleSources = (
   const schema = parseRequestSchemaValue(getRequestSchemaSourceValue(content));
   const dataLabel = options?.dataLabel ?? 'Data';
   const schemaExamples = Array.isArray(schema?.examples) ? schema.examples : [];
+  const schemaExamplesMeta = Array.isArray(schema?.['x-examples-meta']) ? schema['x-examples-meta'] : [];
 
   if (schemaExamples.length > 0) {
-    return schemaExamples.map((example, index) => ({
-      id: `schema-example-${index}`,
-      name: formatRequestExampleSourceName(index, dataLabel),
-      data: isRecord(example) ? { ...example } : { value: example },
-      source: 'schema.examples',
-    }));
+    return schemaExamples.map((example, index) => {
+      const meta = schemaExamplesMeta[index];
+      return {
+        id: `schema-example-${index}`,
+        name: meta?.name?.trim() || formatRequestExampleSourceName(index, dataLabel),
+        description: meta?.description?.trim(),
+        data: isRecord(example) ? { ...example } : { value: example },
+        source: 'schema.examples',
+      };
+    });
   }
 
   if ((content?.inputs ?? []).length > 0) {
@@ -1057,7 +1071,7 @@ export const getRequestExampleSources = (
 };
 
 const createSchemaProperty = (
-  definition: Pick<RequestDefinition, 'type' | 'description' | 'format' | 'order'>,
+  definition: Pick<RequestDefinition, 'type' | 'description' | 'format' | 'order' | 'defaultValue'>,
 ): RequestJsonSchema => {
   const schema: RequestJsonSchema = {};
 
@@ -1084,6 +1098,10 @@ const createSchemaProperty = (
     schema.items = { type: 'string' };
   }
 
+  if (definition.defaultValue !== undefined && definition.defaultValue.trim() !== '') {
+    schema.default = definition.defaultValue;
+  }
+
   schema['x-order'] = definition.order;
 
   return schema;
@@ -1092,7 +1110,7 @@ const createSchemaProperty = (
 const setSchemaPropertyByPath = (
   properties: Record<string, RequestJsonSchema>,
   key: string,
-  definition: Pick<RequestDefinition, 'type' | 'description' | 'format' | 'order'>,
+  definition: Pick<RequestDefinition, 'type' | 'description' | 'format' | 'order' | 'defaultValue'>,
 ) => {
   const segments = key
     .split('.')
@@ -1173,6 +1191,7 @@ export const buildRequestSchemaFromDefinitions = (
 export const updateRequestSchemaExamples = (
   schemaValue: unknown,
   examples: Array<Record<string, unknown>>,
+  examplesMeta?: RequestExampleMeta[],
 ): string => {
   const currentSchema = parseRequestSchemaValue(schemaValue) ?? {};
   const nextSchema: RequestJsonSchema = {
@@ -1180,6 +1199,16 @@ export const updateRequestSchemaExamples = (
     type: 'object',
     examples: examples.map((example) => ({ ...example })),
   };
+
+  if (examplesMeta && examplesMeta.length > 0) {
+    const hasContent = examplesMeta.some((meta) => meta?.name?.trim() || meta?.description?.trim());
+    if (hasContent) {
+      nextSchema['x-examples-meta'] = examplesMeta.map((meta) => ({
+        name: meta?.name?.trim(),
+        description: meta?.description?.trim(),
+      }));
+    }
+  }
 
   return stringifyRequestSchemaValue(nextSchema);
 };
