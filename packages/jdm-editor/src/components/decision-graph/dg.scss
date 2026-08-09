@@ -133,8 +133,57 @@
 
         &__actions {
           display: flex;
-          gap: 8px;
+          gap: 4px;
           align-items: center;
+        }
+
+        &__source-select {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-width: 0;
+          flex: 0 1 auto;
+          flex-shrink: 1;
+
+          &__label {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          &__control {
+            width: auto;
+            min-width: 80px;
+            max-width: 150px;
+            flex: 0 1 auto;
+            font-size: 13px;
+
+            .ant-select-selector {
+              border: none !important;
+              box-shadow: none !important;
+              background: var(--grl-color-bg-text-hover) !important;
+              padding-inline: 6px !important;
+            }
+
+            &.ant-select-focused .ant-select-selector,
+            &:hover .ant-select-selector {
+              border: none !important;
+              box-shadow: none !important;
+              background: var(--grl-color-bg-layout) !important;
+            }
+
+            .ant-select-selection-item {
+              font-size: 13px;
+              color: var(--grl-color-text-secondary);
+            }
+          }
+        }
+
+        &__source-select-popup {
+          .ant-select-item {
+            font-size: 13px;
+          }
         }
 
         &--request {
@@ -243,37 +292,6 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-      }
-
-      &__source-select {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 0;
-
-        &__control {
-          width: 150px;
-          font-size: 13px;
-
-          .ant-select-selector {
-            border: none !important;
-            box-shadow: none !important;
-            background: var(--grl-color-bg-text-hover) !important;
-            padding-inline: 6px !important;
-          }
-
-          &.ant-select-focused .ant-select-selector,
-          &:hover .ant-select-selector {
-            border: none !important;
-            box-shadow: none !important;
-            background: var(--grl-color-bg-layout) !important;
-          }
-
-          .ant-select-selection-item {
-            font-size: 13px;
-            color: var(--grl-color-text-secondary);
-          }
-        }
       }
 
       &__actions {
@@ -783,11 +801,6 @@
   }
 }
 
-.grl-dg__panel__toolbar__source-select-popup {
-  .ant-select-item {
-    font-size: 13px;
-  }
-}
 @keyframes grl-simulator-request-switching-in {
   from {
     opacity: 0;

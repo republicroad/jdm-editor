@@ -1,6 +1,6 @@
-import { InfoCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+﻿import { CopyOutlined, FormatPainterOutlined, InfoCircleOutlined, LinkOutlined, PlayCircleOutlined, SaveOutlined } from '@ant-design/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Modal, Spin, Tooltip, Typography, message, notification } from 'antd';
+import { Button, Select, Spin, Tooltip, Typography, message, notification } from 'antd';
 import json5 from 'json5';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -11,7 +11,6 @@ import {
   getRequestExampleSources,
   normalizeRequestJsonKeys,
   normalizeRequestExampleDataByDefinitions,
-  prepareRequestExampleDataDefinitionSync,
   resolveRequestSchemaValue,
   setRequestSchemaValue,
   updateRequestSchemaExamples,
@@ -92,6 +91,35 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         : null,
     [simulatorExampleBinding],
   );
+  const requestDefinitions = useMemo(() => getRequestDefinitions(inputNodeContent), [inputNodeContent]);
+  const sourceOptions = useMemo(
+    () => requestSources.map((source, index) => ({ value: index, label: source.name })),
+    [requestSources],
+  );
+  const bindingName = useMemo(
+    () => (boundRequestSourceIndex >= 0 ? requestSources[boundRequestSourceIndex]?.name : undefined),
+    [boundRequestSourceIndex, requestSources],
+  );
+  const shouldShowSimulatorSourceSelect =
+    Boolean(bindingName) && Boolean(inputNodeId) && requestSources.length > 1;
+
+  const handleSourceChange = (sourceIndex: number) => {
+    const source = requestSources[sourceIndex];
+
+    if (!inputNodeId || !source) {
+      return;
+    }
+
+    const normalizedData = normalizeRequestExampleDataByDefinitions(source.data, requestDefinitions);
+    const formattedRequest = JSON.stringify(normalizedData, null, 2);
+
+    actions.setSimulatorRequest(formattedRequest);
+    actions.setSimulatorExampleBinding({
+      nodeId: inputNodeId,
+      sourceIndex,
+      sourceName: source.name,
+    });
+  };
   useEffect(
     () => () => {
       if (switchAnimationTimerRef.current !== null) {
@@ -406,149 +434,42 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     }
   };
 
-  const getRequestValueTypeLabel = (value: unknown) => {
-    if (Array.isArray(value)) {
-      return t('requestTypeArray');
-    }
-
-    if (value === null) {
-      return 'null';
-    }
-
-    switch (typeof value) {
-      case 'number':
-        return t('requestTypeNumber');
-      case 'boolean':
-        return t('requestTypeBoolean');
-      case 'object':
-        return t('requestTypeObject');
-      default:
-        return t('requestTypeString');
-    }
-  };
-
-  const getDefinitionTypeLabel = (type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'datetime') => {
-    switch (type) {
-      case 'number':
-        return t('requestTypeNumber');
-      case 'boolean':
-        return t('requestTypeBoolean');
-      case 'array':
-        return t('requestTypeArray');
-      case 'object':
-        return t('requestTypeObject');
-      case 'datetime':
-        return t('requestTypeDatetime');
-      default:
-        return t('requestTypeString');
-    }
-  };
-
-  const syncDefinitionsToExampleSource = (options?: { forceResetConflicts?: boolean }) => {
-    const activeExampleBinding = resolvedSimulatorExampleBinding;
-    const forceResetConflicts = options?.forceResetConflicts ?? false;
-
-    if (!activeExampleBinding) {
-      message.warning(t('requestSelectDataSourceFirst'));
-      return null;
-    }
-
-    try {
-      const parsed = (requestValue || '').trim().length === 0 ? {} : json5.parse(requestValue || '{}');
-
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        message.error(t('simulatorRequestMustBeObjectToSave'));
-        return null;
-      }
-
-      const { decisionGraph } = stateStore.getState();
-      const targetNode = decisionGraph.nodes.find((node) => node.id === activeExampleBinding.nodeId);
-
-      if (!targetNode) {
-        message.error(t('simulatorBoundRequestNodeNotFound'));
-        return null;
-      }
-
-      const requestDefinitions = getRequestDefinitions(targetNode.content);
-      const validDefinitions = requestDefinitions.filter(
-        (definition) => definition.name.trim() && definition.path.trim(),
-      );
-      const parsedRecord = parsed as Record<string, unknown>;
-      const syncResult =
-        validDefinitions.length > 0
-          ? prepareRequestExampleDataDefinitionSync(parsedRecord, validDefinitions, {
-              forceResetConflicts,
-            })
-          : {
-              data: {},
-              conflicts: [],
-            };
-
-      if (!forceResetConflicts && syncResult.conflicts.length > 0) {
-        Modal.confirm({
-          title: t('requestDefinitionSyncTypeChangeConfirmTitle'),
-          content: (
-            <div>
-              <Typography.Paragraph style={{ marginBottom: 8 }}>
-                {t('requestDefinitionSyncTypeChangeConfirmDescription')}
-              </Typography.Paragraph>
-              {syncResult.conflicts.map((conflict) => (
-                <Typography.Text key={`${conflict.path}-${conflict.nextType}`} style={{ display: 'block' }}>
-                  {`${conflict.path}: ${getRequestValueTypeLabel(conflict.value)} -> ${getDefinitionTypeLabel(conflict.nextType)}`}
-                </Typography.Text>
-              ))}
-            </div>
-          ),
-          okText: t('confirm'),
-          cancelText: t('cancel'),
-          onOk: () => {
-            syncDefinitionsToExampleSource({ forceResetConflicts: true });
-          },
-        });
-        return null;
-      }
-
-      const formatted = JSON.stringify(syncResult.data, null, 2);
-      setRequestValue(formatted);
-      setUserHasEdited(true);
-      onChange?.(formatted);
-      actions.setSimulatorRequest(formatted);
-      message.success(t('requestSyncDefinitionsSuccess'));
-
-      if (import.meta.env.DEV) {
-        console.log('[simulator-request] synced definitions to simulator draft', {
-          binding: activeExampleBinding,
-          syncedData: syncResult.data,
-        });
-      }
-
-      return {
-        context: syncResult.data,
-        formatted,
-      };
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('[simulator-request] failed to sync definitions to example source', {
-          binding: activeExampleBinding,
-          requestValue,
-          error,
-        });
-      }
-
-      message.error(t('requestSyncDefinitionsFailed'));
-      return null;
-    }
-  };
-
   return (
     <>
       <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--request'}>
         <Tooltip title={t('requestDescription')}>
-          <Typography.Text style={{ fontSize: 13, cursor: 'help' }}>
+          <Typography.Text
+            style={{ fontSize: 13, cursor: 'help', flexShrink: 1, minWidth: 0, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+          >
             {t('request')}
             <InfoCircleOutlined style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }} />
           </Typography.Text>
         </Tooltip>
+        {shouldShowSimulatorSourceSelect && (
+          <Tooltip title={t('requestCurrentDataSourceLabel')}>
+            <div className={'grl-dg__simulator__section__bar__source-select'}>
+              <LinkOutlined style={{ fontSize: 12, color: 'var(--grl-color-text-secondary)' }} />
+              <Select
+                size='small'
+                variant='filled'
+                value={boundRequestSourceIndex}
+                options={sourceOptions}
+                popupMatchSelectWidth={false}
+                popupClassName={'grl-dg__simulator__section__bar__source-select-popup'}
+                className={'grl-dg__simulator__section__bar__source-select__control'}
+                onChange={handleSourceChange}
+              />
+            </div>
+          </Tooltip>
+        )}
+        {bindingName && !shouldShowSimulatorSourceSelect && (
+          <Typography.Text className={'grl-dg__simulator__section__bar__source-select__label'} type='secondary'>
+            <Tooltip title={t('requestCurrentDataSourceLabel')}>
+              <LinkOutlined style={{ fontSize: 12, color: 'var(--grl-color-text-secondary)' }} />
+            </Tooltip>{' '}
+            {bindingName}
+          </Typography.Text>
+        )}
         <div className={'grl-dg__simulator__section__bar__actions'}>
           {/* {inputNodeContent && userHasEdited && (
             <Tooltip title={t('resyncInputNodeContent')}>
@@ -579,106 +500,101 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                   : undefined
               }
             >
-              <Button
-                size={'small'}
-                type={'default'}
-                style={{ marginRight: 8 }}
-                onClick={() => {
-                  try {
-                    const parsed = json5.parse(requestValue || '');
-                    const normalizedParsed = normalizeRequestJsonKeys(parsed);
-                    const formatted = JSON.stringify(normalizedParsed, null, 2);
-                    setRequestValue(formatted);
-                    setUserHasEdited(true);
-                    actions.setSimulatorRequest(formatted);
-                    onChange?.(formatted);
-                    message.success(t('formatSuccess'));
-                  } catch {
-                    message.error(t('formatFailed'));
-                  }
-                }}
-              >
-                {t('format')}
-              </Button>
-              <Button
-                size={'small'}
-                type={'default'}
-                style={{ marginRight: 8 }}
-                disabled={!hasInputNode || !resolvedSimulatorExampleBinding}
-                onClick={() => syncDefinitionsToExampleSource()}
-              >
-                {t('requestSyncDefinitions')}
-              </Button>
-              <Button
-                size={'small'}
-                type={'default'}
-                style={{ marginRight: 8 }}
-                disabled={!hasInputNode}
-                onClick={() => {
-                  persistRequestToExampleSource({
-                    validateDefinitionTypes: true,
-                  });
-                }}
-              >
-                {t('requestSaveDataSource')}
-              </Button>
-              <Button
-                size={'small'}
-                type={'default'}
-                style={{ marginRight: 8 }}
-                onClick={async () => {
-                  try {
-                    if (!requestValue || requestValue.trim().length === 0) {
-                      message.warning(t('nothingToCopy'));
-                      return;
+              <Tooltip title={t('format')}>
+                <Button
+                  size={'small'}
+                  type={'text'}
+                  shape={'circle'}
+                  icon={<FormatPainterOutlined />}
+                  onClick={() => {
+                    try {
+                      const parsed = json5.parse(requestValue || '');
+                      const normalizedParsed = normalizeRequestJsonKeys(parsed);
+                      const formatted = JSON.stringify(normalizedParsed, null, 2);
+                      setRequestValue(formatted);
+                      setUserHasEdited(true);
+                      actions.setSimulatorRequest(formatted);
+                      onChange?.(formatted);
+                      message.success(t('formatSuccess'));
+                    } catch {
+                      message.error(t('formatFailed'));
                     }
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title={t('requestSaveDataSource')}>
+                <Button
+                  size={'small'}
+                  type={'text'}
+                  shape={'circle'}
+                  icon={<SaveOutlined />}
+                  disabled={!hasInputNode}
+                  onClick={() => {
+                    persistRequestToExampleSource({
+                      validateDefinitionTypes: true,
+                    });
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title={t('copyJson')}>
+                <Button
+                  size={'small'}
+                  type={'text'}
+                  shape={'circle'}
+                  icon={<CopyOutlined />}
+                  onClick={async () => {
+                    try {
+                      if (!requestValue || requestValue.trim().length === 0) {
+                        message.warning(t('nothingToCopy'));
+                        return;
+                      }
 
-                    // 验证并复制JSON（不格式化，保持原样）
-                    const parsed = json5.parse(requestValue);
-                    const jsonString = JSON.stringify(parsed);
+                      // 验证并复制JSON（不格式化，保持原样）
+                      const parsed = json5.parse(requestValue);
+                      const jsonString = JSON.stringify(parsed);
 
-                    // 复制到剪贴板
-                    await copyToClipboard(jsonString);
-                    message.success(t('copiedToClipboard'));
-                  } catch {
-                    message.error(t('copyFailedInvalidJson'));
-                  }
-                }}
-              >
-                {t('copyJson')}
-              </Button>
-              <Button
-                size={'small'}
-                type={'primary'}
-                loading={loading}
-                icon={<PlayCircleOutlined />}
-                disabled={!hasInputNode}
-                onClick={() => {
-                  try {
-                    const parsed = (requestValue || '').trim().length === 0 ? null : json5.parse(requestValue || '');
-                    const hasRequestDefinitions = getRequestDefinitions(inputNodeContent).length > 0;
-                    const hasRequestSchema = Boolean(resolveRequestSchemaValue(inputNodeContent));
-
-                    if ((hasRequestDefinitions || hasRequestSchema) && parsed === null) {
-                      message.warning(t('requestDataRequiredBeforeRun'));
-                      return;
+                      // 复制到剪贴板
+                      await copyToClipboard(jsonString);
+                      message.success(t('copiedToClipboard'));
+                    } catch {
+                      message.error(t('copyFailedInvalidJson'));
                     }
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title={t('run')}>
+                <Button
+                  size={'small'}
+                  type={'primary'}
+                  shape={'circle'}
+                  loading={loading}
+                  icon={<PlayCircleOutlined />}
+                  disabled={!hasInputNode}
+                  onClick={() => {
+                    try {
+                      const parsed = (requestValue || '').trim().length === 0 ? null : json5.parse(requestValue || '');
+                      const hasRequestDefinitions = getRequestDefinitions(inputNodeContent).length > 0;
+                      const hasRequestSchema = Boolean(resolveRequestSchemaValue(inputNodeContent));
 
-                    onRun?.({
-                      graph: stateStore.getState().decisionGraph,
-                      context: parsed,
-                    });
-                  } catch {
-                    notification.error({
-                      message: t('requestInvalidFormatTitle'),
-                      description: t('requestInvalidFormatDescription'),
-                      placement: 'top',
-                    });
-                  }
-                }}
-              >
-                {t('run')}
-              </Button>
+                      if ((hasRequestDefinitions || hasRequestSchema) && parsed === null) {
+                        message.warning(t('requestDataRequiredBeforeRun'));
+                        return;
+                      }
+
+                      onRun?.({
+                        graph: stateStore.getState().decisionGraph,
+                        context: parsed,
+                      });
+                    } catch {
+                      notification.error({
+                        message: t('requestInvalidFormatTitle'),
+                        description: t('requestInvalidFormatDescription'),
+                        placement: 'top',
+                      });
+                    }
+                  }}
+                />
+              </Tooltip>
             </Tooltip>
           )}
         </div>
