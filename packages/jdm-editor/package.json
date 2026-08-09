@@ -35,6 +35,7 @@
     "storybook": "storybook dev -p 9009",
     "build:storybook": "storybook build -o docs",
     "typecheck": "tsc --noEmit",
+    "test": "bun test src",
     "prepublishOnly": "vite build"
   },
   "dependencies": {
