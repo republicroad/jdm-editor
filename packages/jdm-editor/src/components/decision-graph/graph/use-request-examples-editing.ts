@@ -71,8 +71,12 @@ export const useRequestExamplesEditing = ({
     [definitionDrafts],
   );
   const getPreparedExampleData = useCallback(
-    (data?: Record<string, unknown>) => normalizeExampleData(data),
-    [normalizeExampleData],
+    (data?: Record<string, unknown>) =>
+      normalizeRequestExampleDataByDefinitions(
+        mergeRequestExampleDefaultsByDefinitions(isRecord(data) ? data : {}, definitionDrafts),
+        definitionDrafts,
+      ),
+    [definitionDrafts],
   );
   const mergedExampleData = useMemo(
     () => (activeSource ? mergeRequestExampleDefaultsByDefinitions(activeSource.data, definitionDrafts) : null),
@@ -536,9 +540,9 @@ export const useRequestExamplesEditing = ({
       return;
     }
 
-    const payload = JSON.stringify(normalizeExampleData(activeSource.data), null, 2);
+    const payload = JSON.stringify(getPreparedExampleData(activeSource.data), null, 2);
     saveFile(getSafeJsonFileName(activeSource.name), new Blob([payload], { type: 'application/json' }));
-  }, [activeSource, getSafeJsonFileName, t]);
+  }, [activeSource, getPreparedExampleData, getSafeJsonFileName, t]);
 
   return {
     exampleSources,
