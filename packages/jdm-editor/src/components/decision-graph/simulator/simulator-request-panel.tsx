@@ -1,13 +1,12 @@
 ﻿import { VariableType } from '@gorules/zen-engine-wasm';
 import { Spin, message, notification } from 'antd';
 import json5 from 'json5';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { copyToClipboard } from '../../../helpers/utility';
 import {
   getRequestDefinitions,
-  getRequestExampleSources,
   mergeRequestExampleDefaultsByDefinitions,
   normalizeRequestJsonKeys,
   normalizeRequestExampleDataByDefinitions,
@@ -19,6 +18,8 @@ import type { DecisionGraphType } from '../dg-types';
 import { SimulatorEditor } from './simulator-editor';
 import { SimulatorRequestToolbar } from './simulator-request-toolbar';
 import { useRequestExamplePersistence } from './use-request-example-persistence';
+import { useSimulatorRequestBinding } from './use-simulator-request-binding';
+import { useSimulatorRequestEditor } from './use-simulator-request-editor';
 
 export type SimulatorRequestPanelProps = {
   defaultRequest?: string;
@@ -36,12 +37,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
   defaultRequest,
 }) => {
   const { t } = useTranslation();
-  const [requestValue, setRequestValue] = useState(defaultRequest);
-  const [userHasEdited, setUserHasEdited] = useState(false);
-  const [isApplyingExternalRequest, setIsApplyingExternalRequest] = useState(false);
-  const switchAnimationTimerRef = useRef<number | null>(null);
-  const previousBindingIdentityRef = useRef<string | null>(null);
-  const previousSimulatorRequestRef = useRef<string | undefined>(undefined);
   const { stateStore, actions } = useDecisionGraphRaw();
 
   const { simulatorRequest, simulatorExampleBinding, inputNodeContent, inputNodeId } = useDecisionGraphState(
@@ -56,50 +51,35 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       };
     },
   );
-  const requestSources = useMemo(
-    () => getRequestExampleSources(inputNodeContent, { dataLabel: t('requestDataLabel') }),
-    [inputNodeContent, t],
-  );
-  const boundRequestSourceIndex = useMemo(() => {
-    if (!simulatorExampleBinding || simulatorExampleBinding.nodeId !== inputNodeId) {
-      return -1;
-    }
-
-    return requestSources[simulatorExampleBinding.sourceIndex] ? simulatorExampleBinding.sourceIndex : -1;
-  }, [inputNodeId, requestSources, simulatorExampleBinding]);
-  const defaultRequestSourceIndex =
-    boundRequestSourceIndex >= 0 ? boundRequestSourceIndex : requestSources.length > 0 ? 0 : -1;
-  const defaultRequestSource =
-    defaultRequestSourceIndex >= 0 ? requestSources[defaultRequestSourceIndex] : undefined;
-  const resolvedSimulatorExampleBinding = useMemo(() => {
-    if (!inputNodeId || defaultRequestSourceIndex < 0 || !defaultRequestSource) {
-      return null;
-    }
-
-    return {
-      nodeId: inputNodeId,
-      sourceIndex: defaultRequestSourceIndex,
-      sourceName: defaultRequestSource.name,
-    };
-  }, [defaultRequestSource, defaultRequestSourceIndex, inputNodeId]);
-  const currentBindingIdentity = useMemo(
-    () =>
-      simulatorExampleBinding
-        ? `${simulatorExampleBinding.nodeId}:${simulatorExampleBinding.sourceIndex}`
-        : null,
-    [simulatorExampleBinding],
-  );
-  const requestDefinitions = useMemo(() => getRequestDefinitions(inputNodeContent), [inputNodeContent]);
-  const sourceOptions = useMemo(
-    () => requestSources.map((source, index) => ({ value: index, label: source.name })),
-    [requestSources],
-  );
-  const bindingName = useMemo(
-    () => (boundRequestSourceIndex >= 0 ? requestSources[boundRequestSourceIndex]?.name : undefined),
-    [boundRequestSourceIndex, requestSources],
-  );
-  const shouldShowSimulatorSourceSelect =
-    Boolean(bindingName) && Boolean(inputNodeId) && requestSources.length > 1;
+  const {
+    requestSources,
+    boundRequestSourceIndex,
+    defaultRequestSourceIndex,
+    defaultRequestSource,
+    resolvedSimulatorExampleBinding,
+    currentBindingIdentity,
+    requestDefinitions,
+    sourceOptions,
+    bindingName,
+    shouldShowSimulatorSourceSelect,
+  } = useSimulatorRequestBinding({
+    inputNodeContent,
+    inputNodeId,
+    simulatorExampleBinding,
+    dataLabel: t('requestDataLabel'),
+  });
+  const {
+    requestValue,
+    setRequestValue,
+    userHasEdited,
+    setUserHasEdited,
+    isApplyingExternalRequest,
+  } = useSimulatorRequestEditor({
+    defaultRequest,
+    simulatorRequest,
+    currentBindingIdentity,
+    onExternalChange: onChange,
+  });
 
   const handleSourceChange = (sourceIndex: number) => {
     const source = requestSources[sourceIndex];
@@ -119,58 +99,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
       sourceName: source.name,
     });
   };
-  useEffect(
-    () => () => {
-      if (switchAnimationTimerRef.current !== null) {
-        window.clearTimeout(switchAnimationTimerRef.current);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const previousBindingIdentity = previousBindingIdentityRef.current;
-    const hasSwitchedExampleSource =
-      currentBindingIdentity !== null && currentBindingIdentity !== previousBindingIdentity;
-    previousBindingIdentityRef.current = currentBindingIdentity;
-
-    if (!hasSwitchedExampleSource) {
-      return;
-    }
-
-    if (switchAnimationTimerRef.current !== null) {
-      window.clearTimeout(switchAnimationTimerRef.current);
-    }
-
-    setIsApplyingExternalRequest(true);
-    switchAnimationTimerRef.current = window.setTimeout(() => {
-      setIsApplyingExternalRequest(false);
-      switchAnimationTimerRef.current = null;
-    }, 320);
-  }, [currentBindingIdentity]);
-
-  useEffect(() => {
-    if (simulatorRequest === undefined || simulatorRequest === previousSimulatorRequestRef.current) {
-      return;
-    }
-
-    previousSimulatorRequestRef.current = simulatorRequest;
-    setRequestValue(simulatorRequest);
-    setUserHasEdited(true);
-    onChange?.(simulatorRequest);
-
-    if (import.meta.env.DEV) {
-      console.log('[simulator-request] applied external simulatorRequest', {
-        simulatorRequest,
-      });
-    }
-  }, [onChange, simulatorRequest]);
-
-  useEffect(() => {
-    if (defaultRequest !== undefined && defaultRequest !== requestValue) {
-      setRequestValue(defaultRequest);
-    }
-  }, [defaultRequest]);
 
   useEffect(() => {
     if (!defaultRequestSource) {
