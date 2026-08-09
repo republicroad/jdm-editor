@@ -1,55 +1,52 @@
-import { CheckOutlined, CloseOutlined, CloudDownloadOutlined, CloudUploadOutlined, DeleteOutlined, DownOutlined, FormatPainterOutlined, ImportOutlined, InfoCircleOutlined, PlayCircleOutlined, PlusCircleOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons';
-import { Editor } from '@monaco-editor/react';
 import {
-  Button,
-  Card,
-  Empty,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Select,
-  Space,
-  Tabs,
-  Tooltip,
-  Typography,
-  theme,
-} from 'antd';
+  CloudDownloadOutlined,
+  CloudUploadOutlined,
+  FormatPainterOutlined,
+  ImportOutlined,
+  InfoCircleOutlined,
+  PlayCircleOutlined,
+  PlusCircleOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import { Button, Space, Tabs, Tooltip, message, theme } from 'antd';
 import type { DragDropManager } from 'dnd-core';
 import json5 from 'json5';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { editor } from 'monaco-editor';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import '../../../helpers/monaco';
 import { saveFile } from '../../../helpers/file-helpers';
-import { extractJsonFields } from '../../../helpers/json-path-extractor';
+import '../../../helpers/monaco';
 import {
+  type RequestDefinition,
+  type RequestDefinitionType,
+  type RequestExampleSource,
   buildRequestExampleTemplateFromDefinitions,
-  formatRequestExampleSourceName,
-  normalizeRequestDefinitionOrders,
   buildRequestSchemaFromDefinitions,
+  collectExampleDataPaths,
+  formatJsonDraft,
+  formatRequestExampleSourceName,
+  getPathValue,
   getRequestDefinitions,
-  getRequestExampleSources,
   getRequestExampleDataDefinitionConflicts,
+  getRequestExampleSources,
   getRequestSchemaSourceValue,
-  normalizeRequestFieldKey,
+  hasOwn,
+  isRecord,
+  normalizeRequestDefinitionOrders,
   normalizeRequestExampleDataByDefinitions,
+  normalizeRequestFieldKey,
   parseRequestSchemaValue,
   resolveRequestSchemaValue,
   setRequestSchemaValue,
   stringifyRequestSchemaValue,
-  type RequestDefinition,
-  type RequestDefinitionType,
-  type RequestExampleSource,
+  updateRequestSchemaExamples,
 } from '../../../helpers/request-schema';
-import { updateRequestSchemaExamples } from '../../../helpers/request-schema';
 import { useTranslation } from '../../../locales';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
-import { JsonToJsonSchemaDialog } from './json-to-json-schema-dialog';
+import { RequestDefinitions } from './request-definitions';
+import { RequestExamples } from './request-examples';
+import { RequestSchemaEditor } from './request-schema-editor';
 import './tab-request.scss';
-
-// Global flag to ensure inlay hints provider is only registered once
-let jsonInlayHintsProviderRegistered = false;
 
 export type TabRequestProps = {
   id: string;
@@ -66,7 +63,7 @@ enum RequestTabKey {
 
 const definitionRootKey = '__root__';
 
-const schemaEditorOptions: editor.IStandaloneEditorConstructionOptions = {
+const editorOptions: editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
   contextmenu: false,
   fontSize: 13,
@@ -82,12 +79,8 @@ const schemaEditorOptions: editor.IStandaloneEditorConstructionOptions = {
   },
 };
 
-const hasOwn = (value: object, key: string) => Object.prototype.hasOwnProperty.call(value, key);
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const buildDefinitionPath = (parentPath: string | null | undefined, name: string) => (parentPath ? `${parentPath}.${name}` : name);
+const buildDefinitionPath = (parentPath: string | null | undefined, name: string) =>
+  parentPath ? `${parentPath}.${name}` : name;
 
 const buildDefinitionDraftPath = (parentPath: string | null | undefined, id: string) =>
   parentPath ? `${parentPath}.__draft_${id}` : `__draft_${id}`;
@@ -162,179 +155,13 @@ const mergePersistedDefinitionsWithLocalDraftOrder = (
   return mergedDefinitions;
 };
 
-const formatJsonDraft = (value: unknown) => {
-  if (value === undefined) {
-    return '';
-  }
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  return JSON.stringify(value, null, 2);
-};
-
-const getExamplePathValue = (source: Record<string, unknown>, path: string): unknown => {
-  const segments = path
-    .split('.')
-    .map((segment) => segment.trim())
-    .filter(Boolean);
-
-  if (segments.length === 0) {
-    return undefined;
-  }
-
-  let cursor: unknown = source;
-  for (const segment of segments) {
-    if (!isRecord(cursor)) {
-      return undefined;
-    }
-
-    cursor = cursor[segment];
-  }
-
-  return cursor;
-};
-
-const collectExampleDataPaths = (value: unknown, prefix = '', paths: string[] = []): string[] => {
-  if (!isRecord(value)) {
-    return paths;
-  }
-
-  Object.entries(value).forEach(([key, item]) => {
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (isRecord(item)) {
-      collectExampleDataPaths(item, path, paths);
-    } else {
-      paths.push(path);
-    }
-  });
-
-  return paths;
-};
-
-type BlurCommitInputProps = {
-  disabled?: boolean;
-  placeholder?: string;
-  value: string;
-  onCommit: (value: string) => void;
-  onExit?: () => void;
-  blurBehavior?: 'save' | 'cancel';
-  saveLabel?: string;
-  cancelLabel?: string;
-  showActions?: boolean;
-};
-
-const BlurCommitInput: React.FC<BlurCommitInputProps> = ({ disabled, placeholder, value, onCommit, onExit, blurBehavior = 'save', saveLabel = 'Save', cancelLabel = 'Cancel', showActions = false }) => {
-  const [draft, setDraft] = useState(value);
-  const lastCommittedValueRef = useRef(value);
-  const blurCommitTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    setDraft(value);
-    lastCommittedValueRef.current = value;
-  }, [value]);
-
-  useEffect(() => {
-    return () => {
-      if (blurCommitTimerRef.current !== null) {
-        window.clearTimeout(blurCommitTimerRef.current);
-      }
-    };
-  }, []);
-
-  const commitDraft = () => {
-    if (draft === lastCommittedValueRef.current) {
-      return;
-    }
-
-    lastCommittedValueRef.current = draft;
-    onCommit(draft);
-  };
-
-  const scheduleCommitDraft = () => {
-    if (blurCommitTimerRef.current !== null) {
-      window.clearTimeout(blurCommitTimerRef.current);
-    }
-
-    blurCommitTimerRef.current = window.setTimeout(() => {
-      blurCommitTimerRef.current = null;
-      commitDraft();
-    }, 0);
-  };
-
-  const cancelScheduledCommit = () => {
-    if (blurCommitTimerRef.current === null) {
-      return;
-    }
-
-    window.clearTimeout(blurCommitTimerRef.current);
-    blurCommitTimerRef.current = null;
-  };
-
-  const handleSave = () => {
-    cancelScheduledCommit();
-    commitDraft();
-    onExit?.();
-  };
-
-  const handleCancel = () => {
-    cancelScheduledCommit();
-    setDraft(value);
-    onExit?.();
-  };
-
-  return (
-    <Input
-      disabled={disabled}
-      placeholder={placeholder}
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => {
-        if (blurBehavior === 'cancel') {
-          handleCancel();
-        } else {
-          scheduleCommitDraft();
-          onExit?.();
-        }
-      }}
-      onFocus={cancelScheduledCommit}
-      onPressEnter={handleSave}
-      suffix={showActions ? (
-        <Space size={4}>
-          <Tooltip title={saveLabel}>
-            <Button
-              type='text'
-              size='small'
-              icon={<CheckOutlined style={{ fontSize: 12 }} />}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleSave}
-            />
-          </Tooltip>
-          <Tooltip title={cancelLabel}>
-            <Button
-              type='text'
-              size='small'
-              icon={<CloseOutlined style={{ fontSize: 12 }} />}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleCancel}
-            />
-          </Tooltip>
-        </Space>
-      ) : undefined}
-    />
-  );
-};
-
 export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const { t } = useTranslation();
   const graphActions = useDecisionGraphActions();
   const { token } = theme.useToken();
   const schemaEditorRef = useRef<editor.IStandaloneCodeEditor>();
-  const schemaEditorBlurDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const exampleJsonEditorRef = useRef<editor.IStandaloneCodeEditor>();
-  const exampleJsonEditorBlurDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const commitExampleJsonRef = useRef<() => void>(() => {});
   const activeExampleSourceIdRef = useRef<string | null>(null);
   const [activeTab, setActiveTab] = useState<RequestTabKey>(RequestTabKey.Definitions);
@@ -346,27 +173,43 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const [exampleJsonDirtyBySourceId, setExampleJsonDirtyBySourceId] = useState<Record<string, boolean>>({});
   const [descriptionDrafts, setDescriptionDrafts] = useState<Record<string, string>>({});
 
-  const { disabled, content, nodeName, panels, activePanel, activeGraphTabId, simulatorExampleBinding } = useDecisionGraphState(
-    ({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding }) => ({
-      disabled,
-      content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
-      nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
-      panels,
-      activePanel,
-      activeGraphTabId: activeTab,
-      simulatorExampleBinding,
-    }),
-  );
+  const {
+    disabled: disabledRaw,
+    content,
+    nodeName,
+    panels,
+    activePanel,
+    activeGraphTabId,
+    simulatorExampleBinding,
+  } = useDecisionGraphState(({ disabled, decisionGraph, panels, activePanel, activeTab, simulatorExampleBinding }) => ({
+    disabled,
+    content: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.content,
+    nodeName: (decisionGraph?.nodes ?? []).find((node) => node.id === id)?.name ?? t('request'),
+    panels,
+    activePanel,
+    activeGraphTabId: activeTab,
+    simulatorExampleBinding,
+  }));
+  const disabled = disabledRaw ?? false;
 
-  const sourceSchemaValue = useMemo(() => getRequestSchemaSourceValue(content), [content?.schema, content?.schemaUI, content?.inputs]);
+  const sourceSchemaValue = useMemo(
+    () => getRequestSchemaSourceValue(content),
+    [content?.schema, content?.schemaUI, content?.inputs],
+  );
   const sourceSchemaObject = useMemo(() => parseRequestSchemaValue(sourceSchemaValue), [sourceSchemaValue]);
   const schemaObject = useMemo(
     () => resolveRequestSchemaValue(content, { includeExamples: true }),
     [content?.schema, content?.schemaUI, content?.inputs],
   );
   const schemaText = useMemo(() => stringifyRequestSchemaValue(schemaObject), [schemaObject]);
-  const persistedSchemaText = useMemo(() => stringifyRequestSchemaValue(sourceSchemaValue) || schemaText, [sourceSchemaValue, schemaText]);
-  const persistedDefinitions = useMemo(() => getRequestDefinitions(content), [content?.schema, content?.schemaUI, content?.inputs]);
+  const persistedSchemaText = useMemo(
+    () => stringifyRequestSchemaValue(sourceSchemaValue) || schemaText,
+    [sourceSchemaValue, schemaText],
+  );
+  const persistedDefinitions = useMemo(
+    () => getRequestDefinitions(content),
+    [content?.schema, content?.schemaUI, content?.inputs],
+  );
   const exampleSources = useMemo(
     () => getRequestExampleSources(content, { dataLabel: t('requestDataLabel') }),
     [content, t],
@@ -446,13 +289,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   }, [isSchemaDraftDirty, persistedSchemaText]);
 
   useEffect(() => {
-    return () => {
-      schemaEditorBlurDisposableRef.current?.dispose();
-      schemaEditorBlurDisposableRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
     setDefinitionDrafts((previousDefinitions) => {
       const isLocalDefinitionSync =
         pendingDefinitionSyncSignatureRef.current !== null &&
@@ -460,7 +296,10 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       pendingDefinitionSyncSignatureRef.current = null;
 
       if (isLocalDefinitionSync) {
-        const mergedDefinitions = mergePersistedDefinitionsWithLocalDraftOrder(previousDefinitions, persistedDefinitions);
+        const mergedDefinitions = mergePersistedDefinitionsWithLocalDraftOrder(
+          previousDefinitions,
+          persistedDefinitions,
+        );
 
         return mergedDefinitions;
       }
@@ -493,8 +332,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
 
   const rootDefinitions = useMemo(() => definitionChildrenMap.get(definitionRootKey) ?? [], [definitionChildrenMap]);
 
-  const isSchemaDefinitionsAuthoritative = Boolean(sourceSchemaObject && hasOwn(sourceSchemaObject, 'properties'));
-  const isSchemaExamplesAuthoritative = Boolean(sourceSchemaObject && hasOwn(sourceSchemaObject, 'examples'));
   const definitionTypeOptions = useMemo<Array<{ value: RequestDefinitionType; label: string }>>(
     () => [
       { value: 'string', label: t('requestTypeString') },
@@ -536,12 +373,10 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       return null;
     }
 
-    const validDefinitions = definitionDrafts.filter(
-      (definition) => definition.name.trim() && definition.path.trim(),
-    );
+    const validDefinitions = definitionDrafts.filter((definition) => definition.name.trim() && definition.path.trim());
     const conflicts = getRequestExampleDataDefinitionConflicts(activeSource.data, validDefinitions);
     const missing = validDefinitions.filter(
-      (definition) => getExamplePathValue(activeSource.data, definition.path.trim()) === undefined,
+      (definition) => getPathValue(activeSource.data, definition.path.trim()) === undefined,
     );
     const dataPaths = collectExampleDataPaths(activeSource.data);
     const definitionPaths = validDefinitions.map((definition) => definition.path.trim());
@@ -706,7 +541,15 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       sourceIndex: activeSourceIndex,
       sourceName: activeSource.name,
     });
-  }, [activeGraphTabId, activeSource, activeSourceIndex, exampleSources.length, graphActions, id, simulatorExampleBinding]);
+  }, [
+    activeGraphTabId,
+    activeSource,
+    activeSourceIndex,
+    exampleSources.length,
+    graphActions,
+    id,
+    simulatorExampleBinding,
+  ]);
 
   const openSimulatorPanel = useCallback(() => {
     const simulatorPanel = panels?.find((panel) => panel.id === 'simulator');
@@ -732,10 +575,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       return;
     }
 
+    const sourceSchemaObj = parseRequestSchemaValue(sourceSchemaValue);
     const hasPersistedSchemaProperties = Boolean(
-      sourceSchemaObject &&
-      hasOwn(sourceSchemaObject, 'properties') &&
-      isRecord(sourceSchemaObject.properties),
+      sourceSchemaObj && hasOwn(sourceSchemaObj, 'properties') && isRecord(sourceSchemaObj.properties),
     );
     const hasLegacyInputs = (content?.inputs ?? []).length > 0;
     const nextSchemaText = schemaText.trim();
@@ -761,7 +603,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
         nextSchemaText,
       });
     }
-  }, [content?.inputs, id, schemaText, sourceSchemaObject]);
+  }, [content?.inputs, id, schemaText, sourceSchemaValue]);
 
   const commitSchemaDraft = () => {
     const nextSchemaDraft = schemaDraftRef.current;
@@ -829,7 +671,6 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     pendingSchemaCommitRef.current = nextSchemaText;
     applyExternalSchemaDraft(nextSchemaText, { dirty: false });
     updateNodeSchema(nextSchemaText);
-    setJsonToJsonSchemaOpen(false);
   };
 
   const syncExampleToSimulator = (source?: RequestExampleSource | null, sourceIndex = activeSourceIndex) => {
@@ -907,7 +748,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   };
 
   const handleExampleJsonChange = (nextValue: string) => {
-    const activeSourceId = activeExampleSourceIdRef.current ?? activeSource?.id;    if (!activeSourceId) {
+    const activeSourceId = activeExampleSourceIdRef.current ?? activeSource?.id;
+    if (!activeSourceId) {
       return;
     }
 
@@ -1087,7 +929,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
       const suffix = definition.path.slice(target.path.length);
       const descendantPath = nextPath ? `${nextPath}${suffix}` : suffix.replace(/^\./, '');
       const segments = descendantPath.split('.').filter(Boolean);
-      const nextName = definition.name.trim() ? segments[segments.length - 1] ?? definition.name : definition.name;
+      const nextName = definition.name.trim() ? (segments[segments.length - 1] ?? definition.name) : definition.name;
 
       return {
         ...definition,
@@ -1101,16 +943,16 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     persistDefinitions(nextDefinitions);
   };
 
-  const updateDefinitionType = (index: number, type: RequestDefinitionType) => {
+  const updateDefinitionType = (index: number, nextType: RequestDefinitionType) => {
     const target = definitionDrafts[index];
     if (!target) {
       return;
     }
 
     const nextFormat =
-      type === 'datetime'
+      nextType === 'datetime'
         ? target.format || 'date-time'
-        : type === 'string'
+        : nextType === 'string'
           ? target.type === 'datetime'
             ? ''
             : target.format
@@ -1121,17 +963,17 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
           return true;
         }
 
-        if (type === 'object') {
+        if (nextType === 'object') {
           return true;
         }
 
-        return !(definition.path.startsWith(`${target.path}.`));
+        return !definition.path.startsWith(`${target.path}.`);
       })
       .map((definition, currentIndex) =>
         currentIndex === index
           ? {
               ...definition,
-              type,
+              type: nextType,
               format: nextFormat,
             }
           : definition,
@@ -1186,192 +1028,8 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
   const getDefinitionIndex = (definitionId: string) =>
     definitionDrafts.findIndex((definition) => definition.id === definitionId);
 
-  const renderDefinitionCard = (definition: RequestDefinition): React.ReactNode => {
-    const definitionIndex = getDefinitionIndex(definition.id);
-    if (definitionIndex < 0) {
-      return null;
-    }
-
-    const childDefinitions = definitionChildrenMap.get(definition.path) ?? [];
-    const hasChildDefinitions = childDefinitions.length > 0;
-    const canAddChild = definition.type === 'object' || hasChildDefinitions;
-    const canToggleChildren = hasChildDefinitions;
-    const isCollapsed = Boolean(collapsedDefinitionPaths[definition.path]);
-
-    return (
-      <div
-        className={`grl-request-tab__definition-card ${
-          definition.type === 'object' ? 'grl-request-tab__definition-card--object' : ''
-        }`}
-        key={definition.id}
-      >
-        <div className='grl-request-tab__definition-row'>
-          <div
-            className='grl-request-tab__definition-key'
-            style={{ '--definition-depth': definition.depth } as React.CSSProperties}
-          >
-            <div className='grl-request-tab__definition-key__inner'>
-              {definition.depth > 0 && <span className='grl-request-tab__definition-key__guide' aria-hidden />}
-              <div className='grl-request-tab__definition-key__content'>
-                {canToggleChildren ? (
-                  <Button
-                    type='text'
-                    size='small'
-                    disabled={disabled}
-                    className='grl-request-tab__definition-toggle'
-                    icon={isCollapsed ? <RightOutlined /> : <DownOutlined />}
-                    onClick={() => toggleDefinitionCollapsed(definition.path)}
-                  />
-                ) : (
-                  <span className='grl-request-tab__definition-toggle-spacer' aria-hidden />
-                )}
-                <BlurCommitInput
-                  disabled={disabled}
-                  placeholder={
-                    definition.depth > 0 ? t('requestChildFieldNamePlaceholder') : t('requestFieldNamePlaceholder')
-                  }
-                  value={definition.name}
-                  onCommit={(nextValue) => updateDefinitionName(definitionIndex, nextValue)}
-                />
-              </div>
-            </div>
-          </div>
-          <Select
-            disabled={disabled}
-            options={definitionTypeOptions}
-            value={definition.type}
-            onChange={(value) => updateDefinitionType(definitionIndex, value)}
-          />
-          <BlurCommitInput
-            disabled={disabled}
-            placeholder={t('requestFieldDefaultValuePlaceholder')}
-            value={definition.defaultValue ?? ''}
-            onCommit={(nextValue) => updateDefinitionDefaultValue(definitionIndex, nextValue)}
-          />
-          <BlurCommitInput
-            disabled={disabled}
-            placeholder={t('requestFieldDescriptionPlaceholder')}
-            value={definition.description}
-            onCommit={(nextValue) => updateDefinitionDescription(definitionIndex, nextValue)}
-          />
-          <div className='grl-request-tab__definition-actions'>
-            {canAddChild && (
-              <Tooltip title={t('requestAddChildField')}>
-                <Button
-                  type='text'
-                  size='small'
-                  disabled={disabled || !definition.name.trim()}
-                  icon={<PlusOutlined />}
-                  onClick={() => addChildDefinition(definitionIndex)}
-                />
-              </Tooltip>
-            )}
-            <Popconfirm
-              title={t('requestDeleteFieldConfirm')}
-              okText={t('delete')}
-              cancelText={t('cancel')}
-              disabled={disabled}
-              onConfirm={() => removeDefinition(definitionIndex)}
-            >
-              <Button
-                danger
-                type='text'
-                disabled={disabled}
-                icon={<DeleteOutlined />}
-              />
-            </Popconfirm>
-          </div>
-        </div>
-
-        {hasChildDefinitions && !isCollapsed && (
-          <div className='grl-request-tab__definition-children'>
-            {childDefinitions.map((childDefinition) => renderDefinitionCard(childDefinition))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const getDefinitionTypeLabel = (type: RequestDefinitionType) =>
-    definitionTypeOptions.find((option) => option.value === type)?.label ?? type;
-
-  const renderExampleFieldSummary = (): React.ReactNode | null => {
-    if (!exampleFieldSummary) {
-      return null;
-    }
-
-    const { definitions, conflicts, missing, extra } = exampleFieldSummary;
-    const hasIssues = missing.length > 0 || extra.length > 0 || conflicts.length > 0;
-
-    return (
-      <div className='grl-request-tab__example-summary'>
-        <div className='grl-request-tab__example-summary__header'>
-          <Typography.Text strong style={{ fontSize: 12 }}>
-            {t('requestExampleFieldSummary')}
-          </Typography.Text>
-          <Space size={10} className='grl-request-tab__example-summary__counts'>
-            <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-              {t('requestExampleFieldSummaryDefinitions')}: {definitions.length}
-            </Typography.Text>
-            <Typography.Text style={{ fontSize: 12, color: token.colorWarning }}>
-              {t('requestExampleFieldSummaryMissing')}: {missing.length}
-            </Typography.Text>
-            <Typography.Text style={{ fontSize: 12, color: token.colorInfo }}>
-              {t('requestExampleFieldSummaryExtra')}: {extra.length}
-            </Typography.Text>
-            <Typography.Text style={{ fontSize: 12, color: token.colorError }}>
-              {t('requestExampleFieldSummaryConflicts')}: {conflicts.length}
-            </Typography.Text>
-          </Space>
-        </div>
-
-        {!hasIssues ? (
-          <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-            {t('requestExampleFieldSummaryAllMatch')}
-          </Typography.Text>
-        ) : (
-          <div className='grl-request-tab__example-summary__body'>
-            {missing.map((definition) => (
-              <div key={definition.id} className='grl-request-tab__example-summary__row'>
-                <span
-                  className='grl-request-tab__example-summary__dot'
-                  style={{ background: token.colorWarning }}
-                />
-                <Typography.Text style={{ fontSize: 12 }} ellipsis={{ tooltip: definition.path }}>
-                  {definition.path}
-                </Typography.Text>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-                  {t('requestExampleFieldSummaryMissing')} · {getDefinitionTypeLabel(definition.type)}
-                </Typography.Text>
-              </div>
-            ))}
-            {extra.map((path) => (
-              <div key={`extra-${path}`} className='grl-request-tab__example-summary__row'>
-                <span className='grl-request-tab__example-summary__dot' style={{ background: token.colorInfo }} />
-                <Typography.Text style={{ fontSize: 12 }} ellipsis={{ tooltip: path }}>
-                  {path}
-                </Typography.Text>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-                  {t('requestExampleFieldSummaryExtra')}
-                </Typography.Text>
-              </div>
-            ))}
-            {conflicts.map((conflict) => (
-              <div key={`conflict-${conflict.path}`} className='grl-request-tab__example-summary__row'>
-                <span className='grl-request-tab__example-summary__dot' style={{ background: token.colorError }} />
-                <Typography.Text style={{ fontSize: 12 }} ellipsis={{ tooltip: conflict.path }}>
-                  {conflict.path}
-                </Typography.Text>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-                  {t('requestExampleFieldSummaryConflicts')} · {getDefinitionTypeLabel(conflict.nextType)}
-                </Typography.Text>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
+  const getDefinitionTypeLabel = (defType: RequestDefinitionType) =>
+    definitionTypeOptions.find((option) => option.value === defType)?.label ?? defType;
 
   const addExampleSource = useCallback(() => {
     const baseExampleSources = exampleSources;
@@ -1397,16 +1055,19 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     persistExamples(nextSources, Math.max(index - 1, 0));
   };
 
-  const getSafeJsonFileName = useCallback((name?: string) => {
-    const trimmed = (name ?? '').trim();
-    const baseName = trimmed.length > 0 ? trimmed : nodeName || t('request');
-    const normalized = baseName
-      .replace(/\.json$/i, '')
-      .replace(/[\\/:*?"<>|]/g, '-')
-      .trim();
+  const getSafeJsonFileName = useCallback(
+    (name?: string) => {
+      const trimmed = (name ?? '').trim();
+      const baseName = trimmed.length > 0 ? trimmed : nodeName || t('request');
+      const normalized = baseName
+        .replace(/\.json$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .trim();
 
-    return `${normalized || t('request')}.json`;
-  }, [nodeName, t]);
+      return `${normalized || t('request')}.json`;
+    },
+    [nodeName, t],
+  );
 
   const handleUploadJson = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1478,13 +1139,7 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     if (activeTab === RequestTabKey.Examples) {
       return (
         <Space size='small' style={{ marginRight: 8 }}>
-          <Button
-            type='text'
-            size='small'
-            disabled={disabled}
-            icon={<PlusOutlined />}
-            onClick={addExampleSource}
-          >
+          <Button type='text' size='small' disabled={disabled} icon={<PlusOutlined />} onClick={addExampleSource}>
             {t('requestAddDataSource')}
           </Button>
           <Tooltip title={t('requestUploadJsonTooltip')}>
@@ -1552,13 +1207,21 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     return null;
   };
 
+  const themedEditorOptions = useMemo(
+    () => ({
+      ...editorOptions,
+      theme: token.mode === 'dark' ? 'vs-dark' : 'light',
+    }),
+    [token.mode],
+  );
+
   return (
     <div
       className='grl-node-content'
       data-theme={token.mode}
       style={
         {
-          height: '100%',
+          'height': '100%',
           '--color-text': token.colorTextBase,
           '--color-background-elevated': token.colorBgElevated,
           '--color-border': token.colorBorder,
@@ -1615,284 +1278,81 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
             </div>
             <div className='grl-node-content-side__body'>
               {activeTab === RequestTabKey.Definitions && (
-                <div className='grl-request-tab__body'>
-                  <div className='grl-request-tab__surface grl-request-tab__surface--definitions'>
-                    <div className='grl-request-tab__grid grl-request-tab__grid--definitions'>
-                      <div className='grl-request-tab__grid-header grl-request-tab__grid-header--definitions'>
-                        <span>{t('key')}</span>
-                        <span>{t('type')}</span>
-                        <span>{t('requestFieldDefaultValuePlaceholder')}</span>
-                        <span>{t('description')}</span>
-                        <span />
-                      </div>
-
-                      {rootDefinitions.length === 0 ? (
-                        <Empty
-                          image={Empty.PRESENTED_IMAGE_SIMPLE}
-                          description={t('requestNoDefinitions')}
-                        />
-                      ) : (
-                        rootDefinitions.map((definition) => renderDefinitionCard(definition))
-                      )}
-                    </div>
-                  </div>
-
-                  <div className='grl-request-tab__add-row'>
-                    <Button
-                      className='grl-request-tab__add-row__button'
-                      type='link'
-                      icon={<PlusCircleOutlined />}
-                      disabled={disabled}
-                      onClick={addDefinition}
-                    >
-                      {t('requestAddField')}
-                    </Button>
-                  </div>
-                </div>
+                <RequestDefinitions
+                  rootDefinitions={rootDefinitions}
+                  childrenMap={definitionChildrenMap}
+                  collapsedPaths={collapsedDefinitionPaths}
+                  disabled={disabled}
+                  definitionTypeOptions={definitionTypeOptions}
+                  onAdd={addDefinition}
+                  onUpdateName={updateDefinitionName}
+                  onUpdateType={updateDefinitionType}
+                  onUpdateDescription={updateDefinitionDescription}
+                  onUpdateDefaultValue={updateDefinitionDefaultValue}
+                  onAddChild={addChildDefinition}
+                  onRemove={removeDefinition}
+                  onToggleCollapse={toggleDefinitionCollapsed}
+                  getDefinitionIndex={getDefinitionIndex}
+                />
               )}
 
               {activeTab === RequestTabKey.Examples && (
-                <div className='grl-request-tab__body grl-request-tab__body--examples'>
-                  {exampleSources.length === 0 ? (
-                    <Card className='grl-request-tab__surface'>
-                      <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={t('requestNoDataSources')}
-                      >
-                        <Button type='primary' icon={<PlusOutlined />} disabled={disabled} onClick={addExampleSource}>
-                          {t('requestCreateDataSource')}
-                        </Button>
-                      </Empty>
-                    </Card>
-                  ) : (
-                    <div className='grl-request-tab__examples-split'>
-                      <div className='grl-request-tab__examples-source-list'>
-                        {exampleSources.map((source, index) => (
-                          <div
-                            key={source.id}
-                            className={`grl-request-tab__examples-source-item ${
-                              index === activeSourceIndex ? 'grl-request-tab__examples-source-item--active' : ''
-                            }`}
-                            onClick={() => {
-                              setActiveSourceIndex(index);
-                              syncExampleToSimulator(source, index);
-                            }}
-                          >
-                            <div
-                              className='grl-request-tab__examples-source-item__name'
-                              onDoubleClick={(event) => {
-                                event.stopPropagation();
-                                if (!disabled) {
-                                  setEditingSourceIndex(index);
-                                }
-                              }}
-                            >
-                              {editingSourceIndex === index ? (
-                                <BlurCommitInput
-                                  disabled={disabled}
-                                  value={source.name}
-                                  blurBehavior='cancel'
-                                  saveLabel={t('save')}
-                                  cancelLabel={t('cancel')}
-                                  showActions={true}
-                                  onCommit={(nextName) => {
-                                    const trimmedName = nextName.trim();
-                                    if (trimmedName) {
-                                      persistExamples(
-                                        exampleSources.map((item, currentIndex) =>
-                                          currentIndex === index
-                                            ? {
-                                                ...item,
-                                                name: trimmedName,
-                                              }
-                                            : item,
-                                        ),
-                                        index,
-                                        { syncToSimulator: false },
-                                      );
-                                    }
-                                  }}
-                                  onExit={() => setEditingSourceIndex(null)}
-                                />
-                              ) : (
-                                <Tooltip
-                                  title={
-                                    source.description ? (
-                                      <div>
-                                        <div>{source.name}</div>
-                                        <div style={{ marginTop: 4, opacity: 0.85, fontSize: 12 }}>
-                                          {source.description}
-                                        </div>
-                                      </div>
-                                    ) : null
-                                  }
-                                >
-                                  <Typography.Text ellipsis>
-                                    {source.name}
-                                  </Typography.Text>
-                                </Tooltip>
-                              )}
-                            </div>
-                            <Popconfirm
-                              title={t('requestDeleteDataSourceConfirm')}
-                              okText={t('delete')}
-                              cancelText={t('cancel')}
-                              onConfirm={() => removeExampleSource(index)}
-                            >
-                              <Button
-                                danger
-                                type='text'
-                                size='small'
-                                disabled={disabled}
-                                icon={<DeleteOutlined />}
-                                onClick={(event) => event.stopPropagation()}
-                              />
-                            </Popconfirm>
-                          </div>
-                        ))}
-                        <Tooltip title={t('requestAddDataSource')} placement='bottom'>
-                          <Button
-                            type='dashed'
-                            size='small'
-                            disabled={disabled}
-                            icon={<PlusOutlined />}
-                            onClick={addExampleSource}
-                            className='grl-request-tab__examples-add-source-button'
-                          />
-                        </Tooltip>
-                      </div>
-
-                      <div className='grl-request-tab__example-editor'>
-                        <div className='grl-request-tab__example-editor__header'>
-                          <Typography.Text strong ellipsis={{ tooltip: activeSource?.name }}>
-                            {activeSource?.name}
-                          </Typography.Text>
-                          <Tooltip title={t('format')} placement='bottomRight'>
-                            <Button
-                              type='text'
-                              size='small'
-                              shape='circle'
-                              icon={<FormatPainterOutlined />}
-                              onClick={() =>
-                                exampleJsonEditorRef.current?.getAction?.('editor.action.formatDocument')?.run?.()
-                              }
-                              disabled={disabled}
-                            />
-                          </Tooltip>
-                        </div>
-                        <Input.TextArea
-                          className='grl-request-tab__example-description'
-                          value={activeDescriptionDraft}
-                          onChange={(event) => handleDescriptionChange(event.target.value)}
-                          onBlur={commitDescription}
-                          placeholder={t('requestExampleDescriptionPlaceholder')}
-                          disabled={disabled}
-                          autoSize={{ minRows: 1, maxRows: 4 }}
-                        />
-                        <div className='grl-request-tab__example-json'>
-                          <Editor
-                            height='100%'
-                            language='json'
-                            value={activeExampleJsonDraft}
-                            onMount={(instance, monacoInstance) => {
-                              exampleJsonEditorRef.current = instance;
-                              exampleJsonEditorBlurDisposableRef.current?.dispose();
-                              exampleJsonEditorBlurDisposableRef.current = instance.onDidBlurEditorText(() => {
-                                commitExampleJsonRef.current();
-                              });
-
-                              // Register Inlay Hints Provider only once globally
-                              if (!jsonInlayHintsProviderRegistered) {
-                                monacoInstance.languages.registerInlayHintsProvider('json', {
-                                  provideInlayHints: (model, range) => {
-                                    const jsonText = model.getValue();
-                                    const fields = extractJsonFields(jsonText);
-                                    const descriptionMap = new Map<string, string>();
-
-                                    // Build description map from current definitionDrafts via ref
-                                    definitionDraftsRef.current.forEach((def) => {
-                                      if (def.description && def.description.trim()) {
-                                        descriptionMap.set(def.path, def.description.trim());
-                                      }
-                                    });
-
-                                    const hints: any[] = [];
-
-                                    fields.forEach((field) => {
-                                      const description = descriptionMap.get(field.path);
-                                      if (description) {
-                                        hints.push({
-                                          kind: monacoInstance.languages.InlayHintKind.Type,
-                                          position: {
-                                            lineNumber: field.lineEnd,
-                                            column: field.lineEndColumn,
-                                          },
-                                          label: `// ${description}`,
-                                          paddingLeft: true,
-                                        });
-                                      }
-                                    });
-
-                                    return {
-                                      hints,
-                                      dispose: () => {},
-                                    };
-                                  },
-                                });
-                                jsonInlayHintsProviderRegistered = true;
-                              }
-                            }}
-                            onChange={(value) => handleExampleJsonChange(value ?? '')}
-                            theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
-                            options={{
-                              ...schemaEditorOptions,
-                              readOnly: disabled,
-                              inlayHints: {
-                                enabled: 'on',
-                              },
-                            }}
-                          />
-                        </div>
-                        {renderExampleFieldSummary()}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <RequestExamples
+                  sources={exampleSources}
+                  activeSourceIndex={activeSourceIndex}
+                  editingSourceIndex={editingSourceIndex}
+                  activeSource={activeSource}
+                  activeDescriptionDraft={activeDescriptionDraft}
+                  activeJsonDraft={activeExampleJsonDraft}
+                  disabled={disabled}
+                  definitionDrafts={definitionDrafts}
+                  onSourceSelect={(index) => {
+                    setActiveSourceIndex(index);
+                    syncExampleToSimulator(exampleSources[index], index);
+                  }}
+                  onSourceAdd={addExampleSource}
+                  onSourceRemove={removeExampleSource}
+                  onSourceRename={(index, name) => {
+                    const trimmedName = name.trim();
+                    if (trimmedName) {
+                      persistExamples(
+                        exampleSources.map((item, currentIndex) =>
+                          currentIndex === index ? { ...item, name: trimmedName } : item,
+                        ),
+                        index,
+                        { syncToSimulator: false },
+                      );
+                    }
+                  }}
+                  onEnterEditing={(index) => setEditingSourceIndex(index)}
+                  onSourceRenameExit={() => setEditingSourceIndex(null)}
+                  onDescriptionChange={handleDescriptionChange}
+                  onDescriptionCommit={commitDescription}
+                  onJsonChange={handleExampleJsonChange}
+                  onJsonCommit={commitExampleJson}
+                  onFormat={() => exampleJsonEditorRef.current?.getAction?.('editor.action.formatDocument')?.run?.()}
+                  jsonEditorRef={exampleJsonEditorRef}
+                  summary={exampleFieldSummary}
+                  getDefinitionTypeLabel={getDefinitionTypeLabel}
+                  editorOptions={themedEditorOptions}
+                />
               )}
 
               {activeTab === RequestTabKey.Schema && (
-                <div className='grl-request-tab__body grl-request-tab__body--schema'>
-                  <div className='grl-request-tab__surface grl-request-tab__surface--schema'>
-                    <div className='grl-request-tab__schema-shell'>
-                      <div className='grl-request-tab__schema-editor'>
-                        <Editor
-                          height='100%'
-                          language='json'
-                          value={schemaDraft}
-                          onMount={(instance) => {
-                            schemaEditorRef.current = instance;
-                            schemaEditorBlurDisposableRef.current?.dispose();
-                            schemaEditorBlurDisposableRef.current = instance.onDidBlurEditorText(() => {
-                              commitSchemaDraft();
-                            });
-                          }}
-                          onChange={(value) => handleSchemaDraftChange(value ?? '')}
-                          theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
-                          options={{
-                            ...schemaEditorOptions,
-                            readOnly: disabled,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <JsonToJsonSchemaDialog
-                    isOpen={jsonToJsonSchemaOpen}
-                    onDismiss={() => setJsonToJsonSchemaOpen(false)}
-                    onSuccess={handleConvertToJsonSchemaSuccess}
-                    model={localStorage.getItem(`${id}-request-model`) || undefined}
-                  />
-                </div>
+                <RequestSchemaEditor
+                  schemaDraft={schemaDraft}
+                  disabled={disabled}
+                  onSchemaChange={handleSchemaDraftChange}
+                  onSchemaCommit={commitSchemaDraft}
+                  onFormat={() => schemaEditorRef.current?.getAction?.('editor.action.formatDocument')?.run?.()}
+                  jsonToJsonSchemaOpen={jsonToJsonSchemaOpen}
+                  onOpenConvert={() => setJsonToJsonSchemaOpen(true)}
+                  onConvertSuccess={handleConvertToJsonSchemaSuccess}
+                  onDismissConvert={() => setJsonToJsonSchemaOpen(false)}
+                  editorRef={schemaEditorRef}
+                  editorOptions={themedEditorOptions}
+                  nodeId={id}
+                />
               )}
             </div>
           </div>
