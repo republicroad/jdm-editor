@@ -3,18 +3,17 @@ import type { editor, languages } from 'monaco-editor';
 import type { RequestDefinition } from '../../../helpers/request-schema';
 import { extractJsonFields } from '../../../helpers/json-path-extractor';
 
-let isRegistered = false;
-
 export function registerJsonInlayHintsProvider(
   monaco: typeof import('monaco-editor'),
+  targetModel: editor.ITextModel,
   getDefinitions: () => RequestDefinition[],
-): void {
-  if (isRegistered) {
-    return;
-  }
-
-  monaco.languages.registerInlayHintsProvider('json', {
+): { dispose(): void } {
+  return monaco.languages.registerInlayHintsProvider('json', {
     provideInlayHints: (model: editor.ITextModel): languages.InlayHintList => {
+      if (model !== targetModel) {
+        return { hints: [], dispose: () => {} };
+      }
+
       const jsonText = model.getValue();
       const fields = extractJsonFields(jsonText);
       const descriptionMap = new Map<string, string>();
@@ -46,6 +45,4 @@ export function registerJsonInlayHintsProvider(
       return { hints, dispose: () => {} };
     },
   });
-
-  isRegistered = true;
 }

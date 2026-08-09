@@ -50,6 +50,36 @@ export const collectExampleDataPaths = (value: unknown, prefix = '', paths: stri
   return paths;
 };
 
+const parseRequestDefinitionDefaultValue = (
+  defaultValue: string | undefined,
+  type: RequestDefinitionType,
+): unknown => {
+  if (defaultValue === undefined || !defaultValue.trim()) {
+    return undefined;
+  }
+
+  const trimmedDefaultValue = defaultValue.trim();
+
+  switch (type) {
+    case 'number': {
+      const parsedNumber = Number(trimmedDefaultValue);
+      return Number.isFinite(parsedNumber) ? parsedNumber : trimmedDefaultValue;
+    }
+    case 'boolean':
+      return trimmedDefaultValue.toLowerCase() === 'true';
+    case 'array':
+    case 'object': {
+      try {
+        return JSON.parse(trimmedDefaultValue);
+      } catch {
+        return trimmedDefaultValue;
+      }
+    }
+    default:
+      return trimmedDefaultValue;
+  }
+};
+
 const getDefaultExampleValueByDefinitionType = (type: RequestDefinitionType): unknown => {
   const padNumber = (value: number) => String(value).padStart(2, '0');
   const getDefaultDateTimeValue = () => {
@@ -83,7 +113,7 @@ const getDefaultExampleValueByDefinitionType = (type: RequestDefinitionType): un
 };
 
 export const buildRequestExampleTemplateFromDefinitions = (
-  definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type'>>,
+  definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type' | 'defaultValue'>>,
 ): Record<string, unknown> => {
   const template: Record<string, unknown> = {};
   const orderedDefinitions = [...definitions]
@@ -91,7 +121,12 @@ export const buildRequestExampleTemplateFromDefinitions = (
     .sort((left, right) => left.path.split('.').length - right.path.split('.').length);
 
   orderedDefinitions.forEach((definition) => {
-    setPathValue(template, definition.path, getDefaultExampleValueByDefinitionType(definition.type));
+    const definitionDefault = parseRequestDefinitionDefaultValue(definition.defaultValue, definition.type);
+    setPathValue(
+      template,
+      definition.path,
+      definitionDefault === undefined ? getDefaultExampleValueByDefinitionType(definition.type) : definitionDefault,
+    );
   });
 
   return template;
@@ -300,6 +335,32 @@ export const syncRequestExampleDataToDefinitions = (
   definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type'>>,
 ): Record<string, unknown> => {
   return prepareRequestExampleDataDefinitionSync(data, definitions, { forceResetConflicts: true }).data;
+};
+
+export const mergeRequestExampleDefaultsByDefinitions = (
+  data: Record<string, unknown>,
+  definitions: Array<Pick<RequestDefinition, 'name' | 'path' | 'type' | 'defaultValue'>>,
+): Record<string, unknown> => {
+  const mergedData = cloneRequestExampleValue(data) as Record<string, unknown>;
+
+  definitions
+    .filter((definition) => definition.name.trim() && definition.path.trim())
+    .forEach((definition) => {
+      const definitionDefault = parseRequestDefinitionDefaultValue(definition.defaultValue, definition.type);
+      if (definitionDefault === undefined) {
+        return;
+      }
+
+      const definitionPath = definition.path.trim();
+      const currentValue = getPathValue(mergedData, definitionPath);
+      if (currentValue !== undefined && !isSkeletonLikeRequestValue(currentValue)) {
+        return;
+      }
+
+      setPathValue(mergedData, definitionPath, cloneRequestExampleValue(definitionDefault));
+    });
+
+  return mergedData;
 };
 
 export const syncRequestExampleDataWithDefinitionChanges = (

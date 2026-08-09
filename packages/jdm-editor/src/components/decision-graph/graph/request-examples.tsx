@@ -63,16 +63,24 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
 }) => {
   const { t } = useTranslation();
   const blurDisposableRef = useRef<{ dispose: () => void } | null>(null);
+  const inlayHintsDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const onJsonCommitRef = useRef(onJsonCommit);
+  const definitionDraftsRef = useRef(definitionDrafts);
 
   useEffect(() => {
     onJsonCommitRef.current = onJsonCommit;
   });
 
   useEffect(() => {
+    definitionDraftsRef.current = definitionDrafts;
+  });
+
+  useEffect(() => {
     return () => {
       blurDisposableRef.current?.dispose();
       blurDisposableRef.current = null;
+      inlayHintsDisposableRef.current?.dispose();
+      inlayHintsDisposableRef.current = null;
     };
   }, []);
 
@@ -217,7 +225,15 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                   onJsonCommitRef.current();
                 });
 
-                registerJsonInlayHintsProvider(monacoInstance, () => definitionDrafts);
+                const model = instance.getModel();
+                if (model) {
+                  inlayHintsDisposableRef.current?.dispose();
+                  inlayHintsDisposableRef.current = registerJsonInlayHintsProvider(
+                    monacoInstance,
+                    model,
+                    () => definitionDraftsRef.current,
+                  );
+                }
               }}
               onChange={(value) => onJsonChange(value ?? '')}
               theme={(editorOptions as any)?.theme ?? 'light'}

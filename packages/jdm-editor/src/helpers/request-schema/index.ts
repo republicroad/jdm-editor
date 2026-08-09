@@ -11,6 +11,7 @@ export {
   getRequestExampleDataDefinitionConflicts,
   getRequestExampleSources,
   mergeRequestExampleDataWithTemplate,
+  mergeRequestExampleDefaultsByDefinitions,
   normalizeRequestExampleDataByDefinitions,
   prepareRequestExampleDataDefinitionSync,
   syncRequestExampleDataToDefinitions,
