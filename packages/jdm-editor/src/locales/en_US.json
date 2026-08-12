@@ -271,6 +271,8 @@
   "requestUploadJsonFailed": "Failed to upload JSON",
   "requestDownloadJsonNoData": "No data available to download",
   "requestFormatSchema": "Format schema",  "requestSaveDataSource": "Save data",
+  "requestToggleFieldDescriptions": "Show field descriptions",
+  "requestToggleFieldDescriptionsTooltip": "Toggle field description hints",
   "requestDataSourceSaved": "Data saved",
   "requestSaveDataSourceFailed": "Failed to save data",
   "requestDataTypeMismatchWarning": "The current request data type does not match the definitions. To change the definition, update it in Definitions.",

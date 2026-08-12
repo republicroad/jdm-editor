@@ -41,4 +41,17 @@ describe('extractJsonFields', () => {
     expect(extractJsonFields('{ "name": ').map(({ path }) => path)).toEqual(['name']);
     expect(extractJsonFields('')).toEqual([]);
   });
+
+  it('does not throw on an unterminated string value', () => {
+    const fields = extractJsonFields('{ "name": "abc');
+
+    expect(fields.map(({ path }) => path)).toEqual(['name']);
+  });
+
+  it('does not throw on invalid or truncated fragments', () => {
+    expect(() => extractJsonFields('{ "a": , }')).not.toThrow();
+    expect(() => extractJsonFields('{')).not.toThrow();
+    expect(() => extractJsonFields('{"a":')).not.toThrow();
+    expect(extractJsonFields('{"a":').map(({ path }) => path)).toEqual(['a']);
+  });
 });

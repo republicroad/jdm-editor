@@ -1,8 +1,8 @@
-import { DeleteOutlined, FormatPainterOutlined, PlusOutlined } from '@ant-design/icons';
+import { CommentOutlined, DeleteOutlined, FormatPainterOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, Input, Popconfirm, Tooltip, Typography } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BlurCommitInput } from './blur-commit-input';
 import { registerJsonInlayHintsProvider } from './request-inlay-hints';
@@ -62,10 +62,37 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
   editorOptions,
 }) => {
   const { t } = useTranslation();
+  const [inlayHintsEnabled, setInlayHintsEnabled] = useState(true);
   const blurDisposableRef = useRef<{ dispose: () => void } | null>(null);
   const inlayHintsDisposableRef = useRef<{ dispose: () => void } | null>(null);
+  const inlayHintsEnabledRef = useRef(inlayHintsEnabled);
+  const monacoInstanceRef = useRef<typeof import('monaco-editor') | null>(null);
+  const inlayHintsModelRef = useRef<editor.ITextModel | null>(null);
   const onJsonCommitRef = useRef(onJsonCommit);
   const definitionDraftsRef = useRef(definitionDrafts);
+
+  useEffect(() => {
+    inlayHintsEnabledRef.current = inlayHintsEnabled;
+  }, [inlayHintsEnabled]);
+
+  const syncInlayHintsProvider = useCallback(() => {
+    inlayHintsDisposableRef.current?.dispose();
+    inlayHintsDisposableRef.current = null;
+
+    const model = inlayHintsModelRef.current;
+    const monacoInstance = monacoInstanceRef.current;
+    if (inlayHintsEnabledRef.current && monacoInstance && model) {
+      inlayHintsDisposableRef.current = registerJsonInlayHintsProvider(
+        monacoInstance,
+        model,
+        () => definitionDraftsRef.current,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    syncInlayHintsProvider();
+  }, [inlayHintsEnabled, syncInlayHintsProvider]);
 
   useEffect(() => {
     onJsonCommitRef.current = onJsonCommit;
@@ -193,6 +220,17 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
             <Typography.Text strong ellipsis={{ tooltip: activeSource?.name }}>
               {activeSource?.name}
             </Typography.Text>
+            <Tooltip title={t('requestToggleFieldDescriptionsTooltip')} placement='bottomRight'>
+              <Button
+                type='text'
+                size='small'
+                shape='circle'
+                icon={<CommentOutlined />}
+                style={inlayHintsEnabled ? { color: '#1677ff' } : undefined}
+                onClick={() => setInlayHintsEnabled((prev) => !prev)}
+                disabled={disabled}
+              />
+            </Tooltip>
             <Tooltip title={t('format')} placement='bottomRight'>
               <Button
                 type='text'
@@ -226,14 +264,9 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                 });
 
                 const model = instance.getModel();
-                if (model) {
-                  inlayHintsDisposableRef.current?.dispose();
-                  inlayHintsDisposableRef.current = registerJsonInlayHintsProvider(
-                    monacoInstance,
-                    model,
-                    () => definitionDraftsRef.current,
-                  );
-                }
+                monacoInstanceRef.current = monacoInstance;
+                inlayHintsModelRef.current = model;
+                syncInlayHintsProvider();
               }}
               onChange={(value) => onJsonChange(value ?? '')}
               theme={(editorOptions as any)?.theme ?? 'light'}
@@ -241,7 +274,7 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                 ...editorOptions,
                 readOnly: disabled,
                 inlayHints: {
-                  enabled: 'on',
+                  enabled: inlayHintsEnabled ? 'on' : 'off',
                 },
               }}
             />

@@ -271,6 +271,8 @@
   "requestUploadJsonFailed": "JSON 上传失败",
   "requestDownloadJsonNoData": "暂无可下载的用例数据",
   "requestFormatSchema": "格式化 Schema",  "requestSaveDataSource": "保存用例数据",
+  "requestToggleFieldDescriptions": "显示字段描述",
+  "requestToggleFieldDescriptionsTooltip": "开关字段描述提示",
   "requestDataSourceSaved": "用例数据保存成功",
   "requestSaveDataSourceFailed": "保存用例数据失败",
   "requestDataTypeMismatchWarning": "当前请求数据类型格式不符合定义，如果需要修改定义，请前往类型定义中修改。",

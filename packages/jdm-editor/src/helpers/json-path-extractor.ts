@@ -51,7 +51,7 @@ const parseString = (
     i++;
   }
 
-  throw new Error('Unterminated string');
+  return { value, endIndex: text.length - 1, endLine: line, endColumn: column };
 };
 
 export const extractJsonFields = (jsonText: string): JsonFieldInfo[] => {
@@ -61,44 +61,27 @@ export const extractJsonFields = (jsonText: string): JsonFieldInfo[] => {
   let line = 1;
   let column = 1;
 
-  // Helper function to find the end of a specific line
-  const findLineEnd = (targetLine: number): { lineEnd: number; lineEndColumn: number } => {
-    let currentLine = 1;
-    let currentColumn = 1;
-    let lastNonWhitespaceColumn = 1;
-    let idx = 0;
-
-    while (idx < jsonText.length) {
-      const char = jsonText[idx];
-
-      if (currentLine === targetLine) {
-        if (char === '\n') {
-          return { lineEnd: targetLine, lineEndColumn: lastNonWhitespaceColumn + 1 };
-        }
-        if (!isWhitespace(char)) {
-          lastNonWhitespaceColumn = currentColumn;
-        }
-      } else if (currentLine > targetLine) {
-        break;
+  // Precompute, for every line, the column just past its last non-whitespace char,
+  // so each field's end position can be looked up in O(1) instead of rescanning the file.
+  const lineEndByLine: number[] = [0];
+  let scanLine = 1;
+  let scanColumn = 1;
+  let lastNonWhitespaceColumn = 1;
+  for (let idx = 0; idx < jsonText.length; idx++) {
+    const char = jsonText[idx];
+    if (char === '\n') {
+      lineEndByLine[scanLine] = lastNonWhitespaceColumn + 1;
+      scanLine++;
+      scanColumn = 1;
+      lastNonWhitespaceColumn = 1;
+    } else {
+      if (!isWhitespace(char)) {
+        lastNonWhitespaceColumn = scanColumn;
       }
-
-      if (char === '\n') {
-        currentLine++;
-        currentColumn = 1;
-        lastNonWhitespaceColumn = 1;
-      } else {
-        currentColumn++;
-      }
-      idx++;
+      scanColumn++;
     }
-
-    // If we reached the end of the file on the target line
-    if (currentLine === targetLine) {
-      return { lineEnd: targetLine, lineEndColumn: lastNonWhitespaceColumn + 1 };
-    }
-
-    return { lineEnd: targetLine, lineEndColumn: 1 };
-  };
+  }
+  lineEndByLine[scanLine] = lastNonWhitespaceColumn + 1;
 
   const skipWhitespace = () => {
     while (i < jsonText.length && isWhitespace(jsonText[i])) {
@@ -174,15 +157,15 @@ export const extractJsonFields = (jsonText: string): JsonFieldInfo[] => {
       const fieldPath = pathStack.length > 0 ? `${pathStack.join('.')}.${key}` : key;
 
       // Find the end of this line
-      const lineEndInfo = findLineEnd(keyStartLine);
+      const lineEndInfo = lineEndByLine[keyStartLine] ?? 1;
 
       fields.push({
         path: fieldPath,
         name: key,
         line: keyStartLine,
         column: keyStartColumn,
-        lineEnd: lineEndInfo.lineEnd,
-        lineEndColumn: lineEndInfo.lineEndColumn,
+        lineEnd: keyStartLine,
+        lineEndColumn: lineEndInfo,
       });
 
       skipWhitespace();
