@@ -5,10 +5,10 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/main.css",
+    "css": "packages/jdm-editor/src/styles/tailwind.css",
     "baseColor": "neutral",
     "cssVariables": true,
-    "prefix": ""
+    "prefix": "grl"
   },
   "aliases": {
     "components": "@/components",

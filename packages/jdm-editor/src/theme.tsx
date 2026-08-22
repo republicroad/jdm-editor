@@ -1,6 +1,6 @@
 import type { ThemeConfig as AntThemeConfig } from 'antd';
 import { App, ConfigProvider, theme as antTheme, theme } from 'antd';
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 
 import { useWasmReady } from './helpers/wasm';
 
@@ -66,6 +66,13 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 
 const GlobalCssVariables: React.FC<{ mode: 'light' | 'dark' }> = ({ mode }) => {
   const { token } = theme.useToken();
+
+  useEffect(() => {
+    document.documentElement.dataset.mode = mode;
+    return () => {
+      delete document.documentElement.dataset.mode;
+    };
+  }, [mode]);
 
   const exposedTokens = useMemo(
     () => ({

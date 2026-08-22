@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react-swc';
+import tailwindcss from '@tailwindcss/vite';
 import * as path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
@@ -7,8 +8,11 @@ import wasm from 'vite-plugin-wasm';
 import packageJson from './package.json';
 
 export default defineConfig({
-  plugins: [react(), wasm(), dts({ insertTypesEntry: true, rollupTypes: true })],
+  plugins: [react(), wasm(), dts({ insertTypesEntry: true, rollupTypes: true }), tailwindcss()],
   resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
     dedupe: ['@lezer/common', '@lezer/lr', '@lezer/highlight'],
   },
   build: {

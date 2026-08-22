@@ -1,3 +1,5 @@
+import tailwindcss from '@tailwindcss/vite';
+import { fileURLToPath } from 'node:url';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
@@ -17,6 +19,13 @@ const config: StorybookConfig = {
     },
   },
   async viteFinal(config) {
+    config.plugins ??= [];
+    config.plugins.push(tailwindcss());
+    config.resolve ??= {};
+    config.resolve.alias = {
+      ...(config.resolve.alias && !Array.isArray(config.resolve.alias) ? config.resolve.alias : {}),
+      '@': fileURLToPath(new URL('../src', import.meta.url)),
+    };
     config.optimizeDeps ??= {};
     config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
     return config;

@@ -1,0 +1,54 @@
+/*
+ * Tailwind v4 entry for @gorules/jdm-editor.
+ *
+ * - Preflight is intentionally NOT imported: antd owns base element styles.
+ * - Every utility is namespaced with the `grl` prefix (e.g. class="grl:flex");
+ *   theme variables are emitted prefixed as well (--grl-color-red-500).
+ * - The dark variant follows [data-mode='dark'] set by JdmConfigProvider,
+ *   not the OS preference.
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+/* source(none): opt out of automatic content detection (monorepo checkout);
+   explicit sources are declared below. */
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+
+@theme prefix(grl);
+
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
+
+/* Scan only this package's sources. */
+@source '../';
+
+/*
+ * shadcn-style semantic colors. Values resolve from tokens.css, which bridges
+ * antd runtime tokens (--grl-*) to generic names; `inline` keeps var()
+ * references verbatim inside generated utilities.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
