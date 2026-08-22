@@ -1,7 +1,7 @@
+import { ReactFlowProvider } from '@xyflow/react';
 import clsx from 'clsx';
 import type { DragDropManager } from 'dnd-core';
 import { forwardRef } from 'react';
-import { ReactFlowProvider } from 'reactflow';
 
 import type { DecisionGraphContextProps } from './context/dg-store.context';
 import { DecisionGraphProvider } from './context/dg-store.context';

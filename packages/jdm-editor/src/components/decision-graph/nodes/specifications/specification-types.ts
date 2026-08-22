@@ -1,7 +1,7 @@
 import { type VariableType } from '@gorules/zen-engine-wasm';
+import type { NodeProps } from '@xyflow/react';
 import type { DragDropManager } from 'dnd-core';
 import type React from 'react';
-import type { NodeProps } from 'reactflow';
 
 import type { DecisionNode } from '../../dg-types';
 import type { DecisionNodeProps } from '../decision-node';
@@ -15,7 +15,7 @@ export enum NodeKind {
   Switch = 'switchNode',
 }
 
-export type MinimalNodeProps = Pick<NodeProps, 'id' | 'data' | 'selected'>;
+export type MinimalNodeProps = Pick<NodeProps, 'id' | 'selected'> & { data: any };
 export type MinimalNodeSpecification = Pick<
   NodeSpecification,
   'color' | 'icon' | 'displayName' | 'documentationUrl' | 'helper' | 'renderSettings'

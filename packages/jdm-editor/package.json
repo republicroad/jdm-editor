@@ -34,6 +34,9 @@
     "build:watch": "vite build --watch",
     "storybook": "storybook dev -p 9009",
     "build:storybook": "storybook build -o docs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:storybook": "concurrently -k -s first -n SB,TST \"storybook build -o docs --quiet && http-server docs -p 9009 --silent\" \"wait-on tcp:127.0.0.1:9009 && test-storybook --url http://127.0.0.1:9009\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "vite build"
   },
@@ -45,15 +48,16 @@
     "@codemirror/lint": "^6.8.5",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.5",
-    "@gorules/lezer-zen": "workspace:*",
-    "@gorules/lezer-zen-template": "workspace:*",
-    "@gorules/zen-engine-wasm": "workspace:*",
+    "@gorules/lezer-zen": "^0.8.1",
+    "@gorules/lezer-zen-template": "^0.4.0",
+    "@gorules/zen-engine-wasm": "^0.23.1",
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
     "@monaco-editor/react": "^4.7.0",
     "@tanstack/react-table": "8.21.3",
     "@tanstack/react-virtual": "3.13.6",
+    "@xyflow/react": "^12.3.0",
     "antd": "5.21.2",
     "clsx": "2.1.1",
     "dnd-core": "^16.0.1",
@@ -71,7 +75,6 @@
     "react-intersection-observer": "^9.16.0",
     "react-json-tree": "^0.20.0",
     "react-resizable-panels": "^2.1.7",
-    "reactflow": "11.11.4",
     "to-json-schema": "^0.2.5",
     "transition-hook": "^1.5.2",
     "ts-pattern": "^5.7.0",
@@ -90,6 +93,7 @@
     "@storybook/react": "^8.6.12",
     "@storybook/react-vite": "^8.6.12",
     "@storybook/test": "^8.6.12",
+    "@storybook/test-runner": "^0.19.1",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
@@ -100,7 +104,10 @@
     "@types/react-dom": "19.1.2",
     "@types/to-json-schema": "^0.2.4",
     "@vitejs/plugin-react-swc": "^3.8.1",
+    "concurrently": "^10.0.5",
     "dayjs": "^1.11.13",
+    "http-server": "^14.1.1",
+    "jsdom": "^30.0.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "sass": "^1.86.3",
@@ -108,19 +115,9 @@
     "storybook-dark-mode": "^4.0.2",
     "vite": "6.2.6",
     "vite-plugin-dts": "^4.5.3",
-    "vite-plugin-wasm": "^3.4.1"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**",
-      "!src/types.ts",
-      "!src/index.ts",
-      "!src/stories/**"
-    ],
-    "coverageReporters": [
-      "lcov",
-      "json-summary"
-    ]
+    "vite-plugin-wasm": "^3.4.1",
+    "vitest": "^4.1.11",
+    "wait-on": "^9.1.0"
   },
   "peerDependencies": {
     "react": ">= 18",

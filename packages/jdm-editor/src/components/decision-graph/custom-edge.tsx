@@ -1,9 +1,9 @@
 import { DeleteOutlined } from '@ant-design/icons';
+import type { EdgeProps } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
 import { Button } from 'antd';
 import clsx from 'clsx';
 import React from 'react';
-import type { EdgeProps } from 'reactflow';
-import { BaseEdge, EdgeLabelRenderer, getBezierPath } from 'reactflow';
 import { match } from 'ts-pattern';
 
 import { useDecisionGraphActions, useDecisionGraphState, useEdgeDiff } from './context/dg-store.context';

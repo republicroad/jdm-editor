@@ -1,10 +1,10 @@
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { Monaco } from '@monaco-editor/react';
+import type { EdgeChange, NodeChange, ReactFlowInstance, useEdgesState, useNodesState } from '@xyflow/react';
 import equal from 'fast-deep-equal/es6/react';
 import type { WritableDraft } from 'immer';
 import { produce } from 'immer';
 import React, { type MutableRefObject, createRef, useMemo } from 'react';
-import type { EdgeChange, NodeChange, ReactFlowInstance, useEdgesState, useNodesState } from 'reactflow';
 import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';

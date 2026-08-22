@@ -1,5 +1,5 @@
+import { type Edge, type Node, getIncomers, getOutgoers } from '@xyflow/react';
 import equal from 'fast-deep-equal/es6/react';
-import { type Edge, type Node, getIncomers, getOutgoers } from 'reactflow';
 
 import type { DecisionGraphType, DecisionNode } from '../components';
 import { mapToGraphEdges, mapToGraphNodes } from '../components/decision-graph/dg-util';

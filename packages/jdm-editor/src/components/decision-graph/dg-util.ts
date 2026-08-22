@@ -1,5 +1,5 @@
-import type { Edge, Node } from 'reactflow';
-import { MarkerType } from 'reactflow';
+import type { Edge, Node } from '@xyflow/react';
+import { MarkerType } from '@xyflow/react';
 
 import type { DecisionEdge, DecisionNode } from './dg-types';
 import { privateSymbol } from './dg-types';

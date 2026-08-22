@@ -1,19 +1,20 @@
 import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@ant-design/icons';
-import { App, Button, Typography, message, notification } from 'antd';
-import clsx from 'clsx';
-import equal from 'fast-deep-equal';
-import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { Connection, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from 'reactflow';
-import ReactFlow, {
+import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from '@xyflow/react';
+import {
   Background,
   ControlButton,
   Controls,
+  ReactFlow,
   SelectionMode,
   getOutgoers,
   useEdgesState,
   useNodesState,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { App, Button, Typography, message, notification } from 'antd';
+import clsx from 'clsx';
+import equal from 'fast-deep-equal';
+import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { nodeSchema } from '../../../helpers/schema';
@@ -80,8 +81,8 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance>(null);
 
-  const nodesState = useNodesState([]);
-  const edgesState = useEdgesState([]);
+  const nodesState = useNodesState<Node>([]);
+  const edgesState = useEdgesState<Edge>([]);
 
   const [componentsOpened, setComponentsOpened] = useState(() => {
     const localStorageKey = localStorage.getItem(componentsOpenedKey);
@@ -185,11 +186,11 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     if (!position) {
       const rect = reactFlowWrapper.current.getBoundingClientRect();
       const rectCenter = {
-        x: rect.width / 2,
-        y: rect.height / 2,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
       };
 
-      position = reactFlowInstance.current.project(rectCenter);
+      position = reactFlowInstance.current.screenToFlowPosition(rectCenter);
     }
 
     const customSpecification = match(type)
@@ -253,7 +254,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     message.error(parsed.error?.message);
   };
 
-  const isValidConnection = (connection: Connection): boolean => {
+  const isValidConnection = (connection: Connection | Edge): boolean => {
     // Disallow self-reference
     if (connection.source === connection.target) {
       return false;
@@ -302,7 +303,6 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       return;
     }
 
-    const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
     let elementPosition: XYPosition;
 
     try {
@@ -311,9 +311,9 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       return;
     }
 
-    const position = reactFlowInstance.current.project({
-      x: event.clientX - reactFlowBounds.left,
-      y: event.clientY - reactFlowBounds.top,
+    const position = reactFlowInstance.current.screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
     }) as XYPosition;
 
     position.x -= Math.round((elementPosition.x * 226) / 10) * 10;
@@ -497,7 +497,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               proOptions={reactFlowProOptions}
               nodesConnectable={!disabled}
               nodesDraggable={!disabled}
-              edgesUpdatable={!disabled}
+              edgesReconnectable={!disabled}
               onNodesChange={graphActions.handleNodesChange}
               onEdgesChange={graphActions.handleEdgesChange}
               onNodesDelete={(e) => {
@@ -508,7 +508,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               onEdgeMouseEnter={(_, edge) => graphActions.setHoveredEdgeId(edge.id)}
               onEdgeMouseLeave={() => graphActions.setHoveredEdgeId(null)}
             >
-              <Controls id={id} showInteractive={false}>
+              <Controls showInteractive={false}>
                 <ControlButton onClick={() => graphActions.toggleCompactMode()}>
                   <CompressOutlined />
                 </ControlButton>

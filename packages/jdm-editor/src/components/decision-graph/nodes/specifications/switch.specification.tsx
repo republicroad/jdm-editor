@@ -1,5 +1,6 @@
 import { ArrowRightOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
+import { Handle, Position } from '@xyflow/react';
 import { Button, Dropdown, Popconfirm, Typography } from 'antd';
 import clsx from 'clsx';
 import { produce } from 'immer';
@@ -7,7 +8,6 @@ import _ from 'lodash';
 import { SplitIcon } from 'lucide-react';
 import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { Handle, Position } from 'reactflow';
 import { P, match } from 'ts-pattern';
 
 import { useNodeType } from '../../../../helpers/node-type';

@@ -1,6 +1,6 @@
+import type { Node, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { message } from 'antd';
 import { type RefObject, useCallback, useMemo } from 'react';
-import type { Node, ReactFlowInstance, XYPosition } from 'reactflow';
 
 import { copyToClipboard, pasteFromClipboard } from '../../../helpers/utility';
 import { useDecisionGraphActions, useDecisionGraphRaw } from '../context/dg-store.context';
@@ -118,11 +118,11 @@ export const useGraphClipboard = (
         } else if (wrapper.current) {
           const rect = wrapper.current.getBoundingClientRect();
           const rectCenter = {
-            x: rect.width / 2,
-            y: rect.height / 2,
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
           };
 
-          const projection = reactFlow.current!.project(rectCenter);
+          const projection = reactFlow.current!.screenToFlowPosition(rectCenter);
 
           position.x = n.position.x + projection.x - gravityCenter.x / 2;
           position.y = n.position.y + projection.y - gravityCenter.y / 2;

@@ -1,9 +1,9 @@
+import type { ProOptions } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
 import { createDragDropManager } from 'dnd-core';
 import React, { forwardRef, useMemo, useRef, useState } from 'react';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import type { ProOptions } from 'reactflow';
-import 'reactflow/dist/style.css';
 import { match } from 'ts-pattern';
 
 import { useDecisionGraphState } from './context/dg-store.context';
