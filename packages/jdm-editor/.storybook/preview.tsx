@@ -5,9 +5,9 @@ import { useDarkMode } from 'storybook-dark-mode';
 
 import { JdmConfigProvider } from '../src';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-await ZenEngineWasm.default();
+// The wasm binary is served from a static dir registered in main.ts; an explicit
+// module_or_path keeps loading deterministic across dev server and static builds.
+await ZenEngineWasm.default({ module_or_path: '/zen-engine-wasm/zen_engine_wasm_bg.wasm' });
 
 (window as any).VariableType = ZenEngineWasm.VariableType;
 (window as any).Variable = ZenEngineWasm.Variable;

@@ -9,11 +9,17 @@ const config: StorybookConfig = {
     'storybook-dark-mode',
     '@storybook/addon-storysource',
   ],
+  staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: '/zen-engine-wasm' }],
   framework: {
     name: '@storybook/react-vite',
     options: {
       strictMode: true,
     },
+  },
+  async viteFinal(config) {
+    config.optimizeDeps ??= {};
+    config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
+    return config;
   },
 };
 
