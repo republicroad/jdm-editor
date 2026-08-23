@@ -1,5 +1,5 @@
 import type { Node, ReactFlowInstance, XYPosition } from '@xyflow/react';
-import { message } from 'antd';
+import { toast } from 'sonner';
 import { type RefObject, useCallback, useMemo } from 'react';
 
 import { copyToClipboard, pasteFromClipboard } from '../../../helpers/utility';
@@ -59,9 +59,9 @@ export const useGraphClipboard = (
         };
 
         await copyToClipboard(JSON.stringify(clipboardData));
-        message.success('Copied to clipboard!');
+        toast.success('Copied to clipboard!');
       } catch (e: any) {
-        message.error(e.message);
+        toast.error(e.message);
       }
     },
     [raw],
@@ -146,7 +146,7 @@ export const useGraphClipboard = (
 
       graphActions.addNodes(nodes);
       graphActions.addEdges(edges);
-      message.success('Pasted from clipboard!');
+      toast.success('Pasted from clipboard!');
 
       if (anchor) {
         try {
@@ -156,7 +156,7 @@ export const useGraphClipboard = (
         }
       }
     } catch {
-      message.error('Failed to paste from clipboard');
+      toast.error('Failed to paste from clipboard');
     }
   }, [reactFlow, wrapper]);
 

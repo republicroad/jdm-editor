@@ -1,4 +1,4 @@
-import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@ant-design/icons';
+import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@/icons';
 import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from '@xyflow/react';
 import {
   Background,
@@ -11,7 +11,8 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { App, Button, Typography, message, notification } from 'antd';
+import { App, Button, Typography } from 'antd';
+import { toast } from 'sonner';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
@@ -200,7 +201,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         return allSpecifications.find((s) => s.type === type);
       });
     if (!customSpecification) {
-      message.error(`Unknown node type ${type} - ${component}.`);
+      toast.error(`Unknown node type ${type} - ${component}.`);
       return;
     }
 
@@ -235,7 +236,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       })
       .otherwise(() => null);
     if (!newNode) {
-      message.error(`Unknown node type ${type} - ${component}.`);
+      toast.error(`Unknown node type ${type} - ${component}.`);
       return;
     }
 
@@ -251,7 +252,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     if (parsed.success) {
       return graphActions.addNodes([nodeSchema.parse(newNode)]);
     }
-    message.error(parsed.error?.message);
+    toast.error(parsed.error?.message);
   };
 
   const isValidConnection = (connection: Connection | Edge): boolean => {
@@ -325,7 +326,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         const jsonData = JSON.parse(nodeData);
         graphActions.addNodes([nodeSchema.parse({ ...jsonData, position })]);
       } catch (err) {
-        notification.error({ message: 'Failed to create a node' });
+        toast.error('Failed to create a node');
         console.error(err);
       }
 

@@ -1,6 +1,7 @@
-import { CloudDownloadOutlined, CloudUploadOutlined } from '@ant-design/icons';
+import { CloudDownloadOutlined, CloudUploadOutlined } from '@/icons';
 import type { MenuProps } from 'antd';
-import { Button, Dropdown, Tooltip, message } from 'antd';
+import { Button, Dropdown, Tooltip } from 'antd';
+import { toast } from 'sonner';
 import React, { Fragment, useRef, useState } from 'react';
 
 import type { ParsedExcelData } from '../../../helpers/excel';
@@ -60,13 +61,13 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
 
         if (!modelParsed.success) {
           console.log(modelParsed.error?.message);
-          message.error(modelParsed.error?.message);
+          toast.error(modelParsed.error?.message);
           return;
         }
 
         setDecisionGraph(modelParsed.data);
       } catch (e: any) {
-        message.error(e.message);
+        toast.error(e.message);
       }
     };
 
@@ -89,10 +90,10 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
 
         setExcelGraphData(excelData);
 
-        message.success('Excel file has been uploaded successfully!');
+        toast.success('Excel file has been uploaded successfully!');
       };
     } catch {
-      message.error('Failed to upload Excel!');
+      toast.error('Failed to upload Excel!');
     }
   };
 
@@ -199,7 +200,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
 
     if (!modelParsed.success) {
       console.log(modelParsed.error?.message);
-      message.error(modelParsed.error?.message);
+      toast.error(modelParsed.error?.message);
       return;
     }
 
@@ -235,7 +236,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
       window.document.body.removeChild(link);
       URL.revokeObjectURL(href);
     } catch (e: any) {
-      message.error(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -254,9 +255,9 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         }));
 
       await exportDecisionTable(fileName, decisionTableNodes);
-      message.success('Excel file has been downloaded successfully!');
+      toast.success('Excel file has been downloaded successfully!');
     } catch {
-      message.error('Failed to download Excel file!');
+      toast.error('Failed to download Excel file!');
     }
   };
 

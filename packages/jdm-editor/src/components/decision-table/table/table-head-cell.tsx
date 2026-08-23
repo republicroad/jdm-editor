@@ -1,4 +1,4 @@
-import { PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import { PlusOutlined, SwapOutlined } from '@/icons';
 import { Button, Tooltip, Typography } from 'antd';
 import clsx from 'clsx';
 import React from 'react';

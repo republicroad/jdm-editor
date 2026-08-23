@@ -1,4 +1,4 @@
-import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@/icons';
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { Button, Space, Spin, Tabs, Tooltip, theme } from 'antd';
 import type { DragDropManager } from 'dnd-core';

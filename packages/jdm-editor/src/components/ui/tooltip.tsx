@@ -42,13 +42,13 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "grl:z-50 grl:w-fit grl:origin-(--radix-tooltip-content-transform-origin) grl:animate-in grl:rounded-md grl:bg-foreground grl:px-3 grl:py-1.5 grl:text-xs grl:text-balance grl:text-background grl:fade-in-0 grl:zoom-in-95 grl:data-[side=bottom]:slide-in-from-top-2 grl:data-[side=left]:slide-in-from-right-2 grl:data-[side=right]:slide-in-from-left-2 grl:data-[side=top]:slide-in-from-bottom-2 grl:data-[state=closed]:animate-out grl:data-[state=closed]:fade-out-0 grl:data-[state=closed]:zoom-out-95",
+          "z-50 w-fit origin-(--radix-tooltip-content-transform-origin) animate-in rounded-md bg-foreground px-3 py-1.5 text-xs text-balance text-background fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
           className
         )}
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="grl:z-50 grl:size-2.5 grl:translate-y-[calc(-50%_-_2px)] grl:rotate-45 grl:rounded-[2px] grl:bg-foreground grl:fill-foreground" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   )

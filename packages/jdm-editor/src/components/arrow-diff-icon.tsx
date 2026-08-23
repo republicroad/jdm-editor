@@ -1,4 +1,4 @@
-import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { ArrowDownOutlined, ArrowRightOutlined } from '@/icons';
 import React from 'react';
 
 export const ArrowDiffIcon: React.FC<{ direction?: 'right' | 'down'; size?: 'small' | 'medium' }> = ({

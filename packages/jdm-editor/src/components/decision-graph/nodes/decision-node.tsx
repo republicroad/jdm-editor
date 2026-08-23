@@ -1,4 +1,4 @@
-import { CloseOutlined, MoreOutlined } from '@ant-design/icons';
+import { CloseOutlined, MoreOutlined } from '@/icons';
 import { Button, Dropdown, type MenuProps, Typography } from 'antd';
 import clsx from 'clsx';
 import React from 'react';

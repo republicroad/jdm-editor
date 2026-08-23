@@ -1,6 +1,7 @@
-import { InfoCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, PlayCircleOutlined } from '@/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Tooltip, Typography, notification } from 'antd';
+import { Button, Tooltip, Typography } from 'antd';
+import { toast } from 'sonner';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 
@@ -78,10 +79,8 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
                     const parsed = (requestValue || '').trim().length === 0 ? null : json5.parse(requestValue || '');
                     onRun?.({ graph: stateStore.getState().decisionGraph, context: parsed });
                   } catch {
-                    notification.error({
-                      message: 'Invalid format',
+                    toast.error('Invalid format', {
                       description: 'Unable to format request, invalid JSON format',
-                      placement: 'top',
                     });
                   }
                 }}

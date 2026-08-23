@@ -1,4 +1,4 @@
-import { WarningFilled } from '@ant-design/icons';
+import { WarningFilled } from '@/icons';
 import { Button, Tooltip, Typography } from 'antd';
 import _ from 'lodash';
 import React from 'react';

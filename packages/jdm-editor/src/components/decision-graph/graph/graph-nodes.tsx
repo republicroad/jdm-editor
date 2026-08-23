@@ -1,4 +1,4 @@
-import { CloseOutlined, SearchOutlined } from '@ant-design/icons';
+import { CloseOutlined, SearchOutlined } from '@/icons';
 import { Avatar, Button, Card, Col, Input, Row, Space, Typography } from 'antd';
 import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';

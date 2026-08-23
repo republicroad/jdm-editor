@@ -1,4 +1,4 @@
-import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, RightOutlined } from '@ant-design/icons';
+import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, RightOutlined } from '@/icons';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Button, Select, Space, Typography } from 'antd';
 import json5 from 'json5';

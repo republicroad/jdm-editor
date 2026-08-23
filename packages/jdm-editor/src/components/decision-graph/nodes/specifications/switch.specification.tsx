@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, DeleteOutlined, DownOutlined } from '@/icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import { Handle, Position } from '@xyflow/react';
 import { Button, Dropdown, Popconfirm, Typography } from 'antd';

@@ -1,5 +1,6 @@
 import { Editor } from '@monaco-editor/react';
-import { Modal, Spin, Typography, message, theme } from 'antd';
+import { Modal, Spin, Typography, theme } from 'antd';
+import { toast } from 'sonner';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
 import toJsonSchema from 'to-json-schema';
@@ -42,7 +43,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
             model: value,
           });
         } catch (e: any) {
-          message.error(e?.message);
+          toast.error(e?.message);
         }
       }}
     >
@@ -71,9 +72,9 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
             run: async (editor) => {
               try {
                 await copyToClipboard(JSON.stringify(json5.parse(editor.getValue())));
-                message.success('Copied to clipboard!');
+                toast.success('Copied to clipboard!');
               } catch {
-                message.error('Failed to copy to clipboard.');
+                toast.error('Failed to copy to clipboard.');
               }
             },
           });

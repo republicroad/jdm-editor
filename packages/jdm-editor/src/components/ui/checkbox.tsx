@@ -12,16 +12,16 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "grl:peer grl:size-4 grl:shrink-0 grl:rounded-[4px] grl:border grl:border-input grl:shadow-xs grl:transition-shadow grl:outline-none grl:focus-visible:border-ring grl:focus-visible:ring-[3px] grl:focus-visible:ring-ring/50 grl:disabled:cursor-not-allowed grl:disabled:opacity-50 grl:aria-invalid:border-destructive grl:aria-invalid:ring-destructive/20 grl:data-[state=checked]:border-primary grl:data-[state=checked]:bg-primary grl:data-[state=checked]:text-primary-foreground grl:dark:bg-input/30 grl:dark:aria-invalid:ring-destructive/40 grl:dark:data-[state=checked]:bg-primary",
+        "peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary",
         className
       )}
       {...props}
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="grl:grid grl:place-content-center grl:text-current grl:transition-none"
+        className="grid place-content-center text-current transition-none"
       >
-        <CheckIcon className="grl:size-3.5" />
+        <CheckIcon className="size-3.5" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )

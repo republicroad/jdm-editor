@@ -1,4 +1,5 @@
-import { Dropdown, Tooltip, message, theme } from 'antd';
+import { Dropdown, Tooltip, theme } from 'antd';
+import { toast } from 'sonner';
 import React from 'react';
 import { JSONTree } from 'react-json-tree';
 
@@ -52,7 +53,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
               label: 'Copy to clipboard',
               onClick: async () => {
                 await copyToClipboard(lines.length === 1 ? lines[0] : `[${lines.join(', ')}]`);
-                message.success('Copied to clipboard');
+                toast.success('Copied to clipboard');
               },
             },
           ],

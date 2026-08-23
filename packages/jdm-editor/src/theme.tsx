@@ -1,6 +1,7 @@
 import type { ThemeConfig as AntThemeConfig } from 'antd';
 import { App, ConfigProvider, theme as antTheme, theme } from 'antd';
 import React, { useContext, useEffect, useMemo } from 'react';
+import { Toaster } from 'sonner';
 
 import { useWasmReady } from './helpers/wasm';
 
@@ -57,6 +58,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
       <DictionaryContext.Provider value={dicts}>
         <App style={{ height: '100%' }}>
           <GlobalCssVariables mode={mode} />
+          <Toaster theme={mode} position="bottom-right" richColors />
           {children}
         </App>
       </DictionaryContext.Provider>

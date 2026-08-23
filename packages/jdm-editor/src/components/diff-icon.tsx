@@ -1,46 +1,46 @@
-import { DragOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@ant-design/icons';
+import { DragOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@/icons';
 import React from 'react';
 import { match } from 'ts-pattern';
 
 import type { DiffStatus } from './decision-graph/dg-types';
 
-export const DiffIcon: React.FC<
-  {
-    status?: DiffStatus;
-  } & React.HTMLAttributes<HTMLSpanElement>
-> = ({ status, ...rest }) => {
+export const DiffIcon: React.FC<{
+  status?: DiffStatus;
+  style?: React.CSSProperties;
+  className?: string;
+}> = ({ status, style, className }) => {
   return match(status)
     .with('removed', () => (
       <MinusSquareOutlined
-        {...rest}
+        className={className}
         style={{
           color: 'var(--grl-color-error)',
-          ...(rest?.style || {}),
+          ...(style || {}),
         }}
       />
     ))
     .with('added', () => (
       <PlusSquareOutlined
-        {...rest}
+        className={className}
         style={{
           color: 'var(--grl-color-success)',
-          ...(rest?.style || {}),
+          ...(style || {}),
         }}
       />
     ))
     .with('modified', () => (
       <span
-        {...rest}
+        className={className}
         style={{
-          width: rest?.style?.fontSize ?? 14,
-          height: rest?.style?.fontSize ?? 14,
+          width: style?.fontSize ?? 14,
+          height: style?.fontSize ?? 14,
           border: '1.5px solid var(--grl-color-warning)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
           boxSizing: 'border-box',
-          ...(rest?.style || {}),
+          ...(style || {}),
         }}
       >
         <span
@@ -55,10 +55,10 @@ export const DiffIcon: React.FC<
     ))
     .with('moved', () => (
       <DragOutlined
-        {...rest}
+        className={className}
         style={{
           color: 'var(--grl-color-info)',
-          ...(rest?.style || {}),
+          ...(style || {}),
         }}
       />
     ))

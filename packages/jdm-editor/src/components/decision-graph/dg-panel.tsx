@@ -1,4 +1,4 @@
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined } from '@/icons';
 import { Button, Tooltip, Typography } from 'antd';
 import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';

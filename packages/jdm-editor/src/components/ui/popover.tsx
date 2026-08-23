@@ -28,7 +28,7 @@ function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "grl:z-50 grl:w-72 grl:origin-(--radix-popover-content-transform-origin) grl:rounded-md grl:border grl:bg-popover grl:p-4 grl:text-popover-foreground grl:shadow-md grl:outline-hidden grl:data-[side=bottom]:slide-in-from-top-2 grl:data-[side=left]:slide-in-from-right-2 grl:data-[side=right]:slide-in-from-left-2 grl:data-[side=top]:slide-in-from-bottom-2 grl:data-[state=closed]:animate-out grl:data-[state=closed]:fade-out-0 grl:data-[state=closed]:zoom-out-95 grl:data-[state=open]:animate-in grl:data-[state=open]:fade-in-0 grl:data-[state=open]:zoom-in-95",
+          "z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className
         )}
         {...props}
@@ -47,7 +47,7 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="popover-header"
-      className={cn("grl:flex grl:flex-col grl:gap-1 grl:text-sm", className)}
+      className={cn("flex flex-col gap-1 text-sm", className)}
       {...props}
     />
   )
@@ -57,7 +57,7 @@ function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return (
     <div
       data-slot="popover-title"
-      className={cn("grl:font-medium", className)}
+      className={cn("font-medium", className)}
       {...props}
     />
   )
@@ -70,7 +70,7 @@ function PopoverDescription({
   return (
     <p
       data-slot="popover-description"
-      className={cn("grl:text-muted-foreground", className)}
+      className={cn("text-muted-foreground", className)}
       {...props}
     />
   )

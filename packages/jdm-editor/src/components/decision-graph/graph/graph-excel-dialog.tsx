@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@/icons';
 import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from 'antd';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';

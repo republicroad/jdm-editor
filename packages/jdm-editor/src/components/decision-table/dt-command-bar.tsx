@@ -5,8 +5,9 @@ import {
   DeleteOutlined,
   ExportOutlined,
   ImportOutlined,
-} from '@ant-design/icons';
-import { Button, Divider, Popconfirm, Select, Tooltip, Typography, message } from 'antd';
+} from '@/icons';
+import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from 'antd';
+import { toast } from 'sonner';
 import React, { useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
@@ -138,10 +139,10 @@ export const DecisionTableCommandBar: React.FC = () => {
       await exportDecisionTable(name ?? 'table', [
         { ...decisionTable, name: 'decision table', id: crypto.randomUUID() },
       ]);
-      message.success('Excel file has been downloaded successfully!');
+      toast.success('Excel file has been downloaded successfully!');
     } catch (e) {
       console.error('Failed to download Excel file!', e);
-      message.error('Failed to download Excel file!');
+      toast.error('Failed to download Excel file!');
     }
   };
 
@@ -164,13 +165,13 @@ export const DecisionTableCommandBar: React.FC = () => {
 
         if (excelData.length === 1) {
           setExcelData(excelData);
-          message.success('Excel file has been uploaded successfully!');
+          toast.success('Excel file has been uploaded successfully!');
         } else {
-          message.error('Only excel file with a single data sheet can be handled in a table view.');
+          toast.error('Only excel file with a single data sheet can be handled in a table view.');
         }
       };
     } catch {
-      message.error('Failed to upload Excel!');
+      toast.error('Failed to upload Excel!');
     }
   };
 

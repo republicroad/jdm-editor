@@ -1,4 +1,4 @@
-import { BookOutlined, DeleteOutlined } from '@ant-design/icons';
+import { BookOutlined, DeleteOutlined } from '@/icons';
 import { App, Button, Typography } from 'antd';
 import { produce } from 'immer';
 import _ from 'lodash';

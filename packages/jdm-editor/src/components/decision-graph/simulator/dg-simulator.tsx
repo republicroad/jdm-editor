@@ -1,4 +1,4 @@
-import { CheckCircleTwoTone, ClearOutlined, CloseCircleTwoTone, CloseOutlined } from '@ant-design/icons';
+import { CheckCircleTwoTone, ClearOutlined, CloseCircleTwoTone, CloseOutlined } from '@/icons';
 import { Button, Spin, Tabs, Tooltip, Typography } from 'antd';
 import clsx from 'clsx';
 import json5 from 'json5';
@@ -240,16 +240,14 @@ const StatusIcon: React.FC<{ status: 'success' | 'error' | 'not-run' }> = ({ sta
   if (status === 'success') {
     return (
       <CheckCircleTwoTone
-        twoToneColor={['var(--grl-color-success)', 'var(--grl-color-success-bg)']}
-        style={{ marginRight: 6, fontSize: 12, opacity: 0.5 }}
+        style={{ marginRight: 6, fontSize: 12, opacity: 0.5, color: 'var(--grl-color-success)' }}
       />
     );
   }
 
   return (
     <CloseCircleTwoTone
-      twoToneColor={['var(--grl-color-error)', 'var(--grl-color-error-bg)']}
-      style={{ marginRight: 5, fontSize: 12 }}
+      style={{ marginRight: 5, fontSize: 12, color: 'var(--grl-color-error)' }}
     />
   );
 };

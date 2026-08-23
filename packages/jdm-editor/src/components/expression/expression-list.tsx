@@ -1,4 +1,4 @@
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { PlusCircleOutlined } from '@/icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Typography } from 'antd';
 import clsx from 'clsx';

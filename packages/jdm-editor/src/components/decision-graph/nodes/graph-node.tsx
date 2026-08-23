@@ -1,4 +1,4 @@
-import { BookOutlined } from '@ant-design/icons';
+import { BookOutlined } from '@/icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
 import type { MenuProps } from 'antd';

@@ -1,4 +1,4 @@
-import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '@ant-design/icons';
+import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '@/icons';
 import { Button, Tabs, Tooltip, Typography } from 'antd';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useState } from 'react';

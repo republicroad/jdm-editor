@@ -1,4 +1,4 @@
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined } from '@/icons';
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { XYPosition } from '@xyflow/react';
 import { Button, Checkbox, Form, Typography, theme } from 'antd';

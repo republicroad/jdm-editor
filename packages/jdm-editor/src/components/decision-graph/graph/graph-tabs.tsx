@@ -1,4 +1,4 @@
-import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/icons';
 import type { TabsProps } from 'antd';
 import { Avatar, Button, Dropdown, Tabs } from 'antd';
 import clsx from 'clsx';

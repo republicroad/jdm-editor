@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, SyncOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, SyncOutlined } from '@/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Form, Space } from 'antd';
 import equal from 'fast-deep-equal/es6/react';
