@@ -1,6 +1,6 @@
 import { BookOutlined, DeleteOutlined } from '@/icons';
-import { App } from '../../../antd-compat';
-import { Button, Typography } from '../../../antd-compat';
+import { App } from '../../../primitives';
+import { Button, Typography } from '../../../primitives';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';

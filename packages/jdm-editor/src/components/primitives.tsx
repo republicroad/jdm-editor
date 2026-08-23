@@ -1,11 +1,9 @@
-﻿/**
- * Antd-compatible adapters over the shadcn/ui primitives.
+/**
+ * JDM UI primitives.
  *
- * Decision-graph (and later modules) migrate off antd incrementally by
- * swapping `from 'antd'` for `from '../antd-compat'` (path varies). The
- * exported surface mirrors the antd APIs that are actually used inside
- * this library �?nothing more. This module is scaffolding for Stage C/D
- * and gets deleted once the last consumer is gone.
+ * Thin, antd-shaped wrappers around the local shadcn/ui components so the
+ * editor codebase keeps a small, consistent component surface. Import from
+ * here instead of pulling UI libraries directly into feature modules.
  */
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';

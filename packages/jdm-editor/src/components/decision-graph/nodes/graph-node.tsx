@@ -1,8 +1,8 @@
 import { BookOutlined } from '@/icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
-import type { MenuProps } from '../../antd-compat';
-import { App, Button, Typography } from '../../antd-compat';
+import type { MenuProps } from '../../primitives';
+import { App, Button, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React from 'react';
 import { P, match } from 'ts-pattern';

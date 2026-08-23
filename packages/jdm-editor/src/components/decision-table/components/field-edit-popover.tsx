@@ -1,4 +1,4 @@
-import { Button, Popover, Typography } from '../../antd-compat';
+import { Button, Popover, Typography } from '../../primitives';
 import clsx from 'clsx';
 import { ChevronDownIcon } from 'lucide-react';
 import React from 'react';

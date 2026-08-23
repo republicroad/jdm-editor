@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@/icons';
-import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../antd-compat';
+import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../primitives';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 

@@ -1,6 +1,6 @@
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import type { Row } from '@tanstack/react-table';
-import { Typography } from '../antd-compat';
+import { Typography } from '../primitives';
 import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState } from 'react';

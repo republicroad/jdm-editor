@@ -1,6 +1,6 @@
-﻿import type { ExpressionBuilderData, SimpleOperator, SimpleValue } from '@gorules/zen-engine-wasm';
+import type { ExpressionBuilderData, SimpleOperator, SimpleValue } from '@gorules/zen-engine-wasm';
 import { ExpressionBuilder as ExpressionBuilderWasm } from '@gorules/zen-engine-wasm';
-import { DatePicker, InputNumber, Popover, Select, TimePicker } from '../../antd-compat';
+import { DatePicker, InputNumber, Popover, Select, TimePicker } from '../../primitives';
 import { useThemeMode } from '../../../theme';
 import clsx from 'clsx';
 import dayjs from 'dayjs';

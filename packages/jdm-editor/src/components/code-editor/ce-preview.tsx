@@ -1,5 +1,5 @@
 import { type Variable } from '@gorules/zen-engine-wasm';
-import { Typography } from '../antd-compat';
+import { Typography } from '../primitives';
 import stringifyPretty from 'json-stringify-pretty-compact';
 import { BugIcon } from 'lucide-react';
 import React, { useMemo } from 'react';

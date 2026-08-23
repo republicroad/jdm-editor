@@ -1,6 +1,6 @@
 import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@/icons';
 import { DiffEditor, Editor } from '@monaco-editor/react';
-import { Button, Space, Spin, Tabs, Tooltip } from '../../antd-compat';
+import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
 import { useThemeMode } from '../../../theme';
 import type { DragDropManager } from 'dnd-core';
 import { type editor } from 'monaco-editor';

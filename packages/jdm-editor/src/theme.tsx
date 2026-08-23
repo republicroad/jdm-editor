@@ -1,4 +1,4 @@
-﻿import { App } from './components/antd-compat';
+import { App } from './components/primitives';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Toaster } from 'sonner';
 

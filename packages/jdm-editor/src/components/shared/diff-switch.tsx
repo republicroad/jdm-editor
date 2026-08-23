@@ -1,4 +1,4 @@
-import { Space, Switch, type SwitchProps } from '../antd-compat';
+import { Space, Switch, type SwitchProps } from '../primitives';
 import React from 'react';
 
 import { ArrowDiffIcon } from '../arrow-diff-icon';

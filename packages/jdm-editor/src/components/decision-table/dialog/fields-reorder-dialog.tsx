@@ -1,4 +1,4 @@
-import { Card, Form, Modal, Typography } from '../../antd-compat';
+import { Card, Form, Modal, Typography } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
 import type { XYCoord } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';

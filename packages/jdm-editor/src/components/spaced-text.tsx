@@ -1,4 +1,4 @@
-import { Typography } from './antd-compat';
+import { Typography } from './primitives';
 import React from 'react';
 
 import { Stack } from './stack';

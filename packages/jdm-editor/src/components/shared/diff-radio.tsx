@@ -1,5 +1,5 @@
-import type { RadioGroupProps } from '../antd-compat';
-import { Radio } from '../antd-compat';
+import type { RadioGroupProps } from '../primitives';
+import { Radio } from '../primitives';
 import clsx from 'clsx';
 import React from 'react';
 

@@ -1,5 +1,5 @@
-﻿import { type StandardExpressionData, parseStandardExpression } from '@gorules/zen-engine-wasm';
-import { DatePicker, InputNumber, Select } from '../../antd-compat';
+import { type StandardExpressionData, parseStandardExpression } from '@gorules/zen-engine-wasm';
+import { DatePicker, InputNumber, Select } from '../../primitives';
 import dayjs from 'dayjs';
 import {
   CalendarIcon,

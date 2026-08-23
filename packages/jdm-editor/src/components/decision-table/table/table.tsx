@@ -2,7 +2,7 @@ import { PlusCircleOutlined } from '@/icons';
 import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Button, Typography } from '../../antd-compat';
+import { Button, Typography } from '../../primitives';
 import { useThemeMode } from '../../../theme';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';

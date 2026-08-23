@@ -1,5 +1,5 @@
 import { CloseOutlined, SearchOutlined } from '@/icons';
-import { Avatar, Button, Input, Space, Typography } from '../../antd-compat';
+import { Avatar, Button, Input, Space, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';

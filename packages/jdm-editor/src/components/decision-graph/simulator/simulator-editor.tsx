@@ -1,5 +1,5 @@
 import { Editor } from '@monaco-editor/react';
-import { Spin } from '../../antd-compat';
+import { Spin } from '../../primitives';
 import { useThemeMode } from '../../../theme';
 import { toast } from 'sonner';
 import json5 from 'json5';

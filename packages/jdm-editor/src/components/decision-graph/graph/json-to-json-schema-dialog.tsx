@@ -1,5 +1,5 @@
 import { Editor } from '@monaco-editor/react';
-import { Modal, Spin, Typography } from '../../antd-compat';
+import { Modal, Spin, Typography } from '../../primitives';
 import { useThemeMode } from '../../../theme';
 import { toast } from 'sonner';
 import json5 from 'json5';

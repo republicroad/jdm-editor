@@ -1,6 +1,6 @@
 import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/icons';
-import type { TabsProps } from '../../antd-compat';
-import { Avatar, Button, Dropdown, Tabs } from '../../antd-compat';
+import type { TabsProps } from '../../primitives';
+import { Avatar, Button, Dropdown, Tabs } from '../../primitives';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 

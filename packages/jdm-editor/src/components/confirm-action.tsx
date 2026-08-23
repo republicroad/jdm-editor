@@ -1,5 +1,5 @@
-import type { ButtonProps } from './antd-compat';
-import { Button, Tooltip } from './antd-compat';
+import type { ButtonProps } from './primitives';
+import { Button, Tooltip } from './primitives';
 import { TrashIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import { P, match } from 'ts-pattern';

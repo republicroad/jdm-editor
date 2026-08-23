@@ -1,4 +1,4 @@
-import { Dropdown, Tooltip } from '../antd-compat';
+import { Dropdown, Tooltip } from '../primitives';
 import { useThemeMode } from '../../theme';
 import { toast } from 'sonner';
 import React from 'react';

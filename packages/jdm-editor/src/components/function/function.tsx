@@ -1,6 +1,6 @@
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { DiffEditor, Editor, type Monaco, useMonaco } from '@monaco-editor/react';
-import { Spin } from '../antd-compat';
+import { Spin } from '../primitives';
 import { useThemeMode } from '../../theme';
 import { MarkerSeverity, type editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';

@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, PlayCircleOutlined } from '@/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Tooltip, Typography } from '../../antd-compat';
+import { Button, Tooltip, Typography } from '../../primitives';
 import { toast } from 'sonner';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
