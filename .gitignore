@@ -9,3 +9,7 @@ node_modules
 *.log*
 *.tgz
 docs
+
+# secrets
+.env.local
+.env*.local

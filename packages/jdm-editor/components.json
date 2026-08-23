@@ -1,14 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
+  "style": "new-york",
   "rsc": false,
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "packages/jdm-editor/src/styles/tailwind.css",
+    "css": "src/styles/tailwind.css",
     "baseColor": "neutral",
     "cssVariables": true,
-    "prefix": "grl"
+    "prefix": ""
   },
   "aliases": {
     "components": "@/components",
