@@ -1,0 +1,5 @@
+{
+  "index.js": { "raw": 620000, "gzip": 165000 },
+  "style.css": { "raw": 130000, "gzip": 20000 },
+  "schema.js": { "raw": 8000 }
+}

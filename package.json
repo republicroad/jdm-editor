@@ -11,7 +11,8 @@
     "prettier": "prettier --check .",
     "prettier:fix": "pnpm prettier --write",
     "format": "run-s lint prettier",
-    "format:fix": "run-s lint:fix prettier:fix"
+    "format:fix": "run-s lint:fix prettier:fix",
+    "size": "node scripts/bundle-size.mjs"
   },
   "engines": {
     "pnpm": "~10"
