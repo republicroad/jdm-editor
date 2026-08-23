@@ -1,6 +1,7 @@
-import type { ExpressionBuilderData, SimpleOperator, SimpleValue } from '@gorules/zen-engine-wasm';
+﻿import type { ExpressionBuilderData, SimpleOperator, SimpleValue } from '@gorules/zen-engine-wasm';
 import { ExpressionBuilder as ExpressionBuilderWasm } from '@gorules/zen-engine-wasm';
-import { DatePicker, InputNumber, Popover, Select, TimePicker, theme } from 'antd';
+import { DatePicker, InputNumber, Popover, Select, TimePicker } from '../../antd-compat';
+import { useThemeMode } from '../../../theme';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
 import {
@@ -629,7 +630,7 @@ const TimeInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
     size='small'
     format='HH:mm'
     allowClear={false}
-    needConfirm={false}
+    
   />
 );
 
@@ -695,7 +696,7 @@ const ArrayInput: React.FC<SimpleInputProps & { kind: ValueKind }> = ({ value, o
       className='eb-tags'
       mode='tags'
       value={vals}
-      onChange={(v) =>
+      onChange={(v: string[]) =>
         kind === 'number'
           ? onChange({ type: 'numberArray', values: v.map((x) => parseFloat(x)).filter((n) => !isNaN(n)) })
           : onChange({ type: 'stringArray', values: v })
@@ -710,7 +711,7 @@ const ArrayInput: React.FC<SimpleInputProps & { kind: ValueKind }> = ({ value, o
 };
 
 const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => {
-  const { token } = theme.useToken();
+  useThemeMode();
   const iv = value?.type === 'interval' ? value : { left: 0, right: 100, leftInclusive: true, rightInclusive: true };
   const upd = (p: Partial<typeof iv>) => onChange({ type: 'interval', ...iv, ...p });
   return (
@@ -727,7 +728,7 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
         size='small'
         controls={false}
       />
-      <span style={{ color: token.colorTextSecondary }}>..</span>
+      <span className='text-muted-foreground'>..</span>
       <InputNumber
         className='eb-interval-num'
         value={iv.right}

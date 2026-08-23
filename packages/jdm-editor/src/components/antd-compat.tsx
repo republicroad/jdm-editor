@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Antd-compatible adapters over the shadcn/ui primitives.
  *
  * Decision-graph (and later modules) migrate off antd incrementally by
@@ -61,6 +61,7 @@ import { TooltipContent as UiTooltipContent } from '@/components/ui/tooltip';
 import { TooltipProvider as UiTooltipProvider } from '@/components/ui/tooltip';
 import { TooltipTrigger as UiTooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import dayjs from 'dayjs';
 
 // ---------------------------------------------------------------------------
 // Button
@@ -549,6 +550,7 @@ export interface AntdPopoverProps {
   placement?: string;
   destroyTooltipOnHide?: boolean;
   arrow?: boolean;
+  overlayClassName?: string;
   disabled?: boolean;
   children?: React.ReactNode;
 }
@@ -984,6 +986,124 @@ export interface AntdRadioGroupProps {
 export type RadioGroupProps = AntdRadioGroupProps;
 
 // ---------------------------------------------------------------------------
+// InputNumber / DatePicker / TimePicker
+
+const borderlessInputClass =
+  'h-7 rounded-md bg-transparent px-2 text-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50';
+
+export const InputNumber: React.FC<{
+  value?: number | null;
+  defaultValue?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  precision?: number;
+  disabled?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  controls?: boolean;
+  variant?: string;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onChange?: (value: number | null) => void;
+}> = ({ value, min, max, step, disabled, size, placeholder, className, style, onChange }) => (
+  <input
+    type="number"
+    value={value === undefined || value === null ? '' : value}
+    min={min}
+    max={max}
+    step={step}
+    placeholder={placeholder}
+    disabled={disabled}
+    onChange={(event) =>
+      onChange?.(event.target.value === '' ? null : Number(event.target.value))
+    }
+    className={cn(
+      borderlessInputClass,
+      size === 'large' ? 'h-10 text-base' : undefined,
+      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
+      className,
+    )}
+    style={style}
+  />
+);
+
+export interface AntdDatePickerProps {
+  value?: any;
+  onChange?: (date: any | null) => void;
+  disabled?: boolean;
+  allowClear?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  variant?: string;
+  format?: string;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const toDayjs = (raw: string) => dayjs(raw);
+
+export const DatePicker: React.FC<AntdDatePickerProps> = ({
+  value,
+  onChange,
+  disabled,
+  allowClear = true,
+  className,
+  style,
+  placeholder,
+}) => (
+  <input
+    type="date"
+    value={value?.format ? value.format('YYYY-MM-DD') : ''}
+    placeholder={placeholder}
+    disabled={disabled}
+    onChange={(event) => {
+      if (!event.target.value) {
+        if (allowClear) onChange?.(null);
+        return;
+      }
+      const parsed = toDayjs(event.target.value);
+      if (parsed.isValid()) onChange?.(parsed);
+    }}
+    className={cn(
+      borderlessInputClass,
+      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
+      className,
+    )}
+    style={style}
+  />
+);
+
+export const TimePicker: React.FC<AntdDatePickerProps> = ({
+  value,
+  onChange,
+  disabled,
+  allowClear = true,
+  className,
+  style,
+}) => (
+  <input
+    type="time"
+    value={value?.format ? value.format('HH:mm') : ''}
+    disabled={disabled}
+    onChange={(event) => {
+      if (!event.target.value) {
+        if (allowClear) onChange?.(null);
+        return;
+      }
+      const parsed = toDayjs(`2000-01-01 ${event.target.value}`);
+      if (parsed.isValid()) onChange?.(parsed);
+    }}
+    className={cn(
+      borderlessInputClass,
+      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
+      className,
+    )}
+    style={style}
+  />
+);
+
+// ---------------------------------------------------------------------------
 // Space
 
 export const Space: React.FC<
@@ -1064,7 +1184,15 @@ export interface AntdSelectProps {
   optionLabelProp?: string;
   loading?: boolean;
   showSearch?: boolean;
-  filterOption?: boolean;
+  filterOption?: boolean | ((input: string, option: AntdSelectOption) => boolean);
+  mode?: 'multiple' | 'tags';
+  variant?: string;
+  suffixIcon?: React.ReactNode;
+  popupMatchSelectWidth?: boolean | number;
+  tokenSeparators?: string[];
+  maxCount?: number;
+  overlayClassName?: string;
+  needConfirm?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -1083,15 +1211,42 @@ export const Select: React.FC<AntdSelectProps> = ({
   size,
   allowClear,
   loading,
+  mode,
+  tokenSeparators: _tokenSeparators,
+  suffixIcon: _suffixIcon,
+  popupMatchSelectWidth: _popupMatchSelectWidth,
+  variant: _variant,
   showSearch: _showSearch,
   filterOption: _filterOption,
   optionLabelProp: _optionLabelProp,
+  maxCount: _maxCount,
   className,
   style,
 }) => {
   const list = options ?? [];
   const current = value === undefined || value === null ? undefined : String(value);
   const selected = list.find((option) => String(option.value) === current);
+
+  if (mode === 'multiple' || mode === 'tags') {
+    const arrayValue = Array.isArray(value) ? (value as Array<string | number>) : [];
+    return (
+      <input
+        value={arrayValue.join(', ')}
+        placeholder={placeholder}
+        disabled={disabled || loading}
+        onChange={(event) =>
+          onChange?.(
+            event.target.value
+              .split(',')
+              .map((part) => part.trim())
+              .filter(Boolean),
+          )
+        }
+        className={cn(borderlessInputClass, 'w-full rounded-md border border-input shadow-xs', className)}
+        style={style}
+      />
+    );
+  }
 
   const menu = (
     <>
