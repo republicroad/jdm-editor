@@ -1,5 +1,6 @@
 import type { ThemeConfig as AntThemeConfig } from 'antd';
-import { App, ConfigProvider, theme as antTheme, theme } from 'antd';
+import { ConfigProvider, theme as antTheme, theme } from 'antd';
+import { App } from './components/antd-compat';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Toaster } from 'sonner';
 
@@ -62,7 +63,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
     <ThemeModeContext.Provider value={mode}>
       <ConfigProvider prefixCls={prefixCls} theme={{ ...restTheme, algorithm, token: { ...token, mode, motion: false } }}>
         <DictionaryContext.Provider value={dicts}>
-          <App style={{ height: '100%' }}>
+          <App>
             <GlobalCssVariables mode={mode} />
             <Toaster theme={mode} position="bottom-right" richColors />
             {children}

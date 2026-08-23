@@ -1,6 +1,7 @@
 import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@/icons';
 import { DiffEditor, Editor } from '@monaco-editor/react';
-import { Button, Space, Spin, Tabs, Tooltip, theme } from 'antd';
+import { Button, Space, Spin, Tabs, Tooltip } from '../../antd-compat';
+import { useThemeMode } from '../../../theme';
 import type { DragDropManager } from 'dnd-core';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -45,7 +46,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
 
   const language = 'json';
 
-  const { token } = theme.useToken();
+  const mode = useThemeMode();
 
   const [jsonToJsonSchemaOpen, setJsonToJsonSchemaOpen] = useState(false);
 
@@ -103,14 +104,14 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
   return (
     <div
       className='grl-node-content'
-      data-theme={token.mode}
+      data-theme={mode}
       style={
         {
           'height': '100%',
-          '--color-text': token.colorTextBase,
-          '--color-background-elevated': token.colorBgElevated,
-          '--color-border': token.colorBorder,
-          '--line-height': token.lineHeight,
+          '--color-text': 'var(--grl-color-text-base)',
+          '--color-background-elevated': 'var(--grl-color-bg-elevated)',
+          '--color-border': 'var(--grl-color-border)',
+          '--line-height': 1.5,
         } as any
       }
     >
@@ -177,7 +178,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                       original={previousValue}
                       modified={content?.schema}
                       onMount={(editor) => setDiffEditor(editor)}
-                      theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+                      theme={mode === 'dark' ? 'vs-dark' : 'light'}
                       height='100%'
                       options={{
                         ...monacoOptions,
@@ -196,7 +197,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                           return draft;
                         });
                       }}
-                      theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+                      theme={mode === 'dark' ? 'vs-dark' : 'light'}
                       height='100%'
                       options={{
                         ...monacoOptions,

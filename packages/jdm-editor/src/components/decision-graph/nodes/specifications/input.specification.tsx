@@ -1,5 +1,5 @@
 import { BookOutlined, DeleteOutlined } from '@/icons';
-import { App } from 'antd';
+import { App } from '../../../antd-compat';
 import { Button, Typography } from '../../../antd-compat';
 import { produce } from 'immer';
 import _ from 'lodash';

@@ -2,7 +2,7 @@ import { BookOutlined } from '@/icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
 import type { MenuProps } from '../../antd-compat';
-import { App, Button, Typography } from 'antd';
+import { App, Button, Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 import { P, match } from 'ts-pattern';

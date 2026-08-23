@@ -21,6 +21,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button as UiButton } from '@/components/ui/button';
 import { DropdownMenu } from '@/components/ui/dropdown-menu';
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -31,6 +38,13 @@ import { DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 import { DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input as UiInput } from '@/components/ui/input';
+import {
+  Select as SelectPrimitiveRoot,
+  SelectContent as SelectPrimitiveContent,
+  SelectItem as SelectPrimitiveItem,
+  SelectTrigger as SelectPrimitiveTrigger,
+  SelectValue as SelectPrimitiveValue,
+} from '@/components/ui/select';
 import { Tabs as UiTabs } from '@/components/ui/tabs';
 import { TabsContent as UiTabsContent } from '@/components/ui/tabs';
 import { TabsList as UiTabsList } from '@/components/ui/tabs';
@@ -455,6 +469,7 @@ export interface TabsProps {
   activeKey?: string;
   defaultActiveKey?: string;
   onChange?: (key: string) => void;
+  type?: 'line' | 'card' | 'editable-card';
   size?: 'large' | 'middle' | 'small';
   className?: string;
   rootClassName?: string;
@@ -510,14 +525,21 @@ export const Tabs: React.FC<TabsProps> = ({
 
 export const Space: React.FC<
   React.HTMLAttributes<HTMLDivElement> & {
-    size?: number | [number, number];
+    size?: number | [number, number] | 'small' | 'middle' | 'large';
     direction?: 'horizontal' | 'vertical';
+    wrap?: boolean;
   }
-> = ({ size = 8, direction = 'horizontal', className, style, ...rest }) => {
-  const gap = Array.isArray(size) ? `${size[1]}px ${size[0]}px` : `${size}px`;
+> = ({ size = 8, direction = 'horizontal', wrap, className, style, ...rest }) => {
+  const resolved =
+    size === 'small' ? 8 : size === 'middle' ? 16 : size === 'large' ? 24 : size;
+  const gap = Array.isArray(resolved) ? `${resolved[1]}px ${resolved[0]}px` : `${resolved}px`;
   return (
     <div
-      className={cn(direction === 'vertical' ? 'flex flex-col' : 'flex flex-row items-center', className)}
+      className={cn(
+        direction === 'vertical' ? 'flex flex-col' : 'flex flex-row items-center',
+        wrap && (direction === 'vertical' ? '' : 'flex-wrap'),
+        className,
+      )}
       style={{ gap, ...style }}
       {...rest}
     />
@@ -528,22 +550,275 @@ export const Space: React.FC<
 // Avatar
 
 export const Avatar: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & {
+  Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
     src?: string;
     alt?: string;
-    size?: number;
+    size?: number | 'large' | 'default' | 'small';
     shape?: 'circle' | 'square';
+    icon?: React.ReactNode;
+    children?: React.ReactNode;
   }
-> = ({ src, alt, size = 32, shape = 'circle', className, style, children, ...rest }) => (
-  <div
-    className={cn(
-      'flex shrink-0 select-none items-center justify-center overflow-hidden bg-muted text-xs font-medium text-muted-foreground',
-      shape === 'circle' ? 'rounded-full' : 'rounded-md',
-      className,
-    )}
-    style={{ width: size, height: size, ...style }}
-    {...rest}
-  >
-    {src ? <img src={src} alt={alt} className="size-full object-cover" /> : children}
-  </div>
+> = ({ src, alt, size = 'default', shape = 'circle', className, style, children, icon, ...rest }) => {
+  const pxSize = typeof size === 'number' ? size : size === 'large' ? 40 : size === 'small' ? 24 : 32;
+  return (
+    <div
+      className={cn(
+        'flex shrink-0 select-none items-center justify-center overflow-hidden bg-muted text-xs font-medium text-muted-foreground',
+        shape === 'circle' ? 'rounded-full' : 'rounded-md',
+        className,
+      )}
+      style={{ width: pxSize, height: pxSize, ...style }}
+      {...rest}
+    >
+      {src ? <img src={src} alt={alt} className="size-full object-cover" /> : children ?? icon}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Select (options schema subset of antd)
+
+export interface AntdSelectOption {
+  label?: React.ReactNode;
+  value: string | number;
+  disabled?: boolean;
+}
+
+export interface AntdSelectProps {
+  options?: AntdSelectOption[];
+  value?: string | number | null;
+  defaultValue?: string | number;
+  onChange?: (value: string, option: AntdSelectOption | undefined) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  allowClear?: boolean;
+  loading?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export const Select: React.FC<AntdSelectProps> = ({
+  options,
+  value,
+  defaultValue,
+  onChange,
+  placeholder,
+  disabled,
+  size,
+  allowClear,
+  loading,
+  className,
+  style,
+}) => {
+  const list = options ?? [];
+  const current = value === undefined || value === null ? undefined : String(value);
+  const selected = list.find((option) => String(option.value) === current);
+
+  return (
+    <SelectPrimitiveRoot
+      value={current}
+      defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
+      onValueChange={(next) => {
+        if (allowClear && next === current) return;
+        onChange?.(next, list.find((option) => String(option.value) === next));
+      }}
+      disabled={disabled || loading}
+    >
+      <SelectPrimitiveTrigger
+        className={cn(
+          'w-full justify-between',
+          size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
+          allowClear && !!current && '[&>svg:last-child]:hidden',
+          className,
+        )}
+        style={style}
+      >
+        <SelectPrimitiveValue>
+          {selected?.label ?? (placeholder ? (
+            <span className="text-muted-foreground">{placeholder}</span>
+          ) : null)}
+        </SelectPrimitiveValue>
+      </SelectPrimitiveTrigger>
+      <SelectPrimitiveContent position="popper">
+        {list.map((option) => (
+          <SelectPrimitiveItem
+            key={String(option.value)}
+            value={String(option.value)}
+            disabled={option.disabled}
+          >
+            {option.label ?? String(option.value)}
+          </SelectPrimitiveItem>
+        ))}
+      </SelectPrimitiveContent>
+    </SelectPrimitiveRoot>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Modal (Dialog-based subset of antd)
+
+export const Modal: React.FC<{
+  open?: boolean;
+  title?: React.ReactNode;
+  width?: number | string;
+  okText?: React.ReactNode;
+  cancelText?: React.ReactNode;
+  onOk?: () => void;
+  onCancel?: () => void;
+  footer?: React.ReactNode | null;
+  destroyOnClose?: boolean;
+  maskClosable?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+}> = ({
+  open = false,
+  title,
+  width = 520,
+  okText = 'OK',
+  cancelText = 'Cancel',
+  onOk,
+  onCancel,
+  footer,
+  destroyOnClose = false,
+  children,
+  className,
+}) => {
+  const body = destroyOnClose && !open ? null : children;
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onCancel?.();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        className={cn('w-full gap-0', className)}
+        style={{ maxWidth: typeof width === 'number' ? `${width}px` : width }}
+      >
+        {title ? (
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+        ) : null}
+        {body}
+        {footer !== null ? (
+          <DialogFooter className="mt-4">
+            {footer ?? (
+              <>
+                <UiButton variant="outline" onClick={() => onCancel?.()}>
+                  {cancelText}
+                </UiButton>
+                <UiButton onClick={() => onOk?.()}>{okText}</UiButton>
+              </>
+            )}
+          </DialogFooter>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// App (imperative modal.confirm backed by an AlertDialog host)
+
+export interface AntdConfirmOptions {
+  icon?: React.ReactNode;
+  title?: React.ReactNode;
+  content?: React.ReactNode;
+  okText?: string;
+  cancelText?: string;
+  okButtonProps?: { danger?: boolean };
+  onOk?: () => void;
+  onCancel?: () => void;
+}
+
+interface ConfirmItem extends AntdConfirmOptions {
+  id: number;
+}
+
+let confirmSeq = 0;
+let confirmItems: ConfirmItem[] = [];
+const confirmListeners = new Set<(items: ConfirmItem[]) => void>();
+
+const emitConfirms = () => confirmListeners.forEach((listener) => listener(confirmItems));
+
+const openConfirm = (options: AntdConfirmOptions) => {
+  confirmItems = [...confirmItems, { ...options, id: ++confirmSeq }];
+  emitConfirms();
+};
+
+const closeConfirm = (id: number) => {
+  confirmItems = confirmItems.filter((item) => item.id !== id);
+  emitConfirms();
+};
+
+interface AppContextValue {
+  modal: { confirm: (options: AntdConfirmOptions) => void };
+}
+
+const AppContext = React.createContext<AppContextValue>({
+  modal: { confirm: openConfirm },
+});
+
+const ConfirmHost: React.FC = () => {
+  const [items, setItems] = React.useState<ConfirmItem[]>(confirmItems);
+  React.useEffect(() => {
+    confirmListeners.add(setItems);
+    return () => {
+      confirmListeners.delete(setItems);
+    };
+  }, []);
+
+  return (
+    <>
+      {items.map((item) => (
+        <AlertDialog key={item.id} defaultOpen>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{item.title}</AlertDialogTitle>
+              {item.content ? <AlertDialogDescription asChild><div>{item.content}</div></AlertDialogDescription> : null}
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  item.onCancel?.();
+                  closeConfirm(item.id);
+                }}
+              >
+                {item.cancelText ?? 'Cancel'}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                variant={item.okButtonProps?.danger ? 'destructive' : 'default'}
+                onClick={() => {
+                  item.onOk?.();
+                  closeConfirm(item.id);
+                }}
+              >
+                {item.okText ?? 'OK'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ))}
+    </>
+  );
+};
+
+const AppProvider: React.FC<{ children?: React.ReactNode; className?: string; style?: React.CSSProperties }> = ({
+  children,
+  className,
+  style,
+}) => (
+  <AppContext.Provider value={{ modal: { confirm: openConfirm } }}>
+    <div className={cn('h-full', className)} style={style}>
+      {children}
+      <ConfirmHost />
+    </div>
+  </AppContext.Provider>
 );
+
+export const App = Object.assign(AppProvider, {
+  useApp: (): AppContextValue => React.useContext(AppContext),
+});

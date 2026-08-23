@@ -1,5 +1,6 @@
 import { Editor } from '@monaco-editor/react';
-import { Modal, Spin, Typography, theme } from 'antd';
+import { Modal, Spin, Typography } from '../../antd-compat';
+import { useThemeMode } from '../../../theme';
 import { toast } from 'sonner';
 import json5 from 'json5';
 import React, { useEffect, useState } from 'react';
@@ -18,7 +19,7 @@ export type JsonToJsonSchemaDialogProps = {
 export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (props) => {
   const { isOpen, onDismiss, onSuccess, model } = props;
 
-  const { token } = theme.useToken();
+  const mode = useThemeMode();
 
   const [value, setValue] = useState<string>('');
 
@@ -51,7 +52,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
       <Editor
         loading={<Spin size='large' />}
         language='javascript'
-        theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+        theme={mode === 'dark' ? 'vs-dark' : 'light'}
         height='400px'
         onChange={(val) => setValue(val || '')}
         value={value || ''}

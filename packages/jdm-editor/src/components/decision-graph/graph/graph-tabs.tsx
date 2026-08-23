@@ -1,6 +1,6 @@
 import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/icons';
-import type { TabsProps } from 'antd';
-import { Avatar, Button, Dropdown, Tabs } from 'antd';
+import type { TabsProps } from '../../antd-compat';
+import { Avatar, Button, Dropdown, Tabs } from '../../antd-compat';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 
@@ -43,7 +43,6 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
   const defaultItems = useMemo(() => {
     return [
       {
-        closable: false,
         key: 'graph',
         label: (
           <TabLabel
@@ -92,7 +91,6 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
                   onClose={() => graphActions.closeTab(node.id)}
                 />
               ),
-              closable: true,
             } satisfies TabItem;
           }),
         ]}
