@@ -35,7 +35,7 @@ export {
   Info as InfoCircleOutlined,
   ChevronLeft as LeftOutlined,
   SquareMinus as MinusSquareOutlined,
-  Ellipsis as MoreOutlined,
+  EllipsisVertical as MoreOutlined,
   CirclePlus as PlusCircleOutlined,
   Plus as PlusOutlined,
   SquarePlus as PlusSquareOutlined,
