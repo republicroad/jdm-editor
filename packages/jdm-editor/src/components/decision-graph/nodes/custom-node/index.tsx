@@ -1,7 +1,7 @@
 import { DownOutlined } from '@/icons';
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { XYPosition } from '@xyflow/react';
-import { Button, Checkbox, Form, Typography, theme } from 'antd';
+import { Button, Checkbox, Form, Typography } from '../../../antd-compat';
 import type { DragDropManager } from 'dnd-core';
 import React, { useState } from 'react';
 import { match } from 'ts-pattern';
@@ -128,7 +128,6 @@ export const createJdmNode = <
       ? n.renderNode
       : ({ id, specification, data, selected }) => {
           const [open, setOpen] = useState(false);
-          const { token } = theme.useToken();
           const { updateNode } = useDecisionGraphActions();
           const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
           const nodeData = node?.content?.config;
@@ -173,7 +172,7 @@ export const createJdmNode = <
                       .with({ control: 'text' }, () => <CodeEditor type='template' />)
                       .with({ control: 'bool' }, () => (
                         <Checkbox>
-                          <Typography.Text style={{ fontSize: token.fontSizeSM }}>{label}</Typography.Text>
+                          <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
                         </Checkbox>
                       ))
                       .exhaustive();
@@ -181,7 +180,7 @@ export const createJdmNode = <
                     const outerLabel = match({ control })
                       .with({ control: 'bool' }, () => null)
                       .otherwise(() => (
-                        <Typography.Text style={{ fontSize: token.fontSizeSM }}>{label}</Typography.Text>
+                        <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
                       ));
 
                     const valuePropName = match({ control })

@@ -1,6 +1,6 @@
 import { ArrowRightOutlined, SyncOutlined } from '@/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Form } from 'antd';
+import { Button, Form } from '../../../antd-compat';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';
 import _ from 'lodash';
