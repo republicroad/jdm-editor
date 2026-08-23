@@ -479,6 +479,8 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               nodes={nodesState[0]}
               edges={edgesState[0]}
               defaultViewport={initialViewport.current}
+              fitView={!initialViewport.current}
+              fitViewOptions={{ padding: 0.15 }}
               onInit={(instance) => {
                 (reactFlowInstance as MutableRefObject<ReactFlowInstance>).current = instance;
                 if (initialViewport.current) {
