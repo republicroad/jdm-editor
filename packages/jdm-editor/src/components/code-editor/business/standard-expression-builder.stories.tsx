@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import React, { useState } from 'react';
 
 import { StandardExpressionBuilder, type StandardExpressionBuilderProps } from './standard-expression-builder';

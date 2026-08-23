@@ -1,8 +1,8 @@
 import { syntaxTree } from '@codemirror/language';
 import { Variable, createVariableType, generateAst, generateAstUnary } from '@gorules/zen-engine-wasm';
 import type { SyntaxNodeRef } from '@lezer/common';
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import { Typography } from '../primitives';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';

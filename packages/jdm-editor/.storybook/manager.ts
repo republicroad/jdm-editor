@@ -1,5 +1,5 @@
-import { STORY_RENDERED } from '@storybook/core-events';
-import { addons } from '@storybook/manager-api';
+import { STORY_RENDERED } from 'storybook/internal/core-events';
+import { addons } from 'storybook/manager-api';
 
 addons.register('TitleAddon', (api) => {
   api.on(STORY_RENDERED, () => {

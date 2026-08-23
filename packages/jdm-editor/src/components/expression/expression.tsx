@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { isWasmAvailable } from '../../helpers/wasm';
 import type { ExpressionDebug } from './context/expression-store.context';
-import type { ExpressionEntry } from './context/expression-store.context';
 import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
 import type { ExpressionControllerProps } from './expression-controller';

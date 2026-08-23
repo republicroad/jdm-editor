@@ -86,7 +86,6 @@ const ExcelDnd: React.FC<
 
 const ImportColumnRow: React.FC<{
   col: ImportColumn;
-  index: number;
   section: 'input' | 'output';
   excelHeaders: { id: string; name?: string; value?: string }[];
   disabled: boolean;
@@ -98,7 +97,6 @@ const ImportColumnRow: React.FC<{
   onRemove: () => void;
 }> = ({
   col,
-  index,
   section,
   excelHeaders,
   disabled,
@@ -548,11 +546,11 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               No input columns
             </Typography.Text>
           )}
-          {inputColumns.map((col, index) => (
+          {inputColumns.map((col) => (
             <ImportColumnRow
               key={col.id}
               col={col}
-              index={index}
+              
               section='input'
               excelHeaders={excelHeaders}
               disabled={!!disabledColumns[col.id]}
@@ -603,11 +601,11 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               No output columns
             </Typography.Text>
           )}
-          {outputColumns.map((col, index) => (
+          {outputColumns.map((col) => (
             <ImportColumnRow
               key={col.id}
               col={col}
-              index={index}
+              
               section='output'
               excelHeaders={excelHeaders}
               disabled={!!disabledColumns[col.id]}

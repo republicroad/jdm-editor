@@ -6,10 +6,9 @@ const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
   addons: [
     '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
     'storybook-dark-mode',
-    '@storybook/addon-storysource',
+    '@storybook/addon-docs',
+    '@storybook/addon-mcp'
   ],
   staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: '/zen-engine-wasm' }],
   framework: {

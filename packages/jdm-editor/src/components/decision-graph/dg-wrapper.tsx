@@ -1,7 +1,7 @@
 import type { ProOptions } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
-import React, { forwardRef, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useRef, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import { useDecisionGraphState } from './context/dg-store.context';

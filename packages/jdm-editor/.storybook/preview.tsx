@@ -1,5 +1,5 @@
 import * as ZenEngineWasm from '@gorules/zen-engine-wasm';
-import type { Preview } from '@storybook/react';
+import type { Preview } from '@storybook/react-vite';
 import * as React from 'react';
 import { useDarkMode } from 'storybook-dark-mode';
 
@@ -28,6 +28,10 @@ export const parameters = {
 const preview: Preview = {
   parameters: {
     layout: 'fullscreen',
+
+    docs: {
+      codePanel: true
+    }
   },
   decorators: [
     (Story) => {
