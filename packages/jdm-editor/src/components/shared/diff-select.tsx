@@ -1,4 +1,4 @@
-import { Select, type SelectProps, Space, type SpaceProps } from 'antd';
+import { Select, type SelectProps, Space, type SpaceProps } from '../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 

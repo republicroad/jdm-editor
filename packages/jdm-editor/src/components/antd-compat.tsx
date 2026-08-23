@@ -475,6 +475,13 @@ export const Input: React.FC<
 
 export type InputProps = React.ComponentProps<typeof Input>;
 
+export type SelectProps = AntdSelectProps;
+export type SpaceProps = React.HTMLAttributes<HTMLDivElement> & {
+  size?: number | [number, number] | 'small' | 'middle' | 'large';
+  direction?: 'horizontal' | 'vertical';
+  wrap?: boolean;
+};
+
 export interface AntdTabsItemType {
   key: string;
   label: React.ReactNode;
@@ -855,7 +862,6 @@ const RadioItem: React.FC<{
 export const Radio = Object.assign(RadioItem, { Group: RadioGroupRoot, Button: RadioButton });
 
 export interface AntdRadioGroupProps {
-  // eslint-disable-next-line
   value?: any;
   disabled?: boolean;
   size?: 'large' | 'middle' | 'small';
