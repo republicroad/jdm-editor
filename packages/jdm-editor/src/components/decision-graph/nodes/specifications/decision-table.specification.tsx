@@ -34,7 +34,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
   displayName: 'Decision table',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/decision-tables',
   shortDescription: 'Rules spreadsheet',
-  renderTab: ({ id, manager }) => <TabDecisionTable id={id} manager={manager} />,
+  renderTab: ({ id }) => <TabDecisionTable id={id} />,
   getDiffContent: (current, previous) => {
     return produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};

@@ -2,7 +2,6 @@ import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@/ico
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
 import { useThemeMode } from '../../../theme';
-import type { DragDropManager } from 'dnd-core';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PanelGroup } from 'react-resizable-panels';
@@ -37,7 +36,6 @@ enum TabKey {
 
 export type TabJsonSchemaProps = {
   id: string;
-  manager?: DragDropManager;
   type?: 'input' | 'output';
 };
 

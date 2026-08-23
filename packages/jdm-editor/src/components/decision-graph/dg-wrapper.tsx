@@ -1,9 +1,7 @@
 import type { ProOptions } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
-import { createDragDropManager } from 'dnd-core';
 import React, { forwardRef, useMemo, useRef, useState } from 'react';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { match } from 'ts-pattern';
 
 import { useDecisionGraphState } from './context/dg-store.context';
@@ -79,31 +77,22 @@ const TabContents: React.FC = React.memo(() => {
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const dndManager = useMemo(() => {
-    return createDragDropManager(HTML5Backend, undefined, {
-      rootElement: containerRef.current,
-    });
-  }, [containerRef.current]);
 
   return (
     <div style={{ display: 'contents' }} ref={containerRef}>
       {openNodes.map((node) => (
         <div key={node?.id} className={clsx(['tab-content', activeNodeId === node?.id && 'active'])}>
           {match(node?.type)
-            .with(NodeKind.DecisionTable, () =>
-              decisionTableSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
-            )
-            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
-            .with(NodeKind.Expression, () =>
-              expressionSpecification?.renderTab?.({ id: node?.id, manager: dndManager }),
-            )
-            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
-            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, manager: dndManager }))
+            .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id }))
+            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id }))
+            .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id }))
+            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id }))
+            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id }))
 
             .otherwise(() => {
               const component = components.find((cmp) => cmp.type === node.type);
               if (component) {
-                return component?.renderTab?.({ id: node.id, manager: dndManager });
+                return component?.renderTab?.({ id: node.id });
               }
 
               return null;

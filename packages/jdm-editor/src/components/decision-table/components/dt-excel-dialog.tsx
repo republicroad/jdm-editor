@@ -1,8 +1,7 @@
 import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined, PlusOutlined } from '@/icons';
+import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../primitives';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { XYCoord } from 'react-dnd';
-import { useDrag, useDrop } from 'react-dnd';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ParsedExcelData, RuleData } from '../../../helpers/excel';
 import type { ColumnFieldType, OutputFieldType } from '../../../helpers/schema';
@@ -58,20 +57,37 @@ const isHeaderMatch = (header1: TableHeader, header2: TableHeader) => {
   );
 };
 
-const DRAG_TYPE = 'import-col';
+const ExcelDnd: React.FC<
+  React.PropsWithChildren<{
+    onMove: (draggedId: string, overId: string) => void;
+  }>
+> = ({ children, onMove }) => {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-interface DragItem {
-  index: number;
-  id: string;
-  type: string;
-  section: 'input' | 'output';
-}
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragOver={({ active, over }) => {
+        if (!over) {
+          return;
+        }
+
+        const draggedId = String(active.id).replace(/^xl-/, '');
+        const overId = String(over.id).replace(/^xl-/, '');
+        if (draggedId !== overId) {
+          onMove(draggedId, overId);
+        }
+      }}
+    >
+      {children}
+    </DndContext>
+  );
+};
 
 const ImportColumnRow: React.FC<{
   col: ImportColumn;
   index: number;
   section: 'input' | 'output';
-  moveCard: (dragIndex: number, hoverIndex: number) => void;
   excelHeaders: { id: string; name?: string; value?: string }[];
   disabled: boolean;
   wrapChecked: boolean;
@@ -84,7 +100,6 @@ const ImportColumnRow: React.FC<{
   col,
   index,
   section,
-  moveCard,
   excelHeaders,
   disabled,
   wrapChecked,
@@ -94,40 +109,21 @@ const ImportColumnRow: React.FC<{
   onFieldChange,
   onRemove,
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const [, drop] = useDrop<DragItem, void>({
-    accept: DRAG_TYPE,
-    hover(item: DragItem, monitor) {
-      if (!ref.current) return;
-      if (item.section !== section) return;
-
-      const dragIndex = item.index;
-      const hoverIndex = index;
-      if (dragIndex === hoverIndex) return;
-
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
-      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-
-      moveCard(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    setActivatorNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `xl-${col.id}`,
+    data: { id: col.id },
+    disabled,
   });
 
-  const [{ isDragging }, drag] = useDrag({
-    type: DRAG_TYPE,
-    item: () => ({ id: col.id, index, type: DRAG_TYPE, section }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+  const { setNodeRef: setDropNodeRef } = useDroppable({
+    id: `xl-${col.id}`,
   });
-
-  drag(drop(ref));
 
   const excelOptions = excelHeaders.map((h) => ({
     label: h.name || h.value || h.id,
@@ -142,7 +138,10 @@ const ImportColumnRow: React.FC<{
 
   return (
     <div
-      ref={ref}
+      ref={(el) => {
+        setDragNodeRef(el);
+        setDropNodeRef(el);
+      }}
       style={{
         display: 'grid',
         gridTemplateColumns: '24px 36px 1fr 12px 1fr 28px 28px 28px',
@@ -152,7 +151,12 @@ const ImportColumnRow: React.FC<{
         opacity: isDragging ? 0.3 : disabled ? 0.4 : 1,
       }}
     >
-      <div style={{ cursor: 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        {...listeners}
+        {...attributes}
+        ref={setActivatorNodeRef}
+        style={{ cursor: disabled ? 'default' : 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
         <HolderOutlined style={{ color: 'var(--grl-color-text-tertiary)' }} />
       </div>
 
@@ -306,26 +310,6 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
 
   const inputColumns = useMemo(() => columns.filter((c) => c.type === 'input'), [columns]);
   const outputColumns = useMemo(() => columns.filter((c) => c.type === 'output'), [columns]);
-
-  const moveInputCard = useCallback((dragIndex: number, hoverIndex: number) => {
-    setColumns((prev) => {
-      const inputs = prev.filter((c) => c.type === 'input');
-      const outputs = prev.filter((c) => c.type === 'output');
-      const element = inputs.splice(dragIndex, 1)[0];
-      inputs.splice(hoverIndex, 0, element);
-      return [...inputs, ...outputs];
-    });
-  }, []);
-
-  const moveOutputCard = useCallback((dragIndex: number, hoverIndex: number) => {
-    setColumns((prev) => {
-      const inputs = prev.filter((c) => c.type === 'input');
-      const outputs = prev.filter((c) => c.type === 'output');
-      const element = outputs.splice(dragIndex, 1)[0];
-      outputs.splice(hoverIndex, 0, element);
-      return [...inputs, ...outputs];
-    });
-  }, []);
 
   const enabledColumns = useMemo(() => columns.filter((c) => !disabledColumns[c.id]), [columns, disabledColumns]);
   const hasEnabledOutput = useMemo(() => enabledColumns.some((c) => c.type === 'output'), [enabledColumns]);
@@ -499,7 +483,23 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       width={900}
       getContainer={getContainer}
     >
-      <div style={{ padding: '8px 0' }}>
+      <ExcelDnd
+        onMove={(draggedId, overId) => {
+          setColumns((prev) => {
+            const i = prev.findIndex((c) => c.id === draggedId);
+            const j = prev.findIndex((c) => c.id === overId);
+            if (i === -1 || j === -1 || i === j || prev[i].type !== prev[j].type) {
+              return prev;
+            }
+
+            const next = [...prev];
+            const [moved] = next.splice(i, 1);
+            next.splice(j, 0, moved);
+            return next;
+          });
+        }}
+      >
+        <div style={{ padding: '8px 0' }}>
         {/* Inputs Section */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <Typography.Text strong style={{ fontSize: 13 }}>
@@ -554,7 +554,6 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               col={col}
               index={index}
               section='input'
-              moveCard={moveInputCard}
               excelHeaders={excelHeaders}
               disabled={!!disabledColumns[col.id]}
               wrapChecked={wrapStates[col.id] || false}
@@ -610,7 +609,6 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               col={col}
               index={index}
               section='output'
-              moveCard={moveOutputCard}
               excelHeaders={excelHeaders}
               disabled={!!disabledColumns[col.id]}
               wrapChecked={wrapStates[col.id] || false}
@@ -682,6 +680,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
           </div>
         </div>
       </div>
+      </ExcelDnd>
     </Modal>
   );
 };

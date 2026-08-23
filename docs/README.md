@@ -24,6 +24,8 @@
 | [`migration/03-post-migration-fixes.zh-CN.md`](./migration/03-post-migration-fixes.zh-CN.md) | 中文 | 迁移后回归修复(中文对照):节点色变量、fitView、竖向三点图标、Radix ref 锚点 |
 | [`migration/04-react-19.md`](./migration/04-react-19.md) | EN | React 18 → 19 upgrade record (+ zustand 5), peer policy kept `>=18`, dual-host verification |
 | [`migration/04-react-19.zh-CN.md`](./migration/04-react-19.zh-CN.md) | 中文 | React 19 升级记录(中文对照,含 zustand 5),peer 保持 `>=18`,双宿主验证 |
+| [`migration/05-dnd-kit.md`](./migration/05-dnd-kit.md) | EN | react-dnd → @dnd-kit/core rewrite across four drag scenarios; manager prop removed |
+| [`migration/05-dnd-kit.zh-CN.md`](./migration/05-dnd-kit.zh-CN.md) | 中文 | react-dnd → @dnd-kit 改写(中文对照,四个拖拽场景),移除 manager 属性 |
 
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。

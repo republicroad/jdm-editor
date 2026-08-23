@@ -40,7 +40,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
   displayName: 'Expression',
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions/expression',
   shortDescription: 'Mapping utility',
-  renderTab: ({ id, manager }) => <TabExpression id={id} manager={manager} />,
+  renderTab: ({ id }) => <TabExpression id={id} />,
   getDiffContent: (current, previous) => {
     const newContent = produce(current, (draft) => {
       const fields: DiffMetadata['fields'] = {};

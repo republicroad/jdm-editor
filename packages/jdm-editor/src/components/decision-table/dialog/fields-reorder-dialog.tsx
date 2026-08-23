@@ -1,7 +1,6 @@
+import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { Card, Form, Modal, Typography } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
-import type { XYCoord } from 'react-dnd';
-import { useDrag, useDrop } from 'react-dnd';
 
 import { Stack } from '../../stack';
 import type { TableSchemaItem } from '../context/dt-store.context';
@@ -14,70 +13,37 @@ export type FieldsReorderProps = {
   getContainer?: () => HTMLElement;
 };
 
-interface DragItem {
-  index: number;
-  id: string;
-  type: string;
-}
-
 const FieldCard: React.FC<{
   col: TableSchemaItem;
   index: number;
-  moveCard: (dragIndex: number, hoverIndex: number) => void;
-}> = ({ col, index, moveCard }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [, drop] = useDrop<DragItem, void>({
-    accept: 'col',
-    collect(monitor) {
-      return {
-        handlerId: monitor.getHandlerId(),
-      };
-    },
-    hover(item: DragItem, monitor) {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = index;
-
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
-
-      moveCard(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
+}> = ({ col, index }) => {
+  const { attributes, listeners, setNodeRef: setDragNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
+    id: `field-${col.id}`,
+    data: { index },
   });
 
-  const [{ isDragging }, drag] = useDrag({
-    type: 'col',
-    item: () => {
-      return { id: col.id, index };
-    },
-    collect: (monitor: any) => ({
-      isDragging: monitor.isDragging(),
-    }),
+  const { setNodeRef: setDropNodeRef } = useDroppable({
+    id: `field-${col.id}`,
+    data: { index },
   });
 
-  drag(drop(ref));
   return (
-    <Card ref={ref} style={{ opacity: isDragging ? 0 : 1 }} bodyStyle={{ padding: '0.5rem' }}>
+    <Card
+      ref={(el) => {
+        setDropNodeRef(el);
+        setDragNodeRef(el);
+      }}
+      style={{ opacity: isDragging ? 0 : 1 }}
+      bodyStyle={{ padding: '0.5rem' }}
+    >
       <div className='grl-dt__fields-reorder__item'>
         <Stack horizontal verticalAlign='center'>
-          <div className='grl-dt__fields-reorder__handle'>=</div>
+          <div
+            className='grl-dt__fields-reorder__handle'
+            ref={setActivatorNodeRef}
+            {...listeners}
+            {...attributes}
+          >=</div>
           <Stack grow gap={0}>
             <Typography.Text>{col.name}</Typography.Text>
             <Typography.Text type='secondary' style={{ fontSize: 12 }}>
@@ -90,10 +56,38 @@ const FieldCard: React.FC<{
   );
 };
 
+const FieldsDnd: React.FC<
+  React.PropsWithChildren<{
+    onMove: (draggedId: string, overId: string) => void;
+  }>
+> = ({ children, onMove }) => {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragOver={({ active, over }) => {
+        if (!over) {
+          return;
+        }
+
+        const draggedId = String(active.id).replace(/^field-/, '');
+        const overId = String(over.id).replace(/^field-/, '');
+        if (draggedId !== overId) {
+          onMove(draggedId, overId);
+        }
+      }}
+    >
+      {children}
+    </DndContext>
+  );
+};
+
 export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
   const { isOpen, onDismiss, onSuccess, fields, getContainer } = props;
 
   const [columns, setColumns] = useState<TableSchemaItem[]>([]);
+  const columnsRef = useRef<TableSchemaItem[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -101,12 +95,23 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
     }
   }, [isOpen, fields]);
 
-  const moveCard = (from: number, to?: number) => {
-    if (to === undefined) {
+  useEffect(() => {
+    columnsRef.current = columns;
+  }, [columns]);
+
+  const moveCardByIds = (draggedId?: string, overId?: string) => {
+    if (!draggedId || !overId || draggedId === overId) {
       return;
     }
 
-    const tmpList = [...columns];
+    const list = columnsRef.current;
+    const from = list.findIndex((c) => c.id === draggedId);
+    const to = list.findIndex((c) => c.id === overId);
+    if (from === -1 || to === -1) {
+      return;
+    }
+
+    const tmpList = [...list];
     const element = tmpList.splice(from, 1)[0];
     tmpList.splice(to, 0, element);
     setColumns(tmpList);
@@ -128,11 +133,13 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
       getContainer={getContainer}
     >
       <Form id='fields-reorder-dialog' onFinish={() => onSuccess?.(columns)}>
-        <Stack gap={8} horizontalAlign='stretch'>
-          {columns.map((column, index) => (
-            <FieldCard key={column.id} col={column} index={index} moveCard={moveCard} />
-          ))}
-        </Stack>
+        <FieldsDnd onMove={moveCardByIds}>
+          <Stack gap={8} horizontalAlign='stretch'>
+            {columns.map((column, index) => (
+              <FieldCard key={column.id} col={column} index={index} />
+            ))}
+          </Stack>
+        </FieldsDnd>
       </Form>
     </Modal>
   );

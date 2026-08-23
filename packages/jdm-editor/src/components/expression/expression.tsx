@@ -1,9 +1,7 @@
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
-import type { DragDropManager } from 'dnd-core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import equal from 'fast-deep-equal/es6/react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { isWasmAvailable } from '../../helpers/wasm';
 import type { ExpressionStore } from './context/expression-store.context';
@@ -15,14 +13,12 @@ import { ExpressionList } from './expression-list';
 import './expression.scss';
 
 export type ExpressionProps = {
-  manager?: DragDropManager;
   inputVariableType?: VariableType;
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
 } & ExpressionControllerProps;
 
 export const Expression: React.FC<ExpressionProps> = ({
-  manager,
   debug,
   hideCommandBar,
   inputVariableType,
@@ -35,34 +31,45 @@ export const Expression: React.FC<ExpressionProps> = ({
     setMounted(true);
   }, []);
 
-  const dndProps = useMemo(() => {
-    if (manager) {
-      return {
-        manager,
-      };
-    }
-
-    return {
-      backend: HTML5Backend,
-      options: {
-        rootElement: container.current,
-      },
-    };
-  }, [container.current, manager]);
-
   return (
     <div ref={container}>
       {container.current && (
-        <DndProvider {...dndProps}>
-          <ExpressionStoreProvider>
+        <ExpressionStoreProvider>
+          <ExpressionDnd>
             <ExpressionController {...props} />
             {!hideCommandBar && <ExpressionCommandBar />}
             <ExpressionList />
             <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
-          </ExpressionStoreProvider>
-        </DndProvider>
+          </ExpressionDnd>
+        </ExpressionStoreProvider>
       )}
     </div>
+  );
+};
+
+const ExpressionDnd: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const store = useExpressionStoreRaw();
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragEnd={({ active, over }) => {
+        if (!over) {
+          return;
+        }
+
+        const from = active.data.current?.index;
+        const to = over.data.current?.index;
+        if (from === undefined || to === undefined || from === to) {
+          return;
+        }
+
+        store.getState().swapRows(from, to);
+      }}
+    >
+      {children}
+    </DndContext>
   );
 };
 

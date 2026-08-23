@@ -1,12 +1,14 @@
-import type { DragDropManager } from 'dnd-core';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { DictionaryProvider } from '../../theme';
 import { DecisionTableDialogProvider } from './context/dt-dialog.context';
 import type { DecisionTableContextProps } from './context/dt-store.context';
-import { DecisionTableProvider, useDecisionTableState } from './context/dt-store.context';
+import {
+  DecisionTableProvider,
+  useDecisionTableActions,
+  useDecisionTableState,
+} from './context/dt-store.context';
 import { DecisionTableDialogs } from './dialog/dt-dialogs';
 import { DecisionTableCommandBar } from './dt-command-bar';
 import type { DecisionTableEmptyType } from './dt-empty';
@@ -21,7 +23,6 @@ export type DecisionTableProps = {
   id?: string;
   tableHeight: string | number;
   mountDialogsOnBody?: boolean;
-  manager?: DragDropManager;
   scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
 } & DecisionTableContextProps &
@@ -31,12 +32,10 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   id,
   tableHeight,
   mountDialogsOnBody = false,
-  manager,
   scrollContainerRef,
   scrollApiRef,
   ...props
 }) => {
-
   const [_, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -46,26 +45,11 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
 
   const getContainer = () => ref.current as HTMLElement;
 
-  const dndProps = useMemo(() => {
-    if (manager) {
-      return {
-        manager,
-      };
-    }
-
-    return {
-      backend: HTML5Backend,
-      options: {
-        rootElement: ref.current,
-      },
-    };
-  }, [ref.current, manager]);
-
   return (
     <div ref={ref} className={'grl-dt'} style={{ background: 'var(--grl-color-bg-elevated)' }}>
       {ref.current && (
-        <DndProvider {...dndProps}>
-          <DecisionTableProvider>
+        <DecisionTableProvider>
+          <DecisionTableDnd>
             <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
               <DecisionTableCommandBar />
               <DictionaryBridge>
@@ -79,10 +63,36 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
               <DecisionTableDialogs />
               <DecisionTableEmpty {...props} />
             </DecisionTableDialogProvider>
-          </DecisionTableProvider>
-        </DndProvider>
+          </DecisionTableDnd>
+        </DecisionTableProvider>
       )}
     </div>
+  );
+};
+
+const DecisionTableDnd: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const actions = useDecisionTableActions();
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragEnd={({ active, over }) => {
+        if (!over) {
+          return;
+        }
+
+        const from = active.data.current?.index;
+        const to = over.data.current?.index;
+        if (from === undefined || to === undefined || from === to) {
+          return;
+        }
+
+        actions.swapRows(from, to);
+      }}
+    >
+      {children}
+    </DndContext>
   );
 };
 

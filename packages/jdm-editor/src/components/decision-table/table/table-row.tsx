@@ -2,12 +2,13 @@ import type { Row } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import type { VirtualItem } from '@tanstack/react-virtual';
 import { Typography } from '../../primitives';
+import { useDraggable, useDroppable, useDndContext } from '@dnd-kit/core';
 import clsx from 'clsx';
 import React, { useEffect, useRef } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import { P, match } from 'ts-pattern';
 
 import { composeRefs } from '../../../helpers/compose-refs';
+import { getDropDirection } from '../../../helpers/dnd';
 import type { DiffMetadata } from '../../decision-graph';
 import { useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 
@@ -27,24 +28,27 @@ export const TableRow: React.FC<{
       .otherwise((t) => t?.rule?._id === row.id),
   }));
 
-  const [{ isDropping, direction }, dropRef] = useDrop({
-    accept: 'row',
-    collect: (monitor) => ({
-      isDropping: monitor.isOver({ shallow: true }),
-      direction: (monitor.getDifferenceFromInitialOffset()?.y || 0) > 0 ? 'down' : 'up',
-    }),
-    drop: (draggedRow: Row<Record<string, string>>) => tableActions.swapRows(draggedRow.index, row.index),
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    setActivatorNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `dtrow-${row.id}`,
+    data: { index: row.index },
+    disabled: !!disabled,
   });
 
-  const [{ isDragging }, dragRef, previewRef] = useDrag({
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    item: () => row,
-    type: 'row',
+  const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
+    id: `dtrow-drop-${row.id}`,
+    data: { index: row.index },
   });
 
-  previewRef(dropRef(trRef));
+  const dndContext = useDndContext();
+  const direction = isOver
+    ? getDropDirection(dndContext.active?.rect.current.translated, trRef.current?.getBoundingClientRect())
+    : 'up';
 
   useEffect(() => {
     if (!trRef.current) {
@@ -85,11 +89,16 @@ export const TableRow: React.FC<{
 
   return (
     <tr
-      ref={composeRefs(trRef, ref)}
+      ref={composeRefs(
+        trRef,
+        ref,
+        setDropNodeRef as React.Ref<HTMLTableRowElement>,
+        setDragNodeRef as React.Ref<HTMLTableRowElement>,
+      )}
       className={clsx(
         'table-row',
-        isDropping && direction === 'down' && 'dropping-down',
-        isDropping && direction === 'up' && 'dropping-up',
+        isOver && direction === 'down' && 'dropping-down',
+        isOver && direction === 'up' && 'dropping-up',
         !diffStatus && isActive && 'active',
         !diffStatus && disabled && 'disabled',
         !diffStatus && cursor?.y === virtualItem.index && !disabled && 'selected',
@@ -102,13 +111,9 @@ export const TableRow: React.FC<{
     >
       <td
         className={clsx('sort-handler', !disabled && 'draggable', diffStatus && 'diff')}
-        ref={
-          disabled
-            ? undefined
-            : (el) => {
-                dragRef(el as HTMLTableDataCellElement | null);
-              }
-        }
+        ref={disabled ? undefined : setActivatorNodeRef}
+        {...(disabled ? {} : listeners)}
+        {...attributes}
         onContextMenuCapture={() => tableActions.setCursor({ x: 'id', y: virtualItem.index })}
       >
         <div className={'text'}>

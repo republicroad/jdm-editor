@@ -34,6 +34,7 @@
 
     &__th {
       padding: $pv $ph;
+      pointer-events: none;
 
       &--order {
         height: 100%;

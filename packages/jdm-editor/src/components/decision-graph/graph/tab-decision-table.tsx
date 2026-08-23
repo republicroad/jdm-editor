@@ -1,4 +1,3 @@
-import type { DragDropManager } from 'dnd-core';
 import React, { useMemo, useRef } from 'react';
 import { P, match } from 'ts-pattern';
 
@@ -17,10 +16,9 @@ type TableScrollSnapshot = { rowIndex: number; scrollLeft: number };
 
 export type TabDecisionTableProps = {
   id: string;
-  manager?: DragDropManager;
 };
 
-export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager }) => {
+export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
   const graphActions = useDecisionGraphActions();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollApiRef = useRef<TableScrollApi | null>(null);
@@ -95,7 +93,6 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id, manager 
       name={nodeName}
       tableHeight={'100%'}
       value={content as any}
-      manager={manager}
       scrollContainerRef={scrollContainerRef}
       scrollApiRef={scrollApiRef}
       disabled={disabled}

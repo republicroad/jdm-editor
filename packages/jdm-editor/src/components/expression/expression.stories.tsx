@@ -29,7 +29,6 @@ const meta: Meta<typeof Expression> = {
       control: 'select',
       options: ['edit:full', 'edit:values', 'view'],
     },
-    manager: { table: { disable: true } },
     value: { table: { disable: true } },
   },
 };

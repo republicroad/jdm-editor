@@ -26,7 +26,7 @@ export const outputSpecification: NodeSpecification<NodeOutputData> = {
   documentationUrl: 'https://gorules.io/docs/user-manual/decision-modeling/decisions',
   shortDescription: 'Outputs the context',
   generateNode: () => ({ name: 'response', content: { schema: '' } }),
-  renderTab: ({ id, manager }) => <TabJsonSchema id={id} manager={manager} type={'output'} />,
+  renderTab: ({ id }) => <TabJsonSchema id={id} type={'output'} />,
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
     return (

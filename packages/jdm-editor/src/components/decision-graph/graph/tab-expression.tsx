@@ -1,4 +1,3 @@
-import type { DragDropManager } from 'dnd-core';
 import React, { useMemo, useRef } from 'react';
 import { P, match } from 'ts-pattern';
 import type { z } from 'zod';
@@ -19,10 +18,9 @@ type ScrollPosition = { top: number; left: number };
 
 export type TabExpressionProps = {
   id: string;
-  manager?: DragDropManager;
 };
 
-export const TabExpression: React.FC<TabExpressionProps> = ({ id, manager }) => {
+export const TabExpression: React.FC<TabExpressionProps> = ({ id }) => {
   const graphActions = useDecisionGraphActions();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -107,7 +105,6 @@ export const TabExpression: React.FC<TabExpressionProps> = ({ id, manager }) => 
         value={content?.expressions}
         disabled={disabled}
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
-        manager={manager}
         debug={debug}
         onChange={(val) => {
           graphActions.updateNode(id, (draft) => {

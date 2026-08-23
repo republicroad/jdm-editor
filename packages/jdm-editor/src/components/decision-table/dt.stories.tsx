@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 import { Checkbox } from '../primitives';
-import { createDragDropManager } from 'dnd-core';
 import React, { useEffect, useMemo, useState } from 'react';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import type { DictionaryMap } from '../../theme';
 import { JdmConfigProvider } from '../../theme';
@@ -157,9 +155,6 @@ type Story = StoryObj<typeof DecisionTable>;
 export const Controlled: Story = {
   render: (args) => {
     const [value, setValue] = useState<any>(shippingFeesDefault);
-    const manager = useMemo(() => {
-      return createDragDropManager(HTML5Backend);
-    }, []);
 
     useEffect(() => {
       if (args.value) {
@@ -176,7 +171,6 @@ export const Controlled: Story = {
         <DecisionTable
           {...args}
           value={value}
-          manager={manager}
           onChange={(val) => {
             console.log(val);
             setValue(val);
@@ -192,9 +186,6 @@ export const Controlled: Story = {
 
 export const Uncontrolled: Story = {
   render: (args) => {
-    const manager = useMemo(() => {
-      return createDragDropManager(HTML5Backend);
-    }, []);
     return (
       <div
         style={{
@@ -203,7 +194,6 @@ export const Uncontrolled: Story = {
       >
         <DecisionTable
           {...args}
-          manager={manager}
           defaultValue={shippingFeesDefault}
           onChange={(val) => {
             console.log(val);
@@ -275,16 +265,12 @@ export const BusinessMode: Story = {
   },
   render: (args) => {
     const [value, setValue] = useState<any>(shippingFeesDefault);
-    const manager = useMemo(() => {
-      return createDragDropManager(HTML5Backend);
-    }, []);
 
     return (
       <div style={{ height: '100%' }}>
         <DecisionTable
           {...args}
           value={value}
-          manager={manager}
           onChange={(val) => {
             console.log(val);
             setValue(val);
@@ -338,9 +324,6 @@ export const BusinessModeDictionaries: Story = {
   },
   render: (args) => {
     const [value, setValue] = useState<any>(shippingFeesWithDictionaries);
-    const manager = useMemo(() => {
-      return createDragDropManager(HTML5Backend);
-    }, []);
 
     return (
       <JdmConfigProvider dictionaries={DICTIONARIES}>
@@ -348,7 +331,6 @@ export const BusinessModeDictionaries: Story = {
           <DecisionTable
             {...args}
             value={value}
-            manager={manager}
             onChange={(val) => {
               console.log(val);
               setValue(val);

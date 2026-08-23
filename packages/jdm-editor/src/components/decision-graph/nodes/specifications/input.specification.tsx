@@ -35,7 +35,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
       schema: '',
     },
   }),
-  renderTab: ({ id, manager }) => <TabJsonSchema id={id} manager={manager} type={'input'} />,
+  renderTab: ({ id }) => <TabJsonSchema id={id} type={'input'} />,
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
     const { disabled } = useDecisionGraphState(({ disabled }) => ({

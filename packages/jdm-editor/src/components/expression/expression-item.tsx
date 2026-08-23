@@ -1,11 +1,11 @@
 import type { VariableType } from '@gorules/zen-engine-wasm';
-import type { Row } from '@tanstack/react-table';
+import { useDraggable, useDroppable, useDndContext } from '@dnd-kit/core';
 import { Typography } from '../primitives';
 import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 
+import { getDropDirection } from '../../helpers/dnd';
 import { getTrace } from '../../helpers/trace';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
@@ -25,11 +25,10 @@ export type ExpressionItemProps = {
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
   const [isFocused, setIsFocused] = useState(false);
   const expressionRef = useRef<HTMLDivElement>(null);
-  const { updateRow, removeRow, swapRows, disabled, permission } = useExpressionStore(
-    ({ updateRow, removeRow, swapRows, disabled, permission }) => ({
+  const { updateRow, removeRow, disabled, permission } = useExpressionStore(
+    ({ updateRow, removeRow, disabled, permission }) => ({
       updateRow,
       removeRow,
-      swapRows,
       disabled,
       permission,
     }),
@@ -43,46 +42,52 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
     removeRow(index);
   };
 
-  const [{ isDropping, direction }, dropRef] = useDrop({
-    accept: 'row',
-    collect: (monitor) => ({
-      isDropping: monitor.isOver({ shallow: true }),
-      direction: (monitor.getDifferenceFromInitialOffset()?.y || 0) > 0 ? 'down' : 'up',
-    }),
-    drop: (draggedRow: Row<Record<string, string>>) => {
-      swapRows(draggedRow.index, index);
-    },
+  const actionDisabled = permission !== 'edit:full' || disabled;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    setActivatorNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `expr-${expression.id ?? index}`,
+    data: { index },
+    disabled: actionDisabled,
   });
 
-  const [{ isDragging }, dragRef, previewRef] = useDrag({
-    canDrag: permission === 'edit:full' && !disabled,
-    item: () => ({ ...expression, index }),
-    type: 'row',
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+  const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
+    id: `expr-drop-${expression.id ?? index}`,
+    data: { index },
   });
 
-  previewRef(dropRef(expressionRef));
+  const dndContext = useDndContext();
+  const direction = isOver
+    ? getDropDirection(dndContext.active?.rect.current.translated, expressionRef.current?.getBoundingClientRect())
+    : 'up';
 
   return (
     <div
-      ref={expressionRef}
+      ref={(el) => {
+        expressionRef.current = el;
+        setDropNodeRef(el);
+        setDragNodeRef(el);
+      }}
       className={clsx(
         'expression-list-item',
         'expression-list__item',
-        isDropping && direction === 'down' && 'dropping-down',
-        isDropping && direction === 'up' && 'dropping-up',
+        isOver && direction === 'down' && 'dropping-down',
+        isOver && direction === 'up' && 'dropping-up',
         expression?._diff?.status && `expression-list__item--${expression?._diff?.status}`,
       )}
       style={{ opacity: !isDragging ? 1 : 0.5 }}
     >
       <div
-        ref={(el) => {
-          dragRef(el as HTMLDivElement | null);
-        }}
+        ref={setActivatorNodeRef}
+        {...listeners}
+        {...attributes}
         className='expression-list-item__drag'
-        aria-disabled={permission !== 'edit:full' || disabled}
+        aria-disabled={actionDisabled}
       >
         <div className='expression-list-item__drag__inner'>
           {expression?._diff?.status ? (
