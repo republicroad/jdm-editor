@@ -8,7 +8,6 @@ node_modules
 # Ignore
 *.log*
 *.tgz
-docs
 
 # secrets
 .env.local
