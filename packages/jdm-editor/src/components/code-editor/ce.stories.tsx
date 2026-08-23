@@ -4,7 +4,6 @@ import type { SyntaxNodeRef } from '@lezer/common';
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 import { Typography } from '../antd-compat';
-import { useThemeMode } from '../../theme';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
