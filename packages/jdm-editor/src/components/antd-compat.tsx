@@ -4,7 +4,7 @@
  * Decision-graph (and later modules) migrate off antd incrementally by
  * swapping `from 'antd'` for `from '../antd-compat'` (path varies). The
  * exported surface mirrors the antd APIs that are actually used inside
- * this library â€?nothing more. This module is scaffolding for Stage C/D
+ * this library ï¿½?nothing more. This module is scaffolding for Stage C/D
  * and gets deleted once the last consumer is gone.
  */
 import * as React from 'react';
@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button as UiButton } from '@/components/ui/button';
 import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
+import { Switch as UiSwitch } from '@/components/ui/switch';
 import { DropdownMenu } from '@/components/ui/dropdown-menu';
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -71,6 +72,8 @@ export interface AntdButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   block?: boolean;
   shape?: 'circle' | 'round' | 'default';
 }
+
+export type ButtonProps = AntdButtonProps;
 
 export const Button: React.FC<AntdButtonProps> = ({
   type = 'default',
@@ -143,7 +146,7 @@ const typoColorClass: Record<string, string> = {
   danger: 'text-[var(--grl-color-error)]',
 };
 
-type Ellipsis = boolean | { tooltip?: React.ReactNode };
+type Ellipsis = boolean | { tooltip?: any };
 
 interface TextProps extends React.HTMLAttributes<HTMLSpanElement> {
   type?: keyof typeof typoColorClass;
@@ -274,6 +277,7 @@ export const Tooltip: React.FC<
   React.HTMLAttributes<HTMLDivElement> & {
     title?: React.ReactNode;
     placement?: keyof typeof placementSideMap;
+    open?: boolean;
     children?: React.ReactElement;
   }
 > = ({ title, placement = 'top', children }) => {
@@ -346,11 +350,19 @@ export const Dropdown: React.FC<{
   placement?: string;
   arrow?: boolean;
   overlayStyle?: React.CSSProperties;
+  destroyPopupOnHide?: boolean;
+  transitionName?: string;
   disabled?: boolean;
-  children?: React.ReactElement;
+  children?: React.ReactNode;
 }> = ({ menu, children }) => (
   <DropdownMenu modal={false}>
-    <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild>
+      {React.isValidElement(children) ? (
+        children
+      ) : (
+        <span className="inline-flex cursor-pointer items-center">{children}</span>
+      )}
+    </DropdownMenuTrigger>
     <DropdownMenuContent align="start">
       <MenuItemsRenderer items={menu?.items} onClick={menu?.onClick} />
     </DropdownMenuContent>
@@ -452,7 +464,7 @@ export const Input: React.FC<
           }}
           className="absolute right-2 flex size-4 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
         >
-          âœ?        </button>
+          ï¿½?        </button>
       ) : null}
     </div>
   );
@@ -460,6 +472,8 @@ export const Input: React.FC<
 
 // ---------------------------------------------------------------------------
 // Tabs (items schema subset of antd)
+
+export type InputProps = React.ComponentProps<typeof Input>;
 
 export interface AntdTabsItemType {
   key: string;
@@ -639,6 +653,42 @@ const FormItem: React.FC<{
 export const Form = Object.assign(FormRoot, { Item: FormItem });
 
 // ---------------------------------------------------------------------------
+// Switch
+
+export interface AntdSwitchProps {
+  checked?: boolean;
+  defaultChecked?: boolean;
+  disabled?: boolean;
+  size?: 'default' | 'small';
+  className?: string;
+  style?: React.CSSProperties;
+  onChange?: (checked: boolean) => void;
+  checkedChildren?: React.ReactNode;
+  unCheckedChildren?: React.ReactNode;
+}
+
+export const Switch: React.FC<AntdSwitchProps> = ({
+  checked,
+  defaultChecked,
+  disabled,
+  size,
+  className,
+  style,
+  onChange,
+}) => (
+  <UiSwitch
+    checked={checked === undefined ? undefined : !!checked}
+    defaultChecked={defaultChecked}
+    disabled={disabled}
+    onCheckedChange={(next) => onChange?.(next === true)}
+    className={cn(size === 'small' && 'data-[state=checked]:translate-x-3.5 h-4 w-7 [&_span]:size-3', className)}
+    style={style}
+  />
+);
+
+export type SwitchProps = AntdSwitchProps;
+
+// ---------------------------------------------------------------------------
 // Divider / Tag / Steps / Radio
 
 export const Divider: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => (
@@ -709,7 +759,7 @@ const RadioGroupRoot: React.FC<{
   value?: string | number;
   disabled?: boolean;
   buttonStyle?: string;
-  onChange?: (event: { target: { value: string | number } }) => void;
+  onChange?: (event: { target: { value: any } }) => void;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -767,7 +817,55 @@ const RadioButton: React.FC<{
   );
 };
 
-export const Radio = Object.assign(RadioGroupRoot, { Group: RadioGroupRoot, Button: RadioButton });
+const RadioItem: React.FC<{
+  value?: string | number;
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}> = ({ value, disabled, className, style, children }) => {
+  const { value: current, setValue } = React.useContext(RadioContext);
+  const active = current !== undefined && String(current) === String(value);
+  return (
+    <label
+      className={cn(
+        'flex cursor-pointer items-center gap-1.5 text-sm',
+        active ? 'text-primary' : 'text-foreground',
+        disabled && 'cursor-not-allowed opacity-50',
+        className,
+      )}
+      style={style}
+      onClick={() => {
+        if (!disabled) setValue(value!);
+      }}
+    >
+      <span
+        className={cn(
+          'flex size-3.5 items-center justify-center rounded-full border transition-colors',
+          active ? 'border-primary' : 'border-input',
+        )}
+      >
+        {active ? <span className="size-2 rounded-full bg-primary" /> : null}
+      </span>
+      {children}
+    </label>
+  );
+};
+
+export const Radio = Object.assign(RadioItem, { Group: RadioGroupRoot, Button: RadioButton });
+
+export interface AntdRadioGroupProps {
+  // eslint-disable-next-line
+  value?: any;
+  disabled?: boolean;
+  size?: 'large' | 'middle' | 'small';
+  options?: Array<{ label?: React.ReactNode; value: string | number; disabled?: boolean }>;
+  onChange?: (event: { target: { value: any } }) => void;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export type RadioGroupProps = AntdRadioGroupProps;
 
 // ---------------------------------------------------------------------------
 // Space
@@ -836,10 +934,10 @@ export interface AntdSelectOption {
 
 export interface AntdSelectProps {
   options?: AntdSelectOption[];
-  value?: string | number | null;
-  defaultValue?: string | number;
-  onChange?: (value: string, option: AntdSelectOption | undefined) => void;
-  onSelect?: (value: string, option: AntdSelectOption) => void;
+  value?: any;
+  defaultValue?: any;
+  onChange?: (value: any, option?: AntdSelectOption) => void;
+  onSelect?: (value: any, option: AntdSelectOption) => void;
   dropdownRender?: (menu: React.ReactNode) => React.ReactNode;
   optionRender?: (option: { data: AntdSelectOption }) => React.ReactNode;
   placeholder?: string;
@@ -935,7 +1033,7 @@ export const Select: React.FC<AntdSelectProps> = ({
           }}
           className="absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
         >
-          âœ?        </button>
+          ï¿½?        </button>
       ) : null}
     </div>
   );

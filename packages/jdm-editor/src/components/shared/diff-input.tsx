@@ -1,4 +1,4 @@
-import { Input, type InputProps } from 'antd';
+import { Input, type InputProps } from '../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 

@@ -1,4 +1,4 @@
-import { Typography } from 'antd';
+import { Typography } from './antd-compat';
 import clsx from 'clsx';
 import React, { useEffect, useRef, useState } from 'react';
 

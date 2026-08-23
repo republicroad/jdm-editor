@@ -1,4 +1,4 @@
-import { Select, Typography } from 'antd';
+import { Select, Typography } from '../antd-compat';
 import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 

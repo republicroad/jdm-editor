@@ -1,6 +1,6 @@
 import { PlusCircleOutlined } from '@/icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Typography } from 'antd';
+import { Button, Typography } from '../antd-compat';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useState } from 'react';
