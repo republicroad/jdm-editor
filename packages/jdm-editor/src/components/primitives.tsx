@@ -81,7 +81,10 @@ export interface AntdButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
 
 export type ButtonProps = AntdButtonProps;
 
-export const Button: React.FC<AntdButtonProps> = ({
+export const Button = React.forwardRef<
+  HTMLButtonElement,
+  AntdButtonProps & { ref?: React.Ref<HTMLButtonElement> }
+>(({
   type = 'default',
   icon,
   danger = false,
@@ -95,7 +98,7 @@ export const Button: React.FC<AntdButtonProps> = ({
   children,
   disabled,
   ...rest
-}) => {
+}, ref) => {
   const variant = (() => {
     if (danger && type === 'link') return 'link';
     if (danger && type !== 'text') return 'destructive';
@@ -126,6 +129,7 @@ export const Button: React.FC<AntdButtonProps> = ({
   if (href) {
     return (
       <a
+        ref={ref as React.Ref<HTMLAnchorElement>}
         href={href}
         target={target}
         className={cn(
@@ -144,6 +148,7 @@ export const Button: React.FC<AntdButtonProps> = ({
 
   return (
     <UiButton
+      ref={ref}
       variant={variant as never}
       className={cn(
         sizeClass,
@@ -161,7 +166,7 @@ export const Button: React.FC<AntdButtonProps> = ({
       {inner}
     </UiButton>
   );
-};
+});
 
 // ---------------------------------------------------------------------------
 // Typography
