@@ -66,7 +66,7 @@
 
 1. Remove `antd`, `@ant-design/icons`, `dayjs`(antd-specific use) from dependencies; delete dead SCSS.
 2. Decide fate of remaining SCSS (progressive Tailwind conversion allowed to stop at hybrid).
-3. CI: add test job (currently missing) before declaring migration complete.
+3. CI: validate workflow already runs lint+build+test+typecheck (plus bundle-size budget and dual-react consumer smoke as of migration 04/05).
 
 ## Risks & mitigations
 

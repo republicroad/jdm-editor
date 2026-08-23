@@ -157,16 +157,15 @@ GitHub 工作流(`.github/workflows/`):
 
 | 工作流 | 触发条件 | 内容 |
 |---|---|---|
-| `validate.yaml` | push/PR 到 master | 格式检查(eslint+prettier)→ build → typecheck(**无 test job**) |
+| `validate.yaml` | push(master/reui)/PR | lint+build+test+typecheck、体积预算、双 React 消费者冒烟 |
 | `publish.yaml` | push 且提交信息以 `chore(release)` 开头 | build 后执行 `lerna publish from-package` |
 | `version.yaml` / `version-beta.yaml` | 手动 dispatch | `lerna version`(patch/minor/major;beta 标识) |
 | `pages.yaml` | push master / 手动 | Storybook 构建并部署到 gh-pages 演示站 |
 
-本分叉记录的已知缺口:CI 仍未接入 test job(测试当前本地运行,接入 `validate.yaml` 为既定后续事项);
-发布流水线假设具备 npm 凭据,内部分叉可能不需要(待裁剪/改造)。
+本分叉记录的已知缺口:发布流水线假设具备 npm 凭据,内部分叉可能不需要(待裁剪/改造)。
 
 ## 8. 公共分发模型
 
 - 编译包:`main/module/types → dist/`,导出 `.`、`./dist/schema`、`./dist/style.css`。
-- Peer 依赖:`react >= 18`、`react-dom >= 18`。
+- 运行时:基于 React 19 开发与验证;Peer 依赖保持 `react >= 18`、`react-dom >= 18`(由消费者冒烟脚本在 React 18/19 双版本下验证)。
 - 消费方接入说明(Monaco worker 自托管)见根 README。

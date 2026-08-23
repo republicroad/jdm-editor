@@ -166,9 +166,10 @@ GitHub workflows (`.github/workflows/`):
 | `version.yaml` / `version-beta.yaml` | manual dispatch | `lerna version` (patch/minor/major; beta ids) |
 | `pages.yaml` | push master / manual | Storybook build → gh-pages demo site |
 
-Known gaps recorded for this fork: CI still has no test job (tests run locally; wiring into
-`validate.yaml` is a deliberate follow-up); publishing pipeline assumes npm credentials that an
-internal fork may not need (candidate for removal/adaptation).
+Known gaps recorded for this fork: publishing pipeline assumes npm credentials that an
+internal fork may not need (candidate for removal/adaptation). The CI `validate.yaml` workflow
+runs lint, build, tests, typecheck, a bundle-size budget check and the dual-react consumer smoke
+(React 18 & 19) on every push to `master`/`reui` and on PRs.
 
 ## 8. Public distribution model
 

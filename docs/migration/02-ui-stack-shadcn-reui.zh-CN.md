@@ -65,7 +65,7 @@
 
 1. 从依赖移除 `antd`、`@ant-design/icons`(及仅服务于 antd 的 `dayjs`);删除死 SCSS。
 2. 决定剩余 SCSS 去留(允许停在混合形态,渐进转换)。
-3. CI:补上缺失的 test job 后方可宣告迁移完成。
+3. CI:validate 工作流已含 lint+build+test+typecheck(迁移 04/05 起另含体积预算与双 React 消费者冒烟)。
 
 ## 风险与缓解
 
