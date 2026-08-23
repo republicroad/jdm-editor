@@ -162,7 +162,7 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
 
   return (
     <div className='expression-list-item__resultOverlay'>
-      <Typography.Text ellipsis={{ tooltip: trace }} style={{ maxWidth: 60, overflow: 'hidden' }}>
+      <Typography.Text ellipsis={{ tooltip: (trace ?? undefined) as React.ReactNode }} style={{ maxWidth: 60, overflow: 'hidden' }}>
         = {JSON.stringify(trace)}
       </Typography.Text>
     </div>

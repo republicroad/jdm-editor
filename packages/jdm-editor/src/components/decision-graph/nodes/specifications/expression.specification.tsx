@@ -266,7 +266,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             displayDiff={contentDiff?.fields?.executionMode?.status === 'modified'}
             previousValue={contentDiff?.fields?.executionMode?.previousValue}
             value={fields?.executionMode}
-            onChange={(e) => updateNode({ executionMode: e?.target?.value })}
+            onChange={(e) => updateNode({ executionMode: e?.target?.value as 'loop' | 'single' })}
             options={[
               {
                 value: 'single',

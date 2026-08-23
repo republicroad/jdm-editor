@@ -59,7 +59,7 @@ import { TooltipContent as UiTooltipContent } from '@/components/ui/tooltip';
 import { TooltipProvider as UiTooltipProvider } from '@/components/ui/tooltip';
 import { TooltipTrigger as UiTooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 // ---------------------------------------------------------------------------
 // Button
@@ -173,7 +173,7 @@ const typoColorClass: Record<string, string> = {
   danger: 'text-[var(--grl-color-error)]',
 };
 
-type Ellipsis = boolean | { tooltip?: any };
+type Ellipsis = boolean | { tooltip?: React.ReactNode };
 
 interface TextProps extends React.HTMLAttributes<HTMLSpanElement> {
   type?: keyof typeof typoColorClass;
@@ -866,17 +866,18 @@ export const Steps: React.FC<{
 );
 
 interface RadioContextValue {
-  value?: string | number;
-  setValue: (value: string | number) => void;
+  value?: string | number | boolean;
+  setValue: (value: string | number | boolean) => void;
 }
 
 const RadioContext = React.createContext<RadioContextValue>({ setValue: () => {} });
 
 const RadioGroupRoot: React.FC<{
-  value?: string | number;
+  value?: string | number | boolean;
+  size?: 'large' | 'middle' | 'small';
   disabled?: boolean;
   buttonStyle?: string;
-  onChange?: (event: { target: { value: any } }) => void;
+  onChange?: (event: { target: { value: unknown } }) => void;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -972,11 +973,11 @@ const RadioItem: React.FC<{
 export const Radio = Object.assign(RadioItem, { Group: RadioGroupRoot, Button: RadioButton });
 
 export interface AntdRadioGroupProps {
-  value?: any;
+  value?: string | number | boolean;
   disabled?: boolean;
   size?: 'large' | 'middle' | 'small';
   options?: Array<{ label?: React.ReactNode; value: string | number; disabled?: boolean }>;
-  onChange?: (event: { target: { value: any } }) => void;
+  onChange?: (event: { target: { value: unknown } }) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -1027,8 +1028,8 @@ export const InputNumber: React.FC<{
 );
 
 export interface AntdDatePickerProps {
-  value?: any;
-  onChange?: (date: any | null) => void;
+  value?: Dayjs | null;
+  onChange?: (date: Dayjs | null) => void;
   disabled?: boolean;
   allowClear?: boolean;
   size?: 'large' | 'middle' | 'small';
@@ -1160,18 +1161,24 @@ export const Avatar: React.FC<
 // Select (options schema subset of antd)
 
 export interface AntdSelectOption {
-  label?: any;
-  value?: any;
+  /** Optional metadata used by the excel-import dialogs */
+  id?: string;
+  type?: string;
+  wrapInQuotes?: boolean;
+  /** Extra render node shown in the dropdown list */
+  display?: React.ReactNode;
+  label?: React.ReactNode;
+  value: string | number | boolean;
   disabled?: boolean;
-  [key: string]: any;
 }
 
 export interface AntdSelectProps {
   options?: AntdSelectOption[];
-  value?: any;
-  defaultValue?: any;
+  value?: string | number | boolean | Array<string | number>;
+  defaultValue?: string | number | boolean | Array<string | number>;
+  
   onChange?: (value: any, option?: AntdSelectOption) => void;
-  onSelect?: (value: any, option: AntdSelectOption) => void;
+  onSelect?: (value: string | number | boolean, option: AntdSelectOption) => void;
   dropdownRender?: (menu: React.ReactNode) => React.ReactNode;
   optionRender?: (option: { data: AntdSelectOption }) => React.ReactNode;
   placeholder?: string;

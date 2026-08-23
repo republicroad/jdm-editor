@@ -296,7 +296,13 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 });
               }}
               onSelect={(_, option) => {
-                const { id, label, value, type, wrapInQuotes } = option;
+                const { id, label, value, type, wrapInQuotes } = option as {
+                  id: string;
+                  label: string;
+                  value?: string;
+                  type?: 'input' | 'output';
+                  wrapInQuotes?: boolean;
+                };
 
                 setSelectedItems((prevItems) => {
                   const stepKey = `step${currentStep}`;
@@ -387,7 +393,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 );
               }}
               options={items
-                .filter((item) => item.value)
+                .filter((item): item is ItemValue & { value: string } => Boolean(item.value))
                 .map((item) => {
                   return {
                     id: item.id,

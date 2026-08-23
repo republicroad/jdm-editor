@@ -37,9 +37,10 @@ const TYPE_ICONS: Record<Exclude<OutputFieldType['type'], 'auto'>, LucideIcon> =
   'date': CalendarIcon,
 };
 
-const enumFilterOption = (input: string, option?: { label?: string; value?: string }) => {
+const enumFilterOption = (input: string, option?: { label?: unknown; value?: unknown }) => {
   const search = input.toLowerCase();
-  return (option?.label?.toLowerCase().includes(search) || option?.value?.toLowerCase().includes(search)) ?? false;
+  const hay = [String(option?.label ?? ''), String(option?.value ?? '')].join(' ').toLowerCase();
+  return hay.includes(search);
 };
 
 const formatDateValue = (date: string): string => `d('${date}')`;

@@ -137,9 +137,10 @@ const getValueKind = (ft?: ColumnFieldType): ValueKind =>
     .with('date', () => 'date' as const)
     .otherwise(() => 'any' as const);
 
-const enumFilterOption = (input: string, option?: { label?: string; value?: string }) => {
+const enumFilterOption = (input: string, option?: { label?: unknown; value?: unknown }) => {
   const search = input.toLowerCase();
-  return (option?.label?.toLowerCase().includes(search) || option?.value?.toLowerCase().includes(search)) ?? false;
+  const hay = [String(option?.label ?? ''), String(option?.value ?? '')].join(' ').toLowerCase();
+  return hay.includes(search);
 };
 
 const getEnumOptions = (

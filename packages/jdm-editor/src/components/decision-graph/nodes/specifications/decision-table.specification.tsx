@@ -383,7 +383,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
               displayDiff={contentDiff?.fields?.hitPolicy?.status === 'modified'}
               disabled={disabled}
               value={fields?.hitPolicy}
-              onChange={(e) => updateNode({ hitPolicy: e?.target?.value })}
+              onChange={(e) => updateNode({ hitPolicy: e?.target?.value as 'first' | 'collect' })}
               options={[
                 {
                   value: 'first',
@@ -437,7 +437,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             displayDiff={contentDiff?.fields?.executionMode?.status === 'modified'}
             previousValue={contentDiff?.fields?.executionMode?.previousValue}
             value={fields?.executionMode}
-            onChange={(e) => updateNode({ executionMode: e?.target?.value })}
+            onChange={(e) => updateNode({ executionMode: e?.target?.value as 'loop' | 'single' })}
             options={[
               {
                 value: 'single',
