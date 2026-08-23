@@ -80,10 +80,9 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "to-json-schema": "^0.2.5",
-    "transition-hook": "^1.5.2",
     "ts-pattern": "^5.7.0",
     "use-debounce": "^10.0.4",
-    "zod": "^3.24.2",
+    "zod": "^3.25.0",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

@@ -46,11 +46,13 @@ export type ExpressionStore = {
 
   debugIndex: number;
   calculatedInputData?: Variable;
-  debug?: {
-    snapshot: z.infer<typeof expressionNodeSchema>['content'];
-    trace: SimulationTrace<SimulationTraceDataExpression>;
-    inputData?: GetNodeDataResult;
-  };
+  debug?: ExpressionDebug;
+};
+
+export type ExpressionDebug = {
+  snapshot: z.infer<typeof expressionNodeSchema>['content'];
+  trace: SimulationTrace<SimulationTraceDataExpression>;
+  inputData?: GetNodeDataResult;
 };
 
 type ExpressionStoreProviderProps = {

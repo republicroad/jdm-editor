@@ -30,6 +30,8 @@ const meta: Meta<typeof Expression> = {
       options: ['edit:full', 'edit:values', 'view'],
     },
     value: { table: { disable: true } },
+    debug: { table: { disable: true }, control: false },
+    inputVariableType: { table: { disable: true }, control: false },
   },
 };
 

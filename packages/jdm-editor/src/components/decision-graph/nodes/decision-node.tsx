@@ -1,8 +1,7 @@
 import { CloseOutlined, MoreOutlined } from '@/icons';
 import { Button, Dropdown, type MenuProps, Typography } from '../../primitives';
 import clsx from 'clsx';
-import React from 'react';
-import { Transition } from 'transition-hook';
+import React, { useEffect, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import { DiffIcon } from '../../diff-icon';
@@ -121,7 +120,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           </div>
         )}
       </GraphCard>
-      <Transition state={detailsOpen} timeout={100}>
+      <TransitionMount state={detailsOpen} timeout={100}>
         {(stage, shouldMount) =>
           shouldMount && (
             <GraphCard
@@ -148,7 +147,32 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
             </GraphCard>
           )
         }
-      </Transition>
+      </TransitionMount>
     </div>
   );
+};
+
+const TRANSITION_TIMEOUT = 100;
+
+const TransitionMount: React.FC<{
+  state: boolean;
+  timeout?: number;
+  children: (stage: 'enter' | 'leave', shouldMount: boolean) => React.ReactNode;
+}> = ({ state, timeout = TRANSITION_TIMEOUT, children }) => {
+  const [shouldMount, setShouldMount] = useState(state);
+  const [stage, setStage] = useState<'enter' | 'leave'>(state ? 'enter' : 'leave');
+
+  useEffect(() => {
+    if (state) {
+      setShouldMount(true);
+      const frame = requestAnimationFrame(() => setStage('enter'));
+      return () => cancelAnimationFrame(frame);
+    }
+
+    setStage('leave');
+    const timer = setTimeout(() => setShouldMount(false), timeout);
+    return () => clearTimeout(timer);
+  }, [state, timeout]);
+
+  return <>{children(stage, shouldMount)}</>;
 };

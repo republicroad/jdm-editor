@@ -100,7 +100,7 @@ importers:
         version: 0.23.1
       '@hookform/resolvers':
         specifier: ^5.9.1
-        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.13.0)(joi@18.2.5)(react-hook-form@7.86.0(react@19.2.8))(zod@3.24.2)
+        version: 5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.13.0)(joi@18.2.5)(react-hook-form@7.86.0(react@19.2.8))(zod@3.25.76)
       '@lezer/common':
         specifier: ^1.2.3
         version: 1.2.3
@@ -185,9 +185,6 @@ importers:
       to-json-schema:
         specifier: ^0.2.5
         version: 0.2.5
-      transition-hook:
-        specifier: ^1.5.2
-        version: 1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       ts-pattern:
         specifier: ^5.7.0
         version: 5.7.0
@@ -195,8 +192,8 @@ importers:
         specifier: ^10.0.4
         version: 10.0.4(react@19.2.8)
       zod:
-        specifier: ^3.24.2
-        version: 3.24.2
+        specifier: ^3.25.0
+        version: 3.25.76
       zustand:
         specifier: ^5.0.15
         version: 5.0.15(@types/react@19.2.18)(immer@10.1.1)(react@19.2.8)(use-sync-external-store@1.2.2(react@19.2.8))
@@ -6983,12 +6980,6 @@ packages:
     resolution: {integrity: sha512-bLVMLPtstlZ4iMQHpFHTR7GAGj2jxi8Dg0s2h2MafAE4uSWF98FC/3MomU51iQAMf8/qDUbKWf5GxuvvVcXEhw==}
     engines: {node: '>=20'}
 
-  transition-hook@1.5.2:
-    resolution: {integrity: sha512-zVW5wP+hzOCk56jU5V5GAIsuaf+gZv43pzxyimXQ74JnD1yoprxTfzoPjr0yjC/Mrc9JyCh3Wb6UhXD+8dlO4w==}
-    peerDependencies:
-      react: ^16.8.0  || ^17.0.0
-      react-dom: ^16.8.0  || ^17.0.0
-
   traverse@0.3.9:
     resolution: {integrity: sha512-iawgk0hLP3SxGKDfnDJf8wTz4p2qImnyihM5Hh/sGvQ3K37dPi/w8sRhdNIxYA1TwFwc5mDhIJq+O0RsvXBKdQ==}
 
@@ -7545,8 +7536,8 @@ packages:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
 
-  zod@3.24.2:
-    resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zustand@4.5.5:
     resolution: {integrity: sha512-+0PALYNJNgK6hldkgDq2vLrw5f6g/jCInz52n9RTpropGgeAf/ioFUCdtsjCqu4gNhW9D01rUQBROoRjdzyn2Q==}
@@ -8195,7 +8186,7 @@ snapshots:
     dependencies:
       '@hapi/hoek': 11.0.7
 
-  '@hookform/resolvers@5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.13.0)(joi@18.2.5)(react-hook-form@7.86.0(react@19.2.8))(zod@3.24.2)':
+  '@hookform/resolvers@5.9.1(@sinclair/typebox@0.34.52)(@standard-schema/spec@1.1.0)(ajv@8.13.0)(joi@18.2.5)(react-hook-form@7.86.0(react@19.2.8))(zod@3.25.76)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.86.0(react@19.2.8)
@@ -8204,7 +8195,7 @@ snapshots:
       '@standard-schema/spec': 1.1.0
       ajv: 8.13.0
       joi: 18.2.5
-      zod: 3.24.2
+      zod: 3.25.76
 
   '@humanfs/core@0.19.1': {}
 
@@ -15308,11 +15299,6 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  transition-hook@1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
-    dependencies:
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-
   traverse@0.3.9: {}
 
   tree-kill@1.2.2: {}
@@ -15881,7 +15867,7 @@ snapshots:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
 
-  zod@3.24.2: {}
+  zod@3.25.76: {}
 
   zustand@4.5.5(@types/react@19.2.18)(immer@10.1.1)(react@19.2.8):
     dependencies:

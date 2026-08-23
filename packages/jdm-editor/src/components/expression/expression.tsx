@@ -4,7 +4,8 @@ import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { isWasmAvailable } from '../../helpers/wasm';
-import type { ExpressionStore } from './context/expression-store.context';
+import type { ExpressionDebug } from './context/expression-store.context';
+import type { ExpressionEntry } from './context/expression-store.context';
 import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
 import type { ExpressionControllerProps } from './expression-controller';
@@ -14,7 +15,7 @@ import './expression.scss';
 
 export type ExpressionProps = {
   inputVariableType?: VariableType;
-  debug?: ExpressionStore['debug'];
+  debug?: ExpressionDebug;
   hideCommandBar?: boolean;
 } & ExpressionControllerProps;
 
@@ -97,11 +98,11 @@ const SimulateDataSync: React.FC<Pick<ExpressionProps, 'debug' | 'inputVariableT
       return;
     }
 
-    const isLoop = (store: ExpressionStore) => {
+    const isLoop = (store: { debug?: ExpressionDebug; debugIndex: number }) => {
       return store.debug?.snapshot.executionMode === 'loop';
     };
 
-    const applyDebug = (state: ExpressionStore) => {
+    const applyDebug = (state: { debug?: ExpressionDebug; debugIndex: number }) => {
       const inputData = state.debug?.inputData;
       if (!inputData) {
         return;
