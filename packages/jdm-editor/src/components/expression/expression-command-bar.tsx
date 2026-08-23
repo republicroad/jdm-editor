@@ -7,12 +7,12 @@ import { useExpressionStoreRaw } from './context/expression-store.context';
 
 export const ExpressionCommandBar: React.FC = () => {
   const expressionStore = useExpressionStoreRaw();
-  const { debugIndex, traceCount } = expressionStore(({ debug, debugIndex }) => ({
-    debugIndex,
-    traceCount: match(debug?.trace?.traceData)
+  const debugIndex = expressionStore((state) => state.debugIndex);
+  const traceCount = expressionStore((state) =>
+    match(state.debug?.trace?.traceData)
       .with(P.array(), (some) => some.length)
       .otherwise(() => null),
-  }));
+  );
 
   const traceIndexOptions = useMemo(() => {
     if (!traceCount) {

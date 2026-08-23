@@ -87,7 +87,7 @@
     "ts-pattern": "^5.7.0",
     "use-debounce": "^10.0.4",
     "zod": "^3.24.2",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@storybook/addon-actions": "8.6.12",
@@ -108,7 +108,7 @@
     "@trivago/prettier-plugin-sort-imports": "5.2.2",
     "@types/big.js": "^6.2.2",
     "@types/lodash": "^4.17.16",
-    "@types/react": "18.3.11",
+    "@types/react": "^19.2.18",
     "@types/react-dom": "19.1.2",
     "@types/to-json-schema": "^0.2.4",
     "@vitejs/plugin-react-swc": "^3.8.1",
@@ -116,8 +116,8 @@
     "dayjs": "^1.11.13",
     "http-server": "^14.1.1",
     "jsdom": "^30.0.1",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "sass": "^1.86.3",
     "storybook": "8.6.12",
     "storybook-dark-mode": "^4.0.2",

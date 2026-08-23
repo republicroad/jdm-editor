@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 import type { z } from 'zod';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 
 import { type GetNodeDataResult } from '../../../helpers/node-data';
 import type { expressionNodeSchema } from '../../../helpers/schema';
@@ -134,7 +135,7 @@ export function useExpressionStore<T>(
   selector: (state: ExpressionStore) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return React.useContext(ExpressionStoreContext)(selector, equals);
+  return useStoreWithEqualityFn(React.useContext(ExpressionStoreContext), selector, equals);
 }
 
 export const useExpressionStoreRaw = () => React.useContext(ExpressionStoreContext);

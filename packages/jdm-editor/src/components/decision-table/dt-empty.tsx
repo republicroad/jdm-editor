@@ -2,6 +2,7 @@ import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
+import type { JSX } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import type { SchemaSelectProps } from '../../helpers/components';

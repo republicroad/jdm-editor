@@ -60,7 +60,7 @@ export const GraphPanel: React.FC = () => {
           </div>
         </div>
       )}
-      <div className={'grl-dg__panel__content'}>{activePanel?.renderPanel?.({})}</div>
+      <div className={'grl-dg__panel__content'}>{activePanel?.renderPanel?.()}</div>
     </Resizable>
   );
 };

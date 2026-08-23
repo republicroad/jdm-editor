@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 
 import type { SchemaSelectProps } from '../../../helpers/components';
 import { type GetNodeDataResult } from '../../../helpers/node-data';
@@ -425,14 +426,14 @@ export function useDecisionTableState<T>(
   selector: (state: DecisionTableStoreType['state']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return React.useContext(DecisionTableStoreContext).stateStore(selector, equals);
+  return useStoreWithEqualityFn(React.useContext(DecisionTableStoreContext).stateStore, selector, equals);
 }
 
 export function useDecisionTableListeners<T>(
   selector: (state: DecisionTableStoreType['listeners']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return React.useContext(DecisionTableStoreContext).listenerStore(selector, equals);
+  return useStoreWithEqualityFn(React.useContext(DecisionTableStoreContext).listenerStore, selector, equals);
 }
 
 export function useDecisionTableActions(): DecisionTableStoreType['actions'] {
