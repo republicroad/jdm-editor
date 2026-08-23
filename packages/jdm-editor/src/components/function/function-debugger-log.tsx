@@ -1,4 +1,5 @@
-import { Dropdown, Tooltip, theme } from 'antd';
+import { Dropdown, Tooltip } from '../antd-compat';
+import { useThemeMode } from '../../theme';
 import { toast } from 'sonner';
 import React from 'react';
 import { JSONTree } from 'react-json-tree';
@@ -39,8 +40,8 @@ const themes: Record<'dark' | 'light', JsonTheme> = {
 };
 
 export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines, msSinceRun }) => {
-  const { token } = theme.useToken();
-  const jsonTheme = themes[token.mode ?? 'light'];
+  const mode = useThemeMode();
+  const jsonTheme = themes[mode ?? 'light'];
 
   return (
     <div className='grl-function__debugger__log'>
@@ -93,10 +94,10 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
                 }}
                 valueRenderer={valueRenderer(jsonTheme)}
                 theme={{
-                  base00: token.colorBgElevated,
-                  base03: token.colorTextBase,
-                  base0B: token.colorTextBase,
-                  base0D: token.colorTextBase,
+                  base00: 'var(--grl-color-bg-elevated)',
+                  base03: 'var(--grl-color-text-base)',
+                  base0B: 'var(--grl-color-text-base)',
+                  base0D: 'var(--grl-color-text-base)',
                 }}
               />
             );

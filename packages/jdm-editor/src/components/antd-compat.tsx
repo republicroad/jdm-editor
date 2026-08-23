@@ -71,6 +71,8 @@ export interface AntdButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   size?: AntdButtonSize;
   block?: boolean;
   shape?: 'circle' | 'round' | 'default';
+  href?: string;
+  target?: string;
 }
 
 export type ButtonProps = AntdButtonProps;
@@ -83,6 +85,8 @@ export const Button: React.FC<AntdButtonProps> = ({
   size = 'middle',
   block = false,
   shape,
+  href,
+  target,
   className,
   children,
   disabled,
@@ -114,6 +118,25 @@ export const Button: React.FC<AntdButtonProps> = ({
       {children}
     </>
   );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        className={cn(
+          'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium underline-offset-4 hover:underline',
+          variant === 'link' ? 'text-primary' : '',
+          danger && type === 'link' && 'text-destructive',
+          sizeClass,
+          disabled && 'pointer-events-none opacity-50',
+          className,
+        )}
+      >
+        {inner}
+      </a>
+    );
+  }
 
   return (
     <UiButton
@@ -278,7 +301,7 @@ export const Tooltip: React.FC<
     title?: React.ReactNode;
     placement?: keyof typeof placementSideMap;
     open?: boolean;
-    children?: React.ReactElement;
+    children?: React.ReactNode;
   }
 > = ({ title, placement = 'top', children }) => {
   if (!title || !children) {
@@ -287,7 +310,9 @@ export const Tooltip: React.FC<
   return (
     <UiTooltipProvider delayDuration={200}>
       <UiTooltipRoot>
-        <UiTooltipTrigger asChild>{children}</UiTooltipTrigger>
+        <UiTooltipTrigger asChild>
+          {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
+        </UiTooltipTrigger>
         <UiTooltipContent side={placementSideMap[placement] ?? 'top'}>{title}</UiTooltipContent>
       </UiTooltipRoot>
     </UiTooltipProvider>

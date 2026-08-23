@@ -2,7 +2,7 @@ import { bracketMatching, syntaxHighlighting } from '@codemirror/language';
 import { Compartment, EditorState, type Extension, Text } from '@codemirror/state';
 import { EditorView, placeholder as placeholderExt } from '@codemirror/view';
 import { createVariableType } from '@gorules/zen-engine-wasm';
-import { theme } from 'antd';
+import { useThemeMode } from '../../theme';
 import clsx from 'clsx';
 import { clamp } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
@@ -87,7 +87,7 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
   ) => {
     const container = useRef<HTMLDivElement>(null);
     const codeMirror = useRef<EditorView | null>(null);
-    const { token } = theme.useToken();
+    const mode = useThemeMode();
 
     const compartment = useMemo(
       () => ({
@@ -129,7 +129,7 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
             bracketMatching(),
             compartment.zenExtension.of(zenExtensions({ type, lint })),
             compartment.updateListener.of(updateListener(onChange, onStateChange)),
-            compartment.theme.of(editorTheme(token.mode === 'dark')),
+            compartment.theme.of(editorTheme(mode === 'dark')),
             compartment.placeholder.of(placeholder ? placeholderExt(placeholder) : []),
             compartment.readOnly.of(EditorView.editable.of(!disabled)),
             compartment.userProvided.of(extension?.({ type }) ?? []),
@@ -184,9 +184,9 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
       }
 
       codeMirror.current.dispatch({
-        effects: compartment.theme.reconfigure(editorTheme(token.mode === 'dark')),
+        effects: compartment.theme.reconfigure(editorTheme(mode === 'dark')),
       });
-    }, [token.mode]);
+    }, [mode]);
 
     useEffect(() => {
       if (!codeMirror.current) {

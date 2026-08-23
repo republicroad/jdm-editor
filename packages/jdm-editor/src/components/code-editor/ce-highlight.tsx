@@ -3,7 +3,7 @@ import type { Diagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { highlightCode as lzHighlightCode } from '@lezer/highlight';
-import { theme } from 'antd';
+import { useThemeMode } from '../../theme';
 import clsx from 'clsx';
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { P, match } from 'ts-pattern';
@@ -113,14 +113,14 @@ export const CodeHighlighter = React.forwardRef<HTMLDivElement, CodeHighlighterP
     },
     ref,
   ) => {
-    const { token } = theme.useToken();
+    const mode = useThemeMode();
     const [tooltip, setTooltip] = useState<{ x: number; y: number; diagnostics: Diagnostic[] } | null>(null);
     const [diagnostics, setDiagnostics] = useState<Diagnostic[] | null>(null);
     const [, startTransition] = useTransition();
 
     useEffect(() => {
-      injectStyles(token.mode);
-    }, [token.mode]);
+      injectStyles(mode);
+    }, [mode]);
 
     useEffect(() => {
       if (!diagnostics?.length) {
@@ -129,8 +129,8 @@ export const CodeHighlighter = React.forwardRef<HTMLDivElement, CodeHighlighterP
     }, [diagnostics]);
 
     const highlighted = useMemo(
-      () => highlightCode({ code: value ?? '', type, theme: token.mode, placeholder }),
-      [value, type, token.mode, placeholder],
+      () => highlightCode({ code: value ?? '', type, theme: mode, placeholder }),
+      [value, type, mode, placeholder],
     );
 
     useEffect(() => {

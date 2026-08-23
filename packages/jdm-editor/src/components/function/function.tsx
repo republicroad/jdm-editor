@@ -1,6 +1,7 @@
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { DiffEditor, Editor, type Monaco, useMonaco } from '@monaco-editor/react';
-import { Spin, theme } from 'antd';
+import { Spin } from '../antd-compat';
+import { useThemeMode } from '../../theme';
 import { MarkerSeverity, type editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -53,7 +54,7 @@ export const Function: React.FC<FunctionProps> = ({
 }) => {
   const monaco = useMonaco();
   const mountedRef = useRef(false);
-  const { token } = theme.useToken();
+  const mode = useThemeMode();
   const [innerValue, setInnerValue] = useState<string>();
   const [decorations, setDecorations] = useState<editor.IEditorDecorationsCollection>();
 
@@ -231,14 +232,14 @@ export const Function: React.FC<FunctionProps> = ({
   return (
     <div
       className='grl-function'
-      data-theme={token.mode}
+      data-theme={mode}
       style={
         {
           'height': '100%',
-          '--color-text': token.colorTextBase,
-          '--color-background-elevated': token.colorBgElevated,
-          '--color-border': token.colorBorder,
-          '--line-height': token.lineHeight,
+          '--color-text': 'var(--grl-color-text-base)',
+          '--color-background-elevated': 'var(--grl-color-bg-elevated)',
+          '--color-border': 'var(--grl-color-border)',
+          '--line-height': 1.5,
         } as any
       }
     >
@@ -251,7 +252,7 @@ export const Function: React.FC<FunctionProps> = ({
               original={previousValue}
               modified={innerValue}
               onMount={(editor) => setDiffEditor(editor)}
-              theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+              theme={mode === 'dark' ? 'vs-dark' : 'light'}
               height='100%'
               options={{
                 ...monacoOptions,
@@ -271,7 +272,7 @@ export const Function: React.FC<FunctionProps> = ({
                 setInnerValue(value ?? '');
                 innerChange(value ?? '');
               }}
-              theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+              theme={mode === 'dark' ? 'vs-dark' : 'light'}
               height='100%'
               options={{
                 ...monacoOptions,

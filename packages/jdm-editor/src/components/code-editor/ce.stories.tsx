@@ -3,7 +3,8 @@ import { Variable, createVariableType, generateAst, generateAstUnary } from '@go
 import type { SyntaxNodeRef } from '@lezer/common';
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
-import { Typography, theme } from 'antd';
+import { Typography } from '../antd-compat';
+import { useThemeMode } from '../../theme';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
@@ -123,7 +124,8 @@ export const Debug: StoryObj<
     },
   },
   render: (args) => {
-    const { token } = theme.useToken();
+    const mode = useThemeMode();
+  const token = { marginMD: 16, colorBgLayout: 'var(--grl-color-bg-layout)', colorBorder: 'var(--grl-color-border)', borderRadiusOuter: 8, paddingSM: 12 };
     const [editorState, setEditorState] = useState('');
     const [parserState, setParserState] = useState('');
     const [typeInfo, setTypeInfo] = useState('');

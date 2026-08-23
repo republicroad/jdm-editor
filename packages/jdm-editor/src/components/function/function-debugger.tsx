@@ -1,5 +1,5 @@
 import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '@/icons';
-import { Button, Tabs, Tooltip, Typography } from 'antd';
+import { Button, Tabs, Tooltip, Typography } from '../antd-compat';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
