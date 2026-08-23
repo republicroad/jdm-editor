@@ -1,6 +1,6 @@
 import { type Variable } from '@gorules/zen-engine-wasm';
-import type { InputRef } from 'antd';
-import { Checkbox, Input, Select, Typography } from 'antd';
+import type { InputRef } from '../../antd-compat';
+import { Checkbox, Input, Select, Typography } from '../../antd-compat';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';

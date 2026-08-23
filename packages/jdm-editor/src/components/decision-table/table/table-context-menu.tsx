@@ -1,4 +1,4 @@
-import { Dropdown } from 'antd';
+import { Dropdown } from '../../antd-compat';
 import React from 'react';
 
 import { SpacedText } from '../../spaced-text';

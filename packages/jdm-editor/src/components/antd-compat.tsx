@@ -41,6 +41,11 @@ import { DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input as UiInput } from '@/components/ui/input';
 import {
+  Popover as UiPopover,
+  PopoverContent as UiPopoverContent,
+  PopoverTrigger as UiPopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Select as SelectPrimitiveRoot,
   SelectContent as SelectPrimitiveContent,
   SelectItem as SelectPrimitiveItem,
@@ -447,15 +452,19 @@ export const Popconfirm: React.FC<
 // ---------------------------------------------------------------------------
 // Input
 
-export const Input: React.FC<
-  Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> & {
-    size?: 'large' | 'middle' | 'small';
-    allowClear?: boolean;
-    bordered?: boolean;
-    prefix?: React.ReactNode;
-    suffix?: React.ReactNode;
-  }
-> = ({ size, allowClear = false, bordered = true, prefix, suffix, value, onChange, className, disabled, ...rest }) => {
+export interface AntdInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
+  size?: 'large' | 'middle' | 'small';
+  allowClear?: boolean;
+  bordered?: boolean;
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, AntdInputProps>(function Input(
+  { size, allowClear = false, bordered = true, prefix, suffix, value, onChange, className, disabled, ...rest },
+  ref,
+) {
   const [internal, setInternal] = React.useState('');
   const current = value !== undefined ? String(value) : internal;
 
@@ -466,6 +475,7 @@ export const Input: React.FC<
     <div className="relative inline-flex w-full items-center">
       {prefix ? <span className="absolute left-2.5 flex text-muted-foreground [&_svg]:size-3.5">{prefix}</span> : null}
       <UiInput
+        ref={ref}
         value={current}
         onChange={(event) => {
           setInternal(event.target.value);
@@ -489,11 +499,73 @@ export const Input: React.FC<
           }}
           className="absolute right-2 flex size-4 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
         >
-          �?        </button>
+          ✕
+        </button>
       ) : null}
     </div>
   );
-};
+});
+
+export type InputRef = HTMLInputElement;
+
+// ---------------------------------------------------------------------------
+// Card / Popover
+
+export const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    hoverable?: boolean;
+    styles?: { body?: React.CSSProperties };
+    bodyStyle?: React.CSSProperties;
+    children?: React.ReactNode;
+  }
+>(function Card({ hoverable, className, style, styles, bodyStyle, onClick, children, ...rest }, ref) {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'rounded-(--grl-border-radius) border bg-card text-card-foreground shadow-xs',
+        hoverable && 'cursor-pointer transition-colors hover:border-primary/50',
+        className,
+      )}
+      style={style}
+      onClick={onClick}
+      {...rest}
+    >
+      <div className="p-4" style={{ ...bodyStyle, ...styles?.body }}>
+        {children}
+      </div>
+    </div>
+  );
+});
+
+export interface AntdPopoverProps {
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  content?: React.ReactNode;
+  title?: React.ReactNode;
+  trigger?: Array<'click' | 'hover' | 'contextMenu'> | 'click' | 'hover';
+  placement?: string;
+  destroyTooltipOnHide?: boolean;
+  arrow?: boolean;
+  disabled?: boolean;
+  children?: React.ReactNode;
+}
+
+export const Popover: React.FC<AntdPopoverProps> = ({
+  open,
+  onOpenChange,
+  content,
+  children,
+}) => (
+  <UiPopover open={open} onOpenChange={onOpenChange}>
+    <UiPopoverTrigger asChild>
+      {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
+    </UiPopoverTrigger>
+    <UiPopoverContent>{content}</UiPopoverContent>
+  </UiPopover>
+);
 
 // ---------------------------------------------------------------------------
 // Tabs (items schema subset of antd)
@@ -612,6 +684,8 @@ export interface FormProps extends React.HTMLAttributes<HTMLDivElement> {
   layout?: 'horizontal' | 'vertical' | 'inline';
   initialValues?: Record<string, unknown>;
   onValuesChange?: (changed: Record<string, unknown>, values: Record<string, unknown>) => void;
+  onFinish?: (values: Record<string, unknown>) => void;
+  id?: string;
 }
 
 const FormRoot: React.FC<FormProps> = ({ initialValues = {}, onValuesChange, className, children, ...rest }) => {
@@ -723,8 +797,19 @@ export type SwitchProps = AntdSwitchProps;
 // ---------------------------------------------------------------------------
 // Divider / Tag / Steps / Radio
 
-export const Divider: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => (
-  <div role="separator" className={cn('w-full border-t border-border', className)} style={style} />
+export const Divider: React.FC<{
+  type?: 'horizontal' | 'vertical';
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({ type = 'horizontal', className, style }) => (
+  <div
+    role="separator"
+    className={cn(
+      type === 'vertical' ? 'mx-1.5 inline-block h-[1.2em] w-px self-center bg-border' : 'my-2 w-full border-t border-border',
+      className,
+    )}
+    style={style}
+  />
 );
 
 export const Tag: React.FC<{
@@ -1086,6 +1171,9 @@ export const Modal: React.FC<{
   maskClosable?: boolean;
   centered?: boolean;
   closable?: boolean | Record<string, unknown>;
+  okButtonProps?: { danger?: boolean; htmlType?: string; onClick?: () => void; form?: string; disabled?: boolean };
+  bodyStyle?: React.CSSProperties;
+  getContainer?: () => HTMLElement | false;
   children?: React.ReactNode;
   className?: string;
 }> = ({

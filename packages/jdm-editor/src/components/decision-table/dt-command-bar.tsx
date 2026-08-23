@@ -6,7 +6,7 @@ import {
   ExportOutlined,
   ImportOutlined,
 } from '@/icons';
-import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from 'antd';
+import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from '../antd-compat';
 import { toast } from 'sonner';
 import React, { useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';

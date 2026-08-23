@@ -1,7 +1,7 @@
 import type { Row } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import type { VirtualItem } from '@tanstack/react-virtual';
-import { Typography } from 'antd';
+import { Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import React, { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';

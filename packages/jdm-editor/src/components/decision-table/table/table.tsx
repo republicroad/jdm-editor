@@ -2,7 +2,8 @@ import { PlusCircleOutlined } from '@/icons';
 import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Button, Typography, theme } from 'antd';
+import { Button, Typography } from '../../antd-compat';
+import { useThemeMode } from '../../../theme';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -51,7 +52,7 @@ const loadColumnSizing = (id?: string) => {
 };
 
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
-  const { token } = theme.useToken();
+  const mode = useThemeMode();
 
   const setContainerRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -213,7 +214,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       ref={setContainerRef}
       className='grl-dt__container'
       style={{ maxHeight, overflowY: 'auto' }}
-      data-theme={token.mode}
+      data-theme={mode}
     >
       <StyledTable width={table.getCenterTotalSize()}>
         <thead>

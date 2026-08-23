@@ -1,5 +1,5 @@
-import type { InputRef } from 'antd';
-import { Checkbox, Input, Select, Typography } from 'antd';
+import type { InputRef } from '../../antd-compat';
+import { Checkbox, Input, Select, Typography } from '../../antd-compat';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { type ColumnEnum, OUTPUT_FIELD_TYPE_OPTIONS, type OutputFieldType } from '../../../helpers/schema';

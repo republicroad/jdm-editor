@@ -1,4 +1,3 @@
-import { theme } from 'antd';
 import type { DragDropManager } from 'dnd-core';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -37,7 +36,6 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   scrollApiRef,
   ...props
 }) => {
-  const { token } = theme.useToken();
 
   const [_, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -64,7 +62,7 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   }, [ref.current, manager]);
 
   return (
-    <div ref={ref} className={'grl-dt'} style={{ background: token.colorBgElevated }}>
+    <div ref={ref} className={'grl-dt'} style={{ background: 'var(--grl-color-bg-elevated)' }}>
       {ref.current && (
         <DndProvider {...dndProps}>
           <DecisionTableProvider>

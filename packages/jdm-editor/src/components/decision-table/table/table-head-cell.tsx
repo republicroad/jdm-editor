@@ -1,5 +1,5 @@
 import { PlusOutlined, SwapOutlined } from '@/icons';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, Tooltip, Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 

@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined, PlusOutlined } from '@/icons';
-import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from 'antd';
+import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../antd-compat';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { XYCoord } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';

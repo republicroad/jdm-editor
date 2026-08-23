@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
-import { Checkbox } from 'antd';
+import { Checkbox } from '../antd-compat';
 import { createDragDropManager } from 'dnd-core';
 import React, { useEffect, useMemo, useState } from 'react';
 import { HTML5Backend } from 'react-dnd-html5-backend';
