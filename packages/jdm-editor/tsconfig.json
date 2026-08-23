@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "allowJs": true,
-    "types": ["vite/client", "bun"]
+    "types": ["vite/client", "bun"],
+    "baseUrl": ".",
+    "paths": {
+      "monaco-editor": ["node_modules/monaco-editor/esm/vs/editor/editor.api.d.ts"]
+    }
   },
   "include": ["src", ".storybook", "vite.config.ts"]
 }
