@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - reui
   pull_request:
 
 jobs:
@@ -28,3 +29,12 @@ jobs:
 
       - name: Type check
         run: pnpm typecheck
+
+      - name: Bundle size budget
+        run: pnpm size
+
+      - name: Install Playwright chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Consumer smoke (react 18 & 19)
+        run: pnpm test:consumer
