@@ -4,7 +4,7 @@
  * Decision-graph (and later modules) migrate off antd incrementally by
  * swapping `from 'antd'` for `from '../antd-compat'` (path varies). The
  * exported surface mirrors the antd APIs that are actually used inside
- * this library â€” nothing more. This module is scaffolding for Stage C/D
+ * this library â€?nothing more. This module is scaffolding for Stage C/D
  * and gets deleted once the last consumer is gone.
  */
 import * as React from 'react';
@@ -411,12 +411,14 @@ export const Popconfirm: React.FC<
 // Input
 
 export const Input: React.FC<
-  Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> & {
+  Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> & {
     size?: 'large' | 'middle' | 'small';
     allowClear?: boolean;
     bordered?: boolean;
+    prefix?: React.ReactNode;
+    suffix?: React.ReactNode;
   }
-> = ({ size, allowClear = false, bordered = true, value, onChange, className, disabled, ...rest }) => {
+> = ({ size, allowClear = false, bordered = true, prefix, suffix, value, onChange, className, disabled, ...rest }) => {
   const [internal, setInternal] = React.useState('');
   const current = value !== undefined ? String(value) : internal;
 
@@ -425,6 +427,7 @@ export const Input: React.FC<
 
   return (
     <div className="relative inline-flex w-full items-center">
+      {prefix ? <span className="absolute left-2.5 flex text-muted-foreground [&_svg]:size-3.5">{prefix}</span> : null}
       <UiInput
         value={current}
         onChange={(event) => {
@@ -432,9 +435,10 @@ export const Input: React.FC<
           onChange?.(event as never);
         }}
         disabled={disabled}
-        className={cn(sizeClass, !bordered && 'border-0 shadow-none', allowClear && 'pr-7', className)}
+        className={cn(sizeClass, !bordered && 'border-0 shadow-none', allowClear && 'pr-7', prefix && 'pl-7', suffix && 'pr-8', className)}
         {...rest}
       />
+      {suffix ? <span className="absolute right-2 flex text-muted-foreground [&_svg]:size-3.5">{suffix}</span> : null}
       {allowClear && current ? (
         <button
           type="button"
@@ -448,8 +452,7 @@ export const Input: React.FC<
           }}
           className="absolute right-2 flex size-4 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
         >
-          âœ•
-        </button>
+          âœ?        </button>
       ) : null}
     </div>
   );
@@ -636,6 +639,137 @@ const FormItem: React.FC<{
 export const Form = Object.assign(FormRoot, { Item: FormItem });
 
 // ---------------------------------------------------------------------------
+// Divider / Tag / Steps / Radio
+
+export const Divider: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => (
+  <div role="separator" className={cn('w-full border-t border-border', className)} style={style} />
+);
+
+export const Tag: React.FC<{
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}> = ({ className, style, children }) => (
+  <span
+    className={cn('inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs', className)}
+    style={style}
+  >
+    {children}
+  </span>
+);
+
+export const Steps: React.FC<{
+  current?: number;
+  items?: Array<{ title?: React.ReactNode; description?: React.ReactNode }>;
+}> = ({ current = 0, items = [] }) => (
+  <div className="flex w-full items-center">
+    {items.map((item, index) => {
+      const state = index < current ? 'done' : index === current ? 'active' : 'pending';
+      return (
+        <React.Fragment key={index}>
+          {index > 0 ? (
+            <div className={cn('h-px flex-1', state === 'pending' ? 'bg-border' : 'bg-primary')} />
+          ) : null}
+          <div className="flex items-center gap-2 px-2">
+            <span
+              className={cn(
+                'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
+                state === 'done' && 'bg-primary text-primary-foreground',
+                state === 'active' && 'border-2 border-primary text-primary',
+                state === 'pending' && 'border border-border text-muted-foreground',
+              )}
+            >
+              {index + 1}
+            </span>
+            {item.title ? (
+              <span
+                className={cn(
+                  'whitespace-nowrap text-xs',
+                  state === 'pending' ? 'text-muted-foreground' : 'font-medium text-foreground',
+                )}
+              >
+                {item.title}
+              </span>
+            ) : null}
+          </div>
+        </React.Fragment>
+      );
+    })}
+  </div>
+);
+
+interface RadioContextValue {
+  value?: string | number;
+  setValue: (value: string | number) => void;
+}
+
+const RadioContext = React.createContext<RadioContextValue>({ setValue: () => {} });
+
+const RadioGroupRoot: React.FC<{
+  value?: string | number;
+  disabled?: boolean;
+  buttonStyle?: string;
+  onChange?: (event: { target: { value: string | number } }) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}> = ({ value, disabled, onChange, className, style, children }) => {
+  const context = React.useMemo<RadioContextValue>(
+    () => ({
+      value,
+      setValue: (next) => {
+        if (!disabled) onChange?.({ target: { value: next } });
+      },
+    }),
+    [value, disabled, onChange],
+  );
+
+  return (
+    <RadioContext.Provider value={context}>
+      <div
+        role="radiogroup"
+        className={cn(
+          'inline-flex rounded-md border bg-muted p-0.5',
+          disabled && 'cursor-not-allowed opacity-50',
+          className,
+        )}
+        style={style}
+      >
+        {children}
+      </div>
+    </RadioContext.Provider>
+  );
+};
+
+const RadioButton: React.FC<{
+  value?: string | number;
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}> = ({ value, disabled, className, style, children }) => {
+  const { value: current, setValue } = React.useContext(RadioContext);
+  const active = current !== undefined && String(current) === String(value);
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => setValue(value!)}
+      className={cn(
+        'flex-1 whitespace-nowrap rounded-[4px] px-3 py-1 text-xs transition-colors',
+        active ? 'bg-background font-medium shadow-xs' : 'text-muted-foreground hover:text-foreground',
+        className,
+      )}
+      style={style}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const Radio = Object.assign(RadioGroupRoot, { Group: RadioGroupRoot, Button: RadioButton });
+
+// ---------------------------------------------------------------------------
 // Space
 
 export const Space: React.FC<
@@ -694,9 +828,10 @@ export const Avatar: React.FC<
 // Select (options schema subset of antd)
 
 export interface AntdSelectOption {
-  label?: React.ReactNode;
-  value: string | number;
+  label?: any;
+  value?: any;
   disabled?: boolean;
+  [key: string]: any;
 }
 
 export interface AntdSelectProps {
@@ -704,11 +839,18 @@ export interface AntdSelectProps {
   value?: string | number | null;
   defaultValue?: string | number;
   onChange?: (value: string, option: AntdSelectOption | undefined) => void;
+  onSelect?: (value: string, option: AntdSelectOption) => void;
+  dropdownRender?: (menu: React.ReactNode) => React.ReactNode;
+  optionRender?: (option: { data: AntdSelectOption }) => React.ReactNode;
   placeholder?: string;
   disabled?: boolean;
   size?: 'large' | 'middle' | 'small';
   allowClear?: boolean;
+  onClear?: () => void;
+  optionLabelProp?: string;
   loading?: boolean;
+  showSearch?: boolean;
+  filterOption?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -718,11 +860,18 @@ export const Select: React.FC<AntdSelectProps> = ({
   value,
   defaultValue,
   onChange,
+  onSelect,
+  onClear,
+  dropdownRender,
+  optionRender,
   placeholder,
   disabled,
   size,
   allowClear,
   loading,
+  showSearch: _showSearch,
+  filterOption: _filterOption,
+  optionLabelProp: _optionLabelProp,
   className,
   style,
 }) => {
@@ -730,43 +879,65 @@ export const Select: React.FC<AntdSelectProps> = ({
   const current = value === undefined || value === null ? undefined : String(value);
   const selected = list.find((option) => String(option.value) === current);
 
+  const menu = (
+    <>
+      {list.map((option) => (
+        <SelectPrimitiveItem
+          key={String(option.value)}
+          value={String(option.value)}
+          disabled={option.disabled}
+        >
+          {optionRender ? optionRender({ data: option }) : (option.label ?? String(option.value))}
+        </SelectPrimitiveItem>
+      ))}
+    </>
+  );
+
   return (
-    <SelectPrimitiveRoot
-      value={current}
-      defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
-      onValueChange={(next) => {
-        if (allowClear && next === current) return;
-        onChange?.(next, list.find((option) => String(option.value) === next));
-      }}
-      disabled={disabled || loading}
-    >
-      <SelectPrimitiveTrigger
-        className={cn(
-          'w-full justify-between',
-          size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
-          allowClear && !!current && '[&>svg:last-child]:hidden',
-          className,
-        )}
-        style={style}
+    <div className="relative inline-flex w-full items-center">
+      <SelectPrimitiveRoot
+        value={current}
+        defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
+        onValueChange={(next) => {
+          if (allowClear && next === current) return;
+          const option = list.find((item) => String(item.value) === next) ?? ({} as AntdSelectOption);
+          onSelect?.(next, option);
+          onChange?.(next, option);
+        }}
+        disabled={disabled || loading}
       >
-        <SelectPrimitiveValue>
-          {selected?.label ?? (placeholder ? (
-            <span className="text-muted-foreground">{placeholder}</span>
-          ) : null)}
-        </SelectPrimitiveValue>
-      </SelectPrimitiveTrigger>
-      <SelectPrimitiveContent position="popper">
-        {list.map((option) => (
-          <SelectPrimitiveItem
-            key={String(option.value)}
-            value={String(option.value)}
-            disabled={option.disabled}
-          >
-            {option.label ?? String(option.value)}
-          </SelectPrimitiveItem>
-        ))}
-      </SelectPrimitiveContent>
-    </SelectPrimitiveRoot>
+        <SelectPrimitiveTrigger
+          className={cn(
+            'w-full justify-between',
+            size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
+            allowClear && !!current && '[&>svg:last-child]:hidden',
+            className,
+          )}
+          style={style}
+        >
+          <SelectPrimitiveValue>
+            {selected?.label ?? (placeholder ? (
+              <span className="text-muted-foreground">{placeholder}</span>
+            ) : null)}
+          </SelectPrimitiveValue>
+        </SelectPrimitiveTrigger>
+        <SelectPrimitiveContent position="popper">
+          {dropdownRender ? dropdownRender(menu) : menu}
+        </SelectPrimitiveContent>
+      </SelectPrimitiveRoot>
+      {allowClear && current ? (
+        <button
+          type="button"
+          aria-label="Clear"
+          onClick={() => {
+            onClear?.();
+            onChange?.('', undefined);
+          }}
+          className="absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
+        >
+          âœ?        </button>
+      ) : null}
+    </div>
   );
 };
 
@@ -784,6 +955,8 @@ export const Modal: React.FC<{
   footer?: React.ReactNode | null;
   destroyOnClose?: boolean;
   maskClosable?: boolean;
+  centered?: boolean;
+  closable?: boolean | Record<string, unknown>;
   children?: React.ReactNode;
   className?: string;
 }> = ({
@@ -796,6 +969,7 @@ export const Modal: React.FC<{
   onCancel,
   footer,
   destroyOnClose = false,
+  centered,
   children,
   className,
 }) => {
@@ -809,7 +983,7 @@ export const Modal: React.FC<{
     >
       <DialogContent
         showCloseButton={false}
-        className={cn('w-full gap-0', className)}
+        className={cn('w-full gap-0', centered && 'top-[50%]', className)}
         style={{ maxWidth: typeof width === 'number' ? `${width}px` : width }}
       >
         {title ? (

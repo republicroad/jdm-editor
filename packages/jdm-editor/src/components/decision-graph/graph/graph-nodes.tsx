@@ -1,5 +1,5 @@
 import { CloseOutlined, SearchOutlined } from '@/icons';
-import { Avatar, Button, Card, Col, Input, Row, Space, Typography } from 'antd';
+import { Avatar, Button, Input, Space, Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
@@ -58,40 +58,37 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
     const specification = nodeSpecification?.[node?.type as NodeKind];
 
     return (
-      <Card
-        hoverable
-        className={clsx(['config-item-card', node?._diff?.status])}
-        styles={{
-          body: {
-            padding: 16,
-          },
-        }}
+      <div
+        className={clsx(
+          'cursor-pointer rounded-(--grl-border-radius) border bg-card text-card-foreground shadow-xs transition-colors hover:border-primary/50',
+          node?._diff?.status,
+        )}
         onClick={() => openTab(node.id)}
       >
-        <div className={'config-item-card__content'}>
-          <Avatar
-            size='large'
-            shape='square'
-            style={{
-              background: specification?.color || NodeColor.Blue,
-              fontSize: 16,
-              width: 24,
-              height: 24,
-              lineHeight: '22px',
-              borderRadius: 3,
-            }}
-            icon={specification?.icon}
-          />
-          <div style={{ flex: 1 }}>
-            <Text style={{ margin: 0, fontSize: 14, marginBottom: node?.description ? '4px' : 0 }}>{node.name}</Text>
-            {node?.description && (
-              <Text type='secondary' style={{ fontSize: '14px' }}>
-                {node?.description}
-              </Text>
-            )}
+        <div className='p-4'>
+          <div className={'config-item-card__content'}>
+            <Avatar
+              size={24}
+              shape='square'
+              style={{
+                background: specification?.color || NodeColor.Blue,
+                fontSize: 16,
+                lineHeight: '22px',
+                borderRadius: 3,
+              }}
+              icon={specification?.icon}
+            />
+            <div style={{ flex: 1 }}>
+              <Text style={{ margin: 0, fontSize: 14, marginBottom: node?.description ? '4px' : 0 }}>{node.name}</Text>
+              {node?.description && (
+                <Text type='secondary' style={{ fontSize: '14px' }}>
+                  {node?.description}
+                </Text>
+              )}
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
     );
   };
 
@@ -188,13 +185,11 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
               <Title level={5} style={{ marginBottom: '16px' }}>
                 {group.title}
               </Title>
-              <Row gutter={[16, 16]}>
+              <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3'>
                 {group.nodes.map((node) => (
-                  <Col key={node.id} xxl={8} md={8} sm={12} xs={24}>
-                    <ConfigItem key={node.id} node={node} />
-                  </Col>
+                  <ConfigItem key={node.id} node={node} />
                 ))}
-              </Row>
+              </div>
             </div>
           ))}
       </div>

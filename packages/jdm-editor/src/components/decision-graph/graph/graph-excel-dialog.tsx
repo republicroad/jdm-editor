@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@/icons';
-import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from 'antd';
+import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../antd-compat';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
@@ -374,12 +374,13 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 </Fragment>
               )}
               optionRender={(option) => {
+                const dataType = option.data.type as keyof typeof dataTypeConfig;
                 return (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>{option.data.label}</span>
-                    {option.data.type && (
-                      <Tag style={{ background: dataTypeConfig[option.data.type].color }}>
-                        {dataTypeConfig[option.data.type].label}
+                    {dataType && (
+                      <Tag style={{ background: dataTypeConfig[dataType].color }}>
+                        {dataTypeConfig[dataType].label}
                       </Tag>
                     )}
                   </div>
@@ -420,10 +421,10 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                     return {
                       ...(prev || {}),
                       [stepKey]: {
-                        ...currentStepData,
+                        ...(currentStepData || {}),
                         [header.id]: {
-                          ...currentStepData[header.id],
-                          type: e.target.value,
+                          ...((currentStepData || {})[header.id] || {}),
+                          type: e.target.value as ItemValue['type'],
                         },
                       },
                     };
