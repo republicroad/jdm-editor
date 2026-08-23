@@ -8,7 +8,7 @@ import wasm from 'vite-plugin-wasm';
 import packageJson from './package.json';
 
 export default defineConfig({
-  plugins: [react(), wasm(), dts({ insertTypesEntry: true, rollupTypes: true }), tailwindcss()],
+  plugins: [react(), wasm(), dts({ include: ['src/**/*.ts', 'src/**/*.tsx'], bundleTypes: true }), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
