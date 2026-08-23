@@ -1,7 +1,7 @@
 import { DeleteOutlined } from '@/icons';
 import type { EdgeProps } from '@xyflow/react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
-import { Button } from 'antd';
+import { Button } from '../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 import { match } from 'ts-pattern';

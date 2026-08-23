@@ -1,5 +1,5 @@
 import type { Monaco } from '@monaco-editor/react';
-import { Spin } from 'antd';
+import { Spin } from '../../antd-compat';
 import type { editor } from 'monaco-editor';
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';

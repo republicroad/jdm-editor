@@ -1,5 +1,6 @@
 import { Editor } from '@monaco-editor/react';
-import { Spin, theme } from 'antd';
+import { Spin } from '../../antd-compat';
+import { useThemeMode } from '../../../theme';
 import { toast } from 'sonner';
 import json5 from 'json5';
 import React from 'react';
@@ -13,7 +14,7 @@ type SimulatorEditorProps = {
 };
 
 export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChange, readOnly }) => {
-  const { token } = theme.useToken();
+  const mode = useThemeMode();
 
   return (
     <Editor
@@ -21,7 +22,7 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
       language='javascript'
       value={value}
       onChange={onChange}
-      theme={token.mode === 'dark' ? 'vs-dark' : 'light'}
+      theme={mode === 'dark' ? 'vs-dark' : 'light'}
       height='100%'
       onMount={(editor, monaco) => {
         monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({

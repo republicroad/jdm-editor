@@ -1,5 +1,5 @@
 import { WarningFilled } from '@/icons';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, Tooltip, Typography } from '../../../antd-compat';
 import _ from 'lodash';
 import React from 'react';
 import { P, match } from 'ts-pattern';

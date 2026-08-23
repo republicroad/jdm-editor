@@ -1,5 +1,5 @@
 import type { XYPosition } from '@xyflow/react';
-import { Input } from 'antd';
+import { Input } from '../../antd-compat';
 import clsx from 'clsx';
 import React, { useCallback, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';

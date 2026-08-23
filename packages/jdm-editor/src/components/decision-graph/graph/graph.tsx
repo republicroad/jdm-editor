@@ -11,7 +11,8 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { App, Button, Typography } from 'antd';
+import { App } from 'antd';
+import { Button, Typography } from '../../antd-compat';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';

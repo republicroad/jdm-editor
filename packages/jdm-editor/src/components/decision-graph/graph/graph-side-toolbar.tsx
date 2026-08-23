@@ -1,6 +1,6 @@
 import { CloudDownloadOutlined, CloudUploadOutlined } from '@/icons';
-import type { MenuProps } from 'antd';
-import { Button, Dropdown, Tooltip } from 'antd';
+import type { MenuProps } from '../../antd-compat';
+import { Button, Dropdown, Tooltip } from '../../antd-compat';
 import { toast } from 'sonner';
 import React, { Fragment, useRef, useState } from 'react';
 

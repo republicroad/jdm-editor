@@ -1,5 +1,5 @@
 import { CheckCircleTwoTone, ClearOutlined, CloseCircleTwoTone, CloseOutlined } from '@/icons';
-import { Button, Spin, Tabs, Tooltip, Typography } from 'antd';
+import { Button, Spin, Tabs, Tooltip, Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import json5 from 'json5';
 import React, { useMemo, useState } from 'react';

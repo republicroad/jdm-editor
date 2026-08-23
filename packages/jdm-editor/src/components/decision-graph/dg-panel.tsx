@@ -1,5 +1,5 @@
 import { CloseOutlined } from '@/icons';
-import { Button, Tooltip, Typography } from 'antd';
+import { Button, Tooltip, Typography } from '../antd-compat';
 import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';
 

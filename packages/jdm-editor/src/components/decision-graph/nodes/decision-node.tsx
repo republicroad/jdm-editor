@@ -1,5 +1,5 @@
 import { CloseOutlined, MoreOutlined } from '@/icons';
-import { Button, Dropdown, type MenuProps, Typography } from 'antd';
+import { Button, Dropdown, type MenuProps, Typography } from '../../antd-compat';
 import clsx from 'clsx';
 import React from 'react';
 import { Transition } from 'transition-hook';

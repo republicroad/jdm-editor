@@ -17,6 +17,11 @@ export type ThemeConfig = Omit<AntThemeConfig, 'algorithm'> & {
 
 export type DictionaryMap = Record<string, { label: string; value: string }[]>;
 
+const ThemeModeContext = React.createContext<'light' | 'dark'>('light');
+
+/** Active color scheme set by <JdmConfigProvider mode>. */
+export const useThemeMode = (): 'light' | 'dark' => useContext(ThemeModeContext);
+
 const DictionaryContext = React.createContext<DictionaryMap>({});
 
 export const useDictionaries = (): DictionaryMap => useContext(DictionaryContext);
@@ -54,15 +59,17 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   const dicts = useMemo(() => dictionaries ?? {}, [dictionaries]);
 
   return (
-    <ConfigProvider prefixCls={prefixCls} theme={{ ...restTheme, algorithm, token: { ...token, mode, motion: false } }}>
-      <DictionaryContext.Provider value={dicts}>
-        <App style={{ height: '100%' }}>
-          <GlobalCssVariables mode={mode} />
-          <Toaster theme={mode} position="bottom-right" richColors />
-          {children}
-        </App>
-      </DictionaryContext.Provider>
-    </ConfigProvider>
+    <ThemeModeContext.Provider value={mode}>
+      <ConfigProvider prefixCls={prefixCls} theme={{ ...restTheme, algorithm, token: { ...token, mode, motion: false } }}>
+        <DictionaryContext.Provider value={dicts}>
+          <App style={{ height: '100%' }}>
+            <GlobalCssVariables mode={mode} />
+            <Toaster theme={mode} position="bottom-right" richColors />
+            {children}
+          </App>
+        </DictionaryContext.Provider>
+      </ConfigProvider>
+    </ThemeModeContext.Provider>
   );
 };
 

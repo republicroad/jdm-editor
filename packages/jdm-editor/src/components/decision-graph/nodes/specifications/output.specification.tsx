@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button } from '../../../antd-compat';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightFromLineIcon } from 'lucide-react';

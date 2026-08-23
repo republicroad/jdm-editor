@@ -1,7 +1,7 @@
 import { BookOutlined } from '@/icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
-import type { MenuProps } from 'antd';
+import type { MenuProps } from '../../antd-compat';
 import { App, Button, Typography } from 'antd';
 import clsx from 'clsx';
 import React from 'react';
