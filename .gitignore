@@ -8,6 +8,8 @@ node_modules
 # Ignore
 *.log*
 *.tgz
+# storybook static build output
+packages/jdm-editor/docs
 
 # secrets
 .env.local
