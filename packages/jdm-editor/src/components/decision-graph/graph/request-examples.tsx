@@ -226,7 +226,7 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
                 size='small'
                 shape='circle'
                 icon={<CommentOutlined />}
-                style={inlayHintsEnabled ? { color: '#1677ff' } : undefined}
+                style={inlayHintsEnabled ? { color: 'var(--grl-color-primary)' } : undefined}
                 onClick={() => setInlayHintsEnabled((prev) => !prev)}
                 disabled={disabled}
               />

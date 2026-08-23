@@ -6,11 +6,6 @@
   .grl-node-content-side__body {
     height: 100%;
   }
-
-  .grl-node-content-side__body {
-    background: white
-     
-  }
 }
 
 .grl-request-tab__body {
@@ -105,7 +100,7 @@
   }
 
   .grl-request-tab__definition-card {
-    background: #fff;
+    background: var(--grl-color-bg-container);
     border-color: var(--color-border);
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
   }
