@@ -124,8 +124,7 @@ export const Debug: StoryObj<
     },
   },
   render: (args) => {
-    const mode = useThemeMode();
-  const token = { marginMD: 16, colorBgLayout: 'var(--grl-color-bg-layout)', colorBorder: 'var(--grl-color-border)', borderRadiusOuter: 8, paddingSM: 12 };
+    const token = { marginMD: 16, colorBgLayout: 'var(--grl-color-bg-layout)', colorBorder: 'var(--grl-color-border)', borderRadiusOuter: 8, paddingSM: 12 };
     const [editorState, setEditorState] = useState('');
     const [parserState, setParserState] = useState('');
     const [typeInfo, setTypeInfo] = useState('');
