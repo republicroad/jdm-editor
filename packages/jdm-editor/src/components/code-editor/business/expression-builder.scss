@@ -26,24 +26,12 @@
 
 .eb-select {
   @include builder-select;
-
-  .ant-select-selection-item {
-    padding-inline-end: var(--b-h-padding) !important;
-  }
-
-  .ant-select-arrow {
-    display: none;
-  }
 }
 
 .eb-tags {
   @include builder-select-multi;
   flex: 1;
   min-width: 0;
-
-  .ant-select-selection-item {
-    border-color: transparent;
-  }
 }
 
 .eb-enum {
@@ -75,15 +63,6 @@
 .eb-interval-num {
   width: 45px;
   padding: 0 !important;
-
-  .ant-input-number-input {
-    font-family: monospace;
-    font-size: var(--b-font-size) !important;
-    line-height: var(--b-line-height) !important;
-    padding: var(--b-v-padding) 2px !important;
-    text-align: center;
-    height: auto !important;
-  }
 }
 
 .eb-chips {
@@ -142,38 +121,12 @@
 .eb-granularity {
   min-width: 60px;
   height: var(--b-height) !important;
-
-  .ant-select-selector {
-    padding: 0 !important;
-    height: 100% !important;
-  }
-
-  .ant-select-selection-placeholder {
-    font-size: 12px;
-    color: var(--ant-color-text-tertiary);
-    line-height: var(--b-height) !important;
-    padding: 0 var(--b-h-padding) !important;
-  }
-
-  .ant-select-selection-item {
-    font-size: 12px;
-    line-height: var(--b-height) !important;
-    padding: 0 var(--b-h-padding) !important;
-  }
 }
 
 .op-dropdown-popover {
   --bg-light: #f3f4f6;
   --bg-active: #dbe9fe;
   --color-active-text: #1c4ed8;
-
-  .ant-popover-inner {
-    padding: 0;
-    border-radius: 12px;
-    border: 1px solid var(--grl-color-border);
-    box-shadow: none;
-    overflow: hidden;
-  }
 }
 
 .op-trigger {
