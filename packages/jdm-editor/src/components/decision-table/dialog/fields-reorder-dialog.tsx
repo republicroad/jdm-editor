@@ -1,7 +1,8 @@
-import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { Card, Form, Modal, Typography } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { DragOverlayCard, OverlayChip } from '../../../helpers/dnd-overlay';
 import { Stack } from '../../stack';
 import type { TableSchemaItem } from '../context/dt-store.context';
 
@@ -59,13 +60,17 @@ const FieldCard: React.FC<{
 const FieldsDnd: React.FC<
   React.PropsWithChildren<{
     onMove: (draggedId: string, overId: string) => void;
+    getColumnById: (id: string) => TableSchemaItem | undefined;
   }>
-> = ({ children, onMove }) => {
+> = ({ children, onMove, getColumnById }) => {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeColumn = activeId ? getColumnById(activeId) : undefined;
 
   return (
     <DndContext
       sensors={sensors}
+      onDragStart={({ active }) => setActiveId(String(active.id).replace(/^field-/, ''))}
       onDragOver={({ active, over }) => {
         if (!over) {
           return;
@@ -77,8 +82,22 @@ const FieldsDnd: React.FC<
           onMove(draggedId, overId);
         }
       }}
+      onDragEnd={() => setActiveId(null)}
+      onDragCancel={() => setActiveId(null)}
     >
       {children}
+      <DragOverlay dropAnimation={null}>
+        {activeColumn ? (
+          <DragOverlayCard>
+            <OverlayChip width={180}>{activeColumn.name}</OverlayChip>
+            {activeColumn.field ? (
+              <OverlayChip width={140}>
+                <span style={{ color: 'var(--grl-color-text-tertiary)' }}>{activeColumn.field}</span>
+              </OverlayChip>
+            ) : null}
+          </DragOverlayCard>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 };
@@ -133,7 +152,7 @@ export const FieldsReorder: React.FC<FieldsReorderProps> = (props) => {
       getContainer={getContainer}
     >
       <Form id='fields-reorder-dialog' onFinish={() => onSuccess?.(columns)}>
-        <FieldsDnd onMove={moveCardByIds}>
+        <FieldsDnd onMove={moveCardByIds} getColumnById={(id) => columnsRef.current.find((c) => c.id === id)}>
           <Stack gap={8} horizontalAlign='stretch'>
             {columns.map((column, index) => (
               <FieldCard key={column.id} col={column} index={index} />

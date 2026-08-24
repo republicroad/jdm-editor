@@ -1,9 +1,10 @@
 import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined, PlusOutlined } from '@/icons';
-import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../primitives';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ParsedExcelData, RuleData } from '../../../helpers/excel';
+import { DragOverlayCard, OverlayChip } from '../../../helpers/dnd-overlay';
 import type { ColumnFieldType, OutputFieldType } from '../../../helpers/schema';
 import { useDecisionTableDialog } from '../context/dt-dialog.context';
 import { useDecisionTableState } from '../context/dt-store.context';
@@ -60,13 +61,17 @@ const isHeaderMatch = (header1: TableHeader, header2: TableHeader) => {
 const ExcelDnd: React.FC<
   React.PropsWithChildren<{
     onMove: (draggedId: string, overId: string) => void;
+    getColumnById: (id: string) => ImportColumn | undefined;
   }>
-> = ({ children, onMove }) => {
+> = ({ children, onMove, getColumnById }) => {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeColumn = activeId ? getColumnById(activeId) : undefined;
 
   return (
     <DndContext
       sensors={sensors}
+      onDragStart={({ active }) => setActiveId(String(active.id).replace(/^xl-/, ''))}
       onDragOver={({ active, over }) => {
         if (!over) {
           return;
@@ -78,8 +83,22 @@ const ExcelDnd: React.FC<
           onMove(draggedId, overId);
         }
       }}
+      onDragEnd={() => setActiveId(null)}
+      onDragCancel={() => setActiveId(null)}
     >
       {children}
+      <DragOverlay dropAnimation={null}>
+        {activeColumn ? (
+          <DragOverlayCard>
+            <OverlayChip width={160}>{activeColumn.name}</OverlayChip>
+            {activeColumn.field ? (
+              <OverlayChip width={140}>
+                <span style={{ color: 'var(--grl-color-text-tertiary)' }}>{activeColumn.field}</span>
+              </OverlayChip>
+            ) : null}
+          </DragOverlayCard>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 };
@@ -482,6 +501,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       getContainer={getContainer}
     >
       <ExcelDnd
+        getColumnById={(id) => columns.find((c) => c.id === id)}
         onMove={(draggedId, overId) => {
           setColumns((prev) => {
             const i = prev.findIndex((c) => c.id === draggedId);
