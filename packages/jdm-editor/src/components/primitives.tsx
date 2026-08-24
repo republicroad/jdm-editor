@@ -1311,7 +1311,7 @@ export const Select: React.FC<AntdSelectProps> = ({
           aria-label="Clear"
           onClick={() => {
             onClear?.();
-            onChange?.('', undefined);
+            onChange?.(undefined, undefined);
           }}
           className="absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
         >
