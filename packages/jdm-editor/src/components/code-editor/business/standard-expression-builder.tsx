@@ -17,7 +17,6 @@ import { type DictionaryMap, useDictionaries } from '../../../theme';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { CodeEditorBase } from '../ce-base';
 import { focusBuilderRoot } from './focus-helper';
-import './standard-expression-builder.scss';
 
 export type { OutputFieldType };
 
@@ -171,7 +170,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         </button>
         {ftType === 'string' && !enumOptions && (
           <AutosizeTextArea
-            className='seb-input'
+            className='flex-1 min-w-[40px] p-0! [font-family:inherit] border-0! bg-transparent! text-[var(--b-font-size)]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
             value={parsed.kind === 'string' ? parsed.value : ''}
             maxRows={maxRows}
             onChange={(e) => onChange(formatStringValue((e.target as unknown as { value: string }).value))}
@@ -180,7 +179,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'string' && enumOptions && (
           <Select
-            className='seb-select'
+            className='min-w-[50px] h-[var(--b-height)]! flex-1'
             value={parsed.kind === 'string' ? parsed.value : undefined}
             onChange={(v) => onChange(formatStringValue(v))}
             disabled={disabled}
@@ -195,7 +194,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'string-array' && (
           <Select
-            className='seb-select-multi'
+            className='flex-1 min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
             mode={enumOptions && !enumOptions.loose ? 'multiple' : 'tags'}
             value={parseStringArrayValue(value)}
             onChange={(v: string[]) => onChange(formatStringArrayValue(v))}
@@ -211,7 +210,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'number' && (
           <InputNumber
-            className='seb-number'
+            className='flex-1 min-w-[40px] p-0!'
             value={parsed.kind === 'number' ? parsed.value : 0}
             onChange={(v) => onChange(String(v ?? 0))}
             disabled={disabled}
@@ -221,7 +220,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'boolean' && (
           <Select
-            className='seb-select'
+            className='min-w-[50px] h-[var(--b-height)]! flex-1'
             value={parsed.kind === 'boolean' ? parsed.value : true}
             onChange={(v) => onChange(String(v))}
             disabled={disabled}
@@ -237,7 +236,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'date' && (
           <DatePicker
-            className='seb-date'
+            className='flex-1 min-w-[80px] p-0! h-[var(--b-height)]! min-h-0!'
             value={(() => {
               const dateStr = parsed.kind === 'date' ? parsed.value : null;
               return dateStr && dayjs(dateStr).isValid() ? dayjs(dateStr) : dayjs();
