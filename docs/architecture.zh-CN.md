@@ -168,4 +168,5 @@ GitHub 工作流(`.github/workflows/`):
 
 - 编译包:`main/module/types → dist/`,导出 `.`、`./dist/schema`、`./dist/style.css`。
 - 运行时:基于 React 19 开发与验证;Peer 依赖保持 `react >= 18`、`react-dom >= 18`(由消费者冒烟脚本在 React 18/19 双版本下验证)。
+- 宿主接入约定:消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Radix Dialog/Alert/Toaster 等逃逸出 `.grl-root` 作用域的元素)。
 - 消费方接入说明(Monaco worker 自托管)见根 README。

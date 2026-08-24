@@ -39,19 +39,21 @@ const preview: Preview = {
 
       return (
         <JdmConfigProvider theme={{ mode: isDark ? 'dark' : 'light' }}>
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
-              body {
-                height: 100vh;
-              }
-              #storybook-root {
-                height: 100%;
-              }
-              `,
-            }}
-          />
-          <Story />
+          <div className='grl-root'>
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
+                body {
+                  height: 100vh;
+                }
+                #storybook-root {
+                  height: 100%;
+                }
+                `,
+              }}
+            />
+            <Story />
+          </div>
         </JdmConfigProvider>
       );
     },

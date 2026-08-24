@@ -175,4 +175,10 @@ runs lint, build, tests, typecheck, a bundle-size budget check and the dual-reac
 
 - Compiled package: `main/module/types → dist/`, exports `.` , `./dist/schema`, `./dist/style.css`.
 - Peer deps: `react >= 18`, `react-dom >= 18`.
+- Host integration: consumers wrap their app in an element with class `grl-root` to opt in to the
+  scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
+  `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it
+  never leaks into the host document. `ui/button.tsx` also carries its own base normalization as
+  a fallback for portal-rendered buttons (Radix dialogs/alerts/toasters) which escape the
+  `.grl-root` wrapper.
 - Consumer setup notes (Monaco workers self-hosting) live in the root README.

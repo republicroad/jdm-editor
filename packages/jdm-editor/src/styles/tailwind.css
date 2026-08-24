@@ -1,10 +1,18 @@
 /*
  * Tailwind v4 entry for @gorules/jdm-editor.
  *
- * - Preflight is intentionally NOT imported: antd owns base element styles.
- * - No utility prefix: keeps stock shadcn/ReUI components drop-in
- *   compatible; name collisions with a host app's own Tailwind are benign
- *   (identical rule definitions).
+ * - Global Tailwind preflight is NOT imported: this is a distributed library
+ *   whose `dist/style.css` is injected into host apps, and a global reset
+ *   would clobber the host's own element styles.
+ * - Instead, a scoped mini-preflight is provided under `.grl-root` (see the
+ *   `@layer base` block below). Hosts wrap their app in a `.grl-root` element
+ *   to opt in; the reset normalizes UA styles for form controls, tables,
+ *   headings, lists, and images without leaking outside the wrapper.
+ * - ui/button.tsx also carries its own base normalization as a fallback for
+ *   portal-rendered buttons (Radix dialogs/alerts/toasters) which escape the
+ *   `.grl-root` wrapper.
+ * - No utility prefix: keeps stock shadcn/ReUI components drop-in compatible;
+ *   name collisions with a host app's own Tailwind are benign.
  * - The dark variant follows [data-mode='dark'] set by JdmConfigProvider,
  *   not the OS preference.
  */
@@ -17,8 +25,71 @@
 
 @custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
 
+/*
+ * Scoped mini-preflight. Hosts wrap their app in an element with class
+ * `grl-root` to opt in. Every rule uses `:where()` (zero specificity) so
+ * component classes and Tailwind utilities always win. This mirrors the
+ * subset of Tailwind's own preflight the library relies on, without
+ * leaking resets into the host document.
+ */
+@layer base {
+  .grl-root :where(*, *::before, *::after) {
+    box-sizing: border-box;
+  }
+
+  .grl-root :where(button, input, optgroup, select, textarea) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: 0 solid;
+  }
+
+  .grl-root :where(input, textarea)::placeholder {
+    opacity: 1;
+    color: var(--grl-color-text-placeholder, #bfbfbf);
+  }
+
+  .grl-root :where(table) {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  .grl-root :where(th, td) {
+    padding: 0;
+    text-align: left;
+    font-weight: inherit;
+  }
+
+  .grl-root :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) {
+    margin: 0;
+  }
+
+  .grl-root :where(ul, ol) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .grl-root :where(img, svg, video) {
+    display: block;
+    vertical-align: middle;
+  }
+
+  .grl-root :where(hr) {
+    height: 0;
+    color: inherit;
+    border-top-width: 1px;
+  }
+}
+
 /* Scan only this package's sources. */
 @source '../';
+
+/* Force-include the scoped preflight class even though it's only used by hosts. */
+@source inline('.grl-root');
 
 /*
  * shadcn-style semantic colors. Values resolve from tokens.css, which bridges
