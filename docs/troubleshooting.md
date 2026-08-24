@@ -180,3 +180,37 @@ on receiving the stringified form.
   control on a sibling first.** One passing control (enum select) split the
   problem from "migration broke Selects" to "non-string values break", in
   one step.
+
+### Follow-up: repo-wide onChange bridge audit (`b6f70c0`)
+
+The lesson was generalized into a standing project rule (also encoded in
+`.opencode/skills/antd-shim-value-uncoerce/SKILL.md`): **any antd-compatible
+shim must un-coerce values through the matched option before calling
+`onChange`/`onSelect` — otherwise numeric and boolean options silently
+corrupt downstream state.** Every `onChange` bridge path in the repo was
+then audited:
+
+| Bridge path | Verdict |
+| --- | --- |
+| Select single `onValueChange` | broken → fixed above (`d9773f7`) |
+| Select multi/tags → `string[]` | safe — consumers expect string arrays; `ArrayInput` re-parses numbers itself via `parseFloat` |
+| Select clear button | same-family bug → fixed in `b6f70c0` (see below) |
+| Select `onSelect`, sole consumer (graph-excel-dialog) | safe — ignores first arg, reads `option`; clearing goes through explicit `onClear` |
+| InputNumber | safe — already un-coerces via `Number()`, emits `null` when empty |
+| DatePicker / TimePicker | safe — emit dayjs objects per antd contract |
+| Checkbox / Switch | safe — plain booleans |
+| Radio group | safe — custom React context forwards the original `value` prop, not Radix |
+| Tabs | safe — tab keys are strings by antd design too |
+| Input allowClear | safe — emits `{target:{value:''}}` event semantics, matching antd Input |
+
+Scope closure: `primitives.tsx` is the only importer of the shadcn Select
+and the only Radix→antd value bridge in the repo — no other `onValueChange`
+bridges exist outside `components/ui/*`.
+
+The audit surfaced one more member of the same family: the Select **clear
+button emitted `''`**, while antd's contract is clear-to-`undefined`. That
+silently defeated the explicit `val ?? undefined` guards in
+`dt-excel-dialog.tsx` (`'' ?? undefined` is still `''`). It stayed latent
+because every downstream reader used truthiness checks
+(`filter(Boolean)`, ternaries), but the trap was real — fixed in `b6f70c0`
+by emitting `undefined`.

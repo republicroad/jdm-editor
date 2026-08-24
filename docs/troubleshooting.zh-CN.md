@@ -160,3 +160,34 @@ granularity/枚举下拉均为字符串;`DAYS`/`QUARTERS` 走自定义 chip UI,
 - **样式迁移后立刻出现功能 bug 时,先跑一个兄弟组件对照。** 一个通过
   的对照(枚举下拉)一步就把问题从"迁移弄坏了 Select"收窄到
   "非字符串值会坏"。
+
+### 后续:全仓 onChange 桥接路径审计(`b6f70c0`)
+
+该经验已沉淀为项目通用规则(同时写入
+`.opencode/skills/antd-shim-value-uncoerce/SKILL.md`):**任何 antd 兼容
+shim 都必须在调用 `onChange`/`onSelect` 前通过匹配选项把值"反强转"回来,
+否则数字和布尔选项会悄悄污染下游状态。** 随后对仓内所有 `onChange`
+桥接路径做了完整审计:
+
+| 桥接路径 | 结论 |
+| --- | --- |
+| Select 单选 `onValueChange` | 有 bug → 上文已修(`d9773f7`) |
+| Select 多选/tags → `string[]` | 安全——消费方均按字符串数组设计;`ArrayInput` 自己用 `parseFloat` 反转数字 |
+| Select 清除按钮 | 同族 bug → `b6f70c0` 修复(见下) |
+| Select `onSelect`,唯一消费者(graph-excel-dialog) | 安全——忽略第一参数只用 option;清除走显式 `onClear` |
+| InputNumber | 安全——已正确 `Number()` 反转,空值发 `null` |
+| DatePicker / TimePicker | 安全——按 antd 契约发 dayjs 对象 |
+| Checkbox / Switch | 安全——纯布尔直传 |
+| Radio 组 | 安全——自研 React context 直传原始 `value` prop,不经 Radix |
+| Tabs | 安全——tab key 本就是字符串(antd 同设计) |
+| Input allowClear | 安全——发 `{target:{value:''}}`,符合 antd Input 事件语义 |
+
+范围封闭:`primitives.tsx` 是 shadcn Select 的唯一导入方,也是仓内唯一的
+Radix→antd 值桥接——`components/ui/*` 之外不存在其他 `onValueChange`
+桥接。
+
+审计还揪出了同家族的另一个成员:Select **清除按钮发的是 `''`**,而 antd
+契约是清除为 `undefined`。这会静默击穿 `dt-excel-dialog.tsx` 里显式的
+`val ?? undefined` 防线(`'' ?? undefined` 还是 `''`)。因为所有下游读取
+恰好都用真值守卫(`filter(Boolean)`、三元判断),问题一直潜伏未爆发,
+但陷阱真实存在——已在 `b6f70c0` 改为发 `undefined`。
