@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- CJS required for jest config loading under type:module */
 const { getJestConfig } = require('@storybook/test-runner');
 
 /**
