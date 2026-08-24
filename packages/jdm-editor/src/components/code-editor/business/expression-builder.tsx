@@ -422,13 +422,19 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
   };
 
   const content = (
-    <div className='op-panel'>
+    <div
+      className='bg-popover'
+      style={{ '--bg-light': '#f3f4f6', '--bg-active': '#dbe9fe', '--color-active-text': '#1c4ed8' } as React.CSSProperties}
+    >
       {onKindChange && (
-        <div className='op-types'>
+        <div className='flex gap-2 border-b border-[#f0f0f0] p-3'>
           {VALUE_KINDS.map((t) => (
             <button
               key={t.kind}
-              className={clsx('op-type-btn', { active: t.kind === kind })}
+              className={clsx(
+                'cursor-pointer rounded-lg border-0 bg-[var(--bg-light)] px-3 py-1.5 text-sm transition-all',
+                t.kind === kind && 'bg-[var(--bg-active)] text-[var(--color-active-text)]',
+              )}
               onClick={() => onKindChange(t.kind)}
             >
               {t.label}
@@ -436,51 +442,70 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
           ))}
         </div>
       )}
-      <div className='op-body'>
-        <div className='op-grid'>
-          {grid.map((o) => (
-            <button
-              key={o.type}
-              className={clsx('op-tile', { active: o.type === operator && !isCustom })}
-              onClick={() => pick(o.type)}
-            >
-              <OpIcon op={o} size={20} className='op-tile-icon' />
-              <span className='op-tile-label'>{o.label}</span>
-            </button>
-          ))}
+      <div className='flex'>
+        <div className='grid shrink-0 grid-cols-2 gap-2 p-3'>
+          {grid.map((o) => {
+            const isSel = o.type === operator && !isCustom;
+            return (
+              <button
+                key={o.type}
+                className={clsx(
+                  'flex h-[72px] w-[90px] cursor-pointer flex-col items-center justify-center rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] transition-all hover:bg-[var(--bg-light)]',
+                  isSel && 'border-[#bfdbfe] bg-[var(--bg-active)]',
+                )}
+                onClick={() => pick(o.type)}
+              >
+                <OpIcon op={o} size={20} className='mb-1 text-[#374151]' />
+                <span className='text-[11px] text-[#9ca3af]'>{o.label}</span>
+              </button>
+            );
+          })}
           {onCustomToggle && (
             <button
-              className={clsx('op-tile', 'op-tile-wide', { active: isCustom })}
+              className={clsx(
+                'col-span-2 flex h-12 w-auto cursor-pointer flex-row items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] transition-all hover:bg-[var(--bg-light)]',
+                isCustom && 'border-[#bfdbfe] bg-[var(--bg-active)]',
+              )}
               onClick={() => {
                 onCustomToggle();
                 setOpen(false);
               }}
             >
-              <SquareFunctionIcon size={20} className='op-tile-icon' />
-              <span className='op-tile-label'>custom</span>
+              <SquareFunctionIcon size={20} className='mb-0 text-[#374151]' />
+              <span className='text-[11px] text-[#9ca3af]'>custom</span>
             </button>
           )}
         </div>
         {list.length > 0 && (
-          <div className='op-list-section'>
+          <div className='flex min-w-[170px] flex-1 flex-col border-l border-[#f0f0f0] bg-[#f9fafb] p-3'>
             <input
-              className='op-search'
+              className='mb-2 w-full rounded-lg border border-[#e5e7eb] px-3 py-2 text-[13px] outline-none transition-all placeholder:text-[#9ca3af] focus:border-[#bfdbfe]'
               placeholder='Search...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className='op-list'>
-              {filtered.map((o) => (
-                <button
-                  key={o.type}
-                  className={clsx('op-row', { active: o.type === operator && !isCustom })}
-                  onClick={() => pick(o.type)}
-                >
-                  <OpIcon op={o} size={16} className='op-row-icon' />
-                  <span className='op-row-label'>{o.label}</span>
-                </button>
-              ))}
-              {!filtered.length && <div className='op-empty'>No matches</div>}
+            <div className='flex max-h-[200px] flex-col gap-0.5 overflow-y-auto'>
+              {filtered.map((o) => {
+                const isSel = o.type === operator && !isCustom;
+                return (
+                  <button
+                    key={o.type}
+                    className={clsx(
+                      'flex w-full cursor-pointer items-center gap-2.5 rounded-md border-0 bg-transparent px-2 py-2 text-left transition-all hover:bg-[var(--bg-light)]',
+                      isSel && 'bg-[var(--bg-active)]',
+                    )}
+                    onClick={() => pick(o.type)}
+                  >
+                    <OpIcon
+                      op={o}
+                      size={16}
+                      className={clsx('w-5 shrink-0 text-[#6b7280]', isSel && 'text-[var(--color-active-text)]')}
+                    />
+                    <span className='text-[13px] text-[#374151]'>{o.label}</span>
+                  </button>
+                );
+              })}
+              {!filtered.length && <div className='p-3 text-center text-[12px] text-[#9ca3af]'>No matches</div>}
             </div>
           </div>
         )}
@@ -501,7 +526,10 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
       overlayClassName='op-dropdown-popover'
       arrow={false}
     >
-      <button className={clsx('op-trigger', { disabled })} disabled={disabled}>
+      <button
+        className='inline-flex cursor-pointer items-center justify-center rounded border-0 bg-[var(--bg-light)] px-2 text-[13px] text-[#6e7583] transition-all min-h-[var(--b-height)] min-w-[26px] enabled:hover:bg-[#e5e7eb] disabled:cursor-not-allowed disabled:opacity-50'
+        disabled={disabled}
+      >
         {isCustom ? <SquareFunctionIcon size={14} /> : <OpIcon op={getOp(operator)} size={14} />}
       </button>
     </Popover>
