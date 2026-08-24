@@ -33,9 +33,9 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
   const [activeTab, setActiveTab] = useState<TabKey>(TabKey.Console);
 
   return (
-    <div className='grl-function__debugger'>
-      <div className='grl-function__debugger__panel'>
-        <div className='grl-function__debugger__header'>
+    <div className='h-full border-l border-[var(--grl-color-border)]'>
+      <div className='flex h-full flex-col overflow-hidden bg-[var(--grl-color-bg-elevated)]'>
+        <div className='flex shrink-0 items-center border-b border-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)]'>
           <Tabs
             rootClassName='grl-inline-tabs'
             size='small'
@@ -57,7 +57,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
             }
           />
         </div>
-        <div className='grl-function__debugger__body'>
+        <div className='grow overflow-y-auto'>
           {match(activeTab)
             .with(TabKey.Console, () => (
               <>
@@ -74,7 +74,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
               </>
             ))
             .with(TabKey.Libraries, () => (
-              <div className='grl-function__libraries'>
+              <div className='flex flex-col'>
                 {libraries.map((lib) => (
                   <FunctionLibraryItem
                     key={lib.name}
@@ -115,13 +115,13 @@ const FunctionLibraryItem: React.FC<{
   }, [lib.name, editorValue]);
 
   return (
-    <div key={lib.name} className='grl-function__libraries__item'>
+    <div key={lib.name} className='flex items-center gap-2 border-b border-[var(--grl-color-border-fade)] p-2 no-underline'>
       <img alt='TypeScript Library' src={typeScriptIcon} height={18} />
       <Typography.Text strong>{lib.name}</Typography.Text>
       <Typography.Text type='secondary' style={{ fontSize: 12, marginTop: 1.5 }}>
         {lib.tagline}
       </Typography.Text>
-      <div className='grl-function__libraries__item__actions'>
+      <div className='ml-auto flex gap-2'>
         <Tooltip title='Import library' placement='bottomLeft'>
           <Button
             type='text'

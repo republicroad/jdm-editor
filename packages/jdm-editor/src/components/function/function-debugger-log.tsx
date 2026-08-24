@@ -44,7 +44,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
   const jsonTheme = themes[mode ?? 'light'];
 
   return (
-    <div className='grl-function__debugger__log'>
+    <div className='flex items-start justify-between border-b border-[var(--grl-color-border-fade)] pl-4 pr-6 text-xs leading-[var(--grl-line-height)] text-[var(--grl-color-text-base)] [font-family:var(--mono-font-family)]'>
       <Dropdown
         trigger={['contextMenu']}
         menu={{
@@ -104,7 +104,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
           })}
         </div>
       </Dropdown>
-      <div className='grl-function__debugger__log__time'>
+      <div className='pt-[1ch] opacity-50'>
         {msSinceRun !== null && <Tooltip title='Time since start of execution of script.'>{msSinceRun}ms</Tooltip>}
       </div>
     </div>

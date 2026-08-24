@@ -122,3 +122,46 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+
+/*
+ * Third-party DOM hooks.
+ *
+ * Rules applied to DOM this library does not own (Monaco line decorations,
+ * react-json-tree internals) are glued on with a class name string passed to a
+ * third-party renderer, so Tailwind utilities cannot be attached. These stay as
+ * real plain-CSS rules (no preprocessor).
+ */
+@layer components {
+  /* Monaco error-line decoration (function editor) */
+  .grl-function__errorLineContent {
+    background: #fff1f0;
+  }
+
+  [data-mode='dark'] .grl-function__errorLineContent {
+    background: #4e3534;
+  }
+
+  /* react-json-tree styling inside the function debugger console */
+  .grl-function__debugger__log__values > ul {
+    display: inline-block;
+  }
+
+  .grl-function__debugger__log__values > ul:first-of-type > li:first-of-type {
+    margin-left: 0 !important;
+  }
+
+  .grl-function__debugger__log__values > li {
+    padding: 0 !important;
+  }
+
+  .grl-function__debugger__log__values li > div + label + span {
+    display: none;
+  }
+
+  .grl-function__debugger__log__values li > div > div {
+    transition: transform 0.25s ease !important;
+    font-size: 0.8em !important;
+    opacity: 0.25;
+    font-family: emoji;
+  }
+}

@@ -11,7 +11,6 @@ import '../../helpers/monaco';
 import { isWasmAvailable } from '../../helpers/wasm';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
 import { FunctionDebugger } from './function-debugger';
-import './function.scss';
 import { variableTypeToTypescript } from './helpers/determine-type';
 import { type FunctionLibrary, functionDefinitions, functionLibraries } from './helpers/libs';
 
@@ -231,8 +230,7 @@ export const Function: React.FC<FunctionProps> = ({
 
   return (
     <div
-      className='grl-function'
-      data-theme={mode}
+      className='relative box-border flex flex-col'
       style={
         {
           'height': '100%',
@@ -243,7 +241,7 @@ export const Function: React.FC<FunctionProps> = ({
         } as any
       }
     >
-      <PanelGroup className='grl-function__content' direction='horizontal' autoSaveId='jdm-editor:function:layout'>
+      <PanelGroup className='flex-1' direction='horizontal' autoSaveId='jdm-editor:function:layout'>
         <Panel defaultSize={70} minSize={50}>
           {previousValue ? (
             <DiffEditor
