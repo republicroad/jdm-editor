@@ -1,0 +1,3 @@
+# bun test 预加载：注册 happy-dom 全局(window/document)，供 @testing-library/react 渲染 hooks
+[test]
+preload = ["./src/setupBunDom.ts"]
