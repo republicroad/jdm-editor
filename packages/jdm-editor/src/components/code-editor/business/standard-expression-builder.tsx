@@ -127,7 +127,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
           {ftType !== 'auto' && (
             <button
-              className='flex shrink-0 cursor-pointer items-center justify-center rounded border border-transparent bg-[#f3f4f6] px-1.5 py-[var(--b-v-padding)] text-[11px] text-[#6b7280] transition-all min-h-[var(--b-height)] enabled:hover:bg-[#e5e7eb] enabled:hover:text-[#374151] disabled:cursor-not-allowed disabled:opacity-50'
+              className='flex shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-1.5 py-[var(--b-v-padding)] text-[11px] text-muted-foreground transition-colors min-h-[var(--b-height)] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
               onClick={() => {
                 if (parsed.kind !== ftType) {
                   const t = ftType;
@@ -161,7 +161,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
     return (
       <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
         <button
-          className='flex shrink-0 cursor-pointer items-center justify-center rounded border border-transparent bg-[#f3f4f6] px-1.5 py-[var(--b-v-padding)] text-[11px] text-[#6b7280] transition-all min-h-[var(--b-height)] enabled:hover:bg-[#e5e7eb] enabled:hover:text-[#374151] disabled:cursor-not-allowed disabled:opacity-50'
+          className='flex shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-1.5 py-[var(--b-v-padding)] text-[11px] text-muted-foreground transition-colors min-h-[var(--b-height)] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
           onClick={() => setIsExprMode(true)}
           disabled={disabled}
           title='Currently: Value. Click for expression mode.'

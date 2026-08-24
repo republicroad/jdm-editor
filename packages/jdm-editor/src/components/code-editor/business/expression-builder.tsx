@@ -43,9 +43,9 @@ const BUILDER_TOKENS: React.CSSProperties = {
 } as React.CSSProperties;
 
 const BUILDER_BG_VARS: React.CSSProperties = {
-  '--bg-light': '#f3f4f6',
-  '--bg-active': '#dbe9fe',
-  '--color-active-text': '#1c4ed8',
+  '--bg-light': 'var(--grl-color-bg-container-disabled)',
+  '--bg-active': 'var(--grl-color-primary-bg)',
+  '--color-active-text': 'var(--grl-color-primary)',
 } as React.CSSProperties;
 
 export type ExpressionBuilderProps = {
@@ -438,17 +438,17 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
 
   const content = (
     <div
-      className='bg-popover'
-      style={{ '--bg-light': '#f3f4f6', '--bg-active': '#dbe9fe', '--color-active-text': '#1c4ed8' } as React.CSSProperties}
+      className='w-full bg-popover'
+      style={{ '--bg-light': 'var(--grl-color-bg-container-disabled)', '--bg-active': 'var(--grl-color-primary-bg)', '--color-active-text': 'var(--grl-color-primary)' } as React.CSSProperties}
     >
       {onKindChange && (
-        <div className='flex gap-2 border-b border-[#f0f0f0] p-3'>
+        <div className='flex gap-1.5 border-b border-border p-2'>
           {VALUE_KINDS.map((t) => (
             <button
               key={t.kind}
               className={clsx(
-                'cursor-pointer rounded-lg border-0 bg-[var(--bg-light)] px-3 py-1.5 text-sm transition-all',
-                t.kind === kind && 'bg-[var(--bg-active)] text-[var(--color-active-text)]',
+                'cursor-pointer rounded-md border-0 bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                t.kind === kind && 'bg-[var(--bg-active)] text-[var(--color-active-text)] hover:bg-[var(--bg-active)] hover:text-[var(--color-active-text)]',
               )}
               onClick={() => onKindChange(t.kind)}
             >
@@ -458,55 +458,55 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
         </div>
       )}
       <div className='flex'>
-        <div className='grid shrink-0 grid-cols-2 gap-2 p-3'>
+        <div className='grid shrink-0 grid-cols-2 gap-1.5 p-2.5'>
           {grid.map((o) => {
             const isSel = o.type === operator && !isCustom;
             return (
               <button
                 key={o.type}
                 className={clsx(
-                  'flex h-[72px] w-[90px] cursor-pointer flex-col items-center justify-center rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] transition-all hover:bg-[var(--bg-light)]',
-                  isSel && 'border-[#bfdbfe] bg-[var(--bg-active)]',
+                  'flex h-[72px] w-[92px] cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-card transition-all hover:border-[var(--grl-color-primary-border)] hover:bg-[var(--bg-active)]',
+                  isSel && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)]',
                 )}
                 onClick={() => pick(o.type)}
               >
-                <OpIcon op={o} size={20} className='mb-1 text-[#374151]' />
-                <span className='text-[11px] text-[#9ca3af]'>{o.label}</span>
+                <OpIcon op={o} size={20} className={clsx('mb-1 text-foreground', isSel && 'text-[var(--color-active-text)]')} />
+                <span className={clsx('text-[11px] text-muted-foreground', isSel && 'font-medium text-[var(--color-active-text)]')}>{o.label}</span>
               </button>
             );
           })}
           {onCustomToggle && (
             <button
               className={clsx(
-                'col-span-2 flex h-12 w-auto cursor-pointer flex-row items-center justify-center gap-2 rounded-[10px] border border-[#e5e7eb] bg-[#fafbfc] transition-all hover:bg-[var(--bg-light)]',
-                isCustom && 'border-[#bfdbfe] bg-[var(--bg-active)]',
+                'col-span-2 flex h-12 w-auto cursor-pointer flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card transition-all hover:border-[var(--grl-color-primary-border)] hover:bg-[var(--bg-active)]',
+                isCustom && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)]',
               )}
               onClick={() => {
                 onCustomToggle();
                 setOpen(false);
               }}
             >
-              <SquareFunctionIcon size={20} className='mb-0 text-[#374151]' />
-              <span className='text-[11px] text-[#9ca3af]'>custom</span>
+              <SquareFunctionIcon size={20} className='mb-0 text-foreground' />
+              <span className='text-[11px] text-muted-foreground'>custom</span>
             </button>
           )}
         </div>
         {list.length > 0 && (
-          <div className='flex min-w-[170px] flex-1 flex-col border-l border-[#f0f0f0] bg-[#f9fafb] p-3'>
+          <div className='flex min-w-[170px] flex-1 flex-col border-l border-border bg-muted/40 p-2.5'>
             <input
-              className='mb-2 w-full rounded-lg border border-[#e5e7eb] px-3 py-2 text-[13px] outline-none transition-all placeholder:text-[#9ca3af] focus:border-[#bfdbfe]'
+              className='mb-1.5 w-full rounded-md border border-input bg-transparent px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30'
               placeholder='Search...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className='flex max-h-[200px] flex-col gap-0.5 overflow-y-auto'>
+            <div className='flex max-h-[208px] flex-col gap-0.5 overflow-y-auto'>
               {filtered.map((o) => {
                 const isSel = o.type === operator && !isCustom;
                 return (
                   <button
                     key={o.type}
                     className={clsx(
-                      'flex w-full cursor-pointer items-center gap-2.5 rounded-md border-0 bg-transparent px-2 py-2 text-left transition-all hover:bg-[var(--bg-light)]',
+                      'flex w-full cursor-pointer items-center gap-2.5 rounded-md border-0 bg-transparent px-2 py-1.5 text-left transition-colors hover:bg-accent',
                       isSel && 'bg-[var(--bg-active)]',
                     )}
                     onClick={() => pick(o.type)}
@@ -514,13 +514,13 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
                     <OpIcon
                       op={o}
                       size={16}
-                      className={clsx('w-5 shrink-0 text-[#6b7280]', isSel && 'text-[var(--color-active-text)]')}
+                      className={clsx('w-5 shrink-0 text-muted-foreground', isSel && 'text-[var(--color-active-text)]')}
                     />
-                    <span className='text-[13px] text-[#374151]'>{o.label}</span>
+                    <span className={clsx('text-xs text-foreground', isSel && 'font-medium text-[var(--color-active-text)]')}>{o.label}</span>
                   </button>
                 );
               })}
-              {!filtered.length && <div className='p-3 text-center text-[12px] text-[#9ca3af]'>No matches</div>}
+              {!filtered.length && <div className='p-3 text-center text-xs text-muted-foreground'>No matches</div>}
             </div>
           </div>
         )}
@@ -541,7 +541,7 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
       arrow={false}
     >
       <button
-        className='inline-flex cursor-pointer items-center justify-center rounded border-0 bg-[var(--bg-light)] px-2 text-[13px] text-[#6e7583] transition-all min-h-[var(--b-height)] min-w-[26px] enabled:hover:bg-[#e5e7eb] disabled:cursor-not-allowed disabled:opacity-50'
+        className='inline-flex cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-2 text-[13px] text-muted-foreground transition-colors min-h-[var(--b-height)] min-w-[26px] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
         disabled={disabled}
       >
         {isCustom ? <SquareFunctionIcon size={14} /> : <OpIcon op={getOp(operator)} size={14} />}
@@ -719,8 +719,8 @@ const ChipInput: React.FC<SimpleInputProps & { options: { v: number; l: string }
         <span
           key={o.v}
           className={clsx(
-            'cursor-pointer select-none rounded border border-[#e5e7eb] bg-transparent px-1.5 py-0.5 text-[11px] font-normal text-[var(--grl-color-text-secondary)] transition-all [font-family:var(--grl-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-light)]',
-            sel.includes(o.v) && 'border-[var(--bg-active)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
+            'cursor-pointer select-none rounded-full border border-border bg-transparent px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors [font-family:var(--grl-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:border-[var(--grl-color-primary-border)] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-active)] [&:hover:not(.active):not(.disabled)]:text-[var(--color-active-text)]',
+            sel.includes(o.v) && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
             disabled && 'cursor-not-allowed opacity-50',
           )}
           onClick={() => toggle(o.v)}
