@@ -124,3 +124,45 @@ CSS 自定义属性)即可满足。只有在需要"**由函数/mixin 参数在�
   构建器模块三件套(它们共享 `_builder-base.scss`),最后是大批量 `dg.scss`/`ce.scss`/`dt.scss`,
   每完成一个 `.scss` 即删除。
 - **终态** → 无 `sass` 依赖、统一样式范式、样式能力零损失。
+
+## 9. 迁移术语与坑点(阅读转换提交时用)
+
+这些词贯穿 SCSS→Tailwind 的转换提交,用来**先判断一段手写 CSS 属于哪一类**,再决定是删除、转工具类,还是保留为纯 CSS。
+
+### 死码 vs 存活交互 UI
+
+- **死码** —— 选择器匹配**不到任何**实际渲染的 DOM 节点,永不生效,删除后**零视觉变化**。
+  示例:构建器 SCSS 里 targeting antd 内部的 `.ant-select-selector`、`.ant-picker-input`、
+  `.ant-popover-inner`——迁移后的 primitives 不再发射这些类。DOM 探针显示所有这些选择器计数为
+  `0`,而组件仍在挂载。
+- **存活交互 UI** —— 真正样式化用户看得见、可操作的元素,并带**伪类/状态**逻辑,改动会改变外观。
+  示例:操作符选择器(`.op-tile`、`.op-row`、`.op-trigger`、`.op-search`)与值标签(`.eb-chip`),
+  各带 `:hover`、`.active`、`.disabled`、`:focus`、`::placeholder` 状态。
+
+要判断某条规则,请**探测真实 DOM**(Playwright 在 story 渲染时统计
+`document.querySelectorAll('.ant-x')`)。计数为 `0` ⇒ 死码;非零 ⇒ 存活。
+
+### 转换存活交互模块时的坑点
+
+1. **逐状态回归。** 一张静态截图不够——必须打开弹层、悬停、点选、搜索、输入,并覆盖**亮/暗**两种主题。
+   每个状态映射为 Tailwind 变体(`hover:`、`disabled:`、`focus:`、`placeholder:`)或条件 `active` 类。
+2. **Portal 作用域。** 弹层/下拉内容渲染在组件根**之外**的 portal 里(Radix 注入 `<body>`),
+   声明在组件根(`.eb`、`.op-dropdown-popover`)上的 CSS 自定义属性**不会**级联进 portal 内容,
+   所以 `--bg-light` / `--bg-active` / `--color-active-text` 这类作用域变量必须在 portal 根上**重申**。
+   这正是 antd 时代要在多处重复声明的原因。
+3. **计算后的 token 链。** 由其它自定义属性用 `calc()` 推导的值——如
+   `--b-height = calc(var(--b-font-size) * var(--b-line-height) + var(--b-v-padding) * 2)`——
+   不能变成工具类,需保留为 CSS 自定义属性(见 §4)。
+4. **跨文件耦合。** 在某个组件上设置的属性可能被**另一个**样式表读取。示例:`builder-code`(构建器
+   SCSS)设置 `--ce-lineHeight` / `--ce-verticalPadding` / `--ce-horizontalPadding`,被 `ce.scss`
+   消费于 `max-height: calc(3px + var(--editorMaxRows) * var(--ce-lineHeight) + …)`。改变代码元素的
+   写法时必须继续导出这些变量。
+
+### 转换存活交互模块的检查清单
+
+1. 探测 DOM,先删真正死码(安全、零视觉变化)。
+2. 保留计算 token 链(`--b-*`、`--bg-*`、`--color-active-text`)为纯 CSS 自定义属性,别转成工具类。
+3. 若子树渲染在 portal 中,在 portal 根上重申作用域变量。
+4. 把每个伪类/侧联状态映射为 Tailwind 变体或条件类。
+5. 把布局/间距/静态色规则扫成 JSX 里的工具类。
+6. 交互式验证(打开、悬停、点选、搜索)+ vitest/typecheck/lint,亮/暗各一遍。

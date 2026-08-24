@@ -139,3 +139,53 @@ preprocessor only where you need **values computed at compile time from function
   plain-CSS hooks), then the intertwined builder module trio (which shares `_builder-base.scss`),
   then the large `dg.scss`/`ce.scss`/`dt.scss` batch, deleting each `.scss` as it converts.
 - **End state** → no `sass` dependency, one styling paradigm, no loss of styling capability.
+
+## 9. Migration vocabulary & hazards (reading the conversion commits)
+
+These terms appear throughout the SCSS→Tailwind conversion commits. They describe **how a chunk of
+hand-written CSS is classified** before you decide whether to delete it, utility-sweep it, or keep it
+as plain CSS.
+
+### Dead code vs. live interactive UI
+
+- **Dead code** — a rule whose selector matches **no** rendered DOM node. It never fires, so removing
+  it is **zero visual change**. Example: the builder SCSS targeted antd internals
+  (`.ant-select-selector`, `.ant-picker-input`, `.ant-popover-inner`) that the migrated primitives no
+  longer emit. A DOM probe showed every one of those selectors matched `0` nodes while the component
+  still mounted.
+- **Live interactive UI** — a rule that genuinely styles elements the user can see and operate, and
+  carries **pseudo-class/state** logic. When you remove or change it the appearance changes. Example:
+  the operator picker (`.op-tile`, `.op-row`, `.op-trigger`, `.op-search`) and the value chips
+  (`.eb-chip`) — each with `:hover`, `.active`, `.disabled`, `:focus`, `::placeholder` states.
+
+To classify a rule, **probe the real DOM** (Playwright: count `document.querySelectorAll('.ant-x')`
+while the story renders). Counts of `0` ⇒ dead; non-zero ⇒ live.
+
+### Hazards when converting a live interactive module
+
+1. **Per-state regression.** A static screenshot is not enough — you must open the popover, hover,
+   select, search and type, in **both light and dark** themes. Each state maps to a Tailwind variant
+   (`hover:`, `disabled:`, `focus:`, `placeholder:`) or a conditional `active` class.
+2. **Portal scoping.** Popover/dropdown content renders in a **portal** outside the component root
+   (Radix portals into `<body>`). CSS custom properties declared on the component root (`.eb,
+   .op-dropdown-popover`) will **not** cascade into portal content, so scoped vars like
+   `--bg-light` / `--bg-active` / `--color-active-text` must be re-declared on the portal root too.
+   This is why antd's build declared them in multiple places.
+3. **Computed token chains.** Values derived with `calc()` from other custom properties — e.g.
+   `--b-height = calc(var(--b-font-size) * var(--b-line-height) + var(--b-v-padding) * 2)` —
+   cannot become Tailwind utilities. They stay as plain CSS custom properties (see §4).
+4. **Cross-file coupling.** A custom property set on one component may be read by a *different*
+   stylesheet. Example: `builder-code` (in the builder SCSS) sets `--ce-lineHeight` /
+   `--ce-verticalPadding` / `--ce-horizontalPadding`, which `ce.scss` consumes in
+   `max-height: calc(3px + var(--editorMaxRows) * var(--ce-lineHeight) + …)`. If you change how the
+   code element is styled you must keep exporting those vars.
+
+### Checklist for converting a live interactive module
+
+1. Probe the DOM; delete the truly-dead selectors first (safe, zero visual change).
+2. Keep computed token chains (`--b-*`, `--bg-*`, `--color-active-text`) as plain CSS custom
+   properties; don't turn them into utilities.
+3. If the subtree renders in a portal, re-declare the scoped vars on the portal root.
+4. Map each pseudo-class / side-activated state to a Tailwind variant or a conditional class.
+5. Sweep the layout/spacing/static-colour rules to utilities in the JSX.
+6. Verify interactively (open, hover, select, search) plus vitest/typecheck/lint, in light **and** dark.
