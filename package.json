@@ -8,6 +8,7 @@
     "typecheck": "lerna run typecheck",
     "lint": "eslint --ext js,ts,jsx,tsx .",
     "lint:fix": "pnpm lint --fix",
+    "lint:compiler": "eslint . --config eslint.react-compiler.mjs",
     "prettier": "prettier --check .",
     "prettier:fix": "pnpm prettier --write",
     "format": "run-s lint prettier",

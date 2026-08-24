@@ -21,6 +21,9 @@ jobs:
       - name: Lint and prettier
         run: pnpm format
 
+      - name: React Compiler readiness (advisory, warning-only)
+        run: pnpm lint:compiler
+
       - name: Build
         run: pnpm build
 

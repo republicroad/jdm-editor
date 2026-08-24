@@ -36,11 +36,12 @@ pnpm exec eslint -c eslint.react-compiler.mjs "packages/jdm-editor/src/**/*.tsx"
   (`babel-plugin-react-compiler`)。可选:切换到 `@vitejs/plugin-react`(babel),或采用 swc 实验通道
   (`@vitejs/plugin-react-swc` ≥4.x 的 `experimental.reactCompiler`)。
 - 运行时条件已满足:React 19.2.8。
-- 建议节奏:①先把 `eslint.react-compiler.mjs` 接入 CI 作 warning,保持违规清零;②待
-  Storybook/Vite 工具链稳定后,在 decision-graph 与 decision-table story 上试用并对比交互
+- 建议节奏:①先把 `eslint.react-compiler.mjs` 接入 CI 作 warning,保持违规清零
+  (**已完成** —— `pnpm lint:compiler` 已作为 advisory 步骤进入 `validate.yaml`,warning 不阻塞);
+  ②待 Storybook/Vite 工具链稳定后,在 decision-graph 与 decision-table story 上试用并对比交互
   profiling。
 
 ## 建议
 
-择机两步走:先 CI warning 化防回潮;再试运行评估收益。预期收益温和(状态层已精细使用 zustand
+择机两步走:先 CI warning 化防回潮(**已于 2026-08 完成**);再试运行评估收益。预期收益温和(状态层已精细使用 zustand
 selector),定位为工程卫生项而非性能杠杆。

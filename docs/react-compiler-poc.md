@@ -39,14 +39,15 @@ directive (or refactor onto `useImperativeHandle`) — one line each.
   `@vitejs/plugin-react`, or adopt the SWC experiment (`experimental.reactCompiler` in
   `@vitejs/plugin-react-swc` ≥4.x).
 - Runtime requirement is satisfied: React 19.2.8.
-- Recommended rollout: enable rule as CI warning now (this config file exists), flip to error once
-  zero violations, then opt the build in behind the SWC flag and A/B render counts on the
-  decision-graph story (nodes re-render count before/after).
+- Recommended rollout: enable rule as CI warning now (**done** — `pnpm lint:compiler` runs in
+  `validate.yaml` as an advisory, warning-only step), flip to error once zero violations, then
+  opt the build in behind the SWC flag and A/B render counts on the decision-graph story
+  (nodes re-render count before/after).
 
 ## Recommendation
 
 Adopt in two steps when convenient: ① wire `eslint.react-compiler.mjs` into CI as warning-only to
-keep violations at zero; ② after the Storybook/Vite toolchain settles, trial the compiler on the
+keep violations at zero (**done**, 2026-08); ② after the Storybook/Vite toolchain settles, trial the compiler on the
 decision-graph + decision-table stories and compare interaction profiling. Expected upside is
 modest (the tree already uses zustand selectors surgically), so treat it as hygiene rather than a
 performance lever.
