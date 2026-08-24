@@ -1280,8 +1280,9 @@ export const Select: React.FC<AntdSelectProps> = ({
         onValueChange={(next) => {
           if (allowClear && next === current) return;
           const option = list.find((item) => String(item.value) === next) ?? ({} as AntdSelectOption);
-          onSelect?.(next, option);
-          onChange?.(next, option);
+          const raw = option.value ?? next;
+          onSelect?.(raw, option);
+          onChange?.(raw, option);
         }}
         disabled={disabled || loading}
       >

@@ -48,6 +48,13 @@ const BUILDER_BG_VARS: React.CSSProperties = {
   '--color-active-text': 'var(--grl-color-primary)',
 } as React.CSSProperties;
 
+// Single-line fields (native input / Radix trigger): fixed compact height,
+// builder side padding and font so every field's box and first-character
+// inset match the autosize textarea.
+const FIELD_COMPACT = 'h-[var(--b-height)]! border-0! px-[var(--b-h-padding)]! py-0! text-[13px]!';
+// Multi/tags native input: auto height, min builder height, side padding.
+const FIELD_AUTO = 'min-h-[var(--b-height)]! h-auto! border-0! px-[var(--b-h-padding)]! text-[13px]! overflow-hidden';
+
 export type ExpressionBuilderProps = {
   value: string;
   onChange: (value: string) => void;
@@ -438,7 +445,7 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
 
   const content = (
     <div
-      className='w-full bg-popover'
+      className='bg-popover'
       style={{ '--bg-light': 'var(--grl-color-bg-container-disabled)', '--bg-active': 'var(--grl-color-primary-bg)', '--color-active-text': 'var(--grl-color-primary)' } as React.CSSProperties}
     >
       {onKindChange && (
@@ -594,7 +601,7 @@ const StrInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
   const commit = () => onChange({ type: 'string', value: text });
   return (
     <AutosizeTextArea
-      className='flex-1 min-w-[40px] p-0! [font-family:inherit] border-0! bg-transparent! text-[var(--b-font-size)]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
+      className='flex-1 min-w-[40px] [font-family:inherit] text-[13px]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
       value={text}
       maxRows={3}
       onChange={(e) => setText(e.target.value)}
@@ -607,7 +614,7 @@ const StrInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
 
 const NumInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <InputNumber
-    className='flex-1 min-w-[40px] p-0!'
+    className={`flex-1 min-w-[40px] ${FIELD_COMPACT}`}
     value={value?.type === 'number' ? value.value : 0}
     onChange={(v) => v !== null && onChange({ type: 'number', value: v })}
     disabled={disabled}
@@ -619,7 +626,7 @@ const NumInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
 
 const BoolInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <Select
-    className='min-w-[50px] h-[var(--b-height)]!'
+    className={`min-w-[50px] flex-1 ${FIELD_COMPACT}`}
     value={value?.type === 'boolean' ? value.value : true}
     onChange={(v) => onChange({ type: 'boolean', value: v })}
     disabled={disabled}
@@ -640,8 +647,8 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
   return (
     <>
       <DatePicker
-        className='min-w-[100px] p-0! h-[var(--b-height)]! min-h-0!'
-        value={dayjs(dateVal)}
+    className={`min-w-[100px] min-h-0! ${FIELD_COMPACT}`}
+    value={dayjs(dateVal)}
         onChange={(d) => d && onChange({ type: 'date', value: d.format('YYYY-MM-DD'), granularity })}
         disabled={disabled}
         variant='borderless'
@@ -649,7 +656,7 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
         allowClear={false}
       />
       <Select
-        className='min-w-[60px] h-[var(--b-height)]!'
+        className={`min-w-[60px] ${FIELD_COMPACT}`}
         value={granularity ?? ''}
         onChange={(g) => onChange({ type: 'date', value: dateVal, granularity: g || undefined })}
         options={GRANULARITIES}
@@ -665,7 +672,7 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
 
 const TimeInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <TimePicker
-    className='min-w-[60px] p-0! h-[var(--b-height)]! min-h-0!'
+    className={`min-w-[60px] min-h-0! ${FIELD_COMPACT}`}
     value={value?.type === 'time' ? dayjs().hour(value.hour).minute(value.minute) : dayjs().hour(9).minute(0)}
     onChange={(t) => t && onChange({ type: 'time', hour: t.hour(), minute: t.minute() })}
     disabled={disabled}
@@ -740,7 +747,7 @@ const ArrayInput: React.FC<SimpleInputProps & { kind: ValueKind }> = ({ value, o
   );
   return (
     <Select
-      className='flex-1 min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
+      className={`flex-1 min-w-0 ${FIELD_AUTO}`}
       mode='tags'
       value={vals}
       onChange={(v: string[]) =>
@@ -767,7 +774,7 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
         {iv.leftInclusive ? '[' : '('}
       </span>
       <InputNumber
-        className='w-[45px] p-0!'
+        className={`w-[45px] ${FIELD_COMPACT}`}
         value={iv.left}
         onChange={(v) => v !== null && upd({ left: v })}
         disabled={disabled}
@@ -777,7 +784,7 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
       />
       <span className='text-muted-foreground'>..</span>
       <InputNumber
-        className='w-[45px] p-0!'
+        className={`w-[45px] ${FIELD_COMPACT}`}
         value={iv.right}
         onChange={(v) => v !== null && upd({ right: v })}
         disabled={disabled}
@@ -803,7 +810,7 @@ const EnumValInput: React.FC<{
   match(operator)
     .with('in', 'notIn', () => (
       <Select
-        className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
+        className={`min-w-0 ${FIELD_AUTO}`}
         mode={loose ? 'tags' : 'multiple'}
         value={value?.type === 'stringArray' ? value.values : []}
         onChange={(v) => onChange({ type: 'stringArray', values: v })}
@@ -821,7 +828,7 @@ const EnumValInput: React.FC<{
     .with('eq', 'neq', () =>
       loose ? (
         <Select
-          className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
+          className={`min-w-0 ${FIELD_AUTO}`}
           mode='tags'
           maxCount={1}
           value={value?.type === 'string' && value.value ? [value.value] : []}
@@ -837,8 +844,8 @@ const EnumValInput: React.FC<{
         />
       ) : (
         <Select
-          className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
-          value={value?.type === 'string' ? value.value : undefined}
+        className={`min-w-0 ${FIELD_COMPACT}`}
+        value={value?.type === 'string' ? value.value : undefined}
           onChange={(v) => onChange({ type: 'string', value: v })}
           options={options}
           disabled={disabled}

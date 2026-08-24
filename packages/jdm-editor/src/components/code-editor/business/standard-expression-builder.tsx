@@ -29,6 +29,11 @@ const BUILDER_TOKENS: React.CSSProperties = {
   '--b-max-height': 'calc(var(--b-height) * var(--b-max-rows))',
 } as React.CSSProperties;
 
+// Single-line fields (native input / Radix trigger): fixed compact height,
+// builder side padding and font so every field matches the autosize textarea.
+const FIELD_COMPACT = 'h-[var(--b-height)]! border-0! px-[var(--b-h-padding)]! py-0! text-[13px]!';
+const FIELD_AUTO = 'min-h-[var(--b-height)]! h-auto! border-0! px-[var(--b-h-padding)]! text-[13px]! overflow-hidden';
+
 export type StandardExpressionBuilderProps = {
   value: string;
   onChange: (value: string) => void;
@@ -170,7 +175,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         </button>
         {ftType === 'string' && !enumOptions && (
           <AutosizeTextArea
-            className='flex-1 min-w-[40px] p-0! [font-family:inherit] border-0! bg-transparent! text-[var(--b-font-size)]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
+            className='flex-1 min-w-[40px] [font-family:inherit] text-[13px]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
             value={parsed.kind === 'string' ? parsed.value : ''}
             maxRows={maxRows}
             onChange={(e) => onChange(formatStringValue((e.target as unknown as { value: string }).value))}
@@ -179,7 +184,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'string' && enumOptions && (
           <Select
-            className='min-w-[50px] h-[var(--b-height)]! flex-1'
+            className={`min-w-[50px] flex-1 ${FIELD_COMPACT}`}
             value={parsed.kind === 'string' ? parsed.value : undefined}
             onChange={(v) => onChange(formatStringValue(v))}
             disabled={disabled}
@@ -194,7 +199,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'string-array' && (
           <Select
-            className='flex-1 min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
+            className={`flex-1 min-w-0 ${FIELD_AUTO}`}
             mode={enumOptions && !enumOptions.loose ? 'multiple' : 'tags'}
             value={parseStringArrayValue(value)}
             onChange={(v: string[]) => onChange(formatStringArrayValue(v))}
@@ -210,7 +215,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'number' && (
           <InputNumber
-            className='flex-1 min-w-[40px] p-0!'
+            className={`flex-1 min-w-[40px] ${FIELD_COMPACT}`}
             value={parsed.kind === 'number' ? parsed.value : 0}
             onChange={(v) => onChange(String(v ?? 0))}
             disabled={disabled}
@@ -220,7 +225,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'boolean' && (
           <Select
-            className='min-w-[50px] h-[var(--b-height)]! flex-1'
+            className={`min-w-[50px] flex-1 ${FIELD_COMPACT}`}
             value={parsed.kind === 'boolean' ? parsed.value : true}
             onChange={(v) => onChange(String(v))}
             disabled={disabled}
@@ -236,7 +241,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
         )}
         {ftType === 'date' && (
           <DatePicker
-            className='flex-1 min-w-[80px] p-0! h-[var(--b-height)]! min-h-0!'
+            className={`flex-1 min-w-[80px] min-h-0! ${FIELD_COMPACT}`}
             value={(() => {
               const dateStr = parsed.kind === 'date' ? parsed.value : null;
               return dateStr && dayjs(dateStr).isValid() ? dayjs(dateStr) : dayjs();
