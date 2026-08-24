@@ -21,6 +21,15 @@ import './standard-expression-builder.scss';
 
 export type { OutputFieldType };
 
+const BUILDER_TOKENS: React.CSSProperties = {
+  '--b-font-size': '13px',
+  '--b-line-height': '1.5',
+  '--b-v-padding': '2px',
+  '--b-h-padding': '4px',
+  '--b-height': 'calc(var(--b-font-size) * var(--b-line-height) + var(--b-v-padding) * 2)',
+  '--b-max-height': 'calc(var(--b-height) * var(--b-max-rows))',
+} as React.CSSProperties;
+
 export type StandardExpressionBuilderProps = {
   value: string;
   onChange: (value: string) => void;
@@ -89,7 +98,7 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
     const rootRef = useRef<HTMLDivElement>(null);
     const dictionaries = useDictionaries();
     const ftType = fieldType?.type ?? 'auto';
-    const styleVars = { '--b-max-rows': maxRows } as React.CSSProperties;
+    const styleVars = { ...BUILDER_TOKENS, '--b-max-rows': maxRows } as React.CSSProperties;
 
     useImperativeHandle(ref, () => ({
       focus: () => focusBuilderRoot(rootRef.current),
@@ -116,10 +125,10 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
 
     if (ftType === 'auto' || isExprMode || forceExprMode) {
       return (
-        <div ref={rootRef} className='seb' style={styleVars}>
+        <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
           {ftType !== 'auto' && (
             <button
-              className='seb-mode-btn'
+              className='flex shrink-0 cursor-pointer items-center justify-center rounded border border-transparent bg-[#f3f4f6] px-1.5 py-[var(--b-v-padding)] text-[11px] text-[#6b7280] transition-all min-h-[var(--b-height)] enabled:hover:bg-[#e5e7eb] enabled:hover:text-[#374151] disabled:cursor-not-allowed disabled:opacity-50'
               onClick={() => {
                 if (parsed.kind !== ftType) {
                   const t = ftType;
@@ -137,7 +146,8 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
             </button>
           )}
           <CodeEditorBase
-            className='seb-code'
+            className='min-w-[40px] flex-1 max-h-[var(--b-max-height)] overflow-y-auto'
+            style={{ '--ce-lineHeight': 'var(--b-line-height)', '--ce-verticalPadding': 'var(--b-v-padding)', '--ce-horizontalPadding': 'var(--b-h-padding)' } as React.CSSProperties}
             value={value}
             onChange={onChange}
             type='standard'
@@ -150,9 +160,9 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
     }
 
     return (
-      <div ref={rootRef} className='seb' style={styleVars}>
+      <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
         <button
-          className='seb-mode-btn'
+          className='flex shrink-0 cursor-pointer items-center justify-center rounded border border-transparent bg-[#f3f4f6] px-1.5 py-[var(--b-v-padding)] text-[11px] text-[#6b7280] transition-all min-h-[var(--b-height)] enabled:hover:bg-[#e5e7eb] enabled:hover:text-[#374151] disabled:cursor-not-allowed disabled:opacity-50'
           onClick={() => setIsExprMode(true)}
           disabled={disabled}
           title='Currently: Value. Click for expression mode.'
