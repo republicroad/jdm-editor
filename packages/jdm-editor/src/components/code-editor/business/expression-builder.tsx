@@ -31,8 +31,22 @@ import type { ColumnFieldType } from '../../../helpers/schema';
 import { type DictionaryMap, useDictionaries } from '../../../theme';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { CodeEditorBase } from '../ce-base';
-import './expression-builder.scss';
 import { focusBuilderRoot } from './focus-helper';
+
+const BUILDER_TOKENS: React.CSSProperties = {
+  '--b-font-size': '13px',
+  '--b-line-height': '1.5',
+  '--b-v-padding': '2px',
+  '--b-h-padding': '4px',
+  '--b-height': 'calc(var(--b-font-size) * var(--b-line-height) + var(--b-v-padding) * 2)',
+  '--b-max-height': 'calc(var(--b-height) * var(--b-max-rows))',
+} as React.CSSProperties;
+
+const BUILDER_BG_VARS: React.CSSProperties = {
+  '--bg-light': '#f3f4f6',
+  '--bg-active': '#dbe9fe',
+  '--color-active-text': '#1c4ed8',
+} as React.CSSProperties;
 
 export type ExpressionBuilderProps = {
   value: string;
@@ -273,7 +287,7 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
   ({ value, onChange, disabled = false, fieldType, maxRows = 3 }, ref) => {
     const rootRef = useRef<HTMLDivElement>(null);
     const dictionaries = useDictionaries();
-    const styleVars = { '--b-max-rows': maxRows } as React.CSSProperties;
+    const styleVars = { ...BUILDER_TOKENS, ...BUILDER_BG_VARS, '--b-max-rows': maxRows } as React.CSSProperties;
 
     useImperativeHandle(ref, () => ({
       focus: () => focusBuilderRoot(rootRef.current),
@@ -350,10 +364,11 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
 
     if (isCustom || forceCustom || expr.kind === 'complex') {
       return (
-        <div ref={rootRef} className='eb' style={styleVars}>
+        <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
           <OpDropdown {...dropdownProps} isCustom />
           <CodeEditorBase
-            className='eb-code'
+            className='min-w-[40px] flex-1 max-h-[var(--b-max-height)] overflow-y-auto'
+            style={{ '--ce-lineHeight': 'var(--b-line-height)', '--ce-verticalPadding': 'var(--b-v-padding)', '--ce-horizontalPadding': 'var(--b-h-padding)' } as React.CSSProperties}
             value={value}
             onChange={onChange}
             type='unary'
@@ -368,10 +383,10 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
 
     const op = expr.operator.type;
     return (
-      <div ref={rootRef} className='eb' style={styleVars}>
+      <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
         <OpDropdown {...dropdownProps} operator={op} />
         {NO_VALUE_OPS.includes(op) ? (
-          op !== 'any' && <span className='eb-label'>{getOp(op).label}</span>
+          op !== 'any' && <span className='text-xs leading-[var(--b-height)] text-[var(--grl-color-text-secondary)]'>{getOp(op).label}</span>
         ) : isEnum ? (
           <EnumValInput
             value={expr.value}
@@ -523,7 +538,6 @@ const OpDropdown: React.FC<OpDropdownProps> = ({
         if (!v) setSearch('');
       }}
       placement='bottomLeft'
-      overlayClassName='op-dropdown-popover'
       arrow={false}
     >
       <button
@@ -580,7 +594,7 @@ const StrInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
   const commit = () => onChange({ type: 'string', value: text });
   return (
     <AutosizeTextArea
-      className='eb-input'
+      className='flex-1 min-w-[40px] p-0! [font-family:inherit] border-0! bg-transparent! text-[var(--b-font-size)]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
       value={text}
       maxRows={3}
       onChange={(e) => setText(e.target.value)}
@@ -593,7 +607,7 @@ const StrInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
 
 const NumInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <InputNumber
-    className='eb-number'
+    className='flex-1 min-w-[40px] p-0!'
     value={value?.type === 'number' ? value.value : 0}
     onChange={(v) => v !== null && onChange({ type: 'number', value: v })}
     disabled={disabled}
@@ -605,7 +619,7 @@ const NumInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
 
 const BoolInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <Select
-    className='eb-select'
+    className='min-w-[50px] h-[var(--b-height)]!'
     value={value?.type === 'boolean' ? value.value : true}
     onChange={(v) => onChange({ type: 'boolean', value: v })}
     disabled={disabled}
@@ -626,7 +640,7 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
   return (
     <>
       <DatePicker
-        className='eb-date'
+        className='min-w-[100px] p-0! h-[var(--b-height)]! min-h-0!'
         value={dayjs(dateVal)}
         onChange={(d) => d && onChange({ type: 'date', value: d.format('YYYY-MM-DD'), granularity })}
         disabled={disabled}
@@ -635,7 +649,7 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
         allowClear={false}
       />
       <Select
-        className='eb-granularity'
+        className='min-w-[60px] h-[var(--b-height)]!'
         value={granularity ?? ''}
         onChange={(g) => onChange({ type: 'date', value: dateVal, granularity: g || undefined })}
         options={GRANULARITIES}
@@ -651,7 +665,7 @@ const DateInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) =>
 
 const TimeInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => (
   <TimePicker
-    className='eb-time'
+    className='min-w-[60px] p-0! h-[var(--b-height)]! min-h-0!'
     value={value?.type === 'time' ? dayjs().hour(value.hour).minute(value.minute) : dayjs().hour(9).minute(0)}
     onChange={(t) => t && onChange({ type: 'time', hour: t.hour(), minute: t.minute() })}
     disabled={disabled}
@@ -700,11 +714,15 @@ const ChipInput: React.FC<SimpleInputProps & { options: { v: number; l: string }
     if (next.length) onChange({ type: 'intArray', values: next });
   };
   return (
-    <div className='eb-chips'>
+    <div className='flex flex-wrap items-center gap-1 min-h-[var(--b-height)]'>
       {options.map((o) => (
         <span
           key={o.v}
-          className={clsx('eb-chip', { active: sel.includes(o.v), disabled })}
+          className={clsx(
+            'cursor-pointer select-none rounded border border-[#e5e7eb] bg-transparent px-1.5 py-0.5 text-[11px] font-normal text-[var(--grl-color-text-secondary)] transition-all [font-family:var(--grl-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-light)]',
+            sel.includes(o.v) && 'border-[var(--bg-active)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
+            disabled && 'cursor-not-allowed opacity-50',
+          )}
           onClick={() => toggle(o.v)}
         >
           {o.l}
@@ -722,7 +740,7 @@ const ArrayInput: React.FC<SimpleInputProps & { kind: ValueKind }> = ({ value, o
   );
   return (
     <Select
-      className='eb-tags'
+      className='flex-1 min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
       mode='tags'
       value={vals}
       onChange={(v: string[]) =>
@@ -744,12 +762,12 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
   const iv = value?.type === 'interval' ? value : { left: 0, right: 100, leftInclusive: true, rightInclusive: true };
   const upd = (p: Partial<typeof iv>) => onChange({ type: 'interval', ...iv, ...p });
   return (
-    <div className='eb-interval'>
-      <span className='eb-bracket' onClick={() => !disabled && upd({ leftInclusive: !iv.leftInclusive })}>
+    <div className='flex flex-1 items-center gap-0.5 min-h-[var(--b-height)]'>
+      <span className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70' onClick={() => !disabled && upd({ leftInclusive: !iv.leftInclusive })}>
         {iv.leftInclusive ? '[' : '('}
       </span>
       <InputNumber
-        className='eb-interval-num'
+        className='w-[45px] p-0!'
         value={iv.left}
         onChange={(v) => v !== null && upd({ left: v })}
         disabled={disabled}
@@ -759,7 +777,7 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
       />
       <span className='text-muted-foreground'>..</span>
       <InputNumber
-        className='eb-interval-num'
+        className='w-[45px] p-0!'
         value={iv.right}
         onChange={(v) => v !== null && upd({ right: v })}
         disabled={disabled}
@@ -767,7 +785,7 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
         size='small'
         controls={false}
       />
-      <span className='eb-bracket' onClick={() => !disabled && upd({ rightInclusive: !iv.rightInclusive })}>
+      <span className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70' onClick={() => !disabled && upd({ rightInclusive: !iv.rightInclusive })}>
         {iv.rightInclusive ? ']' : ')'}
       </span>
     </div>
@@ -785,7 +803,7 @@ const EnumValInput: React.FC<{
   match(operator)
     .with('in', 'notIn', () => (
       <Select
-        className='eb-enum'
+        className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
         mode={loose ? 'tags' : 'multiple'}
         value={value?.type === 'stringArray' ? value.values : []}
         onChange={(v) => onChange({ type: 'stringArray', values: v })}
@@ -803,7 +821,7 @@ const EnumValInput: React.FC<{
     .with('eq', 'neq', () =>
       loose ? (
         <Select
-          className='eb-enum'
+          className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
           mode='tags'
           maxCount={1}
           value={value?.type === 'string' && value.value ? [value.value] : []}
@@ -819,7 +837,7 @@ const EnumValInput: React.FC<{
         />
       ) : (
         <Select
-          className='eb-enum'
+          className='min-w-0 min-h-[var(--b-height)]! h-auto! overflow-hidden'
           value={value?.type === 'string' ? value.value : undefined}
           onChange={(v) => onChange({ type: 'string', value: v })}
           options={options}
