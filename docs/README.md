@@ -29,7 +29,7 @@
 | [`styling-scss-vs-tailwind.md`](./styling-scss-vs-tailwind.md) | EN | SCSS vs Tailwind comparison & decision guide: utility classes, build-time scanning, runtime data-driven coloring, plain-CSS boundary, SCSS applicable scenarios, migration target |
 | [`styling-scss-vs-tailwind.zh-CN.md`](./styling-scss-vs-tailwind.zh-CN.md) | 中文 | SCSS 与 Tailwind 对比与选型指南(中文对照):工具类、构建时扫描、运行时数据驱动着色、纯 CSS 边界、SCSS 适用场景、迁移目标 |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
-| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题等 |
+| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题等 |
 
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。

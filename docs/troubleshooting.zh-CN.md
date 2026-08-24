@@ -80,3 +80,83 @@ contenteditable 单元格、图标、把手)。持续的布局/绘制工作把�
 - **短超时的 `page.evaluate('1+1')` 是最便宜的忙循环探测器**,专治
   冻结的渲染进程。
 - 不要相信*哪个*用例失败——要相信*总共花了多久*。
+
+## 2. 布尔下拉"无法选择":静默不生效
+
+**日期:** 2026-08 · **修复提交:** `d9773f7`(布尔反强转;清除按钮语义另见 `b6f70c0`)
+
+### 现象
+
+表达式构建器的布尔字段里,值下拉能正常打开并显示 `true` / `false` 两项,
+但点选 `false` **毫无反应**:触发器仍显示 `true`,表达式预览仍是 `true`,
+弹层甚至不关闭。同为字符串值的枚举下拉(状态 `Pending → Cancelled`)走
+同一个组件一切正常;问题又恰好在 SCSS→Tailwind 改版后的人工验收中被
+发现——起初很像迁移引入的回归。
+
+### 排查时间线
+
+1. **对故障故事做 DOM 探针。** 弹层渲染出 2 个未禁用选项;点击
+   `false` 后 `[data-slot="select-content"]` 依然挂载、触发器文本不变。
+   Radix *成功*选中时会关闭 popper——说明这次点击根本没被登记为选中。
+2. **对照实验。** enum-type 故事经同一个 primitive `Select` 选择正常
+   ⇒ 基本链路是通的;问题特定于布尔这种**值类型**。
+3. **加仪表的探针。** 先用 `elementFromPoint` 验证选项中心的最顶层元素
+   就是选项自身(排除遮挡/z-index 拦截),再用真实鼠标坐标点击,这次
+   挂上 `pageerror` 监听:
+
+   ```
+   Error: invalid type: string "false", expected a boolean
+   ```
+
+### 根因
+
+shim 出来的 primitive `Select` 把 antd 风格的 props 映射到 Radix,而
+Radix 只认字符串:无论选项声明的值是什么类型,`onValueChange` 收到的都是
+`"false"`。处理器把这个被强转的字符串原样转发:
+
+```tsx
+onSelect?.(next, option);
+onChange?.(next, option);          // next = 'false' —— 字符串!
+```
+
+于是 `BoolInput` 存进了 `{type:'boolean', value:'false'}`——布尔类型字段
+里塞了个字符串。下一次序列化时 zen-engine 抛错,更新链条中断:状态不提
+交、不重渲染、弹层保持打开。错误只在控制台可见、UI 上毫无提示,所以表现
+成"下拉不能选"。字符串值选项掩盖了该 bug(字符串→字符串无损)。这是
+**既有缺陷**,与样式迁移无关——只是被人工验收暴露了。
+
+### 修复
+
+`primitives.tsx` —— 按 antd 契约回传匹配选项的原始类型值:
+
+```tsx
+const option = list.find((item) => String(item.value) === next)
+  ?? ({} as AntdSelectOption);
+const raw = option.value ?? next;   // `??` 保住 false;仅未匹配时才回落
+onSelect?.(raw, option);
+onChange?.(raw, option);
+```
+
+改语义前先审计了所有调用点:只有 `BoolInput` 传非字符串选项值;
+granularity/枚举下拉均为字符串;`DAYS`/`QUARTERS` 走自定义 chip UI,
+不经 `Select`。没有任何消费方依赖收到字符串化后的值。
+
+### 验证
+
+- 修复后探针:点击 `false` 后弹层关闭、触发器显示 `false`、表达式预览
+  更新——表达式构建器与标准构建器的布尔故事均如此,零页面错误。
+- 全套门禁:typecheck 0 · lint 通过 · vitest 86/86 · 静态套件 55/55。
+
+### 经验 / 检查清单
+
+- **Radix Select 只传输字符串。** 任何 antd 兼容 shim 都必须在调用
+  `onChange`/`onSelect` 前通过匹配选项把值"反强转"回来,否则数字和布尔
+  选项会悄悄污染下游状态。
+- **"能打开但选不上" ⇒ 先看弹层关不关。** 不关闭说明点击没成为选中;
+  先挂 `pageerror` 监听,再怀疑 CSS、z-index 或指针事件。
+- **类型不匹配会在离输入很远的地方爆炸。** 错误类型的值一路穿过 React
+  状态,直到 Rust 序列化器才炸——每个 DOM 探针都应带上
+  console/pageerror 捕获。
+- **样式迁移后立刻出现功能 bug 时,先跑一个兄弟组件对照。** 一个通过
+  的对照(枚举下拉)一步就把问题从"迁移弄坏了 Select"收窄到
+  "非字符串值会坏"。

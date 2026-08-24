@@ -87,3 +87,96 @@ Continuous layout/paint work pegged the renderer main thread indefinitely.
 - **`page.evaluate('1+1')` with a short timeout is the cheapest busy-loop
   detector** for a frozen renderer.
 - Don't trust *which* test fails — trust *how long* everything took.
+
+## 2. Boolean dropdown silently refuses to change value
+
+**Date:** 2026-08 · **Fixed in:** `d9773f7` (boolean un-coercion; clear-button semantics in `b6f70c0`)
+
+### Symptom
+
+In the expression builder's boolean field, the value dropdown opened and
+showed both `true` / `false` options, but picking `false` did **nothing**:
+the trigger kept showing `true`, the expression preview stayed `true`, and
+the popup didn't even close. String-valued selects (status
+`Pending → Cancelled`) worked fine through the same component, and the bug
+was noticed right after the SCSS→Tailwind restyle — so it initially looked
+like a migration regression.
+
+### Investigation timeline
+
+1. **DOM probe of the failing story.** The dropdown rendered 2 enabled
+   options; clicking `false` left `[data-slot="select-content"]` still
+   mounted and the trigger text unchanged. A *successful* Radix selection
+   closes the popper, so the click was never registering as a selection.
+2. **Control experiment.** The enum-type story selects fine through the
+   same primitive `Select` ⇒ basic wiring works; something about the
+   boolean *values* specifically.
+3. **Instrumented probe.** Re-clicked via `elementFromPoint`-verified mouse
+   coordinates (topmost element at the option center was the item itself,
+   ruling out overlay/z-index interception) — this time with a
+   `pageerror` listener attached:
+
+   ```
+   Error: invalid type: string "false", expected a boolean
+   ```
+
+### Root cause
+
+The shimmed primitive `Select` maps antd-style props onto Radix, and Radix
+only ever speaks strings: `onValueChange` delivered `"false"` regardless of
+the option's declared value. The handler forwarded that coerced string
+verbatim:
+
+```tsx
+onSelect?.(next, option);
+onChange?.(next, option);          // next = 'false' — string!
+```
+
+so `BoolInput` stored `{type:'boolean', value:'false'}` — a string inside a
+boolean-typed field. The zen-engine serializer threw on the next serialize,
+aborting the update chain: no state commit, no re-render, popup stays open.
+The error was invisible in the UI (console-only), which is why it presented
+as "dropdown can't select". String-valued options masked the bug because
+string→string coercion is lossless. **Pre-existing**, unrelated to the
+styling work — surfaced by manual acceptance testing.
+
+### Fix
+
+`primitives.tsx` — emit the matched option's original value, per antd
+contract:
+
+```tsx
+const option = list.find((item) => String(item.value) === next)
+  ?? ({} as AntdSelectOption);
+const raw = option.value ?? next;   // `??` keeps false; falls back only if unmatched
+onSelect?.(raw, option);
+onChange?.(raw, option);
+```
+
+Call-site audit before changing semantics: only `BoolInput` passes
+non-string option values; granularity/enum selects use strings;
+`DAYS`/`QUARTERS` feed the custom chip UI, not `Select`. No consumer relied
+on receiving the stringified form.
+
+### Verification
+
+- Probe after fix: clicking `false` closes the popup, trigger shows
+  `false`, expression preview updates — in both the expression builder and
+  the standard builder boolean stories, zero page errors.
+- Full gates: typecheck 0 · lint clean · vitest 86/86 · static suite 55/55.
+
+### Lessons / checklist
+
+- **Radix Select only transmits strings.** Any antd-compatible shim must
+  un-coerce through the matched option before calling `onChange`/`onSelect`
+  — otherwise numeric and boolean options corrupt downstream state.
+- **"Opens but won't select" ⇒ check whether the popup closes.** If it
+  doesn't close, the click never became a selection; attach a `pageerror`
+  listener before suspecting CSS, z-index, or pointer events.
+- **Type mismatches fail far from the input.** A wrong-typed value sailed
+  through React state and only exploded in the Rust serializer — keep
+  console/pageerror capture in every DOM probe.
+- **When a functional bug appears right after a styling migration, run a
+  control on a sibling first.** One passing control (enum select) split the
+  problem from "migration broke Selects" to "non-string values break", in
+  one step.
