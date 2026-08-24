@@ -253,7 +253,9 @@ export const StressTest: Story = {
           height: '100%',
         }}
       >
-        <DecisionTable {...args} value={value} onChange={setValue} tableHeight='100%' />
+        {/* Absolute height unit keeps the virtualizer window bounded even
+            when the Storybook iframe provides no resolved ancestor height. */}
+        <DecisionTable {...args} value={value} onChange={setValue} tableHeight='90vh' />
       </div>
     );
   },
