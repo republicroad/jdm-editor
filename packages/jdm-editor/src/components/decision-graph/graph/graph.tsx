@@ -1,5 +1,5 @@
 import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@/icons';
-import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport, XYPosition } from '@xyflow/react';
+import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport } from '@xyflow/react';
 import {
   Background,
   ControlButton,
@@ -13,13 +13,10 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { App, Button, Typography } from '../../primitives';
-import { toast } from 'sonner';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { P, match } from 'ts-pattern';
 
-import { nodeSchema } from '../../../helpers/schema';
 import {
   type DecisionGraphStoreType,
   type ExposedStore,
@@ -29,19 +26,19 @@ import {
   useDecisionGraphReferences,
   useDecisionGraphState,
 } from '../context/dg-store.context';
-import { type DecisionGraphSnapshot, useGraphSerializer, useSerializerRegistry } from '../context/serializer.context';
+import { type DecisionGraphSnapshot, useSerializerRegistry } from '../context/serializer.context';
 import { edgeFunction } from '../custom-edge';
-import { type DecisionNode } from '../dg-types';
 import { mapToDecisionEdge } from '../dg-util';
-import { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
+import { useGraphClipboard } from '../hooks/use-graph-clipboard';
+import { useGraphDnd } from '../hooks/use-graph-dnd';
+import { componentsOpenedKey, useGraphSerializers } from '../hooks/use-graph-serializers';
+import { useNodeAdd } from '../hooks/use-node-add';
 import { GraphNode } from '../nodes/graph-node';
 import type { MinimalNodeProps } from '../nodes/specifications/specification-types';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
-
-type TabsSlice = { openTabs: string[]; activeTab: string };
 
 export type GraphProps = {
   className?: string;
@@ -75,8 +72,6 @@ const defaultNodeTypes = Object.entries(nodeSpecification).reduce(
 const edgeTypes = {
   edge: React.memo(edgeFunction(null)),
 };
-
-const componentsOpenedKey = 'jdm-components-opened';
 
 export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reactFlowProOptions, className }, ref) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -179,81 +174,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     );
   }, [components, customNodeRenderer]);
 
-  const addNodeInner = async (type: string, position?: XYPosition, component?: string) => {
-    if (!reactFlowWrapper.current || !reactFlowInstance.current) {
-      return;
-    }
-
-    if (!position) {
-      const rect = reactFlowWrapper.current.getBoundingClientRect();
-      const rectCenter = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      };
-
-      position = reactFlowInstance.current.screenToFlowPosition(rectCenter);
-    }
-
-    const customSpecification = match(type)
-      .with('customNode', () => customNodes.find((node) => node.kind === component))
-      .otherwise(() => {
-        const allSpecifications = [...Object.values(nodeSpecification), ...components];
-        return allSpecifications.find((s) => s.type === type);
-      });
-    if (!customSpecification) {
-      toast.error(`Unknown node type ${type} - ${component}.`);
-      return;
-    }
-
-    let newNode: DecisionNode | null = match(customSpecification)
-      .with({ kind: P.string }, (specification) => {
-        const existingCount =
-          (reactFlowInstance.current?.getNodes() || []).filter((n) => n.data?.kind === specification.kind).length + 1;
-
-        const partialNode = specification.generateNode({ index: existingCount });
-        return {
-          id: crypto.randomUUID(),
-          type: 'customNode',
-          name: partialNode.name,
-          position: position as XYPosition,
-          content: {
-            kind: specification.kind,
-            config: partialNode?.config,
-          },
-        } satisfies DecisionNode;
-      })
-      .with({ type: P.string }, (specification) => {
-        const existingCount =
-          (reactFlowInstance.current?.getNodes() || []).filter((n) => n.type === specification.type).length + 1;
-        const partialNode = specification.generateNode({ index: existingCount });
-
-        return {
-          id: crypto.randomUUID(),
-          type: specification.type,
-          position: position as XYPosition,
-          ...partialNode,
-        } satisfies DecisionNode;
-      })
-      .otherwise(() => null);
-    if (!newNode) {
-      toast.error(`Unknown node type ${type} - ${component}.`);
-      return;
-    }
-
-    if (customSpecification.onNodeAdd) {
-      try {
-        newNode = await customSpecification.onNodeAdd(newNode);
-      } catch {
-        return;
-      }
-    }
-
-    const parsed = nodeSchema.safeParse(newNode);
-    if (parsed.success) {
-      return graphActions.addNodes([nodeSchema.parse(newNode)]);
-    }
-    toast.error(parsed.error?.message);
-  };
+  const addNodeInner = useNodeAdd({
+    reactFlowWrapper,
+    reactFlowInstance,
+    customNodes,
+    components,
+    addNodes: graphActions.addNodes,
+  });
 
   const isValidConnection = (connection: Connection | Edge): boolean => {
     // Disallow self-reference
@@ -297,54 +224,12 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     return !hasDuplicate && !hasCycle(target);
   };
 
-  const onDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!reactFlowWrapper.current || !reactFlowInstance.current) {
-      return;
-    }
-
-    let elementPosition: XYPosition;
-
-    try {
-      elementPosition = JSON.parse(event.dataTransfer.getData('relativePosition'));
-    } catch {
-      return;
-    }
-
-    const position = reactFlowInstance.current.screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    }) as XYPosition;
-
-    position.x -= Math.round((elementPosition.x * 226) / 10) * 10;
-    position.y -= Math.round((elementPosition.y * 60) / 10) * 10;
-
-    const nodeData = event.dataTransfer.getData('nodeData');
-    if (nodeData) {
-      try {
-        const jsonData = JSON.parse(nodeData);
-        graphActions.addNodes([nodeSchema.parse({ ...jsonData, position })]);
-      } catch (err) {
-        toast.error('Failed to create a node');
-        console.error(err);
-      }
-
-      return;
-    }
-
-    const type = event.dataTransfer.getData('nodeType');
-    const component = match(event.dataTransfer.getData('customNodeComponent'))
-      .with(P.string, (c) => c)
-      .otherwise(() => undefined);
-
-    void addNodeInner(type, position, component);
-  };
-
-  const onDragOver = (event: any) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  };
+  const { onDrop, onDragOver } = useGraphDnd({
+    reactFlowWrapper,
+    reactFlowInstance,
+    addNodes: graphActions.addNodes,
+    addNode: addNodeInner,
+  });
 
   const onConnect = (params: any) => {
     const edge = {
@@ -357,32 +242,14 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
     graphActions.addEdges([mapToDecisionEdge(edge)]);
   };
 
-  useGraphSerializer<Viewport>('viewport', {
-    serialize: () => reactFlowInstance.current?.getViewport() ?? { x: 0, y: 0, zoom: 1 },
-    restore: (viewport) => {
-      if (!viewport) return;
+  useGraphSerializers({
+    reactFlowInstance,
+    onRestoreViewport: (viewport) => {
       initialViewport.current = viewport;
-      reactFlowInstance.current?.setViewport(viewport);
     },
-  });
-
-  useGraphSerializer<TabsSlice>('tabs', {
-    serialize: () => {
-      const { openTabs, activeTab } = raw.stateStore.getState();
-      return { openTabs, activeTab };
-    },
-    restore: ({ openTabs, activeTab } = { openTabs: [], activeTab: 'graph' }) => {
-      raw.stateStore.setState({ openTabs: openTabs ?? [], activeTab: activeTab ?? 'graph' });
-    },
-  });
-
-  useGraphSerializer<boolean>('componentsOpened', {
-    serialize: () => componentsOpened,
-    restore: (value) => {
-      if (typeof value !== 'boolean') return;
-      setComponentsOpened(value);
-      localStorage.setItem(componentsOpenedKey, `${value}`);
-    },
+    stateStore: raw.stateStore,
+    componentsOpened,
+    setComponentsOpened,
   });
 
   useImperativeHandle(ref, () => ({
