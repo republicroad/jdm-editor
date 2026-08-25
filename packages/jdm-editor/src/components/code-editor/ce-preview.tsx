@@ -37,7 +37,7 @@ export const CodeEditorPreview: React.FC<CodeEditorPreviewProps> = ({
       const value = inputData.evaluateExpression(expression);
       return { type: 'success' as const, value: stringifyPretty(value, { maxLength: 30 }) };
     } catch (err) {
-      return { type: 'error' as const, value: (err as any).toString() };
+      return { type: 'error' as const, value: String(err) };
     }
   }, [inputData, expression, initial]);
 

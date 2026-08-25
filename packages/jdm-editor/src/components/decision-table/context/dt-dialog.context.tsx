@@ -16,6 +16,8 @@ export type TableDialogContextState = {
   getContainer?: () => HTMLElement;
 };
 
+// Empty-object default is safe: consumers only render inside
+// DecisionTableDialogProvider, which supplies the real value on mount.
 export const TableDialogContext = React.createContext<TableDialogContextState>({} as any);
 
 export const DecisionTableDialogProvider: React.FC<

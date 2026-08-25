@@ -12,6 +12,8 @@ import type { expressionNodeSchema } from '../../../helpers/schema';
 import type { SimulationTrace, SimulationTraceDataExpression } from '../../decision-graph';
 import type { DiffMetadata } from '../../decision-graph/dg-types';
 
+// Empty-object default is safe: consumers only render inside
+// ExpressionStoreProvider, which supplies the real store on mount.
 const ExpressionStoreContext = React.createContext<
   UseBoundStore<StoreApi<ExpressionStore>> & {
     setState: (partial: Partial<ExpressionStore>) => void;

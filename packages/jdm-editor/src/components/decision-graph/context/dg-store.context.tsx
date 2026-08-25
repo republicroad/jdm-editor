@@ -141,6 +141,8 @@ export type ExposedStore<T> = UseBoundStore<StoreApi<T>> & {
   setState: (partial: Partial<T>) => void;
 };
 
+// Empty-object default is safe: consumers only render inside
+// DecisionGraphProvider, which supplies the real stores on mount.
 export const DecisionGraphStoreContext = React.createContext<{
   stateStore: ExposedStore<DecisionGraphStoreType['state']>;
   listenerStore: ExposedStore<DecisionGraphStoreType['listeners']>;

@@ -299,7 +299,7 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
           noStyle && 'no-style',
           className,
         )}
-        style={{ '--editorMaxRows': maxRows, ...style } as any}
+        style={{ '--editorMaxRows': maxRows, ...style } as React.CSSProperties}
         data-type={type}
         {...props}
       />
