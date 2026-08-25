@@ -1,6 +1,5 @@
 import './styles/tokens.css';
 import './styles/tailwind.css';
-import './styles.scss';
 
 export * from './components';
 export * from './theme';

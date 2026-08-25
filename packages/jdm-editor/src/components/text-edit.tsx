@@ -21,10 +21,12 @@ export const TextEdit: React.FC<TextEditProps> = ({ className, value, onChange, 
   }, [contentEditing]);
 
   return (
-    <div className={clsx('grl-text-edit', className)} {...props}>
+    <div className={clsx('mr-2 flex max-w-[140px] flex-col', className)} {...props}>
       {!contentEditing && (
         <Typography.Text
-          className={clsx('grl-text-edit__text')}
+          className={clsx(
+            'w-min max-w-full truncate rounded border border-transparent px-[5px] py-px text-sm! leading-[1.2] transition-colors hover:bg-[var(--grl-color-bg-text-hover)]',
+          )}
           onClick={() => {
             if (!disabled) {
               setContentEditing(true);
@@ -37,7 +39,9 @@ export const TextEdit: React.FC<TextEditProps> = ({ className, value, onChange, 
       {contentEditing && (
         <input
           ref={inputRef}
-          className={clsx('grl-text-edit__input', 'nodrag')}
+          className={clsx(
+            'nodrag rounded border border-[var(--grl-color-primary-border)] bg-transparent px-[5px] py-px text-sm! leading-[1.2] text-inherit outline-none!',
+          )}
           onBlur={(e) => {
             if (e.target.value?.trim?.()?.length > 0) {
               onChange?.(inputRef?.current?.value as string);

@@ -189,7 +189,7 @@ export const DecisionTableCommandBar: React.FC = () => {
   return (
     <>
       <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'grl-dt__command-bar'}>
-        <Stack gap={8} horizontal className='full-width'>
+        <Stack gap={8} horizontal className='w-full'>
           <Button type='text' size={'small'} icon={<ExportOutlined />} onClick={exportExcel}>
             Export Excel
           </Button>

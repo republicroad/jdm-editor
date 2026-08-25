@@ -1,4 +1,6 @@
-import { CheckCircleTwoTone, ClearOutlined, CloseCircleTwoTone, CloseOutlined } from '@/icons';
+import { ClearOutlined, CloseOutlined } from '@/icons';
+import CheckCircleIcon from '@/reui/icons/animated/outline/check-circle';
+import CrossCircleIcon from '@/reui/icons/animated/outline/cross-circle';
 import { Button, Spin, Tabs, Tooltip, Typography } from '../../primitives';
 import clsx from 'clsx';
 import json5 from 'json5';
@@ -137,7 +139,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
                   className={clsx('grl-dg__simulator__nodes-list__node', selectedNode === 'graph' && 'active')}
                   onClick={() => setSelectedNode('graph')}
                 >
-                  <Typography.Text data-role='name' ellipsis>
+                  <Typography.Text data-role='name' ellipsis className='[&>svg]:inline [&>svg]:align-middle'>
                     <StatusIcon
                       status={match(simulate)
                         .with({ error: P.nonNullable }, () => 'error' as const)
@@ -160,7 +162,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
                   onClick={() => setSelectedNode(trace.nodeId)}
                   onDoubleClick={() => actions.goToNode(trace.nodeId)}
                 >
-                  <Typography.Text data-role='name' ellipsis={{ tooltip: trace.name }}>
+                  <Typography.Text data-role='name' ellipsis={{ tooltip: trace.name }} className='[&>svg]:inline [&>svg]:align-middle'>
                     <StatusIcon status={trace.nodeId === simulate?.error?.data?.nodeId ? 'error' : 'success'} />
                     {trace.name}
                   </Typography.Text>
@@ -239,15 +241,15 @@ const StatusIcon: React.FC<{ status: 'success' | 'error' | 'not-run' }> = ({ sta
 
   if (status === 'success') {
     return (
-      <CheckCircleTwoTone
-        style={{ marginRight: 6, fontSize: 12, opacity: 0.5, color: 'var(--grl-color-success)' }}
+      <CheckCircleIcon
+        className='size-3 mr-1.5 shrink-0 opacity-50 text-[var(--grl-color-success)]'
       />
     );
   }
 
   return (
-    <CloseCircleTwoTone
-      style={{ marginRight: 5, fontSize: 12, color: 'var(--grl-color-error)' }}
+    <CrossCircleIcon
+      className='size-3 mr-[5px] shrink-0 text-[var(--grl-color-error)]'
     />
   );
 };

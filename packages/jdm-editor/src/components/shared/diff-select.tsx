@@ -24,7 +24,10 @@ export const DiffSelect: React.FC<DiffSelectProps> = ({
             {...rest}
             disabled
             value={previousValue}
-            className={clsx(rest.className, 'text-removed')}
+            className={clsx(
+              rest.className,
+              'text-[var(--grl-color-error)] line-through decoration-[var(--grl-color-error)]',
+            )}
             onChange={undefined}
           />
           <ArrowDiffIcon />
@@ -33,7 +36,7 @@ export const DiffSelect: React.FC<DiffSelectProps> = ({
       <Select
         {...rest}
         disabled={rest.disabled || displayDiff}
-        className={clsx(rest.className, displayDiff && 'text-added')}
+        className={clsx(rest.className, displayDiff && 'text-[var(--grl-color-success)]')}
       />
     </Space>
   );

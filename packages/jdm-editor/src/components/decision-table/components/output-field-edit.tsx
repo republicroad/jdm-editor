@@ -115,7 +115,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
       disabled={disabled}
       open={open}
       onOpenChange={setOpen}
-      triggerClassName={mode === 'edit' ? 'grl-field-edit--output' : undefined}
+      triggerClassName={mode === 'edit' ? 'bg-[#c7e0ba]' : undefined}
       mode={mode}
       trigger={trigger}
     >

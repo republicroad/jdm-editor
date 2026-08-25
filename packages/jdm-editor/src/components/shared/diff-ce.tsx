@@ -14,11 +14,16 @@ export const DiffCodeEditor = React.forwardRef<CodeEditorRef, DiffCodeEditorProp
   ({ displayDiff, previousValue, noStyle, ...rest }, ref) => {
     if (displayDiff) {
       return (
-        <div className={clsx('diff-code-editor', noStyle && 'no-style')}>
+        <div
+          className={clsx(
+            'w-full overflow-hidden border border-[var(--grl-color-border)] rounded-[var(--grl-border-radius)]',
+            noStyle && 'border-0 rounded-none',
+          )}
+        >
           {(previousValue || '')?.length > 0 && (
             <CodeEditor
               {...rest}
-              className={clsx(rest.className, 'previous-input')}
+              className={clsx(rest.className, 'line-through decoration-[var(--grl-color-error)]')}
               value={previousValue}
               onChange={undefined}
               disabled={true}
@@ -27,13 +32,7 @@ export const DiffCodeEditor = React.forwardRef<CodeEditorRef, DiffCodeEditorProp
             />
           )}
           {(rest?.value || '')?.length > 0 && (
-            <CodeEditor
-              {...rest}
-              className={clsx(rest.className, 'current-input')}
-              disabled={true}
-              noStyle
-              lint={false}
-            />
+            <CodeEditor {...rest} className={rest.className} disabled={true} noStyle lint={false} />
           )}
         </div>
       );

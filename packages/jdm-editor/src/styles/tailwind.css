@@ -25,6 +25,13 @@
 
 @custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *));
 
+/* Global tokens (formerly styles.scss :root). */
+:root {
+  --mono-font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
+  --grl-transition: 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  --grl-transition-quick: 0.1s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
 /*
  * Scoped mini-preflight. Hosts wrap their app in an element with class
  * `grl-root` to opt in. Every rule uses `:where()` (zero specificity) so
@@ -163,5 +170,72 @@
     font-size: 0.8em !important;
     opacity: 0.25;
     font-family: emoji;
+  }
+
+  /*
+   * Shared textarea skin (formerly styles.scss .grl-textarea-input). Kept as
+   * plain CSS because of its var-driven max-height calc chain and the
+   * `:empty::before` placeholder pseudo-element.
+   */
+  .grl-textarea-input {
+    --textarea-line-height: var(--grl-line-height, 1.5715);
+    --textarea-padding: 4px;
+
+    line-height: var(--textarea-line-height);
+    color: var(--grl-color-text);
+    resize: none;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--grl-font-family);
+    border-radius: var(--grl-border-radius);
+    border: 1px solid var(--grl-color-border);
+    background: var(--grl-color-bg-container);
+    padding: var(--textarea-padding) 11px;
+    font-size: 14px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: calc(var(--textarea-max-rows, 10) * 1em * var(--textarea-line-height) + 2 * var(--textarea-padding));
+
+    transition: var(--grl-transition);
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--grl-control-outline);
+      border-color: var(--grl-color-primary-hover);
+    }
+
+    &:hover {
+      border-color: var(--grl-color-primary-hover);
+      border-inline-end-width: 1px;
+    }
+
+    &:empty::before {
+      content: attr(data-placeholder);
+      color: var(--grl-color-text-placeholder);
+      pointer-events: none;
+    }
+
+    &[aria-disabled='true'] {
+      cursor: not-allowed;
+      background-color: var(--grl-color-bg-container-disabled);
+      color: var(--grl-color-text-disabled);
+      border-color: var(--grl-color-border);
+      box-shadow: none;
+    }
+  }
+
+  /* Compact inline tabs (formerly styles.scss .grl-inline-tabs); role-based
+     hooks on the Tabs primitive DOM. The legacy [data-node-key] pane rules
+     were dead and dropped. */
+  .grl-inline-tabs {
+    [role='tablist'] {
+      margin: 0 !important;
+    }
+
+    [role='tab'] {
+      padding: 0 14px !important;
+      font-size: 13px !important;
+    }
   }
 }

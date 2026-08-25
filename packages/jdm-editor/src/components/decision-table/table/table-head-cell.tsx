@@ -13,6 +13,8 @@ import type { DecisionTablePermission } from '../context/dt-store.context';
 import { type TableSchemaItem, useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 import { getReferenceMap } from '../util';
 
+const TEXT_REMOVED = 'text-[var(--grl-color-error)] line-through decoration-[var(--grl-color-error)]';
+
 export type TableHeadCellProps = {
   permission?: DecisionTablePermission;
   disabled?: boolean;
@@ -178,7 +180,7 @@ export const TableHeadCellInputField: React.FC<TableHeadCellFieldProps> = ({ per
       <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'}>
         <Stack gap={0} className={'text-wrapper'}>
           {schema?._diff?.fields?.name?.status === 'modified' && (
-            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', 'text-removed'])}>
+            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', TEXT_REMOVED])}>
               {schema?._diff?.fields?.name?.previousValue}
             </Typography.Text>
           )}
@@ -191,7 +193,7 @@ export const TableHeadCellInputField: React.FC<TableHeadCellFieldProps> = ({ per
           />
           {schema?._diff?.fields?.field?.status && (
             <Typography.Text
-              className={clsx(['span-overflow', 'grl-dt-text-secondary', 'text-removed'])}
+              className={clsx(['span-overflow', 'grl-dt-text-secondary', TEXT_REMOVED])}
               type='secondary'
               style={{ fontSize: 12 }}
             >
@@ -229,7 +231,7 @@ export const TableHeadCellOutputField: React.FC<TableHeadCellFieldProps> = ({ pe
       <Stack horizontal horizontalAlign='space-between' verticalAlign={'center'}>
         <Stack gap={0} className={'text-wrapper'} verticalAlign={'center'}>
           {schema?._diff?.fields?.name?.status === 'modified' && (
-            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', 'text-removed'])}>
+            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', TEXT_REMOVED])}>
               {schema?._diff?.fields?.name?.previousValue}
             </Typography.Text>
           )}
@@ -242,7 +244,7 @@ export const TableHeadCellOutputField: React.FC<TableHeadCellFieldProps> = ({ pe
           />
           {schema?._diff?.fields?.field?.status === 'modified' && (
             <Typography.Text
-              className={clsx(['span-overflow', 'grl-dt-text-secondary', 'text-removed'])}
+              className={clsx(['span-overflow', 'grl-dt-text-secondary', TEXT_REMOVED])}
               type='secondary'
               style={{ fontSize: 12 }}
             >

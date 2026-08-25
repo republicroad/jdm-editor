@@ -1,4 +1,5 @@
-import { InfoCircleOutlined, PlayCircleOutlined } from '@/icons';
+import { PlayCircleOutlined } from '@/icons';
+import InformationIcon from '@/reui/icons/animated/outline/information';
 import { VariableType } from '@gorules/zen-engine-wasm';
 import { Button, Tooltip, Typography } from '../../primitives';
 import { toast } from 'sonner';
@@ -54,9 +55,12 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     <>
       <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--request'}>
         <Tooltip title={requestTooltip}>
-          <Typography.Text style={{ fontSize: 13, cursor: 'help' }}>
+          <Typography.Text
+            style={{ fontSize: 13, cursor: 'help' }}
+            className='[&>svg]:inline'
+          >
             Request
-            <InfoCircleOutlined style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }} />
+            <InformationIcon className='size-2.5 ml-1 opacity-50 align-super' />
           </Typography.Text>
         </Tooltip>
         <div className={'grl-dg__simulator__section__bar__actions'}>

@@ -55,7 +55,7 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
       >
         {children}
         <div
-          className='grl-field-edit__footer'
+          className='mt-4 flex w-full items-center justify-between gap-2'
           style={{ marginTop: 16, justifyContent: mode === 'create' ? 'flex-end' : undefined }}
         >
           {mode === 'edit' && <ConfirmAction iconOnly onConfirm={onRemove} disabled={disabled} />}
@@ -74,7 +74,10 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
     {trigger ?? (
       <Typography.Text
         type={!value ? 'secondary' : undefined}
-        className={clsx('grl-field-edit', triggerClassName)}
+        className={clsx(
+          'mt-0.5 flex max-w-full cursor-pointer select-none items-center rounded-md bg-[#acccec] px-2 py-0.5 text-xs text-black [font-family:var(--mono-font-family)] aria-disabled:cursor-not-allowed',
+          triggerClassName,
+        )}
         onClick={() => onOpenChange(!open)}
       >
         <span className='span-overflow'>{value || '-'}</span>

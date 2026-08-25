@@ -13,17 +13,28 @@ export const DiffAutosizeTextArea = forwardRef<HTMLDivElement, DiffAutosizeTextA
   ({ previousValue, displayDiff, noStyle, ...rest }, ref) => {
     if (displayDiff) {
       return (
-        <div className={clsx('diff-text-area-group', noStyle && 'no-style')}>
+        <div
+          className={clsx(
+            'w-full overflow-hidden border border-[var(--grl-color-border)] rounded-[var(--grl-border-radius)]',
+            noStyle && 'border-0 rounded-none',
+          )}
+        >
           {(previousValue || '')?.length > 0 && (
             <AutosizeTextArea
               {...rest}
               value={previousValue}
               onChange={undefined}
-              className={clsx(rest.className, 'previous-input')}
+              className={clsx(
+                rest.className,
+                'border-0 shadow-none focus:shadow-none focus:ring-0 line-through decoration-[var(--grl-color-error)]',
+              )}
             />
           )}
           {((rest.value || '') as string)?.length > 0 && (
-            <AutosizeTextArea {...rest} className={clsx(rest.className, 'current-input')} />
+            <AutosizeTextArea
+              {...rest}
+              className={clsx(rest.className, 'border-0 shadow-none focus:shadow-none focus:ring-0')}
+            />
           )}
         </div>
       );
