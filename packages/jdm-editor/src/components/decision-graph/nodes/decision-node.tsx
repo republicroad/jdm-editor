@@ -6,7 +6,6 @@ import { match } from 'ts-pattern';
 
 import { DiffIcon } from '../../diff-icon';
 import { TextEdit } from '../../text-edit';
-import './decision-node.scss';
 import { GraphCard } from './graph-card';
 import { NodeColor } from './specifications/colors';
 
@@ -58,15 +57,37 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
     .with('primary', () => NodeColor.Blue)
     .otherwise((c) => c);
 
+  const cardBorder =
+    diffStatus === 'added'
+      ? 'border-[var(--grl-color-success)] group-hover/dn:border-[var(--grl-color-success)]'
+      : diffStatus === 'moved'
+        ? 'border-[var(--grl-color-info)] group-hover/dn:border-[var(--grl-color-info)]'
+        : diffStatus === 'modified'
+          ? 'border-[var(--grl-color-warning)] group-hover/dn:border-[var(--grl-color-warning)]'
+          : diffStatus === 'removed'
+            ? 'border-[var(--grl-color-error)] group-hover/dn:border-[var(--grl-color-error)]'
+            : isSelected
+              ? 'border-[var(--grl-color-primary-active)] group-hover/dn:border-[var(--grl-color-primary-active)]'
+              : '';
+
+  const cardList = listMode ? 'rounded-none border-0 border-b border-b-[var(--grl-color-border-fade)]' : '';
+
+  const statusBg =
+    status === 'success'
+      ? '[--node-background:var(--grl-color-success-bg)]'
+      : status === 'error'
+        ? '[--node-background:var(--grl-color-error-bg)]'
+        : status === 'warning'
+          ? '[--node-background:var(--grl-color-warning-bg)]'
+          : '';
+
   return (
     <div
       className={clsx(
-        'grl-dn',
-        compactMode && 'grl-dn--compact',
-        listMode && 'grl-dn--list',
-        !diffStatus && isSelected && `grl-dn--selected`,
-        status && `grl-dn--${status}`,
-        diffStatus && `grl-dn--diff-${diffStatus}`,
+        'group/dn flex flex-col gap-2',
+        '[--node-border-radius:8px] [--node-horizontal-padding:8px] [--node-small-text:12px]',
+        '[--node-color:var(--grl-color-primary)] [--node-background:var(--grl-color-bg-container)]',
+        statusBg,
       )}
       style={
         {
@@ -74,29 +95,36 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         } as any
       }
       onKeyDown={(e) => e.stopPropagation()}
+      data-diff={diffStatus}
+      data-compact={compactMode || undefined}
     >
-      <GraphCard>
-        <div className={'grl-dn__status-bar'}>
+      <GraphCard className={clsx(cardBorder, cardList)}>
+        <div className='absolute -top-5 w-full h-4 text-[10px] font-bold flex justify-end items-center gap-1'>
           {Array.isArray(helper) &&
             helper
               .filter((h) => !!h)
               .map((h, i) => (
-                <div key={i} className={clsx('grl-dn__status-icon')}>
+                <div
+                  key={i}
+                  className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold text-[var(--grl-color-text-secondary)]'
+                >
                   {h}
                 </div>
               ))}
           {status === 'error' && (
-            <div className={clsx('grl-dn__status-icon', `grl-dn__status-icon--${status}`)}>
+            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--grl-color-error)] text-white'>
               <CloseOutlined />
             </div>
           )}
           <DiffIcon status={diffStatus} style={{ fontSize: 16 }} />
         </div>
-        <div className={clsx('grl-dn__header', compactMode && 'compact')}>
-          <div className={clsx('grl-dn__header__icon', compactMode && 'compact')}>{icon}</div>
+        <div className={'grid p-2 gap-0 grid-cols-[min-content_1fr_min-content] items-center box-border h-10'}>
+          <div className='flex justify-center items-center w-6 h-6 text-base rounded mr-0.5 text-white bg-[var(--node-color)]'>
+            {icon}
+          </div>
           <TextEdit onChange={onNameChange} disabled={disabled} value={name} />
           {menuItems.length > 0 && (
-            <div className={clsx('grl-dn__header__actions', 'nodrag')}>
+            <div className={clsx('nodrag')}>
               <Dropdown trigger={['click']} overlayStyle={{ minWidth: 250 }} menu={{ items: menuItems }}>
                 <Button type='text' size={'small'} icon={<MoreOutlined />} />
               </Dropdown>
@@ -106,17 +134,25 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {children && (
           <div
             className={clsx(
-              'grl-dn__body',
-              actions.length === 0 && 'grl-dn__body--no-footer',
-              noBodyPadding && 'grl-dn__body--no-padding',
+              'p-2 border-t border-t-[var(--grl-color-border)]',
+              actions.length === 0 &&
+                'rounded-[0_0_var(--node-border-radius)_var(--node-border-radius)]',
+              noBodyPadding && 'p-0!',
             )}
           >
             {children}
           </div>
         )}
         {actions.length > 0 && (
-          <div className={clsx('grl-dn__footer', 'nodrag')}>
-            <div className='grl-dn__footer__actions'>{actions}</div>
+          <div
+            className={clsx(
+              'nodrag bg-[var(--grl-color-primary-bg-fade)] overflow-hidden',
+              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--grl-color-border-fade)]',
+            )}
+          >
+            <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--grl-color-text-secondary)]'>
+              {actions}
+            </div>
           </div>
         )}
       </GraphCard>
@@ -131,18 +167,20 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
                 opacity: stage === 'enter' ? 1 : 0,
               }}
             >
-              <div className='grl-dn__details'>
-                <div className='grl-dn__details__header'>
-                  <Typography.Text className='grl-dn__details__header__text'>{detailsTitle}</Typography.Text>
+              <div className='flex flex-col'>
+                <div className='flex items-center justify-between pl-2.5 bg-[var(--grl-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--grl-color-border)]'>
+                  <Typography.Text className='text-xs! text-[var(--grl-color-text-secondary)]'>
+                    {detailsTitle}
+                  </Typography.Text>
                   <Button
                     type={'text'}
                     size={'small'}
-                    className='grl-dn__details__header__close'
+                    className='text-[var(--grl-color-text-secondary)] [font-size:0]!'
                     icon={<CloseOutlined style={{ fontSize: 8 }} />}
                     onClick={onDetailsClose}
                   />
                 </div>
-                <div className='grl-dn__details__body'>{details}</div>
+                <div className='flex flex-col p-2.5 gap-0.5 [&_.settings-form_.grl-ce]:text-xs'>{details}</div>
               </div>
             </GraphCard>
           )

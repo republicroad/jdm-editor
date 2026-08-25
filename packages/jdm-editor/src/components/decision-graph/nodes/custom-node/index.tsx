@@ -156,7 +156,7 @@ export const createJdmNode = <
             >
               {open && n?.inputs && (
                 <Form
-                  className='grl-dn__cn__form'
+                  className='p-2 text-xs [&_.grl-ce]:text-xs'
                   layout='vertical'
                   initialValues={nodeData}
                   onValuesChange={(_, values) => {
