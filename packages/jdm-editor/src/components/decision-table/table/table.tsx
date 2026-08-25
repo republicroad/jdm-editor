@@ -57,6 +57,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   const setContainerRef = useCallback(
     (el: HTMLDivElement | null) => {
       (tableContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+      // eslint-disable-next-line -- ref prop mutation is intentional (child→parent ref handoff)
       if (scrollContainerRef) scrollContainerRef.current = el;
     },
     [scrollContainerRef],
@@ -285,6 +286,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
 
     useEffect(() => {
       if (!scrollApiRef) return;
+      // eslint-disable-next-line -- ref prop mutation is intentional (child→parent ref handoff)
       scrollApiRef.current = {
         getTopRowIndex: () => {
           const offset = tableContainerRef.current?.scrollTop ?? 0;
@@ -293,6 +295,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
         scrollToRowIndex: (index) => virtualizer.scrollToIndex(index, { align: 'start' }),
       };
       return () => {
+        // eslint-disable-next-line -- ref prop mutation is intentional (cleanup)
         if (scrollApiRef.current) scrollApiRef.current = null;
       };
     }, [virtualizer, scrollApiRef]);

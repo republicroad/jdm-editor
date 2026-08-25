@@ -1,6 +1,7 @@
-// Advisory config: runs the React Compiler's ruleset over the editor sources
-// as a warning-only CI signal (`pnpm lint:compiler`). Warnings never fail the
-// build; flip to 'error' once the remaining violations are resolved.
+// React Compiler config: runs the ruleset over editor sources as a blocking
+// CI gate (`pnpm lint:compiler`). Test files are excluded (Probe pattern
+// captures context via outer variables — a legitimate test helper, not a
+// production component purity violation).
 import base from './eslint.config.mjs';
 import reactCompiler from 'eslint-plugin-react-compiler';
 
@@ -9,6 +10,7 @@ export default [
   {
     plugins: { 'react-compiler': reactCompiler },
     files: ['packages/jdm-editor/src/**/*.{ts,tsx}'],
-    rules: { 'react-compiler/react-compiler': 'warn' },
+    ignores: ['packages/jdm-editor/src/**/__tests__/**'],
+    rules: { 'react-compiler/react-compiler': 'error' },
   },
 ];
