@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -33,7 +33,7 @@ describe('component smoke rendering', () => {
     const onChange = vi.fn();
     const { container } = render(<DecisionTable tableHeight={400} value={undefined} onChange={onChange} />);
 
-    expect(container.querySelector('.grl-dt')).toBeInTheDocument();
     expect(container.querySelector('table')).toBeInTheDocument();
+    expect(screen.getByText('Add row')).toBeInTheDocument();
   });
 });

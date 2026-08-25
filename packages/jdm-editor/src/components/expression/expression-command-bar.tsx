@@ -30,7 +30,7 @@ export const ExpressionCommandBar: React.FC = () => {
   }
 
   return (
-    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'grl-dt__command-bar'}>
+    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'p-[7px] box-border border-b border-[var(--grl-color-border)]'}>
       <Stack gap={8} horizontal className='w-full' />
       {traceIndexOptions && (
         <Stack horizontal verticalAlign='center' horizontalAlign='end'>

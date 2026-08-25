@@ -96,13 +96,17 @@ export const TableRow: React.FC<{
         setDragNodeRef as React.Ref<HTMLTableRowElement>,
       )}
       className={clsx(
-        'table-row',
-        isOver && direction === 'down' && 'dropping-down',
-        isOver && direction === 'up' && 'dropping-up',
-        !diffStatus && isActive && 'active',
-        !diffStatus && disabled && 'disabled',
-        !diffStatus && cursor?.y === virtualItem.index && !disabled && 'selected',
-        diffStatus && `diff-${diffStatus}`,
+        'relative w-fit min-h-[36px]',
+        "after:content-[''] after:absolute after:left-0 after:right-0 after:bg-[var(--grl-color-primary)]",
+        isOver && direction === 'down' && 'after:bottom-0 after:h-[2px]',
+        isOver && direction === 'up' && 'after:top-0 after:h-[2px]',
+        !diffStatus && isActive && 'bg-[var(--grl-color-success-bg)]',
+        !diffStatus &&
+          disabled &&
+          'bg-black/[0.02] [&_[contenteditable]]:bg-transparent [&_[contenteditable]]:text-[var(--grl-color-text-secondary)]',
+        !diffStatus && cursor?.y === virtualItem.index && !disabled && 'selected bg-[var(--grl-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--grl-color-primary-bg-fade)]',
+        diffStatus === 'added' && 'bg-[var(--grl-color-success-bg)]',
+        diffStatus === 'removed' && 'bg-[var(--grl-color-error-bg)]',
       )}
       style={{
         opacity: isDragging ? 0.5 : 1,
@@ -110,13 +114,17 @@ export const TableRow: React.FC<{
       data-virtual-index={virtualItem.index}
     >
       <td
-        className={clsx('sort-handler', !disabled && 'draggable', diffStatus && 'diff')}
+        className={clsx(
+          'py-[2px] px-[14px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] outline-[1.5px] outline-transparent -outline-offset-[1.5px]',
+          diffStatus ? 'bg-transparent!' : 'bg-[var(--table-color)]!',
+          !disabled && 'cursor-grab',
+        )}
         ref={disabled ? undefined : setActivatorNodeRef}
         {...(disabled ? {} : listeners)}
         {...attributes}
         onContextMenuCapture={() => tableActions.setCursor({ x: 'id', y: virtualItem.index })}
       >
-        <div className={'text'}>
+        <div className='w-full h-full flex items-start justify-end pt-[6px]'>
           <Typography>{virtualItem.index + 1}</Typography>
         </div>
       </td>
@@ -124,8 +132,11 @@ export const TableRow: React.FC<{
         <td
           key={cell.id}
           className={clsx(
-            !disabled && cursor?.x === cell.column.id && cursor?.y === virtualItem.index && 'selected',
-            diff?.fields?.[cell?.column?.id]?.status && `diff-${diff?.fields?.[cell?.column?.id]?.status}`,
+            'min-h-[36px] p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]',
+            !disabled && cursor?.x === cell.column.id && cursor?.y === virtualItem.index && 'outline-[var(--grl-color-border)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
           )}
           style={{ width: cell.column.getSize() }}
         >

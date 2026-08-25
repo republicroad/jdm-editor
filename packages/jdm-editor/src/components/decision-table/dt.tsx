@@ -15,7 +15,6 @@ import { DecisionTableDialogs } from './dialog/dt-dialogs';
 import { DecisionTableCommandBar } from './dt-command-bar';
 import type { DecisionTableEmptyType } from './dt-empty';
 import { DecisionTableEmpty } from './dt-empty';
-import './dt.scss';
 import type { TableScrollApi } from './table/table';
 import { Table } from './table/table';
 
@@ -48,7 +47,11 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   const getContainer = () => ref.current as HTMLElement;
 
   return (
-    <div ref={ref} className={'grl-dt'} style={{ background: 'var(--grl-color-bg-elevated)' }}>
+    <div
+      ref={ref}
+      className='text-sm h-full flex min-h-px flex-col pr-1 [--table-color:var(--grl-color-bg-layout)]'
+      style={{ background: 'var(--grl-color-bg-elevated)' }}
+    >
       {ref.current && (
         <DecisionTableProvider>
           <DecisionTableDnd>

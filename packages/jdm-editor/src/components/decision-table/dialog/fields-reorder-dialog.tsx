@@ -37,10 +37,9 @@ const FieldCard: React.FC<{
       style={{ opacity: isDragging ? 0 : 1 }}
       bodyStyle={{ padding: '0.5rem' }}
     >
-      <div className='grl-dt__fields-reorder__item'>
+      <div className='hover:cursor-grab'>
         <Stack horizontal verticalAlign='center'>
           <div
-            className='grl-dt__fields-reorder__handle'
             ref={setActivatorNodeRef}
             {...listeners}
             {...attributes}

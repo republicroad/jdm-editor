@@ -61,7 +61,8 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
 
   return (
     <div
-      className='cell-wrapper'
+      data-cell-wrapper
+      className='flex items-stretch w-full h-full leading-0 [&>*]:grow [&_.grl-ce]:h-full [&_.grl-ce_.cm-editor]:h-full'
       onFocus={() => tableActions.setCursor({ x: id, y: index })}
       onContextMenu={() => tableActions.setCursor({ x: id, y: index })}
       {...props}
@@ -146,7 +147,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
     const anchor = containerRef.current ?? textareaRef.current;
     if (!anchor) return;
 
-    const parentContainer = anchor.closest('div.cell-wrapper')! as HTMLElement;
+    const parentContainer = anchor.closest('[data-cell-wrapper]')! as HTMLElement;
     const eventListener = (e: Event) => {
       const target = e.target as HTMLElement;
       if (target.closest('.cm-editor, input, textarea, select, button, .ant-select')) return;
@@ -172,7 +173,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
       <DiffAutosizeTextArea
         id={id}
         ref={textareaRef as any}
-        className='grl-dt__cell__input'
+        className='border-0! w-full bg-transparent py-[9px] px-3 text-sm opacity-70 focus:shadow-none!'
         maxRows={3}
         value={value}
         disabled={disabled}
@@ -189,7 +190,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
 
   if (mode === 'business' && isInputColumn) {
     return (
-      <div ref={containerRef} className='grl-dt__cell__input__container'>
+      <div ref={containerRef} className='relative w-full [--b-font-size:14px]'>
         <TableInputCellStatus index={index} columnId={column.id} />
         <ExpressionBuilder
           ref={builderRef}
@@ -204,7 +205,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
 
   if (mode === 'business' && isOutputColumn) {
     return (
-      <div ref={containerRef} className='grl-dt__cell__input__container'>
+      <div ref={containerRef} className='relative w-full [--b-font-size:14px]'>
         <StandardExpressionBuilder
           ref={builderRef}
           value={value ?? ''}
@@ -217,7 +218,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
   }
 
   return (
-    <div ref={containerRef} className='grl-dt__cell__input__container'>
+    <div ref={containerRef} className='relative w-full [--b-font-size:14px]'>
       {column.colType === 'input' && <TableInputCellStatus index={index} columnId={column.id} />}
       <DiffCodeEditor
         lazy
@@ -226,7 +227,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
         type={match(column)
           .with({ colType: 'input', field: P.string }, () => 'unary' as const)
           .otherwise(() => 'standard' as const)}
-        className='grl-dt__cell__input'
+        className='[--ce-verticalPadding:9px] [--ce-horizontalPadding:0.75rem] [&_.cm-editor]:border-0! [&_.cm-editor]:shadow-none! [&_.cm-editor]:rounded-none [&_.cm-editor]:w-full [&_.cm-editor]:bg-transparent'
         noStyle
         displayDiff={diff?.status === 'modified'}
         previousValue={diff?.previousValue}
@@ -309,8 +310,19 @@ const TableInputCellStatus: React.FC<{ columnId: string; index: number }> = Reac
 
   switch (status) {
     case 'hit':
+      return (
+        <div
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--grl-color-success)] bg-[var(--grl-color-success)]'
+          data-status={status}
+        />
+      );
     case 'no-hit':
-      return <div className='grl-dt__cell__input__status' color='var(--grl-color-success)' data-status={status} />;
+      return (
+        <div
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--grl-color-border-hover)]'
+          data-status={status}
+        />
+      );
     case 'skip':
       return null;
   }

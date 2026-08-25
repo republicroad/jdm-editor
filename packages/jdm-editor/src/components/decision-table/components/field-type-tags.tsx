@@ -14,12 +14,18 @@ export const FieldTypeTags = <T extends string>({
   onChange,
   disabled,
 }: FieldTypeTagsProps<T>): React.ReactElement => (
-  <div className='grl-field-type-tags'>
+  <div className='flex flex-wrap gap-1.5'>
     {options.map((opt) => (
       <button
         key={opt.value}
         type='button'
-        className={clsx('grl-field-type-tag', { active: value === opt.value })}
+        className={clsx(
+          'rounded-md border bg-white px-2.5 py-1 text-xs transition-all duration-150 cursor-pointer',
+          'border-[#e5e7eb] text-[#374151]',
+          'enabled:hover:border-[#3b82f6] enabled:hover:text-[#3b82f6]',
+          value === opt.value && 'bg-[#dbeafe]! border-[#3b82f6]! text-[#1d4ed8]!',
+          disabled && 'opacity-50 cursor-not-allowed',
+        )}
         onClick={() => !disabled && onChange(opt.value)}
         disabled={disabled}
       >

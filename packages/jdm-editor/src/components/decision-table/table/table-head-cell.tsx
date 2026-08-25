@@ -36,13 +36,13 @@ export const TableHeadCellInput: React.FC<TableHeadCellProps> = ({ permission, d
   }));
 
   return (
-    <div className={'head-cell'}>
+    <div className='flex items-center h-full w-full min-h-0 box-border py-1 px-2'>
       <Stack horizontal horizontalAlign='space-between' verticalAlign='center'>
-        <Stack gap={0} className={'text-wrapper'} verticalAlign={'center'}>
-          <Typography.Text className={'span-overflow grl-dt-text-primary'}>Inputs</Typography.Text>
+        <Stack gap={0} className='overflow-hidden' verticalAlign={'center'}>
+          <Typography.Text className={'truncate grl-dt-text-primary'}>Inputs</Typography.Text>
         </Stack>
         {(permission === 'edit:full' || permission === 'edit:rules') && (
-          <div className={'cta-wrapper'}>
+          <div className='flex'>
             {inputs?.length > 1 && (
               <Tooltip title='Reorder fields'>
                 <Button
@@ -97,13 +97,13 @@ export const TableHeadCellOutput: React.FC<TableHeadCellProps> = ({ permission, 
   const { setDialog } = useDecisionTableDialog();
 
   return (
-    <div className={'head-cell'}>
+    <div className='flex items-center h-full w-full min-h-0 box-border py-1 px-2'>
       <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'}>
-        <Stack gap={0} className={'text-wrapper'} verticalAlign={'center'}>
-          <Typography.Text className={'span-overflow grl-dt-text-primary'}>Outputs</Typography.Text>
+        <Stack gap={0} className='overflow-hidden' verticalAlign={'center'}>
+          <Typography.Text className={'truncate grl-dt-text-primary'}>Outputs</Typography.Text>
         </Stack>
         {permission === 'edit:full' && (
-          <div className={'cta-wrapper'}>
+          <div className='flex'>
             {outputs?.length > 1 && (
               <Tooltip title='Reorder fields'>
                 <Button
@@ -176,16 +176,16 @@ export const TableHeadCellInputField: React.FC<TableHeadCellFieldProps> = ({ per
   });
 
   return (
-    <div className={clsx(['head-cell'])}>
+    <div className={clsx(['flex items-center h-full w-full min-h-0 box-border py-1 px-2'])}>
       <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'}>
-        <Stack gap={0} className={'text-wrapper'}>
+        <Stack gap={0} className='overflow-hidden'>
           {schema?._diff?.fields?.name?.status === 'modified' && (
-            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', TEXT_REMOVED])}>
+            <Typography.Text className={clsx(['truncate', 'grl-dt-text-primary', TEXT_REMOVED])}>
               {schema?._diff?.fields?.name?.previousValue}
             </Typography.Text>
           )}
           <TextEdit
-            className={clsx(['span-overflow', 'grl-dt-text-primary'])}
+            className={clsx(['truncate', 'grl-dt-text-primary'])}
             value={schema.name}
             onChange={(name) => {
               tableActions.updateColumn('inputs', schema.id, { ...schema, name });
@@ -193,7 +193,7 @@ export const TableHeadCellInputField: React.FC<TableHeadCellFieldProps> = ({ per
           />
           {schema?._diff?.fields?.field?.status && (
             <Typography.Text
-              className={clsx(['span-overflow', 'grl-dt-text-secondary', TEXT_REMOVED])}
+              className={clsx(['truncate', 'grl-dt-text-secondary', TEXT_REMOVED])}
               type='secondary'
               style={{ fontSize: 12 }}
             >
@@ -227,16 +227,16 @@ export const TableHeadCellOutputField: React.FC<TableHeadCellFieldProps> = ({ pe
   const tableActions = useDecisionTableActions();
 
   return (
-    <div className={clsx(['head-cell'])}>
+    <div className={clsx(['flex items-center h-full w-full min-h-0 box-border py-1 px-2'])}>
       <Stack horizontal horizontalAlign='space-between' verticalAlign={'center'}>
-        <Stack gap={0} className={'text-wrapper'} verticalAlign={'center'}>
+        <Stack gap={0} className='overflow-hidden' verticalAlign={'center'}>
           {schema?._diff?.fields?.name?.status === 'modified' && (
-            <Typography.Text className={clsx(['span-overflow', 'grl-dt-text-primary', TEXT_REMOVED])}>
+            <Typography.Text className={clsx(['truncate', 'grl-dt-text-primary', TEXT_REMOVED])}>
               {schema?._diff?.fields?.name?.previousValue}
             </Typography.Text>
           )}
           <TextEdit
-            className={clsx(['span-overflow', 'grl-dt-text-primary'])}
+            className={clsx(['truncate', 'grl-dt-text-primary'])}
             value={schema.name}
             onChange={(name) => {
               tableActions.updateColumn('outputs', schema.id, { ...schema, name });
@@ -244,7 +244,7 @@ export const TableHeadCellOutputField: React.FC<TableHeadCellFieldProps> = ({ pe
           />
           {schema?._diff?.fields?.field?.status === 'modified' && (
             <Typography.Text
-              className={clsx(['span-overflow', 'grl-dt-text-secondary', TEXT_REMOVED])}
+              className={clsx(['truncate', 'grl-dt-text-secondary', TEXT_REMOVED])}
               type='secondary'
               style={{ fontSize: 12 }}
             >

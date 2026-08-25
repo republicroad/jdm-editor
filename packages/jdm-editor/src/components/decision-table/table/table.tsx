@@ -128,8 +128,8 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         id: '_description',
         accessorKey: '_description',
         header: () => (
-          <div className={'head-cell'}>
-            <Typography.Text className='grl-dt-text-primary'>Description</Typography.Text>
+          <div className='flex items-center h-full w-full min-h-0 box-border py-1 px-2'>
+            <Typography.Text className='truncate grl-dt-text-primary'>Description</Typography.Text>
           </div>
         ),
         minSize: minColWidth,
@@ -212,12 +212,12 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   return (
     <div
       ref={setContainerRef}
-      className='grl-dt__container'
+      className='relative flex-1 overflow-auto'
       style={{ maxHeight, overflowY: 'auto' }}
       data-theme={mode}
     >
       <StyledTable width={table.getCenterTotalSize()}>
-        <thead>
+        <thead className='bg-[var(--table-color)] border-[var(--grl-color-border)] m-0 sticky top-0 z-10'>
           {table
             .getHeaderGroups()
             .filter((_, i) => i === 0)
@@ -227,7 +227,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         </thead>
       </StyledTable>
       <StyledTable width={table.getCenterTotalSize()}>
-        <thead>
+        <thead className='bg-[var(--table-color)] border-[var(--grl-color-border)] m-0 sticky top-0 z-10'>
           {table
             .getHeaderGroups()
             .filter((_, i) => i === 1)
@@ -238,12 +238,12 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         <TableContextMenu>
           <TableBody tableContainerRef={tableContainerRef} table={table} scrollApiRef={scrollApiRef} />
         </TableContextMenu>
-        <tfoot>
+        <tfoot className='bg-[var(--grl-color-bg-elevated)]'>
           <tr>
             <td colSpan={inputs.length + outputs.length + 2}>
-              <div className='grl-dt__add-row-wrapper'>
+              <div className='p-2 sticky bottom-0'>
                 <Button
-                  className='grl-dt__add-row'
+                  className='max-w-[var(--dt-container-width)] transition-[background-color]! duration-200 [transition-timing-function:cubic-bezier(0.645,0.045,0.355,1)]!'
                   type='link'
                   disabled={disabled}
                   icon={<PlusCircleOutlined />}
@@ -323,7 +323,10 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
       <tbody ref={ref} {...props} onKeyDown={onKeyDown}>
         {paddingTop > 0 && (
           <tr>
-            <td style={{ height: `${paddingTop}px` }} />
+            <td
+              className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+              style={{ height: `${paddingTop}px` }}
+            />
           </tr>
         )}
         {virtualItems.map((item) => {
@@ -341,7 +344,10 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
         })}
         {paddingBottom > 0 && (
           <tr>
-            <td style={{ height: `${paddingBottom}px` }} />
+            <td
+              className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+              style={{ height: `${paddingBottom}px` }}
+            />
           </tr>
         )}
       </tbody>
@@ -355,5 +361,5 @@ const StyledTable: React.FC<React.HTMLAttributes<HTMLTableElement> & { width: nu
   width,
   ...props
 }) => {
-  return <table className={clsx('table', className)} style={{ width, ...style }} {...props} />;
+  return <table className={clsx('border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--grl-color-bg-container)] h-px min-w-full', className)} style={{ width, ...style }} {...props} />;
 };
