@@ -17,7 +17,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -27,27 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button as UiButton } from '@/components/ui/button';
-import { DropdownMenu } from '@/components/ui/dropdown-menu';
-import { DropdownMenuContent } from '@/components/ui/dropdown-menu';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { DropdownMenuSub } from '@/components/ui/dropdown-menu';
-import { DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
-import { DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
-import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import {
-  Popover as UiPopover,
-  PopoverContent as UiPopoverContent,
-  PopoverTrigger as UiPopoverTrigger,
-} from '@/components/ui/popover';
-import { Tabs as UiTabs } from '@/components/ui/tabs';
-import { TabsContent as UiTabsContent } from '@/components/ui/tabs';
-import { TabsList as UiTabsList } from '@/components/ui/tabs';
-import { TabsTrigger as UiTabsTrigger } from '@/components/ui/tabs';
-import { Tooltip as UiTooltipRoot } from '@/components/ui/tooltip';
-import { TooltipContent as UiTooltipContent } from '@/components/ui/tooltip';
-import { TooltipProvider as UiTooltipProvider } from '@/components/ui/tooltip';
-import { TooltipTrigger as UiTooltipTrigger } from '@/components/ui/tooltip';
+
 import { cn } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -253,164 +232,21 @@ export { Spin } from './primitives/spin';
 // ---------------------------------------------------------------------------
 // Tooltip
 
-const placementSideMap: Record<string, 'top' | 'right' | 'bottom' | 'left'> = {
-  top: 'top',
-  bottom: 'bottom',
-  left: 'left',
-  right: 'right',
-  topLeft: 'top',
-  topRight: 'top',
-  bottomLeft: 'bottom',
-  bottomRight: 'bottom',
-};
+// ---------------------------------------------------------------------------
+// Tooltip
 
-export const Tooltip: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & {
-    title?: React.ReactNode;
-    placement?: keyof typeof placementSideMap;
-    open?: boolean;
-    children?: React.ReactNode;
-  }
-> = ({ title, placement = 'top', children }) => {
-  if (!title || !children) {
-    return <>{children}</>;
-  }
-  return (
-    <UiTooltipProvider delayDuration={200}>
-      <UiTooltipRoot>
-        <UiTooltipTrigger asChild>
-          {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
-        </UiTooltipTrigger>
-        <UiTooltipContent side={placementSideMap[placement] ?? 'top'}>{title}</UiTooltipContent>
-      </UiTooltipRoot>
-    </UiTooltipProvider>
-  );
-};
+export { Tooltip } from './primitives/tooltip';
 
 // ---------------------------------------------------------------------------
 // Dropdown (menu schema subset of antd)
 
-export interface AntdMenuItemType {
-  key?: string;
-  label?: React.ReactNode;
-  icon?: React.ReactNode;
-  danger?: boolean;
-  disabled?: boolean;
-  type?: 'divider' | 'group';
-  onClick?: (info: { key: string }) => void;
-  children?: AntdMenuItemType[];
-}
-
-export interface AntdMenuProps {
-  items?: AntdMenuItemType[];
-  onClick?: (info: { key: string }) => void;
-}
-
-export type MenuProps = AntdMenuProps;
-
-const MenuItemsRenderer: React.FC<{ items?: AntdMenuItemType[]; onClick?: AntdMenuProps['onClick'] }> = ({
-  items,
-  onClick,
-}) =>
-  items?.map((item, index) => {
-    const itemKey = item.key ?? String(index);
-    const handleSelect = () => (item.onClick ?? onClick)?.({ key: itemKey });
-    return item.type === 'divider' ? (
-      <DropdownMenuSeparator key={itemKey} />
-    ) : item.children?.length ? (
-      <DropdownMenuSub key={itemKey}>
-        <DropdownMenuSubTrigger disabled={item.disabled}>{item.label}</DropdownMenuSubTrigger>
-        <DropdownMenuSubContent>
-          <MenuItemsRenderer items={item.children} onClick={onClick} />
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
-    ) : (
-      <DropdownMenuItem
-        key={itemKey}
-        disabled={item.disabled}
-        variant={item.danger ? 'destructive' : 'default'}
-        onSelect={handleSelect}
-      >
-        {item.icon}
-        {item.label}
-      </DropdownMenuItem>
-    );
-  }) ?? null;
-
-export const Dropdown: React.FC<{
-  menu?: AntdMenuProps;
-  trigger?: Array<'click' | 'hover' | 'contextMenu'>;
-  placement?: string;
-  arrow?: boolean;
-  overlayStyle?: React.CSSProperties;
-  destroyPopupOnHide?: boolean;
-  transitionName?: string;
-  disabled?: boolean;
-  children?: React.ReactNode;
-}> = ({ menu, children }) => (
-  <DropdownMenu modal={false}>
-    <DropdownMenuTrigger asChild>
-      {React.isValidElement(children) ? (
-        children
-      ) : (
-        <span className="inline-flex cursor-pointer items-center">{children}</span>
-      )}
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start">
-      <MenuItemsRenderer items={menu?.items} onClick={menu?.onClick} />
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+export { Dropdown } from './primitives/dropdown';
+export type { AntdMenuItemType, AntdMenuProps, MenuProps } from './primitives/dropdown';
 
 // ---------------------------------------------------------------------------
 // Popconfirm (AlertDialog-based)
 
-export const Popconfirm: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & {
-    title?: React.ReactNode;
-    description?: React.ReactNode;
-    okText?: string;
-    cancelText?: string;
-    onConfirm?: () => void;
-    onCancel?: () => void;
-    disabled?: boolean;
-    children?: React.ReactElement;
-  }
-> = ({ title, description, okText = 'OK', cancelText = 'Cancel', onConfirm, onCancel, disabled, children }) => {
-  const [open, setOpen] = React.useState(false);
-  if (!children) return null;
-  return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild disabled={disabled}>
-        {children}
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description ? <AlertDialogDescription>{description}</AlertDialogDescription> : null}
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel
-            onClick={() => {
-              onCancel?.();
-              setOpen(false);
-            }}
-          >
-            {cancelText}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              onConfirm?.();
-              setOpen(false);
-            }}
-          >
-            {okText}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
+export { Popconfirm } from './primitives/popconfirm';
 
 // ---------------------------------------------------------------------------
 // Input
@@ -421,128 +257,16 @@ export type { AntdInputProps, InputRef, InputProps } from './primitives/input';
 // ---------------------------------------------------------------------------
 // Card / Popover
 
-export const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    hoverable?: boolean;
-    styles?: { body?: React.CSSProperties };
-    bodyStyle?: React.CSSProperties;
-    children?: React.ReactNode;
-  }
->(function Card({ hoverable, className, style, styles, bodyStyle, onClick, children, ...rest }, ref) {
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'rounded-(--grl-border-radius) border bg-card text-card-foreground shadow-xs',
-        hoverable && 'cursor-pointer transition-colors hover:border-primary/50',
-        className,
-      )}
-      style={style}
-      onClick={onClick}
-      {...rest}
-    >
-      <div className="p-4" style={{ ...bodyStyle, ...styles?.body }}>
-        {children}
-      </div>
-    </div>
-  );
-});
+export { Card } from './primitives/card';
 
-export interface AntdPopoverProps {
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  content?: React.ReactNode;
-  title?: React.ReactNode;
-  trigger?: Array<'click' | 'hover' | 'contextMenu'> | 'click' | 'hover';
-  placement?: string;
-  destroyTooltipOnHide?: boolean;
-  arrow?: boolean;
-  overlayClassName?: string;
-  disabled?: boolean;
-  children?: React.ReactNode;
-}
-
-export const Popover: React.FC<AntdPopoverProps> = ({
-  open,
-  onOpenChange,
-  content,
-  children,
-}) => (
-  <UiPopover open={open} onOpenChange={onOpenChange}>
-    <UiPopoverTrigger asChild>
-      {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
-    </UiPopoverTrigger>
-    <UiPopoverContent>{content}</UiPopoverContent>
-  </UiPopover>
-);
+export { Popover } from './primitives/popover';
+export type { AntdPopoverProps } from './primitives/popover';
 
 // ---------------------------------------------------------------------------
 // Tabs (items schema subset of antd)
 
-export interface AntdTabsItemType {
-  key: string;
-  label: React.ReactNode;
-  children?: React.ReactNode;
-  disabled?: boolean;
-}
-
-export interface TabsProps {
-  items?: AntdTabsItemType[];
-  activeKey?: string;
-  defaultActiveKey?: string;
-  onChange?: (key: string) => void;
-  type?: 'line' | 'card' | 'editable-card';
-  size?: 'large' | 'middle' | 'small';
-  className?: string;
-  rootClassName?: string;
-  style?: React.CSSProperties;
-  tabBarExtraContent?: React.ReactNode;
-}
-
-export const Tabs: React.FC<TabsProps> = ({
-  items,
-  activeKey,
-  defaultActiveKey,
-  onChange,
-  size,
-  className,
-  rootClassName,
-  style,
-  tabBarExtraContent,
-}) => {
-  const list = items ?? [];
-  const [uncontrolled, setUncontrolled] = React.useState<string>(
-    defaultActiveKey ?? list[0]?.key ?? '',
-  );
-  const current = activeKey ?? uncontrolled;
-
-  const select = (key: string) => {
-    if (activeKey === undefined) setUncontrolled(key);
-    onChange?.(key);
-  };
-
-  return (
-    <UiTabs value={current} onValueChange={select} style={style} className={cn(rootClassName, className)}>
-      <div className="flex w-full items-center justify-between gap-2">
-        <UiTabsList className={cn(size === 'small' && 'h-8')}>
-          {list.map((item) => (
-            <UiTabsTrigger key={item.key} value={item.key} disabled={item.disabled}>
-              {item.label}
-            </UiTabsTrigger>
-          ))}
-        </UiTabsList>
-        {tabBarExtraContent}
-      </div>
-      {list.map((item) => (
-        <UiTabsContent key={item.key} value={item.key}>
-          {item.children}
-        </UiTabsContent>
-      ))}
-    </UiTabs>
-  );
-};
+export { Tabs } from './primitives/tabs';
+export type { AntdTabsItemType, TabsProps } from './primitives/tabs';
 
 // ---------------------------------------------------------------------------
 // Checkbox
