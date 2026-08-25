@@ -27,8 +27,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button as UiButton } from '@/components/ui/button';
-import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
-import { Switch as UiSwitch } from '@/components/ui/switch';
 import { DropdownMenu } from '@/components/ui/dropdown-menu';
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -37,19 +35,11 @@ import { DropdownMenuSub } from '@/components/ui/dropdown-menu';
 import { DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 import { DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input as UiInput } from '@/components/ui/input';
 import {
   Popover as UiPopover,
   PopoverContent as UiPopoverContent,
   PopoverTrigger as UiPopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select as SelectPrimitiveRoot,
-  SelectContent as SelectPrimitiveContent,
-  SelectItem as SelectPrimitiveItem,
-  SelectTrigger as SelectPrimitiveTrigger,
-  SelectValue as SelectPrimitiveValue,
-} from '@/components/ui/select';
 import { Tabs as UiTabs } from '@/components/ui/tabs';
 import { TabsContent as UiTabsContent } from '@/components/ui/tabs';
 import { TabsList as UiTabsList } from '@/components/ui/tabs';
@@ -59,7 +49,6 @@ import { TooltipContent as UiTooltipContent } from '@/components/ui/tooltip';
 import { TooltipProvider as UiTooltipProvider } from '@/components/ui/tooltip';
 import { TooltipTrigger as UiTooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import dayjs, { type Dayjs } from 'dayjs';
 
 // ---------------------------------------------------------------------------
 // Button
@@ -426,61 +415,8 @@ export const Popconfirm: React.FC<
 // ---------------------------------------------------------------------------
 // Input
 
-export interface AntdInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
-  size?: 'large' | 'middle' | 'small';
-  allowClear?: boolean;
-  bordered?: boolean;
-  prefix?: React.ReactNode;
-  suffix?: React.ReactNode;
-}
-
-export const Input = React.forwardRef<HTMLInputElement, AntdInputProps>(function Input(
-  { size, allowClear = false, bordered = true, prefix, suffix, value, onChange, className, disabled, ...rest },
-  ref,
-) {
-  const [internal, setInternal] = React.useState('');
-  const current = value !== undefined ? String(value) : internal;
-
-  const sizeClass =
-    size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined;
-
-  return (
-    <div className="relative inline-flex w-full items-center">
-      {prefix ? <span className="absolute left-2.5 flex text-muted-foreground [&_svg]:size-3.5">{prefix}</span> : null}
-      <UiInput
-        ref={ref}
-        value={current}
-        onChange={(event) => {
-          setInternal(event.target.value);
-          onChange?.(event as never);
-        }}
-        disabled={disabled}
-        className={cn(sizeClass, !bordered && 'border-0 shadow-none', allowClear && 'pr-7', prefix && 'pl-7', suffix && 'pr-8', className)}
-        {...rest}
-      />
-      {suffix ? <span className="absolute right-2 flex text-muted-foreground [&_svg]:size-3.5">{suffix}</span> : null}
-      {allowClear && current ? (
-        <button
-          type="button"
-          aria-label="Clear"
-          onClick={() => {
-            setInternal('');
-            if (onChange) {
-              const event = { target: { value: '' } } as unknown as React.ChangeEvent<HTMLInputElement>;
-              onChange(event);
-            }
-          }}
-          className="absolute right-2 flex size-4 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
-        >
-          ✕
-        </button>
-      ) : null}
-    </div>
-  );
-});
-
-export type InputRef = HTMLInputElement;
+export { Input } from './primitives/input';
+export type { AntdInputProps, InputRef, InputProps } from './primitives/input';
 
 // ---------------------------------------------------------------------------
 // Card / Popover
@@ -544,10 +480,6 @@ export const Popover: React.FC<AntdPopoverProps> = ({
 
 // ---------------------------------------------------------------------------
 // Tabs (items schema subset of antd)
-
-export type InputProps = React.ComponentProps<typeof Input>;
-
-export type SelectProps = AntdSelectProps;
 
 export interface AntdTabsItemType {
   key: string;
@@ -615,30 +547,8 @@ export const Tabs: React.FC<TabsProps> = ({
 // ---------------------------------------------------------------------------
 // Checkbox
 
-export interface AntdCheckboxChangeEvent {
-  target: { checked: boolean };
-  stopPropagation: () => void;
-}
-
-export const Checkbox: React.FC<{
-  checked?: boolean;
-  defaultChecked?: boolean;
-  disabled?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-  onChange?: (event: AntdCheckboxChangeEvent) => void;
-  children?: React.ReactNode;
-}> = ({ checked, defaultChecked, disabled, className, style, onChange, children }) => (
-  <label className={cn('inline-flex cursor-pointer items-center gap-2 text-sm', className)} style={style}>
-    <UiCheckbox
-      checked={checked === undefined ? undefined : !!checked}
-      defaultChecked={defaultChecked}
-      disabled={disabled}
-      onCheckedChange={(next) => onChange?.({ target: { checked: next === true }, stopPropagation: () => {} })}
-    />
-    {children ? <span>{children}</span> : null}
-  </label>
-);
+export { Checkbox } from './primitives/checkbox';
+export type { AntdCheckboxChangeEvent } from './primitives/checkbox';
 
 // ---------------------------------------------------------------------------
 // Form (layout-only subset: values are injected into named Form.Item children)
@@ -731,41 +641,11 @@ export const Form = Object.assign(FormRoot, { Item: FormItem });
 // ---------------------------------------------------------------------------
 // Switch
 
-export interface AntdSwitchProps {
-  checked?: boolean;
-  defaultChecked?: boolean;
-  disabled?: boolean;
-  size?: 'default' | 'small';
-  className?: string;
-  style?: React.CSSProperties;
-  onChange?: (checked: boolean) => void;
-  checkedChildren?: React.ReactNode;
-  unCheckedChildren?: React.ReactNode;
-}
-
-export const Switch: React.FC<AntdSwitchProps> = ({
-  checked,
-  defaultChecked,
-  disabled,
-  size,
-  className,
-  style,
-  onChange,
-}) => (
-  <UiSwitch
-    checked={checked === undefined ? undefined : !!checked}
-    defaultChecked={defaultChecked}
-    disabled={disabled}
-    onCheckedChange={(next) => onChange?.(next === true)}
-    className={cn(size === 'small' && 'data-[state=checked]:translate-x-3.5 h-4 w-7 [&_span]:size-3', className)}
-    style={style}
-  />
-);
-
-export type SwitchProps = AntdSwitchProps;
+export { Switch } from './primitives/switch';
+export type { AntdSwitchProps, SwitchProps } from './primitives/switch';
 
 // ---------------------------------------------------------------------------
-// Divider / Tag / Steps / Radio
+// Steps
 
 export { Divider } from './primitives/divider';
 export { Tag } from './primitives/tag';
@@ -810,242 +690,15 @@ export const Steps: React.FC<{
   </div>
 );
 
-interface RadioContextValue {
-  value?: string | number | boolean;
-  setValue: (value: string | number | boolean) => void;
-}
-
-const RadioContext = React.createContext<RadioContextValue>({ setValue: () => {} });
-
-const RadioGroupRoot: React.FC<{
-  value?: string | number | boolean;
-  size?: 'large' | 'middle' | 'small';
-  disabled?: boolean;
-  buttonStyle?: string;
-  onChange?: (event: { target: { value: unknown } }) => void;
-  className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
-}> = ({ value, disabled, onChange, className, style, children }) => {
-  const context = React.useMemo<RadioContextValue>(
-    () => ({
-      value,
-      setValue: (next) => {
-        if (!disabled) onChange?.({ target: { value: next } });
-      },
-    }),
-    [value, disabled, onChange],
-  );
-
-  return (
-    <RadioContext.Provider value={context}>
-      <div
-        role="radiogroup"
-        className={cn(
-          'inline-flex rounded-md border bg-muted p-0.5',
-          disabled && 'cursor-not-allowed opacity-50',
-          className,
-        )}
-        style={style}
-      >
-        {children}
-      </div>
-    </RadioContext.Provider>
-  );
-};
-
-const RadioButton: React.FC<{
-  value?: string | number;
-  disabled?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
-}> = ({ value, disabled, className, style, children }) => {
-  const { value: current, setValue } = React.useContext(RadioContext);
-  const active = current !== undefined && String(current) === String(value);
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => setValue(value!)}
-      className={cn(
-        'flex-1 whitespace-nowrap rounded-[4px] px-3 py-1 text-xs transition-colors',
-        active ? 'bg-background font-medium shadow-xs' : 'text-muted-foreground hover:text-foreground',
-        className,
-      )}
-      style={style}
-    >
-      {children}
-    </button>
-  );
-};
-
-const RadioItem: React.FC<{
-  value?: string | number;
-  disabled?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
-}> = ({ value, disabled, className, style, children }) => {
-  const { value: current, setValue } = React.useContext(RadioContext);
-  const active = current !== undefined && String(current) === String(value);
-  return (
-    <label
-      className={cn(
-        'flex cursor-pointer items-center gap-1.5 text-sm',
-        active ? 'text-primary' : 'text-foreground',
-        disabled && 'cursor-not-allowed opacity-50',
-        className,
-      )}
-      style={style}
-      onClick={() => {
-        if (!disabled) setValue(value!);
-      }}
-    >
-      <span
-        className={cn(
-          'flex size-3.5 items-center justify-center rounded-full border transition-colors',
-          active ? 'border-primary' : 'border-input',
-        )}
-      >
-        {active ? <span className="size-2 rounded-full bg-primary" /> : null}
-      </span>
-      {children}
-    </label>
-  );
-};
-
-export const Radio = Object.assign(RadioItem, { Group: RadioGroupRoot, Button: RadioButton });
-
-export interface AntdRadioGroupProps {
-  value?: string | number | boolean;
-  disabled?: boolean;
-  size?: 'large' | 'middle' | 'small';
-  options?: Array<{ label?: React.ReactNode; value: string | number; disabled?: boolean }>;
-  onChange?: (event: { target: { value: unknown } }) => void;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-export type RadioGroupProps = AntdRadioGroupProps;
+export { Radio } from './primitives/radio';
+export type { AntdRadioGroupProps, RadioGroupProps } from './primitives/radio';
 
 // ---------------------------------------------------------------------------
 // InputNumber / DatePicker / TimePicker
 
-const borderlessInputClass =
-  'h-7 rounded-md bg-transparent px-2 text-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50';
-
-export const InputNumber: React.FC<{
-  value?: number | null;
-  defaultValue?: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  precision?: number;
-  disabled?: boolean;
-  size?: 'large' | 'middle' | 'small';
-  controls?: boolean;
-  variant?: string;
-  placeholder?: string;
-  className?: string;
-  style?: React.CSSProperties;
-  onChange?: (value: number | null) => void;
-}> = ({ value, min, max, step, disabled, size, placeholder, className, style, onChange }) => (
-  <input
-    type="number"
-    value={value === undefined || value === null ? '' : value}
-    min={min}
-    max={max}
-    step={step}
-    placeholder={placeholder}
-    disabled={disabled}
-    onChange={(event) =>
-      onChange?.(event.target.value === '' ? null : Number(event.target.value))
-    }
-    className={cn(
-      borderlessInputClass,
-      size === 'large' ? 'h-10 text-base' : undefined,
-      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
-      className,
-    )}
-    style={style}
-  />
-);
-
-export interface AntdDatePickerProps {
-  value?: Dayjs | null;
-  onChange?: (date: Dayjs | null) => void;
-  disabled?: boolean;
-  allowClear?: boolean;
-  size?: 'large' | 'middle' | 'small';
-  variant?: string;
-  format?: string;
-  placeholder?: string;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-const toDayjs = (raw: string) => dayjs(raw);
-
-export const DatePicker: React.FC<AntdDatePickerProps> = ({
-  value,
-  onChange,
-  disabled,
-  allowClear = true,
-  className,
-  style,
-  placeholder,
-}) => (
-  <input
-    type="date"
-    value={value?.format ? value.format('YYYY-MM-DD') : ''}
-    placeholder={placeholder}
-    disabled={disabled}
-    onChange={(event) => {
-      if (!event.target.value) {
-        if (allowClear) onChange?.(null);
-        return;
-      }
-      const parsed = toDayjs(event.target.value);
-      if (parsed.isValid()) onChange?.(parsed);
-    }}
-    className={cn(
-      borderlessInputClass,
-      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
-      className,
-    )}
-    style={style}
-  />
-);
-
-export const TimePicker: React.FC<AntdDatePickerProps> = ({
-  value,
-  onChange,
-  disabled,
-  allowClear = true,
-  className,
-  style,
-}) => (
-  <input
-    type="time"
-    value={value?.format ? value.format('HH:mm') : ''}
-    disabled={disabled}
-    onChange={(event) => {
-      if (!event.target.value) {
-        if (allowClear) onChange?.(null);
-        return;
-      }
-      const parsed = toDayjs(`2000-01-01 ${event.target.value}`);
-      if (parsed.isValid()) onChange?.(parsed);
-    }}
-    className={cn(
-      borderlessInputClass,
-      'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
-      className,
-    )}
-    style={style}
-  />
-);
+export { InputNumber } from './primitives/input-number';
+export { DatePicker, TimePicker } from './primitives/date-picker';
+export type { AntdDatePickerProps } from './primitives/date-picker';
 
 // ---------------------------------------------------------------------------
 // Space
@@ -1061,161 +714,8 @@ export { Avatar } from './primitives/avatar';
 // ---------------------------------------------------------------------------
 // Select (options schema subset of antd)
 
-export interface AntdSelectOption {
-  /** Optional metadata used by the excel-import dialogs */
-  id?: string;
-  type?: string;
-  wrapInQuotes?: boolean;
-  /** Extra render node shown in the dropdown list */
-  display?: React.ReactNode;
-  label?: React.ReactNode;
-  value: string | number | boolean;
-  disabled?: boolean;
-}
-
-export interface AntdSelectProps {
-  options?: AntdSelectOption[];
-  value?: string | number | boolean | Array<string | number>;
-  defaultValue?: string | number | boolean | Array<string | number>;
-  
-  onChange?: (value: any, option?: AntdSelectOption) => void;
-  onSelect?: (value: string | number | boolean, option: AntdSelectOption) => void;
-  dropdownRender?: (menu: React.ReactNode) => React.ReactNode;
-  optionRender?: (option: { data: AntdSelectOption }) => React.ReactNode;
-  placeholder?: string;
-  disabled?: boolean;
-  size?: 'large' | 'middle' | 'small';
-  allowClear?: boolean;
-  onClear?: () => void;
-  optionLabelProp?: string;
-  loading?: boolean;
-  showSearch?: boolean;
-  filterOption?: boolean | ((input: string, option: AntdSelectOption) => boolean);
-  mode?: 'multiple' | 'tags';
-  variant?: string;
-  suffixIcon?: React.ReactNode;
-  popupMatchSelectWidth?: boolean | number;
-  tokenSeparators?: string[];
-  maxCount?: number;
-  overlayClassName?: string;
-  needConfirm?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-export const Select: React.FC<AntdSelectProps> = ({
-  options,
-  value,
-  defaultValue,
-  onChange,
-  onSelect,
-  onClear,
-  dropdownRender,
-  optionRender,
-  placeholder,
-  disabled,
-  size,
-  allowClear,
-  loading,
-  mode,
-  tokenSeparators: _tokenSeparators,
-  suffixIcon: _suffixIcon,
-  popupMatchSelectWidth: _popupMatchSelectWidth,
-  variant: _variant,
-  showSearch: _showSearch,
-  filterOption: _filterOption,
-  optionLabelProp: _optionLabelProp,
-  maxCount: _maxCount,
-  className,
-  style,
-}) => {
-  const list = options ?? [];
-  const current = value === undefined || value === null ? undefined : String(value);
-  const selected = list.find((option) => String(option.value) === current);
-
-  if (mode === 'multiple' || mode === 'tags') {
-    const arrayValue = Array.isArray(value) ? (value as Array<string | number>) : [];
-    return (
-      <input
-        value={arrayValue.join(', ')}
-        placeholder={placeholder}
-        disabled={disabled || loading}
-        onChange={(event) =>
-          onChange?.(
-            event.target.value
-              .split(',')
-              .map((part) => part.trim())
-              .filter(Boolean),
-          )
-        }
-        className={cn(borderlessInputClass, 'w-full rounded-md border border-input shadow-xs', className)}
-        style={style}
-      />
-    );
-  }
-
-  const menu = (
-    <>
-      {list.map((option) => (
-        <SelectPrimitiveItem
-          key={String(option.value)}
-          value={String(option.value)}
-          disabled={option.disabled}
-        >
-          {optionRender ? optionRender({ data: option }) : (option.label ?? String(option.value))}
-        </SelectPrimitiveItem>
-      ))}
-    </>
-  );
-
-  return (
-    <div className="relative inline-flex w-full items-center">
-      <SelectPrimitiveRoot
-        value={current}
-        defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
-        onValueChange={(next) => {
-          if (allowClear && next === current) return;
-          const option = list.find((item) => String(item.value) === next) ?? ({} as AntdSelectOption);
-          const raw = option.value ?? next;
-          onSelect?.(raw, option);
-          onChange?.(raw, option);
-        }}
-        disabled={disabled || loading}
-      >
-        <SelectPrimitiveTrigger
-          className={cn(
-            'w-full justify-between',
-            size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
-            allowClear && !!current && '[&>svg:last-child]:hidden',
-            className,
-          )}
-          style={style}
-        >
-          <SelectPrimitiveValue>
-            {selected?.label ?? (placeholder ? (
-              <span className="text-muted-foreground">{placeholder}</span>
-            ) : null)}
-          </SelectPrimitiveValue>
-        </SelectPrimitiveTrigger>
-        <SelectPrimitiveContent position="popper">
-          {dropdownRender ? dropdownRender(menu) : menu}
-        </SelectPrimitiveContent>
-      </SelectPrimitiveRoot>
-      {allowClear && current ? (
-        <button
-          type="button"
-          aria-label="Clear"
-          onClick={() => {
-            onClear?.();
-            onChange?.(undefined, undefined);
-          }}
-          className="absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
-        >
-          ✕        </button>
-      ) : null}
-    </div>
-  );
-};
+export { Select } from './primitives/select';
+export type { AntdSelectOption, AntdSelectProps, SelectProps } from './primitives/select';
 
 // ---------------------------------------------------------------------------
 // Modal (Dialog-based subset of antd)
