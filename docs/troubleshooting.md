@@ -214,3 +214,102 @@ silently defeated the explicit `val ?? undefined` guards in
 because every downstream reader used truthiness checks
 (`filter(Boolean)`, ternaries), but the trap was real — fixed in `b6f70c0`
 by emitting `undefined`.
+
+## 3. Expression key-column textarea collapses in edit mode after SCSS→Tailwind migration
+
+**Date:** 2026-08 · **Fixed in:** `d7a89d6` (noStyle passthrough + className restore)
+
+### Symptom
+
+In the `decision-graph--controlled` story, clicking "Edit Expression" on a
+node opens the expression tab. The **key** column renders correctly in
+read-only state (matches the expression column height), but the moment the
+user clicks into the key field to edit, the textarea collapses to roughly
+half its expected height. The expression column (CodeMirror-based) is
+unaffected.
+
+### Investigation timeline
+
+1. **Diff the old SCSS against the new Tailwind.** The deleted
+   `expression.scss` had a `[contenteditable]` rule under
+   `.expression-list-item__key` that set `padding: 12px 12px`,
+   `font-size: 13px`, `line-height: 1.5em`, `border: 0`, and
+   `font-family: var(--mono-font-family)`. The A1 migration commit
+   (`c23e136`) incorrectly classified these as dead code and dropped them.
+2. **Trace the component chain.** `expression-item.tsx` passes `noStyle` to
+   `DiffAutosizeTextArea`. In `diff-text-area.tsx`, `noStyle` is destructured
+   out of props but **never forwarded** to `AutosizeTextArea` in the
+   non-diff path (line 42). So `AutosizeTextArea` always receives the
+   `grl-textarea-input` class, which adds `border: 1px solid`,
+   `padding: 4px 11px`, `font-size: 14px` — different dimensions from the
+   old SCSS.
+3. **Compare the two bugs.** The `noStyle` passthrough was one problem (wrong
+   base styles applied). Even after fixing passthrough, the bare
+   `contentEditable` div had **zero padding and no height constraint**, so it
+   collapsed to content-only height in edit mode.
+
+### Root cause
+
+Two layered issues:
+
+| Layer | Problem |
+| --- | --- |
+| `diff-text-area.tsx:42` | `noStyle` destructured but not forwarded to `AutosizeTextArea` in non-diff path → `grl-textarea-input` always applied |
+| `expression-item.tsx:117` | Even with `noStyle` working, the bare `contentEditable` has no padding/height/font styling → collapses on focus |
+
+The old SCSS `[contenteditable]` rule provided all sizing. The Tailwind
+migration dropped it (misidentified as dead code) and the `noStyle` prop
+was broken, so no replacement styling was ever applied.
+
+### Fix
+
+**Part 1 — `autosize-text-area.tsx` + `diff-text-area.tsx`** (noStyle
+passthrough, squashed into `d7a89d6`):
+
+- `AutosizeTextAreaProps` gains `noStyle?: boolean`.
+- `AutosizeTextArea` conditionally applies `grl-textarea-input`:
+  `className={clsx(!noStyle && 'grl-textarea-input', className)}`.
+- `DiffAutosizeTextArea` non-diff path forwards `noStyle` to
+  `AutosizeTextArea`.
+
+**Part 2 — `expression-item.tsx`** (className restore, same commit):
+
+```tsx
+<DiffAutosizeTextArea
+  noStyle
+  className='min-h-full py-3 px-3 text-[13px] leading-[1.5em]
+             [font-family:var(--mono-font-family)] focus:shadow-none'
+  ...
+/>
+```
+
+This restores the old SCSS dimensions as Tailwind utilities:
+
+| Old SCSS | Tailwind equivalent |
+| --- | --- |
+| `padding: 12px 12px` | `py-3 px-3` |
+| `font-size: 13px` | `text-[13px]` |
+| `line-height: 1.5em` | `leading-[1.5em]` |
+| `font-family: var(--mono-font-family)` | `[font-family:var(--mono-font-family)]` |
+| `&:focus { box-shadow: none }` | `focus:shadow-none` |
+| *(fill parent)* | `min-h-full` |
+
+### Verification
+
+- Storybook `decision-graph--controlled`: click Edit Expression → key
+  column textarea height matches expression column in both read-only and
+  edit states.
+- Full gates: typecheck 0 · lint clean · vitest 92/92 · static suite 55/55.
+
+### Lessons / checklist
+
+- **`[contenteditable]` selectors are not dead code** even when the
+  component name suggests a `<textarea>`. `AutosizeTextArea` renders a
+  `<div contentEditable>`, which matches `[contenteditable]` — verify the
+  actual DOM output before dropping CSS rules during migration.
+- **`noStyle` / `noBorder` props must be forwarded through every wrapper
+  layer.** If a prop is destructured but not passed down, the "opt-out"
+  silently fails and the consumer gets the default styling.
+- **When removing a CSS rule during migration, grep for the selector in the
+  DOM** (not just the source) to confirm no third-party component renders
+  matching elements.

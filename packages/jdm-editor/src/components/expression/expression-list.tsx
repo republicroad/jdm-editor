@@ -43,15 +43,20 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({}) => {
     setVariableType(resultingVariableType);
   }, [expressions, inputVariableType]);
 
+  const listClass = 'flex flex-col box-border gap-px pb-px bg-[var(--grl-color-border-fade)]';
+  const itemClass =
+    'relative grid grid-cols-[40px_minmax(240px,1.1fr)_3fr_40px] items-start bg-[var(--grl-color-bg-container)] focus-within:[box-shadow:0_0_0_1px_var(--grl-color-border)]';
+  const thClass = 'p-3 pointer-events-none';
+
   return (
     <>
-      <div className={'expression-list'}>
-        <div className={clsx('expression-list__item', 'expression-list__item--heading')}>
-          <div className={'expression-list__item__th expression-list__item__th--order'} />
-          <Typography.Text type='secondary' className={'expression-list__item__th expression-list__item__th--key'}>
+      <div className={listClass}>
+        <div className={clsx(itemClass, 'sticky top-0 z-[15] [&>span]:text-xs')}>
+          <div className={clsx(thClass, 'h-full')} />
+          <Typography.Text type='secondary' className={thClass}>
             Key
           </Typography.Text>
-          <Typography.Text type='secondary' className={'expression-list__item__th'}>
+          <Typography.Text type='secondary' className={thClass}>
             Expression
           </Typography.Text>
           <div />
@@ -61,13 +66,8 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({}) => {
         ))}
       </div>
       {permission === 'edit:full' && !disabled && (
-        <div className={'expression-list__button-wrapper'}>
-          <Button
-            className='expression-list__button'
-            icon={<PlusCircleOutlined />}
-            type='link'
-            onClick={() => addRowBelow()}
-          >
+        <div className='py-2 mb-[60px]'>
+          <Button icon={<PlusCircleOutlined />} type='link' onClick={() => addRowBelow()}>
             Add row
           </Button>
         </div>

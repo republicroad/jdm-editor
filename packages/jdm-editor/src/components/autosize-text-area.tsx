@@ -5,6 +5,7 @@ import { composeRefs } from '../helpers/compose-refs';
 
 export type AutosizeTextAreaProps = {
   maxRows: number;
+  noStyle?: boolean;
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
   placeholder?: string;
@@ -14,7 +15,7 @@ export type AutosizeTextAreaProps = {
 } & Omit<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>, 'onChange' | 'placeholder'>;
 
 export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAreaProps>(
-  ({ maxRows, className, value, onChange, placeholder, disabled, readOnly, style, ...props }, ref) => {
+  ({ maxRows, className, value, onChange, placeholder, disabled, readOnly, style, noStyle, ...props }, ref) => {
     const divRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -35,7 +36,7 @@ export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAre
 
     return (
       <div
-        className={clsx('grl-textarea-input', className)}
+        className={clsx(!noStyle && 'grl-textarea-input', className)}
         ref={composeRefs(divRef, ref)}
         contentEditable={!disabled && !readOnly}
         onInput={handleInput}

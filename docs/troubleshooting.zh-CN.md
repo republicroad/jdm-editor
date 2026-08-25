@@ -191,3 +191,92 @@ Radix→antd 值桥接——`components/ui/*` 之外不存在其他 `onValueChan
 `val ?? undefined` 防线(`'' ?? undefined` 还是 `''`)。因为所有下游读取
 恰好都用真值守卫(`filter(Boolean)`、三元判断),问题一直潜伏未爆发,
 但陷阱真实存在——已在 `b6f70c0` 改为发 `undefined`。
+
+## 3. SCSS→Tailwind 迁移后表达式 key 列编辑态高度塌陷
+
+**日期:** 2026-08 · **修复提交:** `d7a89d6`(noStyle 透传 + className 恢复)
+
+### 现象
+
+在 `decision-graph--controlled` 故事中,点击节点的 "Edit Expression"
+打开表达式 tab。key 列在只读状态下高度正常(与 expression 列齐平),
+但用户点击 key 字段进入编辑态后,textarea 高度塌陷到约原来的一半。
+expression 列(CodeMirror)不受影响。
+
+### 排查过程
+
+1. **对比旧 SCSS 与新 Tailwind。** 已删除的 `expression.scss` 在
+   `.expression-list-item__key` 下有 `[contenteditable]` 规则,设置了
+   `padding: 12px 12px`、`font-size: 13px`、`line-height: 1.5em`、
+   `border: 0`、`font-family: var(--mono-font-family)`。A1 迁移提交
+   (`c23e136`)误判为死代码并删除。
+2. **追踪组件链路。** `expression-item.tsx` 向 `DiffAutosizeTextArea`
+   传递 `noStyle`。在 `diff-text-area.tsx` 中,`noStyle` 被解构但在
+   非 diff 路径(第42行) **未透传** 给 `AutosizeTextArea`。因此
+   `AutosizeTextArea` 始终带 `grl-textarea-input` class,应用了
+   `border: 1px solid`、`padding: 4px 11px`、`font-size: 14px`
+   ——与旧 SCSS 尺寸不一致。
+3. **定位两层问题。** `noStyle` 透传缺失是一层(错误基础样式);
+   即使修复透传,裸 `contentEditable` div 没有 padding/高度约束,
+   编辑态仍会塌陷。
+
+### 根因
+
+两层叠加:
+
+| 层 | 问题 |
+| --- | --- |
+| `diff-text-area.tsx:42` | `noStyle` 解构后未透传给 `AutosizeTextArea` → `grl-textarea-input` 始终生效 |
+| `expression-item.tsx:117` | 即使 `noStyle` 生效,裸 `contentEditable` 无 padding/高度/字体样式 → 聚焦时塌陷 |
+
+旧 SCSS 的 `[contenteditable]` 规则提供全部尺寸。Tailwind 迁移将其
+误判为死代码删除,而 `noStyle` prop 又是坏的,导致替代样式从未生效。
+
+### 修复
+
+**Part 1 — `autosize-text-area.tsx` + `diff-text-area.tsx`**（noStyle
+透传,合入 `d7a89d6`）:
+
+- `AutosizeTextAreaProps` 新增 `noStyle?: boolean`。
+- `AutosizeTextArea` 条件应用 `grl-textarea-input`:
+  `className={clsx(!noStyle && 'grl-textarea-input', className)}`。
+- `DiffAutosizeTextArea` 非 diff 路径将 `noStyle` 透传给
+  `AutosizeTextArea`。
+
+**Part 2 — `expression-item.tsx`**（className 恢复,同提交）:
+
+```tsx
+<DiffAutosizeTextArea
+  noStyle
+  className='min-h-full py-3 px-3 text-[13px] leading-[1.5em]
+             [font-family:var(--mono-font-family)] focus:shadow-none'
+  ...
+/>
+```
+
+以 Tailwind utilities 恢复旧 SCSS 尺寸:
+
+| 旧 SCSS | Tailwind 等效 |
+| --- | --- |
+| `padding: 12px 12px` | `py-3 px-3` |
+| `font-size: 13px` | `text-[13px]` |
+| `line-height: 1.5em` | `leading-[1.5em]` |
+| `font-family: var(--mono-font-family)` | `[font-family:var(--mono-font-family)]` |
+| `&:focus { box-shadow: none }` | `focus:shadow-none` |
+| *(填充父容器)* | `min-h-full` |
+
+### 验证
+
+- Storybook `decision-graph--controlled`: 点击 Edit Expression → key 列
+  textarea 在只读和编辑态均与 expression 列高度一致。
+- 全部门禁: typecheck 0 · lint clean · vitest 92/92 · static suite 55/55。
+
+### 经验 / 检查清单
+
+- **`[contenteditable]` 选择器不是死代码**——即使组件名暗示
+  `<textarea>`,`AutosizeTextArea` 实际渲染的是 `<div contentEditable>`,
+  匹配 `[contenteditable]`。迁移时需验证实际 DOM 输出再删除 CSS 规则。
+- **`noStyle` / `noBorder` 等 opt-out prop 必须在每一层 wrapper 中透传。**
+  如果 prop 被解构但未向下传递,"opt-out"会静默失败,消费者仍获得
+  默认样式。
+- **迁移删除 CSS 规则时,用 DOM 搜索确认选择器不被第三方组件命中。**

@@ -11,7 +11,6 @@ import { ExpressionCommandBar } from './expression-command-bar';
 import type { ExpressionControllerProps } from './expression-controller';
 import { ExpressionController } from './expression-controller';
 import { ExpressionList } from './expression-list';
-import './expression.scss';
 
 export type ExpressionProps = {
   inputVariableType?: VariableType;

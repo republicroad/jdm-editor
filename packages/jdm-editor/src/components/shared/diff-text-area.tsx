@@ -28,6 +28,6 @@ export const DiffAutosizeTextArea = forwardRef<HTMLDivElement, DiffAutosizeTextA
         </div>
       );
     }
-    return <AutosizeTextArea ref={ref} {...rest} />;
+    return <AutosizeTextArea ref={ref} noStyle={noStyle} {...rest} />;
   },
 );
