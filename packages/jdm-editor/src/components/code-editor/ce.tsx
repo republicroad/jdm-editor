@@ -4,7 +4,6 @@ import { composeRefs } from '../../helpers/compose-refs';
 import type { CodeEditorBaseProps, CodeEditorBaseRef } from './ce-base';
 import { CodeEditorBase } from './ce-base';
 import { CodeHighlighter } from './ce-highlight';
-import './ce.scss';
 
 export type CodeEditorRef = CodeEditorBaseRef;
 
