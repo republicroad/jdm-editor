@@ -139,13 +139,9 @@
  * real plain-CSS rules (no preprocessor).
  */
 @layer components {
-  /* Monaco error-line decoration (function editor) */
+  /* Monaco error-line decoration (function editor); mode-aware via tokens.css */
   .grl-function__errorLineContent {
-    background: #fff1f0;
-  }
-
-  [data-mode='dark'] .grl-function__errorLineContent {
-    background: #4e3534;
+    background: var(--error-line-bg);
   }
 
   /* react-json-tree styling inside the function debugger console */
@@ -259,7 +255,7 @@
   .grl-ce .cm-diagnosticMessageToken {
     padding: 2px 5px 3px;
     border-radius: 5px;
-    background: #2b2d30;
+    background: var(--diagnostic-chip-bg);
   }
 
   .grl-ce .cm-hoverTooltipMessageToken {
@@ -396,7 +392,7 @@
   }
 
   .grl-ce .cm-tooltip .cm-tooltip-section:not(.cm-tooltip-lint) {
-    background: #f5f5f5;
+    background: var(--tooltip-bg);
     padding: 4px;
   }
 
@@ -599,7 +595,7 @@
   }
 
   .grl-ce-highlighter .cm-placeholder {
-    color: #888;
+    color: var(--grl-color-text-placeholder);
   }
 
   .grl-ce-highlighter .cm-line {
