@@ -1,83 +1,23 @@
 import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@/icons';
-import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../primitives';
+import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../../primitives';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
-import type { ParsedExcelData, RuleData } from '../../../helpers/excel';
-import type { NodeKind } from '../../../helpers/schema';
-import type { HitPolicy } from '../../decision-table/context/dt-store.context';
+import {
+  assembleMergedData,
+  buildAutoSelection,
+  buildMergedItems,
+} from './merge-data';
+import type { GraphExcelDialogProps, ItemValue, SelectedItems } from './types';
 
-type ItemValue = {
-  id: string;
-  label: string;
-  value?: string;
-  type?: 'input' | 'output';
-  field?: string;
-  name?: string;
-  wrapInQuotes?: boolean;
-};
-
-type SelectedItems = {
-  [stepKey: string]: {
-    [headerId: string]: ItemValue;
-  };
-};
-
-export type MergedDataItem = {
-  items: ItemValue[];
-  rules: RuleData[][];
-  id: string;
-  name: string;
-  type: NodeKind;
-  position: { x: number; y: number };
-  hitPolicy: HitPolicy | string;
-  inputField?: string | null;
-  outputPath?: string | null;
-  passThrough?: boolean;
-  executionMode?: 'single' | 'loop';
-};
-
-type GraphExcelDialogProps = {
-  excelData?: ParsedExcelData[] | null;
-  handleSuccess: (items: MergedDataItem[]) => void;
-  handleCancel: () => void;
-};
-
-type TableHeader = {
-  id: string;
-  label: string;
-  value?: string;
-  type?: 'input' | 'output';
-};
+export type { MergedDataItem } from './types';
 
 const dataTypeConfig = {
   ['input']: { label: 'Input', color: '#acccec' },
   ['output']: { label: 'Output', color: '#c7e0ba' },
 };
 
-const isHeaderMatch = (header1: TableHeader, header2: TableHeader) => {
-  return (
-    header1.id === header2.id ||
-    header1.value?.toLowerCase() === header2.value?.toLowerCase() ||
-    header1.label?.toLowerCase() === header2.label?.toLowerCase()
-  );
-};
-
-const mergeHeaders = (newHeader: TableHeader, existingHeader?: TableHeader) => {
-  if (existingHeader) {
-    return {
-      id: newHeader.id,
-      label: newHeader.label || existingHeader.label,
-      value: newHeader.value || existingHeader.value,
-      type: newHeader.type || existingHeader.type,
-    };
-  }
-
-  return {
-    ...newHeader,
-    value: newHeader.value || newHeader.label,
-  };
-};
+const stepKeyOf = (step: number) => `step${step}`;
 
 export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -115,60 +55,18 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
       ...(header.id !== '_description' && { type: header._type as 'input' | 'output' | undefined }),
     }));
 
-    const items = [
-      ...newTableHeaders.map((newTableHeader) => {
-        const existingHeader = existingTableHeaders.find((header) => isHeaderMatch(header, newTableHeader));
+    const mergedItems = buildMergedItems(existingTableHeaders, newTableHeaders);
+    setItems(mergedItems);
 
-        return mergeHeaders(newTableHeader, existingHeader);
-      }),
-      ...existingTableHeaders.filter(
-        (existingTableHeader) => !newTableHeaders.some((newHeader) => isHeaderMatch(newHeader, existingTableHeader)),
-      ),
-    ];
-
-    if (!items.some((item) => item.id === '_description')) {
-      items.push({
-        id: '_description',
-        label: 'DESCRIPTION',
-        value: 'description',
-      });
-    }
-
-    setItems(items);
-
-    const matchingHeaders = items.filter((item) => {
+    const matchingHeaders = mergedItems.filter((item) => {
       return newTableHeaders.some((excelHeader) => excelHeader.id === item.id);
     });
 
     if (matchingHeaders.length) {
-      const selectedItemsMap = matchingHeaders.reduce((acc, tableHeader, index) => {
-        const hasDescription = matchingHeaders.some((header) => header.value === 'description');
-        const hasOutputAlready = matchingHeaders.slice(0, index).some((header) => header.type === 'output');
-
-        let shouldBeOutput;
-
-        if (hasDescription) {
-          // If there's description, set second-to-last as output
-          shouldBeOutput = index === matchingHeaders.length - 2 && !hasOutputAlready;
-        } else {
-          // If no description, set last as output (excluding if it IS description)
-          shouldBeOutput =
-            index === matchingHeaders.length - 1 && tableHeader.value !== 'description' && !hasOutputAlready;
-        }
-
-        return {
-          ...acc,
-          [tableHeader.id]: {
-            id: tableHeader.id,
-            label: tableHeader.label,
-            value: tableHeader.value,
-            type: shouldBeOutput ? 'output' : tableHeader.type,
-          },
-        };
-      }, {});
+      const selectedItemsMap = buildAutoSelection(matchingHeaders);
 
       setSelectedItems((prevItems) => {
-        const stepKey = `step${currentStep}`;
+        const stepKey = stepKeyOf(currentStep);
         const currentStepData = (prevItems || {})[stepKey];
 
         if (currentStepData) {
@@ -275,11 +173,11 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
               style={{ width: '100%' }}
               placeholder='select field'
               optionLabelProp='display'
-              value={selectedItems?.[`step${currentStep}`]?.[header.id]?.value}
+              value={selectedItems?.[stepKeyOf(currentStep)]?.[header.id]?.value}
               allowClear
               onClear={() => {
                 setSelectedItems((prevItems) => {
-                  const stepKey = `step${currentStep}`;
+                  const stepKey = stepKeyOf(currentStep);
                   const currentStepData = { ...(prevItems || {})[stepKey] };
                   delete currentStepData[header.id];
                   return {
@@ -289,7 +187,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 });
 
                 setHeaderWrapStates((prev) => {
-                  const stepKey = `step${currentStep}`;
+                  const stepKey = stepKeyOf(currentStep);
                   const updated = { ...prev[stepKey] };
                   delete updated[header.id];
                   return { ...prev, [stepKey]: updated };
@@ -305,7 +203,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                 };
 
                 setSelectedItems((prevItems) => {
-                  const stepKey = `step${currentStep}`;
+                  const stepKey = stepKeyOf(currentStep);
                   const currentStepData = { ...(prevItems || {})[stepKey] };
                   const clearedHeaderIds: string[] = [];
 
@@ -416,13 +314,13 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                   };
                 })}
             />
-            {selectedItems && selectedItems?.[`step${currentStep}`]?.[header.id]?.value !== 'description' ? (
+            {selectedItems && selectedItems?.[stepKeyOf(currentStep)]?.[header.id]?.value !== 'description' ? (
               <Radio.Group
-                disabled={!selectedItems?.[`step${currentStep}`]?.[header.id]}
-                value={selectedItems[`step${currentStep}`]?.[header.id]?.type ?? 'input'}
+                disabled={!selectedItems?.[stepKeyOf(currentStep)]?.[header.id]}
+                value={selectedItems[stepKeyOf(currentStep)]?.[header.id]?.type ?? 'input'}
                 onChange={(e) => {
                   setSelectedItems((prev) => {
-                    const stepKey = `step${currentStep}`;
+                    const stepKey = stepKeyOf(currentStep);
                     const currentStepData = (prev || {})[stepKey];
                     return {
                       ...(prev || {}),
@@ -450,14 +348,14 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
               /** placeholder for grid */
               <div />
             )}
-            {selectedItems?.[`step${currentStep}`]?.[header.id]?.value !== 'description' ? (
+            {selectedItems?.[stepKeyOf(currentStep)]?.[header.id]?.value !== 'description' ? (
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <Checkbox
-                  disabled={!selectedItems?.[`step${currentStep}`]?.[header.id]}
-                  checked={headerWrapStates[`step${currentStep}`]?.[header.id] || false}
+                  disabled={!selectedItems?.[stepKeyOf(currentStep)]?.[header.id]}
+                  checked={headerWrapStates[stepKeyOf(currentStep)]?.[header.id] || false}
                   onChange={(e) => {
                     setHeaderWrapStates((prev) => {
-                      const stepKey = `step${currentStep}`;
+                      const stepKey = stepKeyOf(currentStep);
                       return {
                         ...prev,
                         [stepKey]: {
@@ -480,7 +378,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {currentStep < (excelData || []).length - 1 && (
           <Button
             type='primary'
-            disabled={!selectedItems?.[`step${currentStep}`] || isEmpty(selectedItems[`step${currentStep}`])}
+            disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
             onClick={() => {
               setCurrentStep(currentStep + 1);
             }}
@@ -491,63 +389,10 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {currentStep === (excelData || []).length - 1 && (
           <Button
             type='primary'
-            disabled={!selectedItems?.[`step${currentStep}`] || isEmpty(selectedItems[`step${currentStep}`])}
+            disabled={!selectedItems?.[stepKeyOf(currentStep)] || isEmpty(selectedItems[stepKeyOf(currentStep)])}
             onClick={() => {
               if (selectedItems && excelData) {
-                const mergedData = Object.keys(selectedItems).map((stepKey, index) => {
-                  const stepItems = selectedItems[stepKey];
-                  const stepWrapStates = headerWrapStates[stepKey] || {};
-
-                  const items = Object.keys(stepItems).map((key) => ({
-                    ...stepItems[key],
-                    wrapInQuotes: stepWrapStates[key] || false,
-                    ...(stepItems[key].value !== 'description' && {
-                      type: stepItems[key].type ?? 'input',
-                    }),
-                  }));
-
-                  const wrap = items.reduce(
-                    (acc, item) => {
-                      acc[item.id] = item.wrapInQuotes || false;
-                      return acc;
-                    },
-                    {} as Record<string, boolean>,
-                  );
-
-                  const selectedHeaderIds = Object.keys(stepItems);
-
-                  const rules = (excelData[index].rules || []).map((rulesData) => {
-                    return rulesData
-                      .filter((rule) => [...selectedHeaderIds, '_id'].includes(rule.headerId))
-                      .map((rule) => ({
-                        headerId: stepItems[rule.headerId]?.id ?? rule.headerId,
-                        value: wrap[stepItems[rule.headerId]?.id ?? rule.headerId]
-                          ? rule.value
-                            ? rule.value
-                                .split(',')
-                                .map((s) => `"${s.trim()}"`)
-                                .join(', ')
-                            : ''
-                          : rule.value,
-                      }));
-                  });
-
-                  return {
-                    items,
-                    rules,
-                    id: excelData[index].id,
-                    name: excelData[index].name,
-                    type: excelData[index].type,
-                    position: excelData[index].position,
-                    hitPolicy: excelData[index].existingTableData.hitPolicy,
-                    inputField: excelData[index].existingTableData.inputField,
-                    outputPath: excelData[index].existingTableData.outputPath,
-                    passThrough: excelData[index].existingTableData.passThrough,
-                    executionMode: excelData[index].existingTableData.executionMode,
-                  };
-                });
-
-                handleSuccess(mergedData);
+                handleSuccess(assembleMergedData(excelData, selectedItems, headerWrapStates));
               }
             }}
           >
