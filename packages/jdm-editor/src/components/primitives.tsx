@@ -259,37 +259,7 @@ export const Typography = Object.assign(
 // ---------------------------------------------------------------------------
 // Spin
 
-export const Spin: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & {
-    size?: 'large' | 'default' | 'small';
-    spinning?: boolean;
-    children?: React.ReactNode;
-  }
-> = ({ size = 'default', spinning = true, children, className, style, ...rest }) => {
-  const spinnerClass =
-    size === 'large' ? 'size-8' : size === 'small' ? 'size-4' : 'size-6';
-
-  if (!children) {
-    return (
-      <div role="status" className={cn('flex w-full items-center justify-center p-2', className)} style={style} {...rest}>
-        <Loader2 className={cn('animate-spin text-muted-foreground', spinnerClass)} />
-      </div>
-    );
-  }
-
-  if (!spinning) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className={cn('relative', className)} style={style} {...rest}>
-      {children}
-      <div className="absolute inset-0 z-10 flex items-center justify-center rounded-(--grl-border-radius) bg-background/60">
-        <Loader2 className={cn('animate-spin text-muted-foreground', spinnerClass)} />
-      </div>
-    </div>
-  );
-};
+export { Spin } from './primitives/spin';
 
 // ---------------------------------------------------------------------------
 // Tooltip
@@ -578,11 +548,6 @@ export const Popover: React.FC<AntdPopoverProps> = ({
 export type InputProps = React.ComponentProps<typeof Input>;
 
 export type SelectProps = AntdSelectProps;
-export type SpaceProps = React.HTMLAttributes<HTMLDivElement> & {
-  size?: number | [number, number] | 'small' | 'middle' | 'large';
-  direction?: 'horizontal' | 'vertical';
-  wrap?: boolean;
-};
 
 export interface AntdTabsItemType {
   key: string;
@@ -802,33 +767,8 @@ export type SwitchProps = AntdSwitchProps;
 // ---------------------------------------------------------------------------
 // Divider / Tag / Steps / Radio
 
-export const Divider: React.FC<{
-  type?: 'horizontal' | 'vertical';
-  className?: string;
-  style?: React.CSSProperties;
-}> = ({ type = 'horizontal', className, style }) => (
-  <div
-    role="separator"
-    className={cn(
-      type === 'vertical' ? 'mx-1.5 inline-block h-[1.2em] w-px self-center bg-border' : 'my-2 w-full border-t border-border',
-      className,
-    )}
-    style={style}
-  />
-);
-
-export const Tag: React.FC<{
-  className?: string;
-  style?: React.CSSProperties;
-  children?: React.ReactNode;
-}> = ({ className, style, children }) => (
-  <span
-    className={cn('inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs', className)}
-    style={style}
-  >
-    {children}
-  </span>
-);
+export { Divider } from './primitives/divider';
+export { Tag } from './primitives/tag';
 
 export const Steps: React.FC<{
   current?: number;
@@ -1110,57 +1050,13 @@ export const TimePicker: React.FC<AntdDatePickerProps> = ({
 // ---------------------------------------------------------------------------
 // Space
 
-export const Space: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & {
-    size?: number | [number, number] | 'small' | 'middle' | 'large';
-    direction?: 'horizontal' | 'vertical';
-    wrap?: boolean;
-  }
-> = ({ size = 8, direction = 'horizontal', wrap, className, style, ...rest }) => {
-  const resolved =
-    size === 'small' ? 8 : size === 'middle' ? 16 : size === 'large' ? 24 : size;
-  const gap = Array.isArray(resolved) ? `${resolved[1]}px ${resolved[0]}px` : `${resolved}px`;
-  return (
-    <div
-      className={cn(
-        direction === 'vertical' ? 'flex flex-col' : 'flex flex-row items-center',
-        wrap && (direction === 'vertical' ? '' : 'flex-wrap'),
-        className,
-      )}
-      style={{ gap, ...style }}
-      {...rest}
-    />
-  );
-};
+export { Space } from './primitives/space';
+export type { SpaceProps } from './primitives/space';
 
 // ---------------------------------------------------------------------------
 // Avatar
 
-export const Avatar: React.FC<
-  Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
-    src?: string;
-    alt?: string;
-    size?: number | 'large' | 'default' | 'small';
-    shape?: 'circle' | 'square';
-    icon?: React.ReactNode;
-    children?: React.ReactNode;
-  }
-> = ({ src, alt, size = 'default', shape = 'circle', className, style, children, icon, ...rest }) => {
-  const pxSize = typeof size === 'number' ? size : size === 'large' ? 40 : size === 'small' ? 24 : 32;
-  return (
-    <div
-      className={cn(
-        'flex shrink-0 select-none items-center justify-center overflow-hidden bg-muted text-xs font-medium text-muted-foreground',
-        shape === 'circle' ? 'rounded-full' : 'rounded-md',
-        className,
-      )}
-      style={{ width: pxSize, height: pxSize, ...style }}
-      {...rest}
-    >
-      {src ? <img src={src} alt={alt} className="size-full object-cover" /> : children ?? icon}
-    </div>
-  );
-};
+export { Avatar } from './primitives/avatar';
 
 // ---------------------------------------------------------------------------
 // Select (options schema subset of antd)
