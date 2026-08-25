@@ -1,18 +1,14 @@
-/* eslint-disable */
-// @ts-ignore
+// Raw .d.ts sources are inlined for CodeMirror completions. Vite's client
+// types declare `*?raw` modules, so only the @types-scoped path below needs
+// an explicit suppression.
+// @ts-expect-error -- no module declaration for the @types-scoped ?raw path
 import bigJs from '@types/big.js/index.d.ts?raw';
-// @ts-ignore
 import dayjs from 'dayjs/index.d.ts?raw';
 
-// @ts-ignore
 import defaultFn from './default-function.js?raw';
-// @ts-ignore
 import globalDts from './global.d.ts?raw';
-// @ts-ignore
 import http from './http.d.ts?raw';
-// @ts-ignore
 import zen from './zen.d.ts?raw';
-// @ts-ignore
 import zod from './zod.d.ts?raw';
 
 export type FunctionLibrary = {

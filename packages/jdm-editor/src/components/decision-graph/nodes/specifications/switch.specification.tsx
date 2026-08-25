@@ -52,7 +52,6 @@ export const switchSpecification: NodeSpecification<NodeSwitchData> = {
       const statements = compareAndUnifyLists(current?.statements || [], previous?.statements || [], {
         compareFields: (current, previous) => {
           const hasConditionChange = (current.condition ?? '') !== previous.condition;
-          // const hasIsDefaultChange = (current.isDefault ?? false) !== (previous.isDefault ?? false);
 
           return {
             hasChanges: hasConditionChange,
