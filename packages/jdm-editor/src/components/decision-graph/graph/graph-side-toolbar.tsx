@@ -60,7 +60,6 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         });
 
         if (!modelParsed.success) {
-          console.log(modelParsed.error?.message);
           toast.error(modelParsed.error?.message);
           return;
         }
@@ -199,7 +198,6 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
     });
 
     if (!modelParsed.success) {
-      console.log(modelParsed.error?.message);
       toast.error(modelParsed.error?.message);
       return;
     }
