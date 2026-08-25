@@ -101,7 +101,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
 
   return (
     <div
-      className='grl-node-content'
+      className='relative box-border flex flex-col'
       data-theme={mode}
       style={
         {
@@ -114,13 +114,13 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
       }
     >
       <PanelGroup
-        className='grl-node-content-main'
+        className='flex-1'
         direction='horizontal'
         autoSaveId={`jdm-editor:${type}:schema:layout`}
       >
-        <div className='grl-node-content-side'>
-          <div className='grl-node-content-side__panel'>
-            <div className='grl-node-content-side__header'>
+        <div className='h-full w-full'>
+          <div className='flex h-full flex-col overflow-hidden bg-[var(--grl-color-bg-elevated)]'>
+            <div className='flex shrink-0 items-center border-b border-b-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)]'>
               <Tabs
                 rootClassName='grl-inline-tabs'
                 size='small'
@@ -166,7 +166,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                 }
               />
             </div>
-            <div className='grl-node-content-side__body'>
+            <div className='grow overflow-y-auto'>
               {match(activeTab)
                 .with(TabKey.Schema, () =>
                   previousValue !== undefined ? (

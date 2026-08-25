@@ -53,7 +53,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
 
   return (
     <>
-      <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--request'}>
+      <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] px-2'>
         <Tooltip title={requestTooltip}>
           <Typography.Text
             style={{ fontSize: 13, cursor: 'help' }}
@@ -63,7 +63,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
             <InformationIcon className='size-2.5 ml-1 opacity-50 align-super' />
           </Typography.Text>
         </Tooltip>
-        <div className={'grl-dg__simulator__section__bar__actions'}>
+        <div className={'flex items-center gap-2'}>
           {onRun && (
             <Tooltip
               title={
@@ -95,7 +95,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
           )}
         </div>
       </div>
-      <div className={'grl-dg__simulator__section__content'}>
+      <div className={'min-h-0 flex-1 overflow-y-auto'}>
         <SimulatorEditor
           value={requestValue}
           onChange={(text) => {

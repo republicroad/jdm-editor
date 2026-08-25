@@ -289,7 +289,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
 
   return (
     <Fragment>
-      <div className={'grl-dg__aside'}>
+      <div className={'flex h-full min-h-0 bg-[var(--grl-color-bg-container)]'}>
         <input
           hidden
           accept='application/json'
@@ -310,8 +310,8 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
             (event.target as any).value = null;
           }}
         />
-        <div className={'grl-dg__aside__side-bar'}>
-          <div className={'grl-dg__aside__side-bar__top'}>
+        <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--grl-color-border)] py-2'>
+          <div className={'flex flex-col items-center gap-2'}>
             {!disabled && (
               <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>
                 <Button type={'text'} disabled={disabled} icon={<CloudUploadOutlined />} />
@@ -321,7 +321,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
               <Button type={'text'} icon={<CloudDownloadOutlined />} />
             </Dropdown>
           </div>
-          <div className={'grl-dg__aside__side-bar__bottom'}>
+          <div className={'flex flex-col items-center gap-2'}>
             {(panels || []).map((panel) => {
               const isActive = activePanel === panel.id;
               return (

@@ -64,7 +64,10 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
       <Tabs
         type='line'
         size='small'
-        className={clsx('grl-graph-tabs')}
+        className={clsx(
+          'max-w-full [box-sizing:content-box] border-b border-b-[var(--grl-color-border)] bg-[var(--grl-color-bg-container)]',
+          '[&_[role=tablist]]:m-0',
+        )}
         activeKey={activeNodeId || 'graph'}
         onChange={(val) => graphActions.openTab(val)}
         tabBarExtraContent={tabBarExtraContent}
@@ -146,7 +149,10 @@ const TabLabel: React.FC<{
 
   return (
     <Dropdown menu={{ items }} trigger={['contextMenu']}>
-      <div className='grl-graph-tabs__tab' data-active={active}>
+      <div
+      className='group/tab flex items-center gap-1.5 px-3 py-[9px] transition-opacity duration-100 ease-in data-[active=false]:opacity-75 hover:opacity-100'
+      data-active={active}
+    >
         {/*<span style={{ color: 'black' }}>{icon}</span>*/}
         <Avatar
           size='small'
@@ -170,7 +176,7 @@ const TabLabel: React.FC<{
         />
         {onClose && (
           <Button
-            className='grl-graph-tabs__closeIcon'
+            className='opacity-0 transition-opacity duration-100 ease-in group-hover/tab:opacity-100! group-data-[active=true]/tab:opacity-100!'
             type='text'
             size='small'
             style={{ height: 20, width: 20, color: 'black', borderRadius: '50%', lineHeight: 0 }}

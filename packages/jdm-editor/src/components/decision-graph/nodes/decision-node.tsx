@@ -119,7 +119,10 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           <DiffIcon status={diffStatus} style={{ fontSize: 16 }} />
         </div>
         <div className={'grid p-2 gap-0 grid-cols-[min-content_1fr_min-content] items-center box-border h-10'}>
-          <div className='flex justify-center items-center w-6 h-6 text-base rounded mr-0.5 text-white bg-[var(--node-color)]'>
+          <div
+            data-dn-icon
+            className='flex justify-center items-center w-6 h-6 text-base rounded mr-0.5 text-white bg-[var(--node-color)]'
+          >
             {icon}
           </div>
           <TextEdit onChange={onNameChange} disabled={disabled} value={name} />

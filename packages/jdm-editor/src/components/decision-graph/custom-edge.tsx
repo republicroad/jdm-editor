@@ -42,7 +42,7 @@ export const CustomEdge: React.FC<EdgeProps> = (props) => {
       />
       <EdgeLabelRenderer>
         <div
-          className={'nodrag nopan edge-renderer'}
+          className={'nodrag nopan absolute z-[1000] flex items-center justify-center text-xs pointer-events-auto'}
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
           }}

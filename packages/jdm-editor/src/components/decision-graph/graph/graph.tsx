@@ -33,7 +33,6 @@ import { type DecisionGraphSnapshot, useGraphSerializer, useSerializerRegistry }
 import { edgeFunction } from '../custom-edge';
 import { type DecisionNode } from '../dg-types';
 import { mapToDecisionEdge } from '../dg-util';
-import '../dg.scss';
 import { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { GraphNode } from '../nodes/graph-node';
@@ -395,7 +394,10 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
 
   return (
     <div
-      className={clsx(['tab-content', className])}
+      className={clsx([
+        'relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
+        className,
+      ])}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'v' && e.metaKey && !disabled) {
@@ -413,7 +415,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
       >
         <div
           tabIndex={0}
-          className={'content-wrapper'}
+          className={'h-full w-full flex-1 flex-row outline-none!'}
           onKeyDown={(e) => {
             const [nodes] = nodesState;
             const [edges] = edgesState;
@@ -522,10 +524,15 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
           </div>
         </div>
         {!disabled && (
-          <div className={clsx('grl-dg__aside__menu', !componentsOpened && 'collapsed')}>
-            <div className={'grl-dg__aside__menu__heading'}>
+          <div
+            className={clsx(
+              'flex h-full min-h-0 flex-col border-l border-l-[var(--grl-color-border)] bg-[var(--grl-color-bg-container)]',
+              !componentsOpened ? 'w-10 min-w-10' : 'w-[260px] min-w-[260px]',
+            )}
+          >
+            <div className='box-border flex flex-row items-center border-b border-b-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)] px-3 py-1.5'>
               {componentsOpened && (
-                <div className={'grl-dg__aside__menu__heading__text'}>
+                <div className='flex flex-1 items-center'>
                   <Typography.Text strong style={{ marginBottom: 0 }}>
                     Components
                   </Typography.Text>{' '}
@@ -551,7 +558,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                 }}
               />
             </div>
-            <div className={'grl-dg__aside__menu__content'}>
+            <div className='min-h-0 flex-1 overflow-y-auto'>
               <GraphComponents inputDisabled={hasInputNode} collapsed={!componentsOpened} disabled={disabled} />
             </div>
           </div>

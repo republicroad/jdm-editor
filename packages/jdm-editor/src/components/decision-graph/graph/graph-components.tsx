@@ -102,10 +102,10 @@ export const GraphComponents: React.FC<GraphComponentsProps> = React.memo(({ inp
           value={search}
           onChange={(e) => setSearch(e.target.value || '')}
           allowClear
-          className={'grl-dg__aside__menu__components__search'}
+          className={'sticky top-0 z-[1] h-auto rounded-none border-0 shadow-none text-[13px]'}
         />
       )}
-      <div className={'grl-dg__aside__menu__components'}>
+      <div className={'flex grow flex-col'}>
         {Object.keys(groups).map((group) => {
           return match(group)
             .with(
@@ -166,7 +166,7 @@ const DragDecisionNode: React.FC<
   } & React.HTMLAttributes<HTMLDivElement>
 > = ({ specification, disabled = false, collapsed, ...props }) => {
   return (
-    <div className={clsx('draggable-component')} draggable={!disabled} {...props}>
+    <div className={clsx('draggable-component cursor-grab [transform:translate(0)]')} draggable={!disabled} {...props}>
       <div style={{ pointerEvents: 'none' }}>
         <DecisionNode
           listMode

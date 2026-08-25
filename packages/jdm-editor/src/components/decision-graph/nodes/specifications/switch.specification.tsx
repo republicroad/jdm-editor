@@ -147,7 +147,7 @@ const SwitchNode: React.FC<
     <GraphNode
       id={id}
       ref={inViewRef}
-      className={clsx(['switch'])}
+      className={clsx(['h-auto w-[220px] rounded p-0'])}
       specification={specification}
       name={data.name}
       handleRight={false}
@@ -227,10 +227,10 @@ const SwitchNode: React.FC<
         </Dropdown>,
       ]}
     >
-      <div className='switchNode'>
-        <div className='switchNode__body edit nodrag'>
+      <div className='flex w-full flex-col items-stretch'>
+        <div className='nodrag box-border flex w-full flex-col'>
           {!(statements?.length > 0) && (
-            <Typography.Text type={'secondary'} className={'no-conditions'}>
+            <Typography.Text type={'secondary'} className={'px-3'}>
               No conditions
             </Typography.Text>
           )}
@@ -351,14 +351,22 @@ const SwitchHandle: React.FC<{
     isDefault && hitPolicy === 'first' && isLastIndex && index > 0 && (value || '')?.trim?.()?.length === 0;
 
   return (
-    <div className={clsx('switchNode__statement', isActive && 'active', diff?.status && `diff-${diff?.status}`)}>
+    <div
+      className={clsx(
+        'relative bg-[var(--grl-color-bg-container)] not-last:border-b not-last:border-b-[var(--grl-color-border)]',
+        isActive && 'bg-[var(--grl-color-success-bg)]',
+        diff?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
+        diff?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
+        diff?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+      )}
+    >
       <div
-        className={clsx('switchNode__statement__heading', isElse && 'switchNode__statement__heading--without-input')}
+        className={clsx('relative flex flex-row px-(--node-horizontal-padding) py-1')}
       >
         {(index === 0 || hitPolicy === 'collect') && (
           <Button
             disabled={disabled}
-            className={clsx('switchNode__statement__heading__action')}
+            className={clsx('text-xs font-medium')}
             size={'small'}
             type={'text'}
           >
@@ -367,7 +375,7 @@ const SwitchHandle: React.FC<{
         )}
         {hitPolicy !== 'collect' && index > 0 && (
           <Button
-            className={clsx('switchNode__statement__heading__action', isElse && 'inactive')}
+            className={clsx('text-xs font-medium', isElse && 'text-[var(--grl-color-text-disabled)]')}
             size={'small'}
             type={'text'}
             disabled={disabled}
@@ -382,7 +390,7 @@ const SwitchHandle: React.FC<{
         )}
         {hitPolicy !== 'collect' && index > 0 && isLastIndex && (
           <Button
-            className={clsx('switchNode__statement__heading__action', !isElse && 'inactive')}
+            className={clsx('text-xs font-medium', !isElse && 'text-[var(--grl-color-text-disabled)]')}
             size={'small'}
             type={'text'}
             disabled={disabled}
@@ -402,18 +410,18 @@ const SwitchHandle: React.FC<{
         />
         {!disabled && configurable && (
           <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
-            <Button className='switchNode__statement__delete' size='small' type='text' icon={<DeleteOutlined />} />
+            <Button className='text-[var(--grl-color-text-disabled)]' size='small' type='text' icon={<DeleteOutlined />} />
           </Popconfirm>
         )}
         <Handle
           id={id}
           type='source'
           position={Position.Right}
-          className={clsx(isActive && 'switchNode__activeHandle')}
+          className={clsx(isActive && 'border-[var(--grl-color-success)]! bg-[var(--grl-color-success-bg)]!')}
         />
       </div>
       {!isElse && (
-        <div className='switchNode__statement__inputArea'>
+        <div className='flex px-(--node-horizontal-padding) pb-[7px] pt-0'>
           <DiffCodeEditor
             style={{
               fontSize: 12,
@@ -464,9 +472,15 @@ const SwitchHandleCompact: React.FC<{
 
   return (
     <div
-      className={clsx('switchNode__statement', 'compact', isActive && 'active', diff?.status && `diff-${diff?.status}`)}
+      className={clsx(
+        'relative bg-[var(--grl-color-bg-container)] not-last:border-b not-last:border-b-[var(--grl-color-border)]',
+        isActive && 'bg-[var(--grl-color-success-bg)]',
+        diff?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
+        diff?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
+        diff?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+      )}
     >
-      <div className={clsx('switchNode__statement__inputArea')}>
+      <div className={clsx('flex p-[8px_10px] [&_.cm-editor]:pr-3.5')}>
         <DiffCodeEditor
           style={{
             fontSize: 12,
@@ -483,9 +497,9 @@ const SwitchHandleCompact: React.FC<{
         />
       </div>
       {!disabled && configurable && (
-        <div className='switchNode__statement__button'>
+        <div className='absolute right-3.5 top-2.5'>
           <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
-            <Button className='switchNode__statement__delete' size='small' type='text' icon={<DeleteOutlined />} />
+            <Button className='text-[var(--grl-color-text-disabled)]' size='small' type='text' icon={<DeleteOutlined />} />
           </Popconfirm>
         </div>
       )}
@@ -493,7 +507,7 @@ const SwitchHandleCompact: React.FC<{
         id={id}
         type='source'
         position={Position.Right}
-        className={clsx(isActive && 'switchNode__activeHandle')}
+        className={clsx(isActive && 'border-[var(--grl-color-success)]! bg-[var(--grl-color-success-bg)]!')}
       />
     </div>
   );

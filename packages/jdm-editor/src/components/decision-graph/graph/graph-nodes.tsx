@@ -66,7 +66,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
         onClick={() => openTab(node.id)}
       >
         <div className='p-4'>
-          <div className={'config-item-card__content'}>
+          <div className={'flex items-center gap-3'}>
             <Avatar
               size={24}
               shape='square'
@@ -116,10 +116,15 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
   const isEmpty = (nodes?.length || 0) === 0;
 
   return (
-    <div className={clsx(['grl-dg__view', className])}>
-      <div className={'grl-dg__view__content'}>
-        <div className={'grl-dg__view__content__heading'}>
-          <div className={'grl-dg__view__content__heading__first-row'}>
+    <div
+      className={clsx([
+        'relative hidden h-full w-full flex-1 min-h-0 overflow-y-auto bg-[var(--grl-color-bg-layout)] p-6 outline-none focus:outline-none focus-within:outline-none',
+        className,
+      ])}
+    >
+      <div className={'mx-auto w-full max-w-[1200px]'}>
+        <div className={'mb-8'}>
+          <div className={'flex justify-between'}>
             <Title level={4} style={{ margin: 0, marginBottom: '8px' }}>
               {isEmpty ? 'Decision View Not Configured' : 'Decision View'}
             </Title>
@@ -152,7 +157,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
         </div>
 
         {!isEmpty && (
-          <div className={'grl-dg__view__content__search'}>
+          <div className={'flex items-center justify-between mb-8'}>
             <Space>
               <Input
                 placeholder='Search nodes'
@@ -181,7 +186,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
         {nodeGroups
           .filter((group) => group?.nodes?.length > 0)
           .map((group) => (
-            <div key={group.title} className={'grl-dg__view__content__node-groups'}>
+            <div key={group.title} className={'mb-8'}>
               <Title level={5} style={{ marginBottom: '16px' }}>
                 {group.title}
               </Title>

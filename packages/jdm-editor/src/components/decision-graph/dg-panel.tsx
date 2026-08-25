@@ -26,7 +26,7 @@ export const GraphPanel: React.FC = () => {
 
   return (
     <Resizable
-      className={'grl-dg__panel'}
+      className={'relative flex h-full w-full flex-col border-t border-t-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)]'}
       defaultSize={{ height: defaultHeight }}
       handleStyles={{
         bottom: { display: 'none' },
@@ -44,11 +44,11 @@ export const GraphPanel: React.FC = () => {
       }}
     >
       {!activePanel.hideHeader && (
-        <div className={'grl-dg__panel__toolbar'}>
-          <div className={'grl-dg__panel__toolbar__content'}>
+        <div className={'flex flex-row items-center justify-start gap-2 border-b border-b-[var(--grl-color-border)] py-1 pl-2 pr-1 [&>span]:text-[13px]'}>
+          <div className={'grow'}>
             <Typography.Text style={{ fontSize: 13 }}>{activePanel.title}</Typography.Text>
           </div>
-          <div className={'grl-dg__panel__toolbar__actions'}>
+          <div className={'shrink'}>
             <Tooltip placement='topLeft' title={'Close panel'}>
               <Button
                 size={'small'}
@@ -60,7 +60,7 @@ export const GraphPanel: React.FC = () => {
           </div>
         </div>
       )}
-      <div className={'grl-dg__panel__content'}>{activePanel?.renderPanel?.()}</div>
+      <div className={'min-h-0 flex-1 overflow-hidden'}>{activePanel?.renderPanel?.()}</div>
     </Resizable>
   );
 };

@@ -79,8 +79,8 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   }, [simulate, search]);
 
   return (
-    <PanelGroup className='grl-dg__simulator' direction='horizontal' autoSaveId='jdm-editor:simulator:layout'>
-      <Panel minSize={20} defaultSize={30} className='grl-dg__simulator__section grl-dg__simulator__request'>
+    <PanelGroup className='h-full w-full bg-[var(--grl-color-primary-bg-fade)]' direction='horizontal' autoSaveId='jdm-editor:simulator:layout'>
+      <Panel minSize={20} defaultSize={30} className='flex w-[300px] flex-col'>
         <LeftPanel
           defaultRequest={defaultRequest}
           loading={loading}
@@ -90,16 +90,16 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
         />
       </Panel>
       <PanelResizeHandle />
-      <Panel minSize={20} maxSize={20} className={'grl-dg__simulator__section grl-dg__simulator__nodes'}>
-        <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--nodes'}>
+      <Panel minSize={20} maxSize={20} className={'flex w-[260px] flex-col'}>
+        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] pl-0 pr-2'>
           <input
-            className='grl-dg__simulator__search'
+            className='h-full w-full border-none bg-transparent pl-3 text-[13px] outline-none!'
             type='text'
             placeholder='Search nodes...'
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className={'grl-dg__simulator__section__bar__actions'}>
+          <div className={'flex items-center gap-2'}>
             {onClear && (
               <Tooltip title={'Clear'}>
                 <Button
@@ -116,9 +116,9 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
             )}
           </div>
         </div>
-        <div className={'grl-dg__simulator__section__content'}>
+        <div className={'min-h-0 flex-1 overflow-y-auto'}>
           <Spin spinning={loading}>
-            <div className={'grl-dg__simulator__nodes-list'}>
+            <div className={'box-border flex h-full flex-col gap-1 p-2'}>
               {!simulate && (
                 <Typography.Text type='secondary' style={{ textAlign: 'center', marginTop: 60, fontSize: 13 }}>
                   Ready to simulate!
@@ -136,7 +136,10 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               )}
               {'graph'.includes(search?.toLowerCase() ?? '') && simulate && (
                 <div
-                  className={clsx('grl-dg__simulator__nodes-list__node', selectedNode === 'graph' && 'active')}
+                  className={clsx(
+                    'flex cursor-pointer select-none flex-row items-center justify-between gap-4 rounded-md bg-transparent px-2 py-[5px] hover:bg-black/6 [&>span]:text-[13px] [&_[data-role=name]]:whitespace-nowrap [&_[data-role=performance]]:shrink-0',
+                    selectedNode === 'graph' && 'bg-black/10',
+                  )}
                   onClick={() => setSelectedNode('graph')}
                 >
                   <Typography.Text data-role='name' ellipsis className='[&>svg]:inline [&>svg]:align-middle'>
@@ -158,7 +161,10 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               {traces.map((trace) => (
                 <div
                   key={trace.nodeId}
-                  className={clsx('grl-dg__simulator__nodes-list__node', trace.nodeId === selectedNode && 'active')}
+                  className={clsx(
+                    'flex cursor-pointer select-none flex-row items-center justify-between gap-4 rounded-md bg-transparent px-2 py-[5px] hover:bg-black/6 [&>span]:text-[13px] [&_[data-role=name]]:whitespace-nowrap [&_[data-role=performance]]:shrink-0',
+                    trace.nodeId === selectedNode && 'bg-black/10',
+                  )}
                   onClick={() => setSelectedNode(trace.nodeId)}
                   onDoubleClick={() => actions.goToNode(trace.nodeId)}
                 >
@@ -176,8 +182,8 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
         </div>
       </Panel>
       <PanelResizeHandle />
-      <Panel minSize={30} defaultSize={50} className={'grl-dg__simulator__section grl-dg__simulator__response'}>
-        <div className={'grl-dg__simulator__section__bar grl-dg__simulator__section__bar--response'}>
+      <Panel minSize={30} defaultSize={50} className={'flex min-w-[300px] flex-1 flex-col'}>
+        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] pl-0 pr-2'>
           <Tabs
             rootClassName='grl-inline-tabs'
             size='small'
@@ -198,7 +204,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
             }
           />
         </div>
-        <div className={'grl-dg__simulator__section__content'}>
+        <div className={'min-h-0 flex-1 overflow-y-auto'}>
           <SimulatorEditor
             readOnly
             value={match(simulate)

@@ -619,5 +619,197 @@
 
   .grl-ce-highlighter .cm-editor[data-severity='error'] .cm-lintRange {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
-  }
+}
+
+}
+
+/* Decision-graph third-party-DOM overrides: intentionally unlayered so they beat
+   @xyflow/react's own unlayered styles. Component-owned layout lives in utilities. */
+
+/* Decision graph shell: grid layout areas */
+.grl-dg {
+  font-family: var(--grl-font-family);
+  height: 100%;
+  display: grid;
+  grid-template-areas:
+    'sidebar graph component'
+    'bottom bottom component';
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-rows: 1fr auto;
+}
+
+.grl-dg.hidden-left-toolbar {
+  grid-template-areas:
+    'graph component'
+    'bottom component';
+  grid-template-columns: 1fr min-content;
+}
+
+/* React Flow internals (third-party DOM, not utility-reachable) */
+.grl-dg .react-flow__handle {
+  cursor: crosshair !important;
+  transition: 0.2s all;
+  transform-origin: 50% calc(50% + 3.5px);
+  opacity: 0.75;
+  border: 1px solid var(--grl-color-primary-border);
+  background-color: var(--grl-color-primary-bg);
+  height: 7px;
+  width: 7px;
+  border-radius: 50% !important;
+}
+
+.grl-dg .react-flow__handle::after {
+  position: absolute;
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+}
+
+.grl-dg .react-flow__handle-connecting,
+.grl-dg .react-flow__handle:hover {
+  transform: scale(2);
+  background-color: var(--grl-color-primary-bg-hover);
+  opacity: 1;
+}
+
+.grl-dg .react-flow__handle-left {
+  left: -3px !important;
+}
+
+.grl-dg .react-flow__handle-left::after {
+  transform: translate(-80%, -50%);
+  width: 36px;
+  height: 36px;
+}
+
+.grl-dg .react-flow__handle-right {
+  right: -3px !important;
+}
+
+.grl-dg .react-flow__handle-right::after {
+  transform: translate(-20%, -50%);
+  width: 36px;
+  height: 36px;
+}
+
+.grl-dg .switchNode .react-flow__handle {
+  z-index: 20;
+  top: calc(50% - 1px);
+  right: -4px !important;
+}
+
+.grl-dg .react-flow__edge-interaction {
+  stroke-width: 50;
+}
+
+.grl-dg .react-flow__edge-path-selector {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 15;
+}
+
+.grl-dg .react-flow__edge-path-selector:hover {
+  cursor: pointer;
+}
+
+.grl-dg .react-flow__edge-path-selector:hover + .react-flow__edge-path,
+.grl-dg .react-flow__edge-path:hover {
+  stroke: var(--grl-color-primary-border-hover);
+  cursor: pointer;
+}
+
+.grl-dg .react-flow__panel {
+  box-shadow: none;
+  border: 1px solid var(--grl-color-border);
+}
+
+.grl-dg .react-flow__controls-button {
+  background: var(--grl-color-bg-elevated);
+  color: var(--grl-color-text);
+  border-color: var(--grl-color-border);
+  transition: var(--grl-transition);
+  height: 24px;
+  width: 24px;
+}
+
+.grl-dg .react-flow__controls-button:hover {
+  background: var(--grl-color-primary-hover);
+}
+
+.grl-dg .react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+.grl-dg .react-flow__attribution {
+  color: var(--grl-color-text);
+  border: none;
+  background: transparent;
+}
+
+.grl-dg .react-flow {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  background-color: var(--grl-color-bg-layout);
+}
+
+.grl-dg .nodrag {
+  cursor: initial;
+}
+
+/* Edge delete button (rendered into edge label DOM) */
+.grl-edge-delete-button {
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--grl-transition);
+  padding: 0 !important;
+  width: 32px !important;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grl-edge-delete-button[data-visible='true'] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Graph node handles */
+.grl-graph-node {
+  visibility: visible !important;
+}
+
+.grl-graph-node__handle-left,
+.grl-graph-node__handle-right {
+  z-index: 20;
+  top: 20px;
+}
+
+/* Sidebar palette items: dim node previews when not draggable */
+.draggable-component[draggable='false'] {
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.draggable-component[draggable='false'] [data-dn-icon], .draggable-component[draggable='false'] .grl-dn {
+  color: var(--grl-color-bg-container-disabled);
+}
+
+.draggable-component[draggable='false'] [data-dn-icon] {
+  filter: grayscale(1) opacity(0.3);
+}
+
+.draggable-component [data-dn-icon] {
+  transition: var(--grl-transition);
+  filter: opacity(0.5) grayscale(0.3);
+}
+
+.draggable-component[draggable='true']:hover [data-dn-icon],
+.draggable-component[draggable='true']:active [data-dn-icon] {
+  filter: none;
 }

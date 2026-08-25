@@ -6,7 +6,6 @@ import { match } from 'ts-pattern';
 
 import { useDecisionGraphState } from './context/dg-store.context';
 import { GraphPanel } from './dg-panel';
-import './dg.scss';
 import type { GraphRef } from './graph/graph';
 import { Graph } from './graph/graph';
 import { GraphNodes } from './graph/graph-nodes';
@@ -44,16 +43,19 @@ export const DecisionGraphWrapper = React.memo(
     return (
       <>
         {!hideLeftToolbar && <GraphSideToolbar />}
-        <div className={'grl-dg__graph'}>
+        <div className={'flex flex-1 flex-col overflow-hidden bg-white'}>
           <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
 
           <Graph
             ref={ref}
-            className={clsx([!hasActiveNode && !viewConfig?.enabled && 'active'])}
+            className={clsx([
+              !hasActiveNode && !viewConfig?.enabled && 'flex flex-col',
+              hasActiveNode && 'hidden',
+            ])}
             reactFlowProOptions={reactFlowProOptions}
             onDisableTabs={setDisableTabs}
           />
-          <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'active'])} />
+          <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'flex flex-col'])} />
           <TabContents />
         </div>
         <GraphPanel />
@@ -81,7 +83,9 @@ const TabContents: React.FC = React.memo(() => {
   return (
     <div style={{ display: 'contents' }} ref={containerRef}>
       {openNodes.map((node) => (
-        <div key={node?.id} className={clsx(['tab-content', activeNodeId === node?.id && 'active'])}>
+        <div key={node?.id} className={clsx(['relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
+          activeNodeId === node?.id ? 'flex flex-col' : 'hidden',
+        ])}>
           {match(node?.type)
             .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id }))
             .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id }))
