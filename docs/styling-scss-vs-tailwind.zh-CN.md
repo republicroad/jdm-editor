@@ -17,6 +17,12 @@
 两者都在 `src/index.ts` 导入并随 `dist/style.css` 产出。目标是把 SCSS 层收敛为
 "**尽可能用 Tailwind 工具类 + 少量纯 CSS 层**",并在不损失样式能力的前提下最终移除 `sass` 依赖。
 
+> **编辑器表面色。** 没有对应 antd token 的第三方编辑器 DOM 颜色——CodeMirror 提示框
+> (`--tooltip-bg`)、诊断角标 (`--diagnostic-chip-bg`)、Monaco 错误行底色
+> (`--error-line-bg`)——统一放在 `tokens.css` 的 `[data-mode='light']` /
+> `[data-mode='dark']` 两块中。新增编辑器表面色请定义在那里（不要放进 `tailwind.css`，
+> 也不要占用运行时注入的 `--grl-*` 命名空间），以保证暗色模式持续生效；参见 §8。
+
 ## 2. 什么是"工具类"
 
 Tailwind 将**每条 CSS 属性映射为单个类名**,你直接在 `className` 里组合:

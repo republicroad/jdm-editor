@@ -61,10 +61,19 @@ src/
 │   ├── traversal.ts         #   graph traversal on reactflow Node/Edge models
 │   └── …                    #   monaco.ts, excel.ts, node-data.ts, use-persistent-state.ts, …
 └── components/
-    ├── decision-graph/      # flagship component (see §4)
-    ├── decision-table/      # spreadsheet-style rule table
-    ├── code-editor/         # CodeMirror 6 wrapper + extensions
-    │   └── business/        # visual Expression Builder UIs
+    ├── primitives/             # antd-shaped shims over ui/* — one module per
+    │                           #   component, `primitives.tsx` is a pure barrel
+    ├── decision-graph/         # flagship component (see §4)
+    │   ├── hooks/              # use-node-add / use-graph-dnd /
+    │   │                       #   use-graph-serializers / use-graph-clipboard
+    │   └── graph/              # canvas, tabs, excel-import dialogs
+    │       └── *-excel-dialog/ #   dialog directories: index.tsx + types +
+    │                           #   pure data-transform modules (unit-tested)
+    ├── decision-table/         # spreadsheet-style rule table
+    ├── code-editor/            # CodeMirror 6 wrapper + extensions
+    │   └── business/
+    │       └── expression-builder/  # operator catalog (constants.ts),
+    │                               # value inputs, dropdown, wasm state hook
     ├── expression/          # standalone Zen expression editor
     ├── function/            # JavaScript function node editor (Monaco-based)
     ├── shared/              # small shared UI pieces

@@ -21,6 +21,13 @@ Both are imported in `src/index.ts` and ship in `dist/style.css`. The goal is to
 layer into **Tailwind utilities where possible + a thin plain-CSS layer where not**, and eventually
 drop the `sass` dependency without losing styling capability.
 
+> **Editor chrome surfaces.** Colors for third-party editor DOM that have no antd counterpart —
+> CodeMirror tooltips (`--tooltip-bg`), diagnostic chips (`--diagnostic-chip-bg`) and the Monaco
+> error-line decoration (`--error-line-bg`) — live in `tokens.css` with explicit
+> `[data-mode='light']` / `[data-mode='dark']` blocks. Define new editor-surface colors there (not
+> in `tailwind.css` and not under the runtime-injected `--grl-*` namespace) so dark mode keeps
+> working; see §8.
+
 ## 2. What a "utility class" is
 
 Tailwind takes a **single CSS property per class name** and lets you compose them in `className`:

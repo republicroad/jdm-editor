@@ -58,10 +58,19 @@ src/
 │   ├── traversal.ts         #   基于 reactflow Node/Edge 模型的图遍历
 │   └── …                    #   monaco.ts、excel.ts、node-data.ts、use-persistent-state.ts 等
 └── components/
+    ├── primitives/             # 基于 ui/* 的 antd 形态封装——每组件一个模块,
+    │                           #   `primitives.tsx` 为纯桶文件
     ├── decision-graph/      # 核心组件(见 §4)
+    │   ├── hooks/              # use-node-add / use-graph-dnd /
+    │   │                       #   use-graph-serializers / use-graph-clipboard
+    │   └── graph/              # 画布、标签页、Excel 导入对话框
+    │       └── *-excel-dialog/ #   对话框目录: index.tsx + types +
+    │                           #   纯数据变换模块(已单测)
     ├── decision-table/      # 电子表格式规则表
     ├── code-editor/         # CodeMirror 6 封装 + 扩展
-    │   └── business/        # 可视化 Expression Builder UI
+    │   └── business/
+    │       └── expression-builder/  # 操作符目录(constants.ts)、取值输入、
+    │                               # 下拉、WASM 状态 hook
     ├── expression/          # 独立 Zen 表达式编辑器
     ├── function/            # JavaScript 函数节点编辑器(基于 Monaco)
     ├── shared/              # 小型共享 UI 片段
