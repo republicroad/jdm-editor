@@ -27,19 +27,31 @@ interface ConfirmItem extends AntdConfirmOptions {
   id: number;
 }
 
-let confirmSeq = 0;
-let confirmItems: ConfirmItem[] = [];
-const confirmListeners = new Set<(items: ConfirmItem[]) => void>();
+type ConfirmGlobalState = {
+  seq: number;
+  items: ConfirmItem[];
+  listeners: Set<(items: ConfirmItem[]) => void>;
+};
 
-const emitConfirms = () => confirmListeners.forEach((listener) => listener(confirmItems));
+/**
+ * State lives on globalThis so dev-server HMR (which re-evaluates this
+ * module) keeps pending confirms and live subscribers across reloads.
+ */
+const confirmState = ((globalThis as Record<string, unknown>).__JDM_CONFIRM_STATE ??= {
+  seq: 0,
+  items: [] as ConfirmItem[],
+  listeners: new Set<(items: ConfirmItem[]) => void>(),
+}) as ConfirmGlobalState;
+
+const emitConfirms = () => confirmState.listeners.forEach((listener) => listener(confirmState.items));
 
 const openConfirm = (options: AntdConfirmOptions) => {
-  confirmItems = [...confirmItems, { ...options, id: ++confirmSeq }];
+  confirmState.items = [...confirmState.items, { ...options, id: ++confirmState.seq }];
   emitConfirms();
 };
 
 const closeConfirm = (id: number) => {
-  confirmItems = confirmItems.filter((item) => item.id !== id);
+  confirmState.items = confirmState.items.filter((item) => item.id !== id);
   emitConfirms();
 };
 
@@ -52,11 +64,11 @@ const AppContext = React.createContext<AppContextValue>({
 });
 
 const ConfirmHost: React.FC = () => {
-  const [items, setItems] = React.useState<ConfirmItem[]>(confirmItems);
+  const [items, setItems] = React.useState<ConfirmItem[]>(confirmState.items);
   React.useEffect(() => {
-    confirmListeners.add(setItems);
+    confirmState.listeners.add(setItems);
     return () => {
-      confirmListeners.delete(setItems);
+      confirmState.listeners.delete(setItems);
     };
   }, []);
 
