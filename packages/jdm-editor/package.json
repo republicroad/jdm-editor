@@ -109,7 +109,6 @@
     "jsdom": "^30.0.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "sass": "^1.86.3",
     "storybook": "10.5.10",
     "storybook-dark-mode": "5.0.0",
     "tailwindcss": "^4.3.3",
