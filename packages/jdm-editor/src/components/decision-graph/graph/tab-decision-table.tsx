@@ -92,7 +92,7 @@ export const TabDecisionTable: React.FC<TabDecisionTableProps> = ({ id }) => {
       id={id}
       name={nodeName}
       tableHeight={'100%'}
-      value={content as any}
+      value={content as DecisionTableType}
       scrollContainerRef={scrollContainerRef}
       scrollApiRef={scrollApiRef}
       disabled={disabled}

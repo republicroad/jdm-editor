@@ -259,7 +259,7 @@ export const DecisionTableCommandBar: React.FC = () => {
         ref={fileInput}
         onChange={readExcelFile}
         onClick={(event) => {
-          (event.target as any).value = null;
+          (event.target as HTMLInputElement).value = '';
         }}
       />
       <DtExcelDialog excelData={excelData} handleSuccess={handleDataMapping} handleCancel={handleCancel} />

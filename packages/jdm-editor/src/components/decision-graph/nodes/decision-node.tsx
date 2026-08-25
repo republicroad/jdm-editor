@@ -92,7 +92,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
       style={
         {
           '--node-color': nodeColor,
-        } as any
+        } as React.CSSProperties
       }
       onKeyDown={(e) => e.stopPropagation()}
       data-diff={diffStatus}

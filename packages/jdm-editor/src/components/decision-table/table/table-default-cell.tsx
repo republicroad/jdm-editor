@@ -4,6 +4,7 @@ import { P, match } from 'ts-pattern';
 
 import { columnIdSelector } from '../../../helpers/components';
 import { isWasmAvailable, useWasmReady } from '../../../helpers/wasm';
+import type { CodeEditorRef } from '../../code-editor';
 import {
   type BuilderRef,
   ExpressionBuilder,
@@ -25,6 +26,14 @@ export type TableDefaultCellProps = {
   context: CellContext<Record<string, string>, string>;
 } & React.HTMLAttributes<HTMLDivElement>;
 
+/** Runtime-only diff metadata attached to rule rows by the graph differ. */
+type RuleDiffCarrier = { _diff?: { fields?: Record<string, DiffMetadata> } };
+
+/** Optional per-table custom cell renderer injected through table meta. */
+type CellMetaWithRenderer = {
+  getCell?: (args: TableCellProps) => React.ReactNode;
+};
+
 export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props }) => {
   const {
     row: { index },
@@ -35,7 +44,7 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
   const tableActions = useDecisionTableActions();
   const { disabled, value, diff } = useDecisionTableState(({ decisionTable, disabled }) => ({
     value: decisionTable?.rules?.[index]?.[id],
-    diff: (decisionTable?.rules?.[index] as any)?._diff?.fields?.[id],
+    diff: (decisionTable?.rules?.[index] as RuleDiffCarrier | undefined)?._diff?.fields?.[id],
     disabled,
   }));
 
@@ -67,12 +76,13 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
       onContextMenu={() => tableActions.setCursor({ x: id, y: index })}
       {...props}
     >
-      {(table.options.meta as any)?.getCell?.({
+      {(table.options.meta as CellMetaWithRenderer | undefined)?.getCell?.({
         disabled,
         column,
         value: inner,
         diff,
         onChange: commit,
+        index,
       }) || (
         <TableInputCell disabled={disabled} column={column} value={inner} onChange={commit} diff={diff} index={index} />
       )}
@@ -81,9 +91,9 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
 });
 
 export type TableCellProps = {
-  column?: { colType: string } & TableSchemaItem;
+  column?: { colType: string } & TableSchemaItem | undefined;
   value: string;
-  diff?: DiffMetadata;
+  diff?: DiffMetadata | undefined;
   onChange: (value: string) => void;
   disabled?: boolean;
   index: number;
@@ -96,7 +106,8 @@ enum LocalVariableKind {
 
 const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, disabled, diff, index }) => {
   const id = useMemo(() => crypto.randomUUID(), []);
-  const textareaRef = useRef<HTMLTextAreaElement | HTMLDivElement>(null);
+  const textAreaDivRef = useRef<HTMLDivElement>(null);
+  const codeEditorRef = useRef<CodeEditorRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const builderRef = useRef<BuilderRef>(null);
   const raw = useDecisionTableRaw();
@@ -144,7 +155,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
   }, [inputVariableType, column]);
 
   useEffect(() => {
-    const anchor = containerRef.current ?? textareaRef.current;
+    const anchor = containerRef.current ?? textAreaDivRef.current;
     if (!anchor) return;
 
     const parentContainer = anchor.closest('[data-cell-wrapper]')! as HTMLElement;
@@ -172,7 +183,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
     return (
       <DiffAutosizeTextArea
         id={id}
-        ref={textareaRef as any}
+        ref={textAreaDivRef}
         className='border-0! w-full bg-transparent py-[9px] px-3 text-sm opacity-70 focus:shadow-none!'
         maxRows={3}
         value={value}
@@ -222,7 +233,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
       {column.colType === 'input' && <TableInputCellStatus index={index} columnId={column.id} />}
       <DiffCodeEditor
         lazy
-        ref={textareaRef as any}
+        ref={codeEditorRef}
         id={id}
         type={match(column)
           .with({ colType: 'input', field: P.string }, () => 'unary' as const)

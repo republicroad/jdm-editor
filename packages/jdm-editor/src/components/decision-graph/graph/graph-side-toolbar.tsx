@@ -295,7 +295,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
           ref={fileInput}
           onChange={handleUploadInput}
           onClick={(event) => {
-            (event.target as any).value = null;
+            (event.target as HTMLInputElement).value = '';
           }}
         />
         <input
@@ -305,7 +305,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
           ref={excelFileInput}
           onChange={uploadJDMExcel}
           onClick={(event) => {
-            (event.target as any).value = null;
+            (event.target as HTMLInputElement).value = '';
           }}
         />
         <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--grl-color-border)] py-2'>

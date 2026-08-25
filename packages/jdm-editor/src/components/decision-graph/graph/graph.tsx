@@ -242,7 +242,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
 
     if (customSpecification.onNodeAdd) {
       try {
-        newNode = (await customSpecification.onNodeAdd(newNode as any)) as any;
+        newNode = await customSpecification.onNodeAdd(newNode);
       } catch {
         return;
       }

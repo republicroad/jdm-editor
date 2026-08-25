@@ -110,7 +110,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
           '--color-background-elevated': 'var(--grl-color-bg-elevated)',
           '--color-border': 'var(--grl-color-border)',
           '--line-height': 1.5,
-        } as any
+        } as React.CSSProperties
       }
     >
       <PanelGroup

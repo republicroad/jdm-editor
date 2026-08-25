@@ -136,8 +136,8 @@ const objectRenderer =
         </>
       );
     } else if (nodeType === 'Array') {
-      const arrayData = data as any[];
-      const renders = arrayData.reduce(
+      const arrayData = data as unknown[];
+      const renders = arrayData.reduce<React.ReactNode[]>(
         (acc, value, currentIndex) => [
           ...acc,
           <span key={currentIndex}>
@@ -145,7 +145,7 @@ const objectRenderer =
             {currentIndex !== arrayData.length - 1 && <>{', '}</>}
           </span>,
         ],
-        [] satisfies React.ReactNode[],
+        [],
       );
 
       return (
