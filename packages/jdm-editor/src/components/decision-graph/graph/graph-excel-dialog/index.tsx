@@ -84,6 +84,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
 
   return (
     <Modal
+      className='grl-graph-excel-dialog'
       title='Map Excel data'
       closable={{ 'aria-label': 'Custom Close Button' }}
       centered
@@ -151,15 +152,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {excelData?.[currentStep]?.headers.map((header, index) => (
           <Fragment key={index}>
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                height: '30px',
-                padding: '0 12px',
-                backgroundColor: 'var(--grl-color-bg-layout)',
-                borderRadius: '8px',
-                border: '1px solid var(--grl-color-border)',
-              }}
+              className='flex h-9 items-center rounded-lg border border-[var(--grl-color-border)] bg-[var(--grl-color-bg-layout)] px-3'
             >
               <Typography.Text>{header.name || header.value}</Typography.Text>
             </div>

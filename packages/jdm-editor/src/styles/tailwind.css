@@ -809,3 +809,40 @@
 .draggable-component[draggable='true']:active [data-dn-icon] {
   filter: none;
 }
+
+/* ── Excel mapping wizard (graph-excel-dialog): align controls to design rhythm ── */
+.grl-graph-excel-dialog [data-slot='select-trigger'] {
+  height: 36px;
+  background: var(--grl-color-bg-container);
+  border-color: var(--grl-color-border);
+  color: var(--grl-color-text);
+}
+
+.grl-graph-excel-dialog [role='radiogroup'] {
+  height: 36px;
+  padding: 0;
+  background: var(--grl-color-bg-container);
+  border: 1px solid var(--grl-color-border);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+}
+
+.grl-graph-excel-dialog [role='radiogroup'] button {
+  flex: 1 1 0%;
+  height: 100%;
+  border-radius: 0;
+  font-size: 13px;
+  color: var(--grl-color-text-secondary);
+  background: var(--grl-color-bg-container);
+}
+
+.grl-graph-excel-dialog [role='radiogroup'] button + button {
+  border-left: 1px solid var(--grl-color-border);
+}
+
+.grl-graph-excel-dialog [role='radiogroup'] button.bg-background {
+  background: var(--grl-color-primary);
+  color: #fff;
+}
+
+/* ── Field-edit popover: align triggers / type pills to primary palette ── */
