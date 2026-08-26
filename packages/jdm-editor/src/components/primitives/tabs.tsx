@@ -61,7 +61,15 @@ export const Tabs: React.FC<TabsProps> = ({
         {tabBarExtraContent}
       </div>
       {list.map((item) => (
-        <UiTabsContent key={item.key} value={item.key}>
+        <UiTabsContent
+          key={item.key}
+          value={item.key}
+          // antd semantics: items without children carry no panel content.
+          // Keep the node mounted (Radix/tests may query it) but hide it so
+          // shadcn's `flex gap-2` root injects no phantom gap below a
+          // standalone bar.
+          className={cn(item.children === undefined && 'hidden!')}
+        >
           {item.children}
         </UiTabsContent>
       ))}
