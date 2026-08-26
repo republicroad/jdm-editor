@@ -123,6 +123,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--grl-color-success);
+  --color-info: var(--grl-color-info);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -246,6 +248,10 @@
     --ce-lineHeight: 1.5em;
     --ce-verticalPadding: 4px;
     --ce-horizontalPadding: 11px;
+  }
+
+  .grl-ce.grl-ce-single .cm-editor {
+    height: 100%;
   }
 
   .grl-ce .cm-lintPoint {

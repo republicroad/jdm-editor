@@ -136,6 +136,8 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
           onChange={setInnerValue}
           variableType={variableType}
           disabled={disabled}
+          className='grl-ce-single'
+          style={{ height: 32 }}
         />
       </div>
       <CodeEditorPreview
@@ -152,6 +154,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
             onChange={(e) => setInnerName(e.target.value)}
             placeholder='Field label'
             disabled={disabled}
+            className='h-8'
           />
         </div>
       )}

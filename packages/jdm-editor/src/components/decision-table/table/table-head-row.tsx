@@ -33,9 +33,8 @@ export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any> }> = ({ head
           data-self={selfKind}
           data-parent={parentKind}
           className={clsx(
-            'h-10 box-border text-left relative font-normal shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] [&_button]:text-[var(--grl-color-text-secondary)]',
-            (selfKind === 'output' || parentKind === 'output' || selfKind === 'description') &&
-              'bg-[var(--table-color)]',
+            'h-10 box-border text-left relative font-normal bg-[var(--table-color)] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] [&_button]:text-[var(--grl-color-text-secondary)]',
+            (selfKind === 'input' || selfKind === 'output') && 'text-black',
           )}
           style={
             selfKind !== 'description'

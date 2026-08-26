@@ -75,7 +75,7 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
       {trigger ?? (
         <span
           className={clsx(
-            'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary transition-colors hover:border-primary/40 aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
+            'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-[#acccec] bg-[#acccec] px-2 py-0.5 text-sm text-black transition-colors hover:border-[#8ab8de] aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
             triggerClassName,
           )}
           onClick={() => onOpenChange(!open)}

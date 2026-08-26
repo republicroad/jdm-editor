@@ -119,12 +119,13 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
       disabled={disabled}
       open={open}
       onOpenChange={setOpen}
+      triggerClassName={mode === 'edit' ? 'border-[#c7e0ba] bg-[#c7e0ba] text-black hover:border-[#a8cc96]' : undefined}
       mode={mode}
       trigger={trigger}
     >
       <div className='space-y-1.5'>
         <FieldLabel>Output Field</FieldLabel>
-        <Input ref={input} value={innerValue} onChange={(e) => setInnerValue(e.target.value)} readOnly={disabled} />
+        <Input ref={input} value={innerValue} onChange={(e) => setInnerValue(e.target.value)} readOnly={disabled} className='h-8' />
       </div>
       {mode === 'create' && (
         <div className='space-y-1.5'>
@@ -135,6 +136,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
             onChange={(e) => setInnerName(e.target.value)}
             placeholder='Field label'
             disabled={disabled}
+            className='h-8'
           />
         </div>
       )}
