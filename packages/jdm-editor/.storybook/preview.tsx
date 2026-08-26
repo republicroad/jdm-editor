@@ -39,7 +39,7 @@ const preview: Preview = {
 
       return (
         <JdmConfigProvider theme={{ mode: isDark ? 'dark' : 'light' }}>
-          <div className='grl-root'>
+          <div className='grl-root' style={{ height: '100%' }}>
             <style
               dangerouslySetInnerHTML={{
                 __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
