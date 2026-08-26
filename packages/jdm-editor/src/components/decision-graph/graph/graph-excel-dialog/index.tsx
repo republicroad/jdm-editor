@@ -1,4 +1,5 @@
-import { InfoCircleOutlined, PlusOutlined, SwapOutlined } from '@/icons';
+import { PlusOutlined, SwapOutlined } from '@/icons';
+import InformationIcon from '@/reui/icons/animated/outline/information';
 import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../../primitives';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
@@ -142,7 +143,9 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {/*placeholder for grid*/}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-8px' }}>
           <Tooltip title='Wrap value in quotes'>
-            <InfoCircleOutlined style={{ color: 'var(--grl-color-text-secondary)', cursor: 'pointer' }} />
+            <span className='inline-flex cursor-pointer text-[var(--grl-color-text-secondary)] [&_svg]:block'>
+              <InformationIcon className='size-3.5' />
+            </span>
           </Tooltip>
         </div>
         {excelData?.[currentStep]?.headers.map((header, index) => (

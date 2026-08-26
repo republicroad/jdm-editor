@@ -1,4 +1,5 @@
-import { FormatPainterOutlined, ImportOutlined, InfoCircleOutlined } from '@/icons';
+import { FormatPainterOutlined, ImportOutlined } from '@/icons';
+import InformationIcon from '@/reui/icons/animated/outline/information';
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
 import { useThemeMode } from '../../../theme';
@@ -131,9 +132,9 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                     <span>
                       {t}{' '}
                       <Tooltip title={schemaTooltip}>
-                        <InfoCircleOutlined
-                          style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }}
-                        />
+                        <span className='ml-1 inline-flex align-super opacity-50 [&_svg]:block'>
+                          <InformationIcon className='size-2.5' />
+                        </span>
                       </Tooltip>
                     </span>
                   ),
