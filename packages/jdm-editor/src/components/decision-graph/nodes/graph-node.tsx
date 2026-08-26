@@ -104,7 +104,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
             onOk: () => graphActions.removeNodes([id]),
           }),
       },
-    ].filter((i) => i !== false);
+    ].filter((i) => i !== null && i !== false);
 
     return (
       <div

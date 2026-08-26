@@ -50,14 +50,11 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
             icon={viewConfig?.enabled ? <UnorderedListOutlined /> : <DeploymentUnitOutlined />}
             name={viewConfig?.enabled ? 'Nodes' : 'Graph'}
             active={!activeNodeId || activeNodeId === 'graph'}
-            onContextClick={(action) => {
-              graphActions.closeTab('graph', action);
-            }}
           />
         ),
       },
     ];
-  }, [viewConfig]);
+  }, [viewConfig, openNodes, activeNodeId]);
 
   return (
     <div>
@@ -139,7 +136,6 @@ const TabLabel: React.FC<{
         onClick: () => onContextClick?.('close-right'),
       },
     total > 0 &&
-      index > 0 &&
       index > 0 && {
         key: 'close-left',
         label: 'Close Tabs to the left',
@@ -147,47 +143,55 @@ const TabLabel: React.FC<{
       },
   ].filter((item) => !!item);
 
-  return (
-    <Dropdown menu={{ items }} trigger={['contextMenu']}>
-      <div
+  const content = (
+    <div
       className='group/tab flex items-center gap-1.5 px-3 py-[9px] transition-opacity duration-100 ease-in data-[active=false]:opacity-75 hover:opacity-100'
       data-active={active}
     >
-        {/*<span style={{ color: 'black' }}>{icon}</span>*/}
-        <Avatar
+      <Avatar
+        size='small'
+        shape='square'
+        style={{
+          background: color,
+          fontSize: 11,
+          width: 18,
+          height: 18,
+          lineHeight: '18px',
+          borderRadius: 3,
+        }}
+        icon={icon}
+      />
+      {name}
+      <DiffIcon
+        status={diffStatus as DiffStatus}
+        style={{
+          fontSize: 16,
+        }}
+      />
+      {onClose && (
+        <Button
+          className='opacity-0 transition-opacity duration-100 ease-in group-hover/tab:opacity-100! group-data-[active=true]/tab:opacity-100!'
+          type='text'
           size='small'
-          shape='square'
-          style={{
-            background: color,
-            fontSize: 11,
-            width: 18,
-            height: 18,
-            lineHeight: '18px',
-            borderRadius: 3,
-          }}
-          icon={icon}
-        />
-        {name}
-        <DiffIcon
-          status={diffStatus as DiffStatus}
-          style={{
-            fontSize: 16,
+          style={{ height: 20, width: 20, color: 'black', borderRadius: '50%', lineHeight: 0 }}
+          icon={<CloseOutlined style={{ fontSize: 10 }} />}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose?.();
           }}
         />
-        {onClose && (
-          <Button
-            className='opacity-0 transition-opacity duration-100 ease-in group-hover/tab:opacity-100! group-data-[active=true]/tab:opacity-100!'
-            type='text'
-            size='small'
-            style={{ height: 20, width: 20, color: 'black', borderRadius: '50%', lineHeight: 0 }}
-            icon={<CloseOutlined style={{ fontSize: 10 }} />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose?.();
-            }}
-          />
-        )}
-      </div>
+      )}
+    </div>
+  );
+
+  // No context actions (e.g. the reserved Graph tab) → no menu wrapper at all.
+  if (!onContextClick || items.length === 0) {
+    return content;
+  }
+
+  return (
+    <Dropdown menu={{ items }} trigger={['contextMenu']}>
+      {content}
     </Dropdown>
   );
 };
