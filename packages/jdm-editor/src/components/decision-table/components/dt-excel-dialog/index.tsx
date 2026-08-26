@@ -1,7 +1,6 @@
 import { LeftOutlined, PlusOutlined } from '@/icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { RuleData } from '../../../../helpers/excel';
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
 import { Button, Modal, Select, Switch, Typography } from '../../../primitives';
 import { useDecisionTableDialog } from '../../context/dt-dialog.context';
@@ -10,17 +9,10 @@ import { InputFieldEdit } from '../input-field-edit';
 import { OutputFieldEdit } from '../output-field-edit';
 import { ExcelDnd } from './excel-dnd';
 import { ImportColumnRow } from './import-column-row';
-import type { DtExcelDialogProps, ImportColumn, ItemValue, TableHeader } from './types';
+import { assembleMappedData, buildImportColumns } from './mapping';
+import type { DtExcelDialogProps, ImportColumn } from './types';
 
 export type { MappedExcelData } from './types';
-
-const isHeaderMatch = (header1: TableHeader, header2: TableHeader) => {
-  return (
-    header1.id === header2.id ||
-    header1.value?.toLowerCase() === header2.value?.toLowerCase() ||
-    header1.label?.toLowerCase() === header2.label?.toLowerCase()
-  );
-};
 
 export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
   const spreadSheetData = useMemo(() => excelData?.[0], [excelData]);
@@ -43,52 +35,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       return;
     }
 
-    const existingTableHeaders: TableHeader[] = spreadSheetData.existingTableData.headers
-      .filter((h) => h.type !== undefined)
-      .map((h) => ({
-        id: h.id,
-        label: h.name as string,
-        value: h.field,
-        type: h.type,
-      }));
-
-    const excelHeaders: TableHeader[] = (spreadSheetData.headers || [])
-      .filter((h) => h.id !== '_description' && h.id !== '_id')
-      .map((h) => ({
-        id: h.id || crypto.randomUUID(),
-        label: h.name as string,
-        value: h.value,
-        type: h._type as 'input' | 'output' | undefined,
-      }));
-
-    const existingSchemaItems = spreadSheetData.existingTableData.headers;
-
-    const importColumns: ImportColumn[] = existingTableHeaders
-      .filter((h) => h.type === 'input' || h.type === 'output')
-      .map((tableHeader) => {
-        const matchedExcel = excelHeaders.find((eh) => isHeaderMatch(eh, tableHeader));
-        const schemaItem = existingSchemaItems.find((s) => s.id === tableHeader.id);
-        return {
-          id: tableHeader.id,
-          name: tableHeader.label,
-          field: tableHeader.value,
-          type: tableHeader.type as 'input' | 'output',
-          excelHeaderId: matchedExcel?.id,
-          defaultValue: schemaItem?.defaultValue,
-          fieldType: schemaItem?.fieldType,
-          outputFieldType: schemaItem?.outputFieldType,
-        };
-      });
-
-    // If no outputs exist, make the last input an output
-    if (!importColumns.some((c) => c.type === 'output')) {
-      const lastInput = [...importColumns].reverse().find((c) => c.type === 'input');
-      if (lastInput) {
-        lastInput.type = 'output';
-      }
-    }
-
-    setColumns(importColumns);
+    setColumns(buildImportColumns(spreadSheetData));
 
     // Auto-match _description
     const descHeader = spreadSheetData.headers.find((h) => h.id === '_description');
@@ -190,65 +137,16 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
   const onOk = useCallback(() => {
     if (!spreadSheetData) return;
 
-    const enabled = columns.filter((c) => !disabledColumns[c.id]);
-    const inputItems = enabled
-      .filter((c) => c.type === 'input')
-      .map((c) => ({
-        id: c.id,
-        label: c.name,
-        value: c.field || c.name,
-        type: 'input' as const,
-        wrapInQuotes: wrapStates[c.id] || false,
-      }));
-    const outputItems = enabled
-      .filter((c) => c.type === 'output')
-      .map((c) => ({
-        id: c.id,
-        label: c.name,
-        value: c.field || c.name,
-        type: 'output' as const,
-        wrapInQuotes: wrapStates[c.id] || false,
-      }));
-    const items: ItemValue[] = [...inputItems, ...outputItems];
-
-    if (descriptionEnabled && descriptionExcelId) {
-      items.push({ id: '_description', label: 'Description', value: 'description' });
-    }
-
-    const wrapLookup = items.reduce(
-      (acc, item) => {
-        acc[item.id] = item.wrapInQuotes || false;
-        return acc;
-      },
-      {} as Record<string, boolean>,
+    handleSuccess(
+      assembleMappedData({
+        spreadSheetData,
+        columns,
+        disabledColumns,
+        wrapStates,
+        descriptionExcelId,
+        descriptionEnabled,
+      }),
     );
-
-    const rules = spreadSheetData.rules.map((ruleRow) => {
-      const ruleData: RuleData[] = [];
-      for (const col of enabled) {
-        const excelRule = col.excelHeaderId ? ruleRow.find((r) => r.headerId === col.excelHeaderId) : undefined;
-        const rawValue = excelRule?.value ?? col.defaultValue ?? '';
-        const value =
-          wrapLookup[col.id] && rawValue
-            ? rawValue
-                .split(',')
-                .map((s) => `"${s.trim()}"`)
-                .join(', ')
-            : rawValue;
-        ruleData.push({ headerId: col.id, value });
-      }
-      // Add _id
-      const idRule = ruleRow.find((r) => r.headerId === '_id');
-      if (idRule) ruleData.push(idRule);
-      // Add description
-      if (descriptionEnabled && descriptionExcelId) {
-        const descRule = ruleRow.find((r) => r.headerId === descriptionExcelId);
-        ruleData.push({ headerId: '_description', value: descRule?.value ?? '' });
-      }
-      return ruleData;
-    });
-
-    handleSuccess({ items, rules });
   }, [spreadSheetData, columns, disabledColumns, wrapStates, descriptionEnabled, descriptionExcelId, handleSuccess]);
 
   const addInputTrigger = (
