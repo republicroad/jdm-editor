@@ -43,7 +43,7 @@ export const DecisionGraphWrapper = React.memo(
     return (
       <>
         {!hideLeftToolbar && <GraphSideToolbar />}
-        <div className={'flex flex-1 flex-col overflow-hidden bg-white'}>
+        <div className={'flex flex-1 flex-col gap-1 overflow-hidden bg-white'}>
           <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
 
           <Graph
