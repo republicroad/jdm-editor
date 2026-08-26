@@ -1,6 +1,6 @@
 import { type Variable } from '@gorules/zen-engine-wasm';
 import type { InputRef } from '../../primitives';
-import { Checkbox, Input, Select, Typography } from '../../primitives';
+import { Checkbox, Input, Select } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';
@@ -12,6 +12,10 @@ import { useDecisionTableState } from '../context/dt-store.context';
 import { ENUM_MODE_OPTIONS, type EnumMode, getEnumMode, parseEnumString, serializeEnumValues } from './enum-utils';
 import { FieldEditPopover } from './field-edit-popover';
 import { FieldTypeTags } from './field-type-tags';
+
+const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <span className='mb-1.5 block text-xs font-medium text-muted-foreground'>{children}</span>
+);
 
 type InputFieldEditProps = {
   disabled?: boolean;
@@ -124,24 +128,24 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
       mode={mode}
       trigger={trigger}
     >
-      <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>Input Field</Typography.Text>
-      <CodeEditor
-        ref={codeEditor}
-        value={innerValue}
-        onChange={setInnerValue}
-        variableType={variableType}
-        disabled={disabled}
-      />
-      <div style={{ marginTop: 16 }}>
-        <CodeEditorPreview
-          expression={innerValue ?? ''}
-          inputData={inputData}
-          initial={referenceData ? { expression: referenceData.field, result: referenceData.value } : undefined}
+      <div className='space-y-1.5'>
+        <FieldLabel>Input Field</FieldLabel>
+        <CodeEditor
+          ref={codeEditor}
+          value={innerValue}
+          onChange={setInnerValue}
+          variableType={variableType}
+          disabled={disabled}
         />
       </div>
+      <CodeEditorPreview
+        expression={innerValue ?? ''}
+        inputData={inputData}
+        initial={referenceData ? { expression: referenceData.field, result: referenceData.value } : undefined}
+      />
       {mode === 'create' && (
-        <div style={{ marginTop: 12 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 2 }}>Label</Typography.Text>
+        <div className='space-y-1.5'>
+          <FieldLabel>Label</FieldLabel>
           <Input
             ref={nameInput}
             value={innerName}
@@ -152,8 +156,8 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
         </div>
       )}
       {showAdvanced && innerValue?.trim() && (
-        <div style={{ marginTop: 16 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Type</Typography.Text>
+        <div className='space-y-1.5'>
+          <FieldLabel>Type</FieldLabel>
           <FieldTypeTags
             options={COLUMN_FIELD_TYPE_OPTIONS}
             value={innerFieldType as ColumnFieldType['type']}
@@ -163,8 +167,8 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
         </div>
       )}
       {showAdvanced && innerValue?.trim() && innerFieldType === 'string' && (
-        <div style={{ marginTop: 12 }}>
-          <Typography.Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Enum</Typography.Text>
+        <div className='space-y-2'>
+          <FieldLabel>Enum</FieldLabel>
           <FieldTypeTags
             options={
               Object.keys(dictionaries).length ? ENUM_MODE_OPTIONS : ENUM_MODE_OPTIONS.filter((o) => o.value !== 'ref')
@@ -174,37 +178,37 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
             disabled={disabled}
           />
           {enumMode === 'inline' && (
-            <div style={{ marginTop: 8 }}>
+            <div>
               <AutosizeTextArea
                 maxRows={6}
                 placeholder={'United States;us\nCanada;ca\nMexico'}
                 value={enumText}
                 onChange={(e) => setEnumText(e.target.value)}
                 disabled={disabled}
-                style={{ fontSize: 12 }}
+                className='text-xs'
               />
-              <Typography.Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 2 }}>
+              <span className='mt-1 block text-[11px] text-muted-foreground'>
                 One per line. Use {'"Label;value"'} format.
-              </Typography.Text>
+              </span>
             </div>
           )}
           {enumMode === 'ref' && (
-            <div style={{ marginTop: 8 }}>
+            <div>
               <Select
                 value={enumRef || undefined}
                 onChange={setEnumRef}
                 placeholder='Select dictionary...'
                 disabled={disabled}
-                style={{ width: '100%' }}
+                className='w-full'
                 size='small'
                 options={Object.keys(dictionaries).map((k) => ({ label: k, value: k }))}
               />
             </div>
           )}
           {enumMode !== 'none' && (
-            <div style={{ marginTop: 8 }}>
+            <div>
               <Checkbox checked={enumLoose} onChange={(e) => setEnumLoose(e.target.checked)} disabled={disabled}>
-                <Typography.Text style={{ fontSize: 12 }}>Allow custom values</Typography.Text>
+                <span className='text-xs'>Allow custom values</span>
               </Checkbox>
             </div>
           )}

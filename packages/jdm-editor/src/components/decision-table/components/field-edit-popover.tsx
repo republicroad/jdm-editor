@@ -1,10 +1,9 @@
-import { Button, Popover, Typography } from '../../primitives';
+import { Button, Popover } from '../../primitives';
 import clsx from 'clsx';
 import { ChevronDownIcon } from 'lucide-react';
 import React from 'react';
 
 import { ConfirmAction } from '../../confirm-action';
-import { Stack } from '../../stack';
 
 type FieldEditPopoverProps = {
   value?: string;
@@ -32,57 +31,59 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
   trigger,
 }) => (
   <Popover
-    placement='bottomLeft'
-    trigger={['click']}
-    destroyTooltipOnHide
-    arrow={false}
-    open={open}
-    onOpenChange={onOpenChange}
-    content={
-      <div
-        style={{ width: 300 }}
-        data-simulation='propagateWithTimeout'
-        onKeyDownCapture={(e) => {
-          const isSubmit = (e.ctrlKey || e.metaKey) && e.key === 'Enter';
-          const isCancel = e.key === 'Escape';
-          if (!isSubmit && !isCancel) return;
-
-          e.preventDefault();
-          e.stopPropagation();
-          onOpenChange(false);
-          if (!disabled && isSubmit) onSubmit();
-        }}
-      >
-        {children}
+      placement='bottomLeft'
+      trigger={['click']}
+      destroyTooltipOnHide
+      arrow={false}
+      open={open}
+      onOpenChange={onOpenChange}
+      content={
         <div
-          className='mt-4 flex w-full items-center justify-between gap-2'
-          style={{ marginTop: 16, justifyContent: mode === 'create' ? 'flex-end' : undefined }}
+          className='w-[340px] space-y-3 p-3'
+          data-simulation='propagateWithTimeout'
+          onKeyDownCapture={(e) => {
+            const isSubmit = (e.ctrlKey || e.metaKey) && e.key === 'Enter';
+            const isCancel = e.key === 'Escape';
+            if (!isSubmit && !isCancel) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenChange(false);
+            if (!disabled && isSubmit) onSubmit();
+          }}
         >
-          {mode === 'edit' && <ConfirmAction iconOnly onConfirm={onRemove} disabled={disabled} />}
-          <Stack horizontal width='auto' verticalAlign='end'>
-            <Button size='small' type='text' onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button size='small' type='primary' disabled={disabled} onClick={onSubmit}>
-              {mode === 'create' ? 'Create' : 'Update'}
-            </Button>
-          </Stack>
+          {children}
+          <div
+            className={clsx(
+              'flex w-full items-center gap-2 pt-1',
+              mode === 'create' ? 'justify-end' : 'justify-between',
+            )}
+          >
+            {mode === 'edit' && <ConfirmAction iconOnly onConfirm={onRemove} disabled={disabled} />}
+            <div className='ml-auto flex items-center gap-2'>
+              <Button size='small' type='text' onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button size='small' type='primary' disabled={disabled} onClick={onSubmit}>
+                {mode === 'create' ? 'Create' : 'Update'}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    }
-  >
-    {trigger ?? (
-      <Typography.Text
-        type={!value ? 'secondary' : undefined}
-        className={clsx(
-          'mt-0.5 flex max-w-full cursor-pointer select-none items-center rounded-md bg-[#acccec] px-2 py-0.5 text-xs text-black [font-family:var(--mono-font-family)] aria-disabled:cursor-not-allowed',
-          triggerClassName,
-        )}
-        onClick={() => onOpenChange(!open)}
-      >
-        <span className='span-overflow'>{value || '-'}</span>
-        <ChevronDownIcon size={12} style={{ marginLeft: 4 }} />
-      </Typography.Text>
-    )}
-  </Popover>
-);
+      }
+    >
+      {trigger ?? (
+        <span
+          className={clsx(
+            'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary transition-colors hover:border-primary/40 aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
+            triggerClassName,
+          )}
+          onClick={() => onOpenChange(!open)}
+        >
+          <span className='size-1.5 shrink-0 rounded-full bg-current' />
+          <span className='truncate'>{value || '-'}</span>
+          <ChevronDownIcon size={12} className='shrink-0 opacity-60' />
+        </span>
+      )}
+    </Popover>
+  );
