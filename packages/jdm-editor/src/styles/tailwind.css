@@ -300,6 +300,7 @@
     border: none;
     border-radius: unset;
     background: transparent;
+    box-sizing: border-box;
   }
 
   .grl-ce.no-style .cm-editor.cm-focused {
@@ -610,7 +611,7 @@
 
   .grl-ce-highlighter .cm-editor {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     position: static;
     box-sizing: content-box;
   }
