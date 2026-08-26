@@ -13,6 +13,7 @@ import { useStoreWithEqualityFn } from 'zustand/traditional';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
+import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
@@ -521,42 +522,11 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       openTab: (id: string) => {
         const { openTabs } = stateStore.getState();
-        const nodeId = openTabs.find((i) => i === id);
-
-        if (id === 'graph') {
-          return stateStore.setState({ activeTab: id });
-        }
-
-        if (nodeId) {
-          stateStore.setState({ activeTab: nodeId });
-        } else {
-          stateStore.setState({ openTabs: [...openTabs, id], activeTab: id });
-        }
+        stateStore.setState(applyOpenTab(openTabs, id));
       },
       closeTab: (id: string, action?: string) => {
         const { openTabs, activeTab } = stateStore.getState();
-        const index = openTabs?.findIndex((i) => i === id);
-        const tab = openTabs?.[index];
-
-        const updatedTabs = match(action)
-          .with(undefined, () => openTabs.filter((id) => id !== tab))
-          .with('close', () => openTabs.filter((id) => id !== tab))
-          .with('close-all', () => [])
-          .with('close-other', () => openTabs.filter((id) => id === tab))
-          .with('close-right', () => openTabs.slice(0, index + 1))
-          .with('close-left', () => openTabs.slice(index))
-          .otherwise(() => openTabs);
-
-        const updatedState: Partial<DecisionGraphStoreType['state']> = {
-          openTabs: updatedTabs,
-        };
-
-        const newActiveTabId = updatedTabs?.find((i) => i === activeTab);
-        if (!newActiveTabId) {
-          updatedState.activeTab = updatedTabs?.[index - 1] ?? 'graph';
-        }
-
-        stateStore.setState(updatedState);
+        stateStore.setState(applyCloseTab(openTabs, activeTab, id, action));
       },
       setActivePanel: (panel?: string) => {
         const { panels } = stateStore.getState();
