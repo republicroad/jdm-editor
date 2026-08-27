@@ -102,7 +102,7 @@ tailwind.css @theme inline
 
 | ID | 位置 | 类别 | 内容摘要 | 归属阶段 | 状态 |
 |---|---|---|---|---|---|
-| HK-01 | tailwind.css `.grl-function__debugger__log__values` | inline-beat | 对抗 react-json-tree 内联样式的 6 处 `!important` | P2/P4 | open |
+| HK-01 | ~~tailwind.css json-tree 对抗块~~ → function-debugger-log.tsx theme 注入 | ~~inline-beat~~ 原语内 theme | react-json-tree 0.20 的 `tree.display` + `value` stylable 函数按 keyPath 复刻默认缩进、根节点贴左；6 条 `!important` 与整块 CSS 删除（2 条死选择器一并清退） | P2 | ✅ Batch G |
 | HK-02 | ~~tailwind.css `.grl-inline-tabs`~~ → primitives/tabs.tsx compact 分支 | ~~important~~ utilities | tablist/tab 间距节奏改由原语内部 utilities 承载（m-0 p-0! / px-3.5 text-[13px]），调用点零改动 | P2 | ✅ Batch D |
 | HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；phase-2 随高亮器替换整体删除 | P2 | 🟡 phase-1 done (Batch D) |
 | GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 | — |

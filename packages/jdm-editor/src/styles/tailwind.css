@@ -155,35 +155,8 @@
     background: var(--error-line-bg);
   }
 
-  /*
-   * GRL-STYLE-HACK[HK-01](inline-beat): react-json-tree renders its own inline
-   * styles that we must counter with !important. Debt accepted 2026-08.
-   * replace-with: theme react-json-tree via its className/style props or drop it
-   *   for a token-driven tree — docs/shadcn-theming-roadmap.zh-CN.md §P2.
-   */
-  /* react-json-tree styling inside the function debugger console */
-  .grl-function__debugger__log__values > ul {
-    display: inline-block;
-  }
-
-  .grl-function__debugger__log__values > ul:first-of-type > li:first-of-type {
-    margin-left: 0 !important;
-  }
-
-  .grl-function__debugger__log__values > li {
-    padding: 0 !important;
-  }
-
-  .grl-function__debugger__log__values li > div + label + span {
-    display: none;
-  }
-
-  .grl-function__debugger__log__values li > div > div {
-    transition: transform 0.25s ease !important;
-    font-size: 0.8em !important;
-    opacity: 0.25;
-    font-family: emoji;
-  }
+  /* react-json-tree: styled inline via its theme prop (HK-01 resolved,
+     Batch G) — no stylesheet counter-war needed anymore. */
 
   /*
    * Shared textarea skin (formerly styles.scss .grl-textarea-input). Kept as

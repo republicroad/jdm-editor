@@ -93,12 +93,44 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
                   return <>{parts}</>;
                 }}
                 valueRenderer={valueRenderer(jsonTheme)}
-                theme={{
-                  base00: 'var(--grl-color-bg-elevated)',
-                  base03: 'var(--grl-color-text-base)',
-                  base0B: 'var(--grl-color-text-base)',
-                  base0D: 'var(--grl-color-text-base)',
-                }}
+                theme={
+                  {
+                    base00: 'var(--grl-color-bg-elevated)',
+                    base03: 'var(--grl-color-text-base)',
+                    base0B: 'var(--grl-color-text-base)',
+                    base0D: 'var(--grl-color-text-base)',
+                    /*
+                     * Inline-tab flow + zero root indent — replaces the former
+                     * .grl-function__debugger__log__values !important stylesheet
+                     * war (HK-01). `value` stylable replicates library defaults
+                     * for deeper levels; only top-level roots collapse
+                     * flush-left like before. Escape-hatch cast: react-json-tree's
+                     * union type doesn't model base16 strings alongside function
+                     * stylables, though its runtime merge handles both.
+                     */
+                    tree: {
+                      display: 'inline-block',
+                    },
+                    value: (
+                      styling: { style?: React.CSSProperties },
+                      _nodeType: string,
+                      keyPath: readonly (string | number)[],
+                    ) => ({
+                      style: {
+                        ...(styling?.style ?? {}),
+                        paddingTop: '0.25em',
+                        paddingRight: 0,
+                        marginLeft: (keyPath?.length ?? 0) > 1 ? '0.875em' : 0,
+                        WebkitUserSelect: 'text',
+                        MozUserSelect: 'text',
+                        wordWrap: 'break-word',
+                        paddingLeft: (keyPath?.length ?? 0) > 1 ? '2.125em' : 0,
+                        textIndent: '-0.5em',
+                        wordBreak: 'break-all',
+                      } as React.CSSProperties,
+                    }),
+                  } as React.ComponentProps<typeof JSONTree>['theme']
+                }
               />
             );
           })}
