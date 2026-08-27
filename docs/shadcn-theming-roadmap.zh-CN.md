@@ -110,7 +110,7 @@ tailwind.css @theme inline
 | HK-05 | tailwind.css scroller/content/preview 几何声明 | important | 光标偏移修复本体 → 全部 var() 化进 theme()，LazyParity dX/dY=0.00 | P2 | ✅ Batch D |
 | HK-06 | tailwind.css completion/tooltip/lint 视觉群 | important | 整簇随 skin 进 theme()；`#f5f5f5` 顺带归位 `--tooltip-bg` token | P2 | ✅ Batch D |
 | HK-07 | tailwind.css hover-tooltip + 高亮器 flex 骨架 | important | hover-tooltip 已入 theme()；高亮器骨架 CSS 转为长期共存（Spike 决策，§3.5） | P2 | 🔒 关闭（共存） |
-| HK-08 | tailwind.css 决策图区横幅 | cascade-layer | 为胜过 @xyflow/react 未分层样式而整体裸奔（有意为之，需逐步收缩） | P2 后期 | open |
+| HK-08 | tailwind.css 决策图区横幅 | cascade-layer | 为胜过 @xyflow/react 未分层样式而整体裸奔（有意为之，需逐步收缩）。Batch 收缩已执行：自有 DOM 子集（edge-delete/palette）迁 @layer components，余下 react-flow__* 为平台约束长期共存 | P2 后期 | 🟡 已收缩 |
 | HK-09 | tailwind.css Excel 向导段 + `color:#fff` | cascade-layer + hardcoded-color | 选择器式控件对齐 + 白色激活态字面量（hardcoded 部分已并入 `--grl-color-text-light-solid`） | P1+P2 | color ✅ Batch B · selector 段留 P2 |
 | HK-10 | field-edit-popover.tsx 胶囊 triggerClassName 默认 | hardcoded-color | `#acccec`/`#8ab8de` 输入胶囊 → `--grl-color-field-input(-hover)` | P1 | ✅ Batch B |
 | HK-11 | output-field-edit.tsx triggerClassName | hardcoded-color | `#c7e0ba`/`#a8cc96` 输出胶囊 → `--grl-color-field-output(-hover)` | P1 | ✅ Batch B |

@@ -367,16 +367,15 @@
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
 }
 
-/* ⚠️ GRL-STYLE-HACK[HK-08](cascade-layer): the whole section below is
-   unlayered to beat @xyflow/react's own unlayered runtime styles — same class
-   of workaround as the CodeMirror skin (HK-03), pre-dating it. Values are all
-   token-driven, so retheming is safe today, but the section should shrink as
-   xyflow DOM gets utility/theme coverage.
-   replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2 (long-term: per-node
-   className APIs of React Flow + utilities).
- *
- * Decision-graph third-party-DOM overrides: intentionally unlayered so they beat
-   @xyflow/react's own unlayered styles. Component-owned layout lives in utilities. */
+/* ⚠️ GRL-STYLE-HACK[HK-08](cascade-layer) — scope REDUCED (Batch HK-08 shrink):
+ * only rules fighting React Flow's runtime-injected styles remain unlayered
+ * (edge interaction/hit paths, panels, controls, attribution, container,
+ * nodrag, node visibility + handle offsets). Own-DOM blocks (edge delete
+ * button, sidebar palette dim) moved to @layer components above.
+ * Remaining rules are PLATFORM-CONSTRAINED: React Flow injects unlayered
+ * styles at runtime, so utilities can never win these ties. Revisit only on
+ * a xyflow major that changes injection, or if React Flow adds theme props
+ * covering them. */
 
 /* Decision graph shell: grid layout areas */
 .grl-dg {
@@ -514,24 +513,57 @@
 }
 
 /* Edge delete button (rendered into edge label DOM) */
-.grl-edge-delete-button {
-  opacity: 0;
-  pointer-events: none;
-  transition: var(--grl-transition);
-  padding: 0 !important;
-  width: 32px !important;
-  height: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
+/* Own-DOM rules relocated from the unlayered zone (HK-08 shrink): the wrapper
+   div/button are OURS and nothing third-party fights them, so component-layer
+   placement is safe; !importants still beat the Button's utility padding. */
+@layer components {
+  .grl-edge-delete-button {
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--grl-transition);
+    padding: 0 !important;
+    width: 32px !important;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .grl-edge-delete-button[data-visible='true'] {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Sidebar palette items: dim node previews when not draggable */
+  .draggable-component[draggable='false'] {
+    cursor: not-allowed;
+    user-select: none;
+  }
+
+  .draggable-component[draggable='false'] [data-dn-icon],
+  .draggable-component[draggable='false'] .grl-dn {
+    color: var(--grl-color-bg-container-disabled);
+  }
+
+  .draggable-component[draggable='false'] [data-dn-icon] {
+    filter: grayscale(1) opacity(0.3);
+  }
+
+  .draggable-component [data-dn-icon] {
+    transition: var(--grl-transition);
+    filter: opacity(0.5) grayscale(0.3);
+  }
+
+  .draggable-component[draggable='true']:hover [data-dn-icon],
+  .draggable-component[draggable='true']:active [data-dn-icon] {
+    filter: none;
+  }
 }
 
-.grl-edge-delete-button[data-visible='true'] {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* Graph node handles */
+/* Graph node handles — these DO fight xyflow's own injected handle styles
+   (ties broken by document order), so they intentionally stay unlayered.
+   .grl-graph-node visibility also guards against xyflow base hiding. */
 .grl-graph-node {
   visibility: visible !important;
 }
@@ -540,30 +572,6 @@
 .grl-graph-node__handle-right {
   z-index: 20;
   top: 20px;
-}
-
-/* Sidebar palette items: dim node previews when not draggable */
-.draggable-component[draggable='false'] {
-  cursor: not-allowed;
-  user-select: none;
-}
-
-.draggable-component[draggable='false'] [data-dn-icon], .draggable-component[draggable='false'] .grl-dn {
-  color: var(--grl-color-bg-container-disabled);
-}
-
-.draggable-component[draggable='false'] [data-dn-icon] {
-  filter: grayscale(1) opacity(0.3);
-}
-
-.draggable-component [data-dn-icon] {
-  transition: var(--grl-transition);
-  filter: opacity(0.5) grayscale(0.3);
-}
-
-.draggable-component[draggable='true']:hover [data-dn-icon],
-.draggable-component[draggable='true']:active [data-dn-icon] {
-  filter: none;
 }
 
 /*
