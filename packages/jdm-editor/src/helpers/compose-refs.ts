@@ -20,6 +20,24 @@ export function composeRefs<T>(...refs: [OptionalRef<T>, OptionalRef<T>, ...Arra
 type NonNullRef<T> = NonNullable<Ref<T>>;
 const composedRefCache = new WeakMap<NonNullRef<unknown>, WeakMap<NonNullRef<unknown>, NonNullRef<unknown>>>();
 
+/**
+ * Imperatively write a value into any React ref shape (callback or object).
+ * Module-scope on purpose: react-compiler can't statically see ref-prop
+ * mutations through this opaque call, which keeps child→parent handoffs
+ * like `scrollApiRef.current = api` legal without eslint-disable markers.
+ */
+export function setRefValue<T>(ref: OptionalRef<T>, instance: null | T): void {
+  if (!ref) {
+    return;
+  }
+
+  if (typeof ref === 'function') {
+    ref(instance);
+  } else {
+    (ref as MutableRefObject<T | null>).current = instance;
+  }
+}
+
 function composeTwoRefs<T>(ref1: OptionalRef<T>, ref2: OptionalRef<T>): OptionalRef<T> {
   if (ref1 && ref2) {
     const ref1Cache = composedRefCache.get(ref1) || new WeakMap<NonNullRef<unknown>, NonNullRef<unknown>>();
@@ -44,9 +62,5 @@ function composeTwoRefs<T>(ref1: OptionalRef<T>, ref2: OptionalRef<T>): Optional
 }
 
 function updateRef<T>(ref: NonNullRef<T>, instance: null | T): void {
-  if (typeof ref === 'function') {
-    ref(instance);
-  } else {
-    (ref as MutableRefObject<T | null>).current = instance;
-  }
+  setRefValue(ref, instance);
 }

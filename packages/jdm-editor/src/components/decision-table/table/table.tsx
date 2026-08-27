@@ -9,6 +9,8 @@ import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
+import { setRefValue } from '../../../helpers/compose-refs';
+
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
 import { TableDefaultCell } from './table-default-cell';
@@ -54,11 +56,12 @@ const loadColumnSizing = (id?: string) => {
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
   const mode = useThemeMode();
 
+  // Child→parent ref handoff happens inside the opaque setRefValue/composeRefs
+  // helpers, so react-compiler sees no direct prop mutation here.
   const setContainerRef = useCallback(
     (el: HTMLDivElement | null) => {
       (tableContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-      // eslint-disable-next-line -- ref prop mutation is intentional (child→parent ref handoff)
-      if (scrollContainerRef) scrollContainerRef.current = el;
+      setRefValue(scrollContainerRef, el);
     },
     [scrollContainerRef],
   );
@@ -286,17 +289,15 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
 
     useEffect(() => {
       if (!scrollApiRef) return;
-      // eslint-disable-next-line -- ref prop mutation is intentional (child→parent ref handoff)
-      scrollApiRef.current = {
+      setRefValue(scrollApiRef, {
         getTopRowIndex: () => {
           const offset = tableContainerRef.current?.scrollTop ?? 0;
           return virtualizer.getVirtualItemForOffset(offset)?.index ?? 0;
         },
         scrollToRowIndex: (index) => virtualizer.scrollToIndex(index, { align: 'start' }),
-      };
+      });
       return () => {
-        // eslint-disable-next-line -- ref prop mutation is intentional (cleanup)
-        if (scrollApiRef.current) scrollApiRef.current = null;
+        setRefValue(scrollApiRef, null);
       };
     }, [virtualizer, scrollApiRef]);
 
