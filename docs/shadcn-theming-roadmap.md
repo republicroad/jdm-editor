@@ -93,11 +93,14 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
 
 ### P4 — Guardrails ✅ (Batches A/E, ongoing)
 - `pnpm lint:debt`: `!important` budget (18→11) and raw-hex zero (whitelist =
-  token truth-sources + editor syntax palettes + stories). ✅
+  token truth-sources + editor syntax palettes + stories). ✅ wired into
+  `.github/workflows/validate.yaml` (Style-debt budget step).
 - `pnpm verify` aggregates lint/typecheck/compiler/debt/tests. ✅
-- Geometry parity in `test-storybook` via LazyParity. ✅
+- Geometry parity in `test-storybook` via LazyParity. ✅ wired into CI
+  (Storybook interaction suite step, after the Playwright chromium install).
 - Theming / Seeds Playground story. ✅ (Apply-to-page waits for P3.)
-- Remaining: wire into a real CI runner.
+
+P4 is complete.
 
 ## 3. Double-Layer Structure Decision Record
 

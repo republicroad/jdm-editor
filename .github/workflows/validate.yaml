@@ -24,6 +24,9 @@ jobs:
       - name: React Compiler readiness
         run: pnpm lint:compiler
 
+      - name: Style-debt budget (!important / raw-hex caps)
+        run: pnpm lint:debt
+
       - name: Build
         run: pnpm build
 
@@ -38,6 +41,9 @@ jobs:
 
       - name: Install Playwright chromium
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Storybook interaction suite (incl. geometry parity guard)
+        run: pnpm --filter @gorules/jdm-editor test:storybook
 
       - name: Consumer smoke (react 18 & 19)
         run: pnpm test:consumer
