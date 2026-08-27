@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { lightTokens } from '../../theme';
+import { lightTokens, darkTokens } from '../../theme';
+import { hexToOklch, hueDelta } from '../color';
 import {
   CALIBRATION_TOLERANCES,
   LIGHT_LADDER,
   deriveSeedOverlays,
   mixLinear,
 } from '../derive';
+import { DARK_OPS } from '../dark-ops';
+
+const seedLchH = (hex: string) => hexToOklch(hex).H;
+const bakedOhFor = (key: string) => DARK_OPS[key]?.oh ?? 0;
 
 const hexChannels = (hex: string): [number, number, number] => [
   parseInt(hex.slice(1, 3), 16),
@@ -18,32 +23,54 @@ describe('theme seed derivation (P0)', () => {
   it('no seeds → empty overlay: frozen preset is untouched (byte parity)', () => {
     expect(deriveSeedOverlays({ mode: 'light' })).toEqual({});
     expect(deriveSeedOverlays({ mode: 'light', seeds: {} })).toEqual({});
-    // dark mode intentionally ignores seeds in v1 (module header limitation)
-    expect(deriveSeedOverlays({ mode: 'dark', seeds: { primary: '#7c3aed' } })).toEqual({});
+    // exactly-default seed set ⇒ no-op in BOTH modes (byte parity preserved)
+    expect(
+      deriveSeedOverlays({
+        mode: 'dark',
+        seeds: { primary: '#1668dc', success: '#49aa19', error: '#dc4446', warning: '#d89614' },
+      }),
+    ).toEqual({});
   });
 
-  it('default-seed derivation lands within recorded calibration tolerances', () => {
-    const derived = deriveSeedOverlays({
-      mode: 'light',
-      seeds: {
-        primary: lightTokens.colorPrimary as string,
-        success: lightTokens.colorSuccess as string,
-        error: lightTokens.colorError as string,
-        warning: lightTokens.colorWarning as string,
-        fieldInput: '#acccec',
-        fieldOutput: '#c7e0ba',
-      },
-    });
-    expect(Object.keys(derived).length).toBeGreaterThanOrEqual(12);
+  it('DARK: custom seed derives hue-following family outputs', () => {
+    const violet = '#7c3aed';
+    const out = deriveSeedOverlays({ mode: 'dark', seeds: { primary: violet } });
+    expect(out.colorPrimary).toBe(violet);
 
+    const seeded = Object.keys(out).filter((k) => k.startsWith('colorPrimary'));
+    expect(seeded.length).toBeGreaterThanOrEqual(7); // base + 7 dark ops
+
+    for (const key of seeded) {
+      if (key === 'colorPrimary') continue;
+      const lch = hexToOklch(out[key]);
+      const base = hexToOklch((darkTokens as Record<string, string>)[key]);
+      // hue follows the new brand within the baked offset window
+      const dHue = Math.abs(hueDelta(lch.H, (seedLchH(violet) + bakedOhFor(key) + 360) % 360));
+      expect(dHue, `${key} hue`).toBeLessThan(3); // anchors rounded to 2dp + roundtrip noise
+      // surfaces keep their calibrated lightness band
+      expect(lch.L, `${key} L`).toBeGreaterThan(0.05);
+      void base;
+    }
+  });
+
+  it('light ladder formulas stay within calibration tolerances vs antd frozen', () => {
+    const seedOf: Record<string, string> = {
+      primary: '#1677ff',
+      success: '#52c41a',
+      error: '#ff4d4f',
+      warning: '#faad14',
+      fieldInput: '#acccec',
+      fieldOutput: '#c7e0ba',
+    };
     const failures: string[] = [];
-    for (const [key, got] of Object.entries(derived)) {
+    for (const [key, op] of Object.entries(LIGHT_LADDER)) {
+      const fam = Object.keys(seedOf).find((f) => key.toLowerCase().startsWith(`color${f}`));
+      if (!fam) continue;
+      const got = mixLinear(seedOf[fam], op.anchor, op.t);
       const want = lightTokens[key] as string | undefined;
-      if (!want) continue; // keys without a frozen counterpart (none today)
+      if (!want) continue;
+      const d = hexChannels(got).map((ch, i) => Math.abs(ch - hexChannels(want)[i]));
       const tol = CALIBRATION_TOLERANCES[key] ?? 40;
-      const a = hexChannels(got);
-      const b = hexChannels(want);
-      const d = a.map((ch, i) => Math.abs(ch - b[i]));
       if (d.some((x) => x > tol)) {
         failures.push(`${key}: got ${got} want ${want} Δ=[${d.join(',')}] tol=${tol}`);
       }

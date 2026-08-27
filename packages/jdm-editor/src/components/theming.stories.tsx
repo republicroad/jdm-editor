@@ -105,9 +105,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
       <div style={{ maxWidth: 1080 }}>
         <Typography.Title level={5}>Seeds → derived tokens</Typography.Title>
         <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-          Values come straight from <code>computeTheme(mode, seeds)</code>. Dark mode currently
-          keeps its calibrated navy surfaces (P0 phase-2 pending); brand families respond in light
-          mode.
+          Values come straight from <code>computeTheme(mode, seeds)</code>. Both modes respond to seeds (dark = OKLab hue/lightness transforms over the calibrated navy anchors).
         </Typography.Paragraph>
 
         <SwatchRow label={`primary (${mode})`} entries={familyBlock('primary')} />

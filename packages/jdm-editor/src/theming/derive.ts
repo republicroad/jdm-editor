@@ -5,17 +5,25 @@
  *  - DEFAULT preset: the hand-calibrated antd tables in `theme.tsx` win
  *    byte-for-byte. Nothing about existing rendering changes.
  *  - CUSTOM seeds: hosts pass `JdmConfigProvider seeds={{primary, ...}}` and a
- *    linear-light mix ladder derives the brand families. Ladder ratios were
+ *    linear-light mix ladder derives the brand families in light mode;
+ *    dark mode follows seeds via OKLab hue/lightness transforms. Ladder ratios were
  *    reverse-calibrated offline against the antd tables (see golden test);
  *    channels land within a few 1/255 steps of what antd's own algorithm
  *    emits for the default seeds — close enough for re-branded installs,
  *    while the defaults never route through it.
  *
- * Known limitation (documented in shadcn-theming-roadmap §P0): DARK mode
- * surfaces are family-independent navy constants in antd's algorithm and do
+ * Phase-2 (Batch F): DARK brand families follow seeds too, via OKLab
+ * hue-rotation + lightness scaling around the calibrated anchors in
+ * dark-ops.ts — zero-dependency OKLab math lives in color.ts. surfaces are family-independent navy constants in antd's algorithm and do
  * not decompose into seed mixes (offline spread > 0.6). Dark mode therefore
  * keeps its calibrated constants until P0 phase 2 introduces an OKLCH model.
  */
+
+import { hexToOklch, oklchToHex } from './color';
+import { DARK_OPS } from './dark-ops';
+import { darkTokens } from './presets';
+
+type ThemeModeLite = 'light' | 'dark';
 
 type Rgb = [number, number, number];
 
@@ -87,6 +95,7 @@ export type ThemeSeeds = {
 
 /** antd-calibrated defaults: passing EXACTLY these equals passing nothing,
  * keeping the frozen preset byte-identical instead of route-through-derived. */
+/** antd-calibrated LIGHT defaults (families + pill pairs). */
 export const ANTD_DEFAULT_SEEDS: Required<
   Pick<ThemeSeeds, 'primary' | 'success' | 'error' | 'warning' | 'fieldInput' | 'fieldOutput'>
 > = {
@@ -98,12 +107,82 @@ export const ANTD_DEFAULT_SEEDS: Required<
   fieldOutput: '#c7e0ba',
 };
 
-const isDefaultSeedSet = (seeds: ThemeSeeds): boolean => {
-  const entries = Object.entries(seeds).filter(([, v]) => v !== undefined);
-  return entries.length === 0 || entries.every(([k, v]) => (ANTD_DEFAULT_SEEDS as Record<string, string>)[k] === v);
+/** Family seeds behind the calibrated DARK preset. */
+export const DARK_DEF_SEEDS: Record<'primary' | 'success' | 'error' | 'warning', string> = {
+  primary: '#1668dc',
+  success: '#49aa19',
+  error: '#dc4446',
+  warning: '#d89614',
 };
 
+function isDefaultSeedSet(mode: ThemeModeLite, seeds: ThemeSeeds): boolean {
+  const defaults =
+    mode === 'dark'
+      ? (DARK_DEF_SEEDS as Record<string, string>)
+      : (ANTD_DEFAULT_SEEDS as Record<string, string>);
+  const entries = Object.entries(seeds).filter(([, v]) => v !== undefined);
+  if (entries.length === 0) return true;
+  if (mode === 'dark') {
+    // only family keys matter on the dark axis
+    return entries.every(([k, v]) => (DARK_DEF_SEEDS as Record<string, string>)[k] === v);
+  }
+  return entries.every(([k, v]) => defaults[k] === v);
+}
+
 const FAMILY_SEED_KEYS = ['primary', 'success', 'error', 'warning'] as const;
+
+function deriveDark({ seeds, out }: Required<Pick<DeriveArgs, 'seeds'>> & { out: Record<string, string> }): void {
+  const familyOf = (baseKey: string) =>
+    FAMILY_SEED_KEYS.find(
+      (f) => baseKey.toLowerCase() === `color${f}` || baseKey.toLowerCase().startsWith(`color${f}`),
+    )!;
+
+  const applyDarkOps = (baseKey: string, seedHex: string) => {
+    const seedLch = hexToOklch(seedHex);
+    const defL = hexToOklch(DARK_DEF_SEEDS[familyOf(baseKey)]).L;
+    // bright variants track the seed's lightness; surfaces keep frozen L
+    const lr = clamp(seedLch.L / defL, 0.85, 1.18);
+
+    for (const [tokenKey, op] of Object.entries(DARK_OPS)) {
+      if (!tokenKey.startsWith(baseKey)) continue;
+      const frozen = hexToOklch(String(darkTokens[tokenKey]));
+      const L = op.ls ? clamp(frozen.L * lr, 0.12, 0.92) : frozen.L;
+      const C = op.cMul !== undefined ? clamp(seedLch.C * op.cMul, 0.01, 0.14) : frozen.C;
+      const H = (seedLch.H + op.oh + 360) % 360;
+      out[tokenKey] = oklchToHex({ L, C, H });
+    }
+  };
+
+  for (const family of FAMILY_SEED_KEYS) {
+    const seed = (seeds as Record<string, string | undefined>)[family];
+    if (!seed) continue;
+    const cap = family[0].toUpperCase() + family.slice(1);
+    out[`color${cap}`] = seed;
+    applyDarkOps(`color${cap}`, seed);
+  }
+
+  if (seeds.info) {
+    const sInfo = hexToOklch(seeds.info);
+    out.colorInfo = seeds.info;
+    out.colorInfoText = seeds.info;
+    for (const [tokenKey, op] of Object.entries(DARK_OPS)) {
+      if (!tokenKey.startsWith('colorPrimary')) continue;
+      const target = tokenKey.replace('colorPrimary', 'colorInfo');
+      const frozen = hexToOklch(String(darkTokens[target]));
+      const bgLike = /bg|border/i.test(target);
+      out[target] = oklchToHex({
+        L: frozen.L,
+        C: op.cMul ? Math.min(0.14, Math.max(0.01, sInfo.C * op.cMul)) : frozen.C,
+        H: (sInfo.H + op.oh + 360) % 360,
+      });
+      void bgLike;
+    }
+  }
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
+}
 
 export type DeriveArgs = {
   mode: 'light' | 'dark';
@@ -116,11 +195,16 @@ export type DeriveArgs = {
  * Derived output never overrides keys the host passed through `token=`.
  */
 export const deriveSeedOverlays = ({ mode, seeds }: DeriveArgs): Record<string, string> => {
-  if (!seeds || mode !== 'light' || isDefaultSeedSet(seeds)) {
+  if (!seeds || isDefaultSeedSet(mode, seeds)) {
     return {};
   }
 
   const out: Record<string, string> = {};
+
+  if (mode === 'dark') {
+    deriveDark({ seeds, out });
+    return out;
+  }
 
   const applyFamily = (family: string, seed: string) => {
     // the base key IS the seed itself (ladder only covers derivatives)

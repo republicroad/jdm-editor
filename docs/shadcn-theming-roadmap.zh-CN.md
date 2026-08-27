@@ -19,7 +19,7 @@
 | A1 | 新皮肤只需提供 4~8 个种子值（brand/success/warning/error/中性轴/radius/font）或一个语义变量覆盖块 | 新增一份主题文件后目测全站 |
 | A2 | 组件源码、`tailwind.css` 规则、第三方皮肤（CodeMirror/Monaco）零改动 | `git diff` 仅含 token 文件 |
 | A3 | 无 `!important` 存量参与换肤路径；未分层 CSS 不再增长 | CI 预算断言（§P4） |
-| A4 | 明暗切换、品牌切换两个维度正交，可任意组合 | Storybook 多主题预览 |
+| A4 | 明暗切换、品牌切换两个维度正交，可任意组合 | Storybook Theming/Seeds Playground（Batch E/F 达成 ✅） |
 | A5 | 编辑器态调色板（语法高亮、Monaco）跟随 token 派生而非独立硬编码 | 目测 + 断言 |
 
 ## 1. 现状：三层 token 管道
@@ -56,10 +56,10 @@ tailwind.css @theme inline
   ✅ 实施为 additive API：`<JdmConfigProvider seeds={{primary,...}}>`；无 seeds 时默认走冻结校准表（字节级回归零风险）。
 - 中性灰轴也走派生（oklch 色相旋转 0°），删除 `--grl-color-border-hover/-fade`、`--grl-color-primary-bg-fade` 三处 light/dark 三元字面量。
   ✅ 三元已收编至 `MODE_EXTRAS` 常量表（theme.tsx 导出）。
-- editor chrome 静态项（`--tooltip-bg`、`--diagnostic-chip-bg`、`--error-line-bg`）纳入派生范围。（留 P2 后收口）
-- **v1 限制（记录）**：品牌族派生采用线性光混合梯子（比例离线反标定，黄金值测试逐键容差守护，
-  最差 warningBorder Δ66/255 如实登记）；暗色模式表面在 antd 算法中是家族无关的深蓝黑常量、
-  无法分解为种子混合（离线 spread>0.6），故暗色暂不响应 seeds——升级路径见上 OKLCH 模型。
+- editor chrome 静态项（`--tooltip-bg`、`--diagnostic-chip-bg`、`--error-line-bg`）已随 theme()/tokens 消费链归位。
+- **phase-2 ✅（2026-08 Batch F）**：暗色品牌族改用零依赖 OKLab——以 dark-ops.ts 烘焙锚点做
+  hue 旋转，亮部键按种子亮度比缩放；不变式测试守护（默认种子字节透传、自定义种子 hue 跟随）。
+  浅色仍为线性光混合梯子（warningBorder Δ66 容差如前登记）。
 
 ### P1 — 关闭组件级硬编码泄漏（14 处）
 - tokens.css 新增业务语义组：`--grl-field-input(-border/-hover)`、`--grl-field-output(-border/-hover)`、`--grl-field-*-foreground`。
