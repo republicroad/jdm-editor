@@ -96,6 +96,7 @@ export type ThemeSeeds = {
 /** antd-calibrated defaults: passing EXACTLY these equals passing nothing,
  * keeping the frozen preset byte-identical instead of route-through-derived. */
 /** antd-calibrated LIGHT defaults (families + pill pairs). */
+/** antd-calibrated LIGHT defaults (families + pill pairs). */
 export const ANTD_DEFAULT_SEEDS: Required<
   Pick<ThemeSeeds, 'primary' | 'success' | 'error' | 'warning' | 'fieldInput' | 'fieldOutput'>
 > = {
@@ -115,6 +116,7 @@ export const DARK_DEF_SEEDS: Record<'primary' | 'success' | 'error' | 'warning',
   warning: '#d89614',
 };
 
+/** Family seeds behind the calibrated DARK preset. */
 function isDefaultSeedSet(mode: ThemeModeLite, seeds: ThemeSeeds): boolean {
   const defaults =
     mode === 'dark'

@@ -4,6 +4,15 @@ import { composeRefs } from '../../helpers/compose-refs';
 import type { CodeEditorBaseProps, CodeEditorBaseRef } from './ce-base';
 import { CodeEditorBase } from './ce-base';
 import { CodeHighlighter } from './ce-highlight';
+import { CodeHighlighterView } from './ce-highlight-view';
+
+/**
+ * P2 phase-2 SPIKE flag (Batch H): read-only-EditorView display path.
+ * `localStorage.gru-hl-view = '1'` enables it; default remains the manual
+ * highlighter. Decision memo pending — do not ship enabled.
+ */
+const highlighterViewEnabled = (): boolean =>
+  typeof localStorage !== 'undefined' && localStorage.getItem('gru-hl-view') === '1';
 
 export type CodeEditorRef = CodeEditorBaseRef;
 
@@ -152,6 +161,26 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
           onMouseUp={chainMouse(onMouseUp)}
           onFocus={chainFocus(onFocus)}
           onBlur={handleBlur}
+        />
+      );
+    }
+
+    if (highlighterViewEnabled()) {
+      return (
+        <CodeHighlighterView
+          ref={composeRefs(containerRef, ref)}
+          type={type as 'standard' | 'unary' | 'template'}
+          value={value}
+          placeholder={props.placeholder}
+          className={props.className}
+          maxRows={props.maxRows}
+          fullHeight={props.fullHeight}
+          noStyle={props.noStyle}
+          style={props.style}
+          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onFocus={handleFocus}
         />
       );
     }

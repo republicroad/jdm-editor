@@ -116,6 +116,27 @@ theme 只管视觉。
 5. ⬜ 收口：D3 padding 改 props 下发（删 `[--ce-*]` 工具类通道需先证明 theme() 内
    `var(--ce-*)` 与 utilities 覆盖解耦成立——Batch D 已实证）。
 
+
+### 3.5 Spike 决策备忘录（2026-08，Batch H）——候选 A 不予实施
+
+候选 A（只读 EditorView 替代高亮器）PoC 已按 `localStorage.gru-hl-view=1` 实装在
+`ce-highlight-view.tsx`（默认关闭），三指标实测（decision-table--stress-test 10k 行 /
+controlled 切换 ×5）：
+
+| 指标 | Baseline(高亮器) | 候选 A | 结论 |
+| --- | --- | --- | --- |
+| heap（稳定后） | 104 MB | **141 MB (+36%)** | ❌ 决定性负项：每个可见格常驻一个 EditorView |
+| 滚动 FPS | 61 | 61 | 持平 |
+| 切换时延(×5 均值) | 79–148ms 区间 | 88ms | 噪声带内，无优势 |
+
+**决定**：候选 A 出局。phase-2 重新定位为「维持高亮器 + 双轨守护」：
+- PARITY 奇偶块保留（4 规则 + 边框），由 LazyParity 与 $0.00 探针持续锁定；
+- 候选 B（静态管线）仅在将来出现更大规模渲染压力或 CM 高亮 API 破坏性变更时重启评估；
+- 收益即本轮已得的 theme() 化本身：!important 35→15、双轨几何由测试硬锁。
+
+删除 PARITY 块与 `.grl-ce-highlighter` 全段的既定清单作废，相应注册表
+HK-03/HK-07 状态由「待删除」改为「长期共存（测试守护）」。
+
 ### 3.4 风险与回滚
 
 - Tooltip/completion 为 portal 渲染于 view 外部时，theme 仅作用于 view 树内部元素——确认过 CM6 tooltips

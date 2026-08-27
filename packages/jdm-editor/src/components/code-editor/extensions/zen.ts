@@ -249,7 +249,7 @@ export const zenStyleDark = HighlightStyle.define([
   { tag: t.invalid, color: '#cb2431' },
 ]);
 
-const zenLanguage = new LanguageSupport(
+export const zenLanguage = new LanguageSupport(
   LRLanguage.define({
     parser: zenParser,
     name: 'zen',

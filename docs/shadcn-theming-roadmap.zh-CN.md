@@ -104,12 +104,12 @@ tailwind.css @theme inline
 |---|---|---|---|---|---|
 | HK-01 | ~~tailwind.css json-tree 对抗块~~ → function-debugger-log.tsx theme 注入 | ~~inline-beat~~ 原语内 theme | react-json-tree 0.20 的 `tree.display` + `value` stylable 函数按 keyPath 复刻默认缩进、根节点贴左；6 条 `!important` 与整块 CSS 删除（2 条死选择器一并清退） | P2 | ✅ Batch G |
 | HK-02 | ~~tailwind.css `.grl-inline-tabs`~~ → primitives/tabs.tsx compact 分支 | ~~important~~ utilities | tablist/tab 间距节奏改由原语内部 utilities 承载（m-0 p-0! / px-3.5 text-[13px]），调用点零改动 | P2 | ✅ Batch D |
-| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；phase-2 随高亮器替换整体删除 | P2 | 🟡 phase-1 done (Batch D) |
+| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；Spike 证实候选 A 内存 +36% 出局 → 残段转为「长期共存+测试守护」（见 migration doc §3.5） | P2 | 🔒 关闭（共存） |
 | GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 | — |
 | HK-04 | tailwind.css `[data-severity]` 三连 | important | severity 底色压制 CM baseTheme → theme() 内自然胜出 | P2 | ✅ Batch D |
 | HK-05 | tailwind.css scroller/content/preview 几何声明 | important | 光标偏移修复本体 → 全部 var() 化进 theme()，LazyParity dX/dY=0.00 | P2 | ✅ Batch D |
 | HK-06 | tailwind.css completion/tooltip/lint 视觉群 | important | 整簇随 skin 进 theme()；`#f5f5f5` 顺带归位 `--tooltip-bg` token | P2 | ✅ Batch D |
-| HK-07 | tailwind.css hover-tooltip + 高亮器 flex 骨架 | important | hover-tooltip 已入 theme()；**高亮器骨架仍留 CSS**（奇偶校验 patch），随 phase-2 消亡 | P2 | 🟡 部分 |
+| HK-07 | tailwind.css hover-tooltip + 高亮器 flex 骨架 | important | hover-tooltip 已入 theme()；高亮器骨架 CSS 转为长期共存（Spike 决策，§3.5） | P2 | 🔒 关闭（共存） |
 | HK-08 | tailwind.css 决策图区横幅 | cascade-layer | 为胜过 @xyflow/react 未分层样式而整体裸奔（有意为之，需逐步收缩） | P2 后期 | open |
 | HK-09 | tailwind.css Excel 向导段 + `color:#fff` | cascade-layer + hardcoded-color | 选择器式控件对齐 + 白色激活态字面量（hardcoded 部分已并入 `--grl-color-text-light-solid`） | P1+P2 | color ✅ Batch B · selector 段留 P2 |
 | HK-10 | field-edit-popover.tsx 胶囊 triggerClassName 默认 | hardcoded-color | `#acccec`/`#8ab8de` 输入胶囊 → `--grl-color-field-input(-hover)` | P1 | ✅ Batch B |
