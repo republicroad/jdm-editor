@@ -40,6 +40,15 @@
  * leaking resets into the host document.
  */
 @layer base {
+  /*
+   * ⚠️ GRL-STYLE-HACK[HK-14](boundary): this scoped preflight stops at
+   * `.grl-root`. Radix PORTALS mount under <body>, so every portaled
+   * primitive (Dialog/AlertDialog/Popover/Select/Tooltip) silently misses the
+   * border-box reset and reverts to UA content-box — Modal sized itself past
+   * its own maxHeight by exactly its padding before getting an explicit fix.
+   * Systemic remedy (portal targeting / container-scoped theming) tracks
+   * docs/shadcn-theming-roadmap.zh-CN.md §P3.
+   */
   .grl-root :where(*, *::before, *::after) {
     box-sizing: border-box;
   }
@@ -146,6 +155,12 @@
     background: var(--error-line-bg);
   }
 
+  /*
+   * GRL-STYLE-HACK[HK-01](inline-beat): react-json-tree renders its own inline
+   * styles that we must counter with !important. Debt accepted 2026-08.
+   * replace-with: theme react-json-tree via its className/style props or drop it
+   *   for a token-driven tree — docs/shadcn-theming-roadmap.zh-CN.md §P2.
+   */
   /* react-json-tree styling inside the function debugger console */
   .grl-function__debugger__log__values > ul {
     display: inline-block;
@@ -223,6 +238,12 @@
     }
   }
 
+  /*
+   * GRL-STYLE-HACK[HK-02](important): beats third-party-injected tab styles.
+   * Likely convertible to plain utilities on ui/tabs.tsx once Tab primitives own
+   * their spacing; review during P2 sweep.
+   * replace-with: utilities on the Tabs primitive — docs/shadcn-theming-roadmap.zh-CN.md §P2.
+   */
   /* Compact inline tabs (formerly styles.scss .grl-inline-tabs); role-based
      hooks on the Tabs primitive DOM. The legacy [data-node-key] pane rules
      were dead and dropped. */
@@ -237,18 +258,52 @@
     }
   }
 
-  /*
-   * CodeMirror 6 skin + completion/lint/tooltip hooks (formerly ce.scss).
+}
+
+/*
+ * ⚠️ GRL-STYLE-HACK[HK-03](cascade-layer): this ENTIRE CodeMirror skin block is
+ * an accepted workaround, not the target design. CodeMirror injects unlayered
+ * <style> at runtime which beats every @layer-ed rule, so the skin lives
+ * outside all layers and several declarations below carry !important.
+ * Target design: migrate to EditorView.theme() so no cascade warfare is needed.
+ * replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2 / §3 of codemirror-theme-migration.md.
+ *
+ * ── CodeMirror 6 skin (UNLAYERED) ────────────────────────────────────────────
+ * Same lesson as the decision-graph section below: CodeMirror injects its
+ * baseTheme styles as plain unlayered <style> at runtime, and unlayered rules
+ * beat every @layer-ed rule regardless of specificity or order. This skin must
+ * therefore live OUTSIDE all layers to stand a chance.
+ *
+ * Additionally, CM's injected <style> lands late in the document, so it wins
+ * same-specificity ties by document order. The few colliding declarations
+ * below (scroller line-height, content padding, line padding) carry
+ * !important for that reason.
+ *
+ * Long-term plan: migrate this skin into CodeMirror's own EditorView.theme()
+ * extension API. See docs/codemirror-theme-migration.md.
+ *
+ * CodeMirror 6 skin + completion/lint/tooltip hooks (formerly ce.scss).
    * Every target is DOM rendered by CodeMirror itself, so these stay plain
    * CSS. The SCSS lintRangeImage() helper is inlined as data URIs; the dead
    * `.grl-ce-preview > .ant-typography` rule (Typography renders plain spans
    * now) was dropped.
+   */
+@layer components {
+  /*
+   * GRL-LAYER-GUARD — DO NOT MOVE out of this layer. These are token DEFAULTS,
+   * intentionally layered while the rest of the skin is unlayered:
+   * instances override these tokens via arbitrary-property utilities
+   * ([--ce-verticalPadding:9px] etc., see table-default-cell.tsx) which live
+   * in the utilities layer — and layer rules lose to utilities by design.
+   * Moving these defaults out of the layer silently reverted every table cell
+   * to 4px/11px padding (regression found and reverted 2026-08).
    */
   .grl-ce {
     --ce-lineHeight: 1.5em;
     --ce-verticalPadding: 4px;
     --ce-horizontalPadding: 11px;
   }
+}
 
   .grl-ce.grl-ce-single .cm-editor {
     height: 100%;
@@ -335,6 +390,9 @@
     border-inline-end-width: 1px;
   }
 
+  /* GRL-STYLE-HACK[HK-04](important): severity backgrounds must beat CM runtime
+     baseTheme. Falls away with the EditorView.theme() migration.
+     replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2. */
   .grl-ce .cm-editor[data-severity='error'] {
     background: var(--grl-color-error-bg) !important;
     border-color: var(--grl-color-error-border) !important;
@@ -350,8 +408,17 @@
     border-color: var(--grl-color-info-border) !important;
   }
 
+  /*
+   * GRL-STYLE-HACK[HK-05](important): the three geometry-critical overrides
+   * (scroller line-height, content padding, line padding / preview reset) that
+   * fixed display↔edit cursor drift in 2026-08 — CM injects its own values late
+   * in the document, so same-specificity ties go to it by document order.
+   * Geometry parity is asserted by the LazyParity story (ce.stories.tsx).
+   * replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2.
+   */
   .grl-ce .cm-scroller {
-    line-height: inherit;
+    font-family: monospace;
+    line-height: inherit !important;
   }
 
   .grl-ce .cm-widgetBuffer {
@@ -363,11 +430,11 @@
   }
 
   .grl-ce .cm-content {
-    padding: var(--ce-verticalPadding) var(--ce-horizontalPadding);
+    padding: var(--ce-verticalPadding) var(--ce-horizontalPadding) !important;
   }
 
   .grl-ce .cm-line {
-    padding: 0;
+    padding: 0 !important;
     caret-color: var(--grl-color-text);
   }
 
@@ -375,6 +442,10 @@
     outline: none;
   }
 
+  /* GRL-STYLE-HACK[HK-06](important): completion/tooltip/lint visuals racing
+     CM runtime baseTheme (matched text, detail color, list paddings, selected
+     row, icon badges). Cluster migrates wholesale with EditorView.theme().
+     replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2. */
   .grl-ce .cm-tooltip {
     font-family: var(--grl-font-family);
     font-size: 13px;
@@ -538,6 +609,11 @@
     vertical-align: middle;
   }
 
+  /* GRL-STYLE-HACK[HK-07](important): hover-tooltip resets + the manual
+     CodeHighlighter's forced flex skeleton (display:flex / align-items /
+     break-spaces). The highlighter DOM dies with the EditorView.theme()
+     migration — same cluster as HK-03/05/06.
+     replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2. */
   .grl-ce-hover-tooltip {
     font-family: var(--grl-font-family);
     font-size: 13px;
@@ -559,7 +635,7 @@
   }
 
   .grl-ce-preview .grl-ce.no-style .cm-content {
-    padding: 0;
+    padding: 0 !important;
   }
 
   .grl-ce-highlighter .cm-scroller {
@@ -613,7 +689,7 @@
     display: flex;
     flex-direction: column;
     position: static;
-    box-sizing: content-box;
+    box-sizing: border-box;
   }
 
   .grl-ce-highlighter .cm-editor[data-severity='warning'] .cm-lintRange {
@@ -624,9 +700,15 @@
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
 }
 
-}
-
-/* Decision-graph third-party-DOM overrides: intentionally unlayered so they beat
+/* ⚠️ GRL-STYLE-HACK[HK-08](cascade-layer): the whole section below is
+   unlayered to beat @xyflow/react's own unlayered runtime styles — same class
+   of workaround as the CodeMirror skin (HK-03), pre-dating it. Values are all
+   token-driven, so retheming is safe today, but the section should shrink as
+   xyflow DOM gets utility/theme coverage.
+   replace-with: docs/shadcn-theming-roadmap.zh-CN.md §P2 (long-term: per-node
+   className APIs of React Flow + utilities).
+ *
+ * Decision-graph third-party-DOM overrides: intentionally unlayered so they beat
    @xyflow/react's own unlayered styles. Component-owned layout lives in utilities. */
 
 /* Decision graph shell: grid layout areas */
@@ -817,6 +899,14 @@
   filter: none;
 }
 
+/*
+ * GRL-STYLE-HACK[HK-09](cascade-layer + hardcoded-color): Excel mapping wizard
+ * control alignment injected via scoped selectors instead of component props.
+ * Two problems: (a) unlayered rules outrank utilities; (b) `color: #fff` on the
+ * active radio is a hardcoded literal outside the token system.
+ * replace-with: props/className on the dialog components +
+ *   --grl-*-foreground tokens — docs/shadcn-theming-roadmap.zh-CN.md §P1/§P2.
+ */
 /* ── Excel mapping wizard (graph-excel-dialog): align controls to design rhythm ── */
 .grl-graph-excel-dialog [data-slot='select-trigger'] {
   height: 36px;
@@ -849,7 +939,5 @@
 
 .grl-graph-excel-dialog [role='radiogroup'] button.bg-background {
   background: var(--grl-color-primary);
-  color: #fff;
+  color: #fff; /* ← HK-09 hardcoded-color */
 }
-
-/* ── Field-edit popover: align triggers / type pills to primary palette ── */
