@@ -52,15 +52,36 @@ export const Modal: React.FC<{
     >
       <DialogContent
         showCloseButton={false}
-        className={cn('w-full gap-0', centered && 'top-[50%]', className)}
-        style={{ maxWidth: typeof width === 'number' ? `${width}px` : width }}
+        className={cn(
+          /*
+           * Height contract: cap the dialog to the viewport and let ONLY the
+           * body scroll, keeping the footer (OK/Cancel) reachable. Radix
+           * DialogContent is `fixed top-1/2 -translate-y-1/2`, so without a
+           * max-height tall content used to overflow both viewport edges —
+           * the Map Excel Data panel was unreachable at its bottom buttons.
+           */
+          'grid grid-rows-[auto_minmax(0,1fr)_auto]',
+          centered && 'top-[50%]',
+          className,
+        )}
+        style={{
+          maxWidth: typeof width === 'number' ? `${width}px` : width,
+          maxHeight: 'calc(100dvh - 48px)',
+          // Radix PORTALS mount under <body>, outside .grl-root, so the scoped
+          // preflight (`:where(*) { box-sizing: border-box }`) never reaches
+          // them and the shadcn template silently becomes content-box — maxHeight
+          // then excludes its own p-6 padding (+48px overflow). Declare it here.
+          // Registered as GRL-STYLE-HACK[HK-14]; systemic fix = portal scoping,
+          // docs/shadcn-theming-roadmap.zh-CN.md §P3 + troubleshooting case #4.
+          boxSizing: 'border-box',
+        }}
       >
         {title ? (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
         ) : null}
-        {body}
+        {body ? <div className="min-h-0 overflow-y-auto">{body}</div> : null}
         {footer !== null ? (
           <DialogFooter className="mt-4">
             {footer ?? (

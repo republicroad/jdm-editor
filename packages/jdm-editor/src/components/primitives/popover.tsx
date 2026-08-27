@@ -27,8 +27,15 @@ export const Popover: React.FC<AntdPopoverProps> = ({
   children,
 }) => (
   <UiPopover open={open} onOpenChange={onOpenChange}>
+    {/*
+     * Wrap the child in a real DOM element unconditionally: Radix `asChild`
+     * (Slot) clones its handlers onto its DIRECT child only. When callers pass
+     * a non-DOM subtree (e.g. a Tooltip context provider wrapping a Button —
+     * see ImportColumnRow in dt-excel-dialog), handlers were silently dropped
+     * and the popover never opened.
+     */}
     <UiPopoverTrigger asChild>
-      {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
+      <span className="inline-flex">{children}</span>
     </UiPopoverTrigger>
     <UiPopoverContent>{content}</UiPopoverContent>
   </UiPopover>

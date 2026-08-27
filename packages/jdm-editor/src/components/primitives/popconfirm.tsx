@@ -27,8 +27,14 @@ export const Popconfirm: React.FC<
   if (!children) return null;
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
+      {/*
+       * Real-DOM wrapper for the trigger: Radix `asChild` (Slot) only clones
+       * handlers onto its direct child. Non-DOM children (e.g. a Tooltip
+       * context wrapping the actual Button — see ImportColumnRow in
+       * dt-excel-dialog) made clicks vanish before reaching the dialog.
+       */}
       <AlertDialogTrigger asChild disabled={disabled}>
-        {children}
+        <span className="inline-flex">{children}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
