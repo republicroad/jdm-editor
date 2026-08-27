@@ -3,6 +3,7 @@ import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
 
 import { cn } from '@/lib/utils';
 
+/** @deprecated antd-migration compat alias — use {@link CheckboxChangeEvent} instead. */
 export interface AntdCheckboxChangeEvent {
   target: { checked: boolean };
   stopPropagation: () => void;
@@ -27,3 +28,6 @@ export const Checkbox: React.FC<{
     {children ? <span>{children}</span> : null}
   </label>
 );
+
+/** Neutral name (antd-migration compat surface). */
+export type CheckboxChangeEvent = AntdCheckboxChangeEvent;

@@ -3,6 +3,7 @@ import { Switch as UiSwitch } from '@/components/ui/switch';
 
 import { cn } from '@/lib/utils';
 
+/** @deprecated antd-migration compat alias — use {@link SwitchProps} instead. */
 export interface AntdSwitchProps {
   checked?: boolean;
   defaultChecked?: boolean;

@@ -3,6 +3,7 @@ import { Input as UiInput } from '@/components/ui/input';
 
 import { cn } from '@/lib/utils';
 
+/** @deprecated antd-migration compat alias — use {@link InputProps} instead. */
 export interface AntdInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
   size?: 'large' | 'middle' | 'small';

@@ -68,3 +68,10 @@ export { Tag } from './primitives/tag';
 export { Tooltip } from './primitives/tooltip';
 
 export { Typography } from './primitives/typography';
+export type { ConfirmOptions } from './primitives/app';
+export type { CheckboxChangeEvent } from './primitives/checkbox';
+export type { DatePickerProps } from './primitives/date-picker';
+export type { MenuItemType } from './primitives/dropdown';
+export type { PopoverProps } from './primitives/popover';
+export type { SelectOption } from './primitives/select';
+export type { TabsItemType } from './primitives/tabs';

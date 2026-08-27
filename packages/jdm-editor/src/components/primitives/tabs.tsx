@@ -6,6 +6,7 @@ import { TabsTrigger as UiTabsTrigger } from '@/components/ui/tabs';
 
 import { cn } from '@/lib/utils';
 
+/** @deprecated antd-migration compat alias — use {@link TabsItemType} instead. */
 export interface AntdTabsItemType {
   key: string;
   label: React.ReactNode;
@@ -88,3 +89,6 @@ export const Tabs: React.FC<TabsProps> = ({
     </UiTabs>
   );
 };
+
+/** Neutral name (antd-migration compat surface). */
+export type TabsItemType = AntdTabsItemType;

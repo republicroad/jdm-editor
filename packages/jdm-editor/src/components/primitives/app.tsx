@@ -12,6 +12,7 @@ import {
 
 import { cn } from '@/lib/utils';
 
+/** @deprecated antd-migration compat alias — use {@link ConfirmOptions} instead. */
 export interface AntdConfirmOptions {
   icon?: React.ReactNode;
   title?: React.ReactNode;
@@ -123,3 +124,6 @@ const AppProvider: React.FC<{ children?: React.ReactNode; className?: string; st
 export const App = Object.assign(AppProvider, {
   useApp: (): AppContextValue => React.useContext(AppContext),
 });
+
+/** Neutral name (antd-migration compat surface). */
+export type ConfirmOptions = AntdConfirmOptions;

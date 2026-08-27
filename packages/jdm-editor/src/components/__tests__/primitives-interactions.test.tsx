@@ -6,10 +6,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { focusBuilderRoot } from '../code-editor/business/focus-helper';
 import { App, DatePicker, Input, TimePicker } from '../primitives';
-import type { AntdConfirmOptions } from '../primitives/app';
+import type { ConfirmOptions } from '../primitives/app';
 
 describe('App.confirm imperative flow', () => {
-  const ConfirmProbe: React.FC<{ options: AntdConfirmOptions }> = ({ options }) => {
+  const ConfirmProbe: React.FC<{ options: ConfirmOptions }> = ({ options }) => {
     const { modal } = App.useApp();
     return (
       <button type='button' onClick={() => modal.confirm(options)}>
@@ -18,7 +18,7 @@ describe('App.confirm imperative flow', () => {
     );
   };
 
-  const mount = (options: AntdConfirmOptions) => {
+  const mount = (options: ConfirmOptions) => {
     const user = userEvent.setup();
     render(
       <App>

@@ -5,6 +5,7 @@ import {
   PopoverTrigger as UiPopoverTrigger,
 } from '@/components/ui/popover';
 
+/** @deprecated antd-migration compat alias — use {@link PopoverProps} instead. */
 export interface AntdPopoverProps {
   open?: boolean;
   defaultOpen?: boolean;
@@ -40,3 +41,6 @@ export const Popover: React.FC<AntdPopoverProps> = ({
     <UiPopoverContent>{content}</UiPopoverContent>
   </UiPopover>
 );
+
+/** Neutral name (antd-migration compat surface). */
+export type PopoverProps = AntdPopoverProps;

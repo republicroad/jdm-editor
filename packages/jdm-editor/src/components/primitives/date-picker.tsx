@@ -4,6 +4,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { cn } from '@/lib/utils';
 import { borderlessInputClass } from './shared';
 
+/** @deprecated antd-migration compat alias — use {@link DatePickerProps} instead. */
 export interface AntdDatePickerProps {
   value?: Dayjs | null;
   onChange?: (date: Dayjs | null) => void;
@@ -78,3 +79,6 @@ export const TimePicker: React.FC<AntdDatePickerProps> = ({
     style={style}
   />
 );
+
+/** Neutral name (antd-migration compat surface). */
+export type DatePickerProps = AntdDatePickerProps;

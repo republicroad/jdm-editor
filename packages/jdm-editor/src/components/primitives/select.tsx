@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import { borderlessInputClass } from './shared';
 
+/** @deprecated antd-migration compat alias — use {@link SelectOption} instead. */
 export interface AntdSelectOption {
   /** Optional metadata used by the excel-import dialogs */
   id?: string;
@@ -22,6 +23,7 @@ export interface AntdSelectOption {
   disabled?: boolean;
 }
 
+/** @deprecated antd-migration compat alias — use {@link SelectProps} instead. */
 export interface AntdSelectProps {
   options?: AntdSelectOption[];
   value?: string | number | boolean | Array<string | number>;
@@ -167,3 +169,6 @@ export const Select: React.FC<AntdSelectProps> = ({
     </div>
   );
 };
+
+/** Neutral name (antd-migration compat surface). */
+export type SelectOption = AntdSelectOption;

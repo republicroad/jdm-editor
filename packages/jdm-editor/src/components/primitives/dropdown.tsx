@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+/** @deprecated antd-migration compat alias — use {@link MenuItemType} instead. */
 export interface AntdMenuItemType {
   key?: string;
   label?: React.ReactNode;
@@ -31,6 +32,7 @@ export interface AntdMenuItemType {
   children?: AntdMenuItemType[];
 }
 
+/** @deprecated antd-migration compat alias — use {@link MenuProps} instead. */
 export interface AntdMenuProps {
   items?: AntdMenuItemType[];
   onClick?: AntdMenuItemType['onClick'];
@@ -136,3 +138,6 @@ export const Dropdown: React.FC<{
     </DropdownMenu>
   );
 };
+
+/** Neutral name (antd-migration compat surface). */
+export type MenuItemType = AntdMenuItemType;

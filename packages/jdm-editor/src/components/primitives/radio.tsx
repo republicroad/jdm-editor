@@ -109,6 +109,7 @@ const RadioItem: React.FC<{
 
 export const Radio = Object.assign(RadioItem, { Group: RadioGroupRoot, Button: RadioButton });
 
+/** @deprecated antd-migration compat alias — use {@link RadioGroupProps} instead. */
 export interface AntdRadioGroupProps {
   value?: string | number | boolean;
   disabled?: boolean;

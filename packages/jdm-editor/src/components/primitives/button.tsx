@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 type AntdButtonType = 'primary' | 'default' | 'dashed' | 'text' | 'link';
 type AntdButtonSize = 'large' | 'middle' | 'small';
 
+/** @deprecated antd-migration compat alias — use {@link ButtonProps} instead. */
 export interface AntdButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   type?: AntdButtonType;
   icon?: React.ReactNode;
