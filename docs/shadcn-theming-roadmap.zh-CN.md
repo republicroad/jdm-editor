@@ -50,11 +50,16 @@ tailwind.css @theme inline
 > 决策记录（2026-08）：**优先修用户可见的交互 bug，长期能力按阶段推进；
 > P3 因改变宿主可见行为单独立项。**
 
-### P0 — 种子派生替代手写色阶（核心）
+### P0 — 种子派生替代手写色阶（核心）✅ v1 已落地（2026-08，Batch C）
 - `theme.tsx` 内部改为 种子(seed) → OKLCH `color-mix()` 派生 → 全量 `--grl-*` 输出。
 - **公共 API 不变**：`JdmConfigProvider.token` 的 antd 词表键名继续接受并生效，内部映射到种子派生——不破坏现有宿主。
+  ✅ 实施为 additive API：`<JdmConfigProvider seeds={{primary,...}}>`；无 seeds 时默认走冻结校准表（字节级回归零风险）。
 - 中性灰轴也走派生（oklch 色相旋转 0°），删除 `--grl-color-border-hover/-fade`、`--grl-color-primary-bg-fade` 三处 light/dark 三元字面量。
-- editor chrome 静态项（`--tooltip-bg`、`--diagnostic-chip-bg`、`--error-line-bg`）纳入派生范围。
+  ✅ 三元已收编至 `MODE_EXTRAS` 常量表（theme.tsx 导出）。
+- editor chrome 静态项（`--tooltip-bg`、`--diagnostic-chip-bg`、`--error-line-bg`）纳入派生范围。（留 P2 后收口）
+- **v1 限制（记录）**：品牌族派生采用线性光混合梯子（比例离线反标定，黄金值测试逐键容差守护，
+  最差 warningBorder Δ66/255 如实登记）；暗色模式表面在 antd 算法中是家族无关的深蓝黑常量、
+  无法分解为种子混合（离线 spread>0.6），故暗色暂不响应 seeds——升级路径见上 OKLCH 模型。
 
 ### P1 — 关闭组件级硬编码泄漏（14 处）
 - tokens.css 新增业务语义组：`--grl-field-input(-border/-hover)`、`--grl-field-output(-border/-hover)`、`--grl-field-*-foreground`。
@@ -84,8 +89,10 @@ tailwind.css @theme inline
 
 **决定**：保留双层（`--grl-*` 运行时层 + shadcn 语义桥接层），先脱钩后扁平化。
 
-- 过渡期：`--grl-*` 键名不变、但取值来源从「antd 词表手抄」改为「种子派生」；`tokens.css` 桥不动。
-- 终态：扁平化为 shadcn 语义名单层；`--grl-*` 标记 `@deprecated` 并分两批移除——第一批移除未被桥接引用的键，第二批随消费方改为语义名一并清空。
+- ~~过渡期：`--grl-*` 键名不变、但取值来源从「antd 词表手抄」改为「种子派生」~~
+  ✅ **过渡期完成**（2026-08 Batch C）：默认种子走冻结校准表，宿主传 `seeds` 即触发
+  `theming/derive.ts` 派生覆盖（浅色），显式 token 仍最高优先。
+- 终态：扁平化为 shadcn 语义名单层；`--grl-*` 标记 `@deprecated` 并分两批移除——第一批移除未被桥接引用的键，第二批随消费方改为语义名一并清空。（待 P2/P4 收口后启动）
 
 ## 附录 A — 样式债务注册表
 

@@ -2,6 +2,7 @@ import { App } from './components/primitives';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Toaster } from 'sonner';
 
+import { deriveSeedOverlays, type ThemeSeeds } from './theming/derive';
 import { useWasmReady } from './helpers/wasm';
 
 export type ThemeConfig = {
@@ -29,7 +30,19 @@ export const DictionaryProvider: React.FC<React.PropsWithChildren<{ value: Dicti
 const fontFamily =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 
-const lightTokens: Record<string, string | number> = {
+/** Mode-scoped constants formerly inline ternaries in GlobalCssVariables
+ * (roadmap P0/C4: single source, no branch literals in the render path). */
+export const MODE_EXTRAS: Record<
+  'light' | 'dark',
+  { borderHover: string; borderFade: string; primaryBgFade: string }
+> = {
+  light: { borderHover: '#c3c3c3', borderFade: '#eef0f5', primaryBgFade: '#f8fafc' },
+  dark: { borderHover: '#555555', borderFade: '#333333', primaryBgFade: '#141414' },
+};
+
+/** Golden preset (antd-calibrated). Exported for the derive golden test; do
+ * not hand-edit without re-running `src/theme/__tests__/derive.test.ts`. */
+export const lightTokens: Record<string, string | number> = {
   colorPrimary: '#1677ff',
   colorPrimaryHover: '#4096ff',
   colorPrimaryActive: '#0958d9',
@@ -117,6 +130,12 @@ const darkTokens: Record<string, string | number> = {
 
 export type JdmConfigProviderProps = {
   theme?: ThemeConfig;
+  /**
+   * Brand seed colors (roadmap P0, one-click retheming). Light mode derives
+   * the brand families; dark mode currently keeps its calibrated constants.
+   * Explicit `theme.token` entries always win over derived values.
+   */
+  seeds?: ThemeSeeds;
   prefixCls?: string;
   dictionaries?: DictionaryMap;
   children?: React.ReactNode;
@@ -124,6 +143,7 @@ export type JdmConfigProviderProps = {
 
 export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   theme: { mode = 'light' as const, token = {} } = {},
+  seeds,
   dictionaries,
   children,
 }) => {
@@ -135,7 +155,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
     <ThemeModeContext.Provider value={mode}>
       <DictionaryContext.Provider value={dicts}>
         <App>
-          <GlobalCssVariables mode={mode} overrides={token} />
+          <GlobalCssVariables mode={mode} overrides={token} seeds={seeds} />
           <Toaster theme={mode} position="bottom-right" richColors />
           {children}
         </App>
@@ -147,7 +167,8 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 const GlobalCssVariables: React.FC<{
   mode: 'light' | 'dark';
   overrides: Record<string, unknown>;
-}> = ({ mode, overrides }) => {
+  seeds?: ThemeSeeds;
+}> = ({ mode, overrides, seeds }) => {
   useEffect(() => {
     document.documentElement.dataset.mode = mode;
     return () => {
@@ -157,18 +178,23 @@ const GlobalCssVariables: React.FC<{
 
   const exposedTokens = useMemo(() => {
     const base = mode === 'dark' ? darkTokens : lightTokens;
-    const t = { ...base, ...(overrides as Record<string, string | number>) };
+    // Merge order: calibrated preset ← seed derivation ← explicit overrides.
+    const t = {
+      ...base,
+      ...deriveSeedOverlays({ mode, seeds }),
+      ...(overrides as Record<string, string | number>),
+    };
     return {
       '--grl-color-border': t.colorBorder,
-      '--grl-color-border-hover': mode === 'light' ? '#c3c3c3' : '#555555',
-      '--grl-color-border-fade': mode === 'light' ? '#eef0f5' : '#333333',
+      '--grl-color-border-hover': MODE_EXTRAS[mode].borderHover,
+      '--grl-color-border-fade': MODE_EXTRAS[mode].borderFade,
       '--grl-color-primary': t.colorPrimary,
       '--node-color-blue': 'var(--grl-color-primary)',
       '--node-color-purple': '#7c4dff',
       '--node-color-orange': '#f76d40',
       '--node-color-green': '#10ac84',
       '--grl-color-primary-bg': t.colorPrimaryBg,
-      '--grl-color-primary-bg-fade': mode === 'light' ? '#f8fafc' : '#141414',
+      '--grl-color-primary-bg-fade': MODE_EXTRAS[mode].primaryBgFade,
       '--grl-color-primary-bg-hover': t.colorPrimaryBgHover,
       '--grl-color-primary-border': t.colorPrimaryBorder,
       '--grl-color-primary-border-hover': t.colorPrimaryBorderHover,
