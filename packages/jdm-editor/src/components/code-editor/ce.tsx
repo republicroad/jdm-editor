@@ -53,9 +53,27 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const isMouseDownRef = useRef(false);
 
-    const handleMouseDown = useCallback(() => {
-      isMouseDownRef.current = true;
-    }, []);
+    const handleMouseDown = useCallback(
+      (event: React.MouseEvent) => {
+        isMouseDownRef.current = true;
+
+        // Suppress the browser's default caret/selection + focus so the lazy
+        // highlighter hands off cleanly to the live editor. This also prevents
+        // the cell-level `onFocus` re-render from swallowing the gesture.
+        event.preventDefault();
+
+        if (disabled || editorState.type !== 'lazy') {
+          return;
+        }
+
+        const selection = containerRef.current
+          ? (getCursorPositionFromClick(event, containerRef.current) ?? { anchor: value.length })
+          : { anchor: value.length };
+
+        setEditorState({ type: 'edit', initialSelection: selection });
+      },
+      [disabled, editorState.type, value],
+    );
 
     const handleMouseUp = useCallback(() => {
       isMouseDownRef.current = false;
@@ -77,7 +95,7 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
     );
 
     const handleFocus = useCallback(
-      (_event: React.FocusEvent<HTMLDivElement, HTMLDivElement>) => {
+      (_event: React.FocusEvent<HTMLDivElement, Element>) => {
         if (disabled || editorState.type !== 'lazy' || isMouseDownRef.current) {
           return;
         }
@@ -98,16 +116,42 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
       [lazy, onBlur],
     );
 
+    // Consumer-supplied DOM handlers must still fire, but internal behavior
+    // must never be clobbered when callers pass e.g. onFocus via props
+    // (previously `{...props}` sat AFTER these and silently replaced them).
+    // Internal handlers run LAST and are post-transition no-ops by guard, so a
+    // chained click/focus can never double-trigger the lazy→edit transition.
+    const chainMouse =
+      (...handlers: (((event: React.MouseEvent<HTMLDivElement>) => void) | undefined)[]) =>
+      (event: React.MouseEvent<HTMLDivElement>) => {
+        for (const handler of handlers) {
+          handler?.(event);
+        }
+      };
+    const chainFocus =
+      (...handlers: (((event: React.FocusEvent<HTMLDivElement>) => void) | undefined)[]) =>
+      (event: React.FocusEvent<HTMLDivElement>) => {
+        for (const handler of handlers) {
+          handler?.(event);
+        }
+      };
+
+    const { onClick, onFocus, onMouseDown, onMouseUp, ...restProps } = props;
+
     if (editorState.type === 'edit' || !lazy) {
       return (
         <CodeEditorBase
           ref={ref}
+          {...restProps}
           value={value}
           type={type}
           disabled={disabled}
-          onBlur={handleBlur}
           initialSelection={editorState.type === 'edit' ? editorState.initialSelection : undefined}
-          {...props}
+          onClick={chainMouse(onClick)}
+          onMouseDown={chainMouse(onMouseDown)}
+          onMouseUp={chainMouse(onMouseUp)}
+          onFocus={chainFocus(onFocus)}
+          onBlur={handleBlur}
         />
       );
     }
@@ -115,14 +159,14 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
     return (
       <CodeHighlighter
         ref={composeRefs(containerRef, ref)}
+        {...restProps}
         type={type}
         value={value}
-        onClick={handleClick}
-        onFocus={handleFocus}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
         disabled={disabled}
-        {...props}
+        onClick={chainMouse(onClick, handleClick)}
+        onFocus={chainFocus(onFocus, handleFocus)}
+        onMouseDown={chainMouse(onMouseDown, handleMouseDown)}
+        onMouseUp={chainMouse(onMouseUp, handleMouseUp)}
       />
     );
   },
