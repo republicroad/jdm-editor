@@ -74,12 +74,9 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
     >
       {trigger ?? (
         <span
-          /* GRL-STYLE-HACK[HK-10](hardcoded-color): input pill colors bypass the
-             token system (antd-era literals kept to match the old design).
-             replace-with: --grl-field-input / --grl-field-input-border tokens —
-               docs/shadcn-theming-roadmap.zh-CN.md §P1. */
+          /* Tokenized per roadmap P1 (replaces HK-10 antd-era literals). */
           className={clsx(
-            'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-[#acccec] bg-[#acccec] px-2 py-0.5 text-sm text-black transition-colors hover:border-[#8ab8de] aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
+            'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-[var(--grl-color-field-input)] bg-[var(--grl-color-field-input)] px-2 py-0.5 text-sm text-black transition-colors hover:border-[var(--grl-color-field-input-hover)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
             triggerClassName,
           )}
           onClick={() => onOpenChange(!open)}

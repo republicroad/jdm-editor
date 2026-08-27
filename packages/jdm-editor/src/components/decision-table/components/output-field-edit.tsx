@@ -111,10 +111,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
     setOpen(false);
   };
 
-  // GRL-STYLE-HACK[HK-11](hardcoded-color): output pill colors bypass the
-  // token system (antd-era literals kept to match the old design).
-  // replace-with: --grl-field-output / --grl-field-output-border tokens —
-  //   docs/shadcn-theming-roadmap.zh-CN.md §P1.
+  // Output pill colors tokenized per roadmap P1 (replaces HK-11 literals).
   return (
     <FieldEditPopover
       value={value}
@@ -123,7 +120,11 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
       disabled={disabled}
       open={open}
       onOpenChange={setOpen}
-      triggerClassName={mode === 'edit' ? 'border-[#c7e0ba] bg-[#c7e0ba] text-black hover:border-[#a8cc96]' : undefined}
+      triggerClassName={
+        mode === 'edit'
+          ? 'border-[var(--grl-color-field-output)] bg-[var(--grl-color-field-output)] text-black hover:border-[var(--grl-color-field-output-hover)]'
+          : undefined
+      }
       mode={mode}
       trigger={trigger}
     >

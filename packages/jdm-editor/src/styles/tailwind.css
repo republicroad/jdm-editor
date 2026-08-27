@@ -939,5 +939,5 @@
 
 .grl-graph-excel-dialog [role='radiogroup'] button.bg-background {
   background: var(--grl-color-primary);
-  color: #fff; /* ← HK-09 hardcoded-color */
+  color: var(--grl-color-text-light-solid);
 }

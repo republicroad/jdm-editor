@@ -91,23 +91,24 @@ tailwind.css @theme inline
 
 > 全局检索命令：`rg -n 'GRL-STYLE-HACK' packages/jdm-editor/src`
 > 类别：cascade-layer（未分层覆盖）· important（!important 压制）· hardcoded-color（脱离 token 的字面色）· vendor-dom（工具类反制第三方 DOM）· inline-beat（对抗内联样式）
+> 状态列为 2026-08 批次执行进度：Batch A = portal border-box + 护栏；Batch B = P1 硬编码收口。
 
-| ID | 位置 | 类别 | 内容摘要 | 归属阶段 |
-|---|---|---|---|---|
-| HK-01 | tailwind.css `.grl-function__debugger__log__values` | inline-beat | 对抗 react-json-tree 内联样式的 6 处 `!important` | P2/P4 |
-| HK-02 | tailwind.css `.grl-inline-tabs` | important | 压第三方 tab 注入样式；可评先转为 Tabs 原语 utilities | P2 |
-| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | 整个 CodeMirror 皮肤未分层（hack 总开关注释） | P2 |
-| GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 |
-| HK-04 | tailwind.css `[data-severity]` 三连 | important | severity 底色压制 CM baseTheme | P2 |
-| HK-05 | tailwind.css scroller/content/preview 三处几何声明 | important | 2026-08 光标偏移修复本体；LazyParity 守护 | P2 |
-| HK-06 | tailwind.css completion/tooltip/lint 视觉群 | important | 匹配文本、选中行、图标徽章等与 CM 注入规则的竞速 | P2 |
-| HK-07 | tailwind.css hover-tooltip + 高亮器 flex 骨架 | important | 高亮器手工 DOM 的强制 flex/break-spaces 集 | P2 |
-| HK-08 | tailwind.css 决策图区横幅 | cascade-layer | 为胜过 @xyflow/react 未分层样式而整体裸奔（有意为之，需逐步收缩） | P2 后期 |
-| HK-09 | tailwind.css Excel 向导段 + `color:#fff` | cascade-layer + hardcoded-color | 选择器式控件对齐 + 白色激活态字面量 | P1+P2 |
-| HK-10 | field-edit-popover.tsx 胶囊 triggerClassName 默认 | hardcoded-color | `#acccec`/`#8ab8de` 输入胶囊 | P1 |
-| HK-11 | output-field-edit.tsx triggerClassName | hardcoded-color | `#c7e0ba`/`#a8cc96` 输出胶囊 | P1 |
-| HK-12 | graph-excel-dialog/index.tsx dataTypeConfig | hardcoded-color | 与 HK-10/11 同源的列章鱼色 | P1 |
-| HK-13 | expression-item.tsx DiffCodeEditor className | vendor-dom + hardcoded-color | `!` 后缀压 CM 皮肤 + placeholder hex；与表格单元格 token 值不一致（py-3 vs 9px） | P1 |
-| HK-14 | tailwind.css 作用域 preflight 边界 + primitives/modal.tsx | boundary（结构性缺口） | Radix Portal 挂载于 `<body>`、逃出 `.grl-root`，`:where(*){box-sizing:border-box}` 够不到 → 全部 portaled 弹层（Dialog/AlertDialog/Popover/Select/Tooltip）隐式 content-box；Modal 曾因此突破自身 maxHeight +48px（已显式修复），其余同类为静默偏差。排查全录见 troubleshooting 案例 #4 | P3 |
+| ID | 位置 | 类别 | 内容摘要 | 归属阶段 | 状态 |
+|---|---|---|---|---|---|
+| HK-01 | tailwind.css `.grl-function__debugger__log__values` | inline-beat | 对抗 react-json-tree 内联样式的 6 处 `!important` | P2/P4 | open |
+| HK-02 | tailwind.css `.grl-inline-tabs` | important | 压第三方 tab 注入样式；可评先转为 Tabs 原语 utilities | P2 | open |
+| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | 整个 CodeMirror 皮肤未分层（hack 总开关注释） | P2 | open |
+| GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 | — |
+| HK-04 | tailwind.css `[data-severity]` 三连 | important | severity 底色压制 CM baseTheme | P2 | open |
+| HK-05 | tailwind.css scroller/content/preview 三处几何声明 | important | 2026-08 光标偏移修复本体；LazyParity 守护 | P2 | open（随 D 迁移退役） |
+| HK-06 | tailwind.css completion/tooltip/lint 视觉群 | important | 匹配文本、选中行、图标徽章等与 CM 注入规则的竞速 | P2 | open |
+| HK-07 | tailwind.css hover-tooltip + 高亮器 flex 骨架 | important | 高亮器手工 DOM 的强制 flex/break-spaces 集 | P2 | open |
+| HK-08 | tailwind.css 决策图区横幅 | cascade-layer | 为胜过 @xyflow/react 未分层样式而整体裸奔（有意为之，需逐步收缩） | P2 后期 | open |
+| HK-09 | tailwind.css Excel 向导段 + `color:#fff` | cascade-layer + hardcoded-color | 选择器式控件对齐 + 白色激活态字面量（hardcoded 部分已并入 `--grl-color-text-light-solid`） | P1+P2 | color ✅ Batch B · selector 段留 P2 |
+| HK-10 | field-edit-popover.tsx 胶囊 triggerClassName 默认 | hardcoded-color | `#acccec`/`#8ab8de` 输入胶囊 → `--grl-color-field-input(-hover)` | P1 | ✅ Batch B |
+| HK-11 | output-field-edit.tsx triggerClassName | hardcoded-color | `#c7e0ba`/`#a8cc96` 输出胶囊 → `--grl-color-field-output(-hover)` | P1 | ✅ Batch B |
+| HK-12 | graph-excel-dialog/index.tsx dataTypeConfig | hardcoded-color | 列章鱼色 → 同一组 field token（var() 内联保活换肤） | P1 | ✅ Batch B |
+| HK-13 | expression-item.tsx DiffCodeEditor className | vendor-dom + hardcoded-color | placeholder hex → `--grl-color-text-placeholder`；几何统一 `--ce-*:12px`（pr-[60px] 控件槽保留） | P1 | ✅ Batch B |
+| HK-14 | tailwind.css 作用域 preflight 边界 + primitives/modal.tsx | boundary（结构性缺口） | Radix Portal 挂载于 `<body>`、逃出 `.grl-root`，`:where(*){box-sizing:border-box}` 够不到 → 全部 portaled 弹层隐式 content-box。排查全录见 troubleshooting 案例 #4 | P3 | 六原语已加显式 `box-border`（Batch A）✅；portal 归属作用域留 P3 |
 
 另有三类**显式豁免**（非债）：`theme.tsx`/`tokens.css`（token 真源）；编辑器调色板（diagnostic.tsx / function-debugger-log.tsx / ce-preview BugIcon——随 P0 纳入派生通道即可）；stories 演示样式（沙盒）。

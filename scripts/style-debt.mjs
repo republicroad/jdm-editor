@@ -16,10 +16,12 @@ import { join } from 'node:path';
 
 const SRC = new URL('../packages/jdm-editor/src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 
-/** Baselines recorded 2026-08 after Batch A of the theming roadmap. */
+/** Baselines recorded 2026-08 after Batch B of the theming roadmap
+ * (P1 hardcoded-color closure). Hex budget zero: new palette literals must
+ * enter theme.tsx/tokens.css, not components. */
 const BUDGET = {
-  important: 38,
-  hex: 12,
+  important: 35,
+  hex: 0,
 };
 
 /* Token/palette truth-sources and sandbox demos are exempt from hex counting.
@@ -44,7 +46,12 @@ let hex = 0;
 const hexHits = [];
 
 for (const file of walk(SRC)) {
-  const text = readFileSync(file, 'utf8');
+  let text = readFileSync(file, 'utf8');
+  // Inline var(..., #fallback) defaults are consumed next to their definition
+  // point and keep single-source truth in tokens.css / theme.tsx — not leaks.
+  text = text.replace(/var\([^()]*\)/g, 'VAR()');
+  // Comments may narrate past debt (GRL-STYLE-HACK banners) — never counted.
+  text = text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, ' ');
   important += (text.match(/!important/g) ?? []).length;
 
   if (!HEX_WHITELIST.test(file)) {

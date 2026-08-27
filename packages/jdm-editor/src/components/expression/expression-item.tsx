@@ -131,12 +131,11 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         <ExpressionItemContextMenu index={index}>
           <div>
             <DiffCodeEditor
-              // GRL-STYLE-HACK[HK-13](vendor-dom + hardcoded-color): utilities with
-              // trailing `!` to beat the CodeMirror skin AND a hardcoded placeholder
-              // hex. Geometry here diverges from decision-table cells (9px/0.75rem
-              // tokens) — consolidate on --ce-* tokens so both read from one place.
-              // replace-with: [--ce-*] token overrides only — docs/shadcn-theming-roadmap.zh-CN.md §P1.
-              className='[&_.cm-content]:py-3! [&_.cm-content]:pr-[60px]! [&_.cm-content]:pl-3! [&_.cm-placeholder]:text-[#bfbfbf]!'
+              // Consolidated on --ce-* tokens (HK-13): geometry now flows through
+              // the same custom properties decision-table cells use (12px rhythm),
+              // placeholder via the semantic token. pr-[60px] stays — reserved
+              // right gutter for item controls.
+              className='[--ce-verticalPadding:12px] [--ce-horizontalPadding:12px] [&_.cm-content]:pr-[60px]! [&_.cm-placeholder]:text-[color:var(--grl-color-text-placeholder)]!'
               placeholder='Expression'
               maxRows={9}
               disabled={disabled}
