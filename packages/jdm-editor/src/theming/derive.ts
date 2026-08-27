@@ -85,6 +85,24 @@ export type ThemeSeeds = {
   fieldOutput?: string;
 };
 
+/** antd-calibrated defaults: passing EXACTLY these equals passing nothing,
+ * keeping the frozen preset byte-identical instead of route-through-derived. */
+export const ANTD_DEFAULT_SEEDS: Required<
+  Pick<ThemeSeeds, 'primary' | 'success' | 'error' | 'warning' | 'fieldInput' | 'fieldOutput'>
+> = {
+  primary: '#1677ff',
+  success: '#52c41a',
+  error: '#ff4d4f',
+  warning: '#faad14',
+  fieldInput: '#acccec',
+  fieldOutput: '#c7e0ba',
+};
+
+const isDefaultSeedSet = (seeds: ThemeSeeds): boolean => {
+  const entries = Object.entries(seeds).filter(([, v]) => v !== undefined);
+  return entries.length === 0 || entries.every(([k, v]) => (ANTD_DEFAULT_SEEDS as Record<string, string>)[k] === v);
+};
+
 const FAMILY_SEED_KEYS = ['primary', 'success', 'error', 'warning'] as const;
 
 export type DeriveArgs = {
@@ -98,13 +116,16 @@ export type DeriveArgs = {
  * Derived output never overrides keys the host passed through `token=`.
  */
 export const deriveSeedOverlays = ({ mode, seeds }: DeriveArgs): Record<string, string> => {
-  if (!seeds || mode !== 'light') {
+  if (!seeds || mode !== 'light' || isDefaultSeedSet(seeds)) {
     return {};
   }
 
   const out: Record<string, string> = {};
 
   const applyFamily = (family: string, seed: string) => {
+    // the base key IS the seed itself (ladder only covers derivatives)
+    const cap = family[0].toUpperCase() + family.slice(1);
+    out[`color${cap}`] = seed;
     for (const [tokenKey, op] of Object.entries(LIGHT_LADDER)) {
       if (!tokenKey.toLowerCase().startsWith(`color${family}`.toLowerCase())) continue;
       out[tokenKey] = mixLinear(seed, op.anchor, op.t);

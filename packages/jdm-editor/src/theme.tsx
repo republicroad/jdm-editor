@@ -2,7 +2,10 @@ import { App } from './components/primitives';
 import React, { useContext, useEffect, useMemo } from 'react';
 import { Toaster } from 'sonner';
 
-import { deriveSeedOverlays, type ThemeSeeds } from './theming/derive';
+import { computeTheme } from './theming/compute';
+import type { ThemeSeeds } from './theming/derive';
+
+export { MODE_EXTRAS, darkTokens, lightTokens } from './theming/presets';
 import { useWasmReady } from './helpers/wasm';
 
 export type ThemeConfig = {
@@ -27,107 +30,9 @@ export const DictionaryProvider: React.FC<React.PropsWithChildren<{ value: Dicti
   children,
 }) => <DictionaryContext.Provider value={value}>{children}</DictionaryContext.Provider>;
 
-const fontFamily =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 
 /** Mode-scoped constants formerly inline ternaries in GlobalCssVariables
  * (roadmap P0/C4: single source, no branch literals in the render path). */
-export const MODE_EXTRAS: Record<
-  'light' | 'dark',
-  { borderHover: string; borderFade: string; primaryBgFade: string }
-> = {
-  light: { borderHover: '#c3c3c3', borderFade: '#eef0f5', primaryBgFade: '#f8fafc' },
-  dark: { borderHover: '#555555', borderFade: '#333333', primaryBgFade: '#141414' },
-};
-
-/** Golden preset (antd-calibrated). Exported for the derive golden test; do
- * not hand-edit without re-running `src/theme/__tests__/derive.test.ts`. */
-export const lightTokens: Record<string, string | number> = {
-  colorPrimary: '#1677ff',
-  colorPrimaryHover: '#4096ff',
-  colorPrimaryActive: '#0958d9',
-  colorPrimaryBg: '#e6f4ff',
-  colorPrimaryBgHover: '#bae0ff',
-  colorPrimaryBorder: '#91caff',
-  colorPrimaryBorderHover: '#69b1ff',
-  colorPrimaryTextHover: '#4096ff',
-  colorSuccess: '#52c41a',
-  colorSuccessBg: '#f6ffed',
-  colorSuccessBorder: '#b7eb8f',
-  colorError: '#ff4d4f',
-  colorErrorBg: '#fff2f0',
-  colorErrorBorder: '#ffccc7',
-  colorWarning: '#faad14',
-  colorWarningBg: '#fffbe6',
-  colorWarningBorder: '#ffe58f',
-  colorWarningText: '#d48806',
-  colorInfo: '#1677ff',
-  colorInfoBg: '#e6f4ff',
-  colorInfoBorder: '#91caff',
-  colorInfoText: '#1677ff',
-  /* Field pills / excel column chips (P1 tokenized literals, formerly
-   * inline #acccec family — see GRL-STYLE-HACK HK-10..12). */
-  colorFieldInput: '#acccec',
-  colorFieldInputHover: '#8ab8de',
-  colorFieldOutput: '#c7e0ba',
-  colorFieldOutputHover: '#a8cc96',
-  colorTextLightSolid: '#ffffff',
-  colorBgLayout: '#f5f5f5',
-  colorBgMask: 'rgba(0, 0, 0, 0.45)',
-  colorBgElevated: '#ffffff',
-  colorBgContainer: '#ffffff',
-  colorBgContainerDisabled: 'rgba(0, 0, 0, 0.04)',
-  colorBgTextHover: 'rgba(0, 0, 0, 0.06)',
-  colorBorder: '#d9d9d9',
-  colorText: 'rgba(0, 0, 0, 0.88)',
-  colorTextPlaceholder: 'rgba(0, 0, 0, 0.25)',
-  colorTextBase: '#000000',
-  colorTextDisabled: 'rgba(0, 0, 0, 0.25)',
-  colorTextSecondary: 'rgba(0, 0, 0, 0.65)',
-  controlOutline: 'rgba(5, 145, 255, 0.1)',
-  fontFamily,
-  lineHeight: 1.5714285714285714,
-  borderRadius: 6,
-};
-
-const darkTokens: Record<string, string | number> = {
-  ...lightTokens,
-  colorPrimary: '#1668dc',
-  colorPrimaryHover: '#3c89e8',
-  colorPrimaryActive: '#11a8cd',
-  colorPrimaryBg: '#111a2c',
-  colorPrimaryBgHover: '#112545',
-  colorPrimaryBorder: '#15325b',
-  colorPrimaryBorderHover: '#3170b9',
-  colorPrimaryTextHover: '#3c89e8',
-  colorSuccess: '#49aa19',
-  colorSuccessBg: '#162312',
-  colorSuccessBorder: '#274902',
-  colorError: '#dc4446',
-  colorErrorBg: '#2c1618',
-  colorErrorBorder: '#58181c',
-  colorWarning: '#d89614',
-  colorWarningBg: '#2b2111',
-  colorWarningBorder: '#594214',
-  colorWarningText: '#d89614',
-  colorInfo: '#1668dc',
-  colorInfoBg: '#111a2c',
-  colorInfoBorder: '#15325b',
-  colorInfoText: '#1668dc',
-  colorBgLayout: '#000000',
-  colorBgElevated: '#1d1d1d',
-  colorBgContainer: '#141414',
-  colorBgContainerDisabled: 'rgba(255, 255, 255, 0.08)',
-  colorBgTextHover: 'rgba(255, 255, 255, 0.08)',
-  colorBorder: '#424242',
-  colorText: 'rgba(255, 255, 255, 0.85)',
-  colorTextPlaceholder: 'rgba(255, 255, 255, 0.25)',
-  colorTextBase: '#ffffff',
-  colorTextDisabled: 'rgba(255, 255, 255, 0.25)',
-  colorTextSecondary: 'rgba(255, 255, 255, 0.65)',
-  controlOutline: 'rgba(22, 104, 220, 0.25)',
-};
-
 export type JdmConfigProviderProps = {
   theme?: ThemeConfig;
   /**
@@ -176,74 +81,10 @@ const GlobalCssVariables: React.FC<{
     };
   }, [mode]);
 
-  const exposedTokens = useMemo(() => {
-    const base = mode === 'dark' ? darkTokens : lightTokens;
-    // Merge order: calibrated preset ← seed derivation ← explicit overrides.
-    const t = {
-      ...base,
-      ...deriveSeedOverlays({ mode, seeds }),
-      ...(overrides as Record<string, string | number>),
-    };
-    return {
-      '--grl-color-border': t.colorBorder,
-      '--grl-color-border-hover': MODE_EXTRAS[mode].borderHover,
-      '--grl-color-border-fade': MODE_EXTRAS[mode].borderFade,
-      '--grl-color-primary': t.colorPrimary,
-      '--node-color-blue': 'var(--grl-color-primary)',
-      '--node-color-purple': '#7c4dff',
-      '--node-color-orange': '#f76d40',
-      '--node-color-green': '#10ac84',
-      '--grl-color-primary-bg': t.colorPrimaryBg,
-      '--grl-color-primary-bg-fade': MODE_EXTRAS[mode].primaryBgFade,
-      '--grl-color-primary-bg-hover': t.colorPrimaryBgHover,
-      '--grl-color-primary-border': t.colorPrimaryBorder,
-      '--grl-color-primary-border-hover': t.colorPrimaryBorderHover,
-      '--grl-color-primary-text-hover': t.colorPrimaryTextHover,
-      '--grl-color-success': t.colorSuccess,
-      '--grl-color-success-bg': t.colorSuccessBg,
-      '--grl-color-success-border': t.colorSuccessBorder,
-      '--grl-color-error': t.colorError,
-      '--grl-color-error-bg': t.colorErrorBg,
-      '--grl-color-error-border': t.colorErrorBorder,
-      '--grl-color-warning': t.colorWarning,
-      '--grl-color-warning-bg': t.colorWarningBg,
-      '--grl-color-warning-border': t.colorWarningBorder,
-      '--grl-color-warning-text': t.colorWarningText,
-      '--grl-color-info': t.colorInfo,
-      '--grl-color-info-bg': t.colorInfoBg,
-      '--grl-color-info-border': t.colorInfoBorder,
-      '--grl-color-info-text': t.colorInfoText,
-      '--grl-color-field-input': t.colorFieldInput,
-      '--grl-color-field-input-hover': t.colorFieldInputHover,
-      '--grl-color-field-output': t.colorFieldOutput,
-      '--grl-color-field-output-hover': t.colorFieldOutputHover,
-      '--grl-color-text-light-solid': t.colorTextLightSolid,
-      '--grl-color-bg-layout': t.colorBgLayout,
-      '--grl-color-bg-mask': t.colorBgMask,
-      '--grl-color-bg-elevated': t.colorBgElevated,
-      '--grl-color-bg-container': t.colorBgContainer,
-      '--grl-color-bg-container-disabled': t.colorBgContainerDisabled,
-      '--grl-color-bg-text-hover': t.colorBgTextHover,
-      '--grl-color-primary-hover': t.colorPrimaryHover,
-      '--grl-color-primary-active': t.colorPrimaryActive,
-      '--grl-color-text': t.colorText,
-      '--grl-color-text-placeholder': t.colorTextPlaceholder,
-      '--grl-color-text-base': t.colorTextBase,
-      '--grl-color-text-disabled': t.colorTextDisabled,
-      '--grl-color-text-secondary': t.colorTextSecondary,
-      '--grl-control-outline': t.controlOutline,
-      '--grl-primary-color': t.colorPrimary,
-      '--grl-primary-color-bg': t.colorPrimaryBg,
-      '--grl-font-family': t.fontFamily,
-      '--grl-line-height': t.lineHeight,
-      '--grl-border-radius': `${t.borderRadius}px`,
-      ...Object.fromEntries(
-        Object.entries(overrides)
-          .filter(([key]) => key.startsWith('--'))
-          .map(([key, value]) => [key, String(value)]),
-      ),
-    };
-  }, [mode, overrides]);
+  const exposedTokens = useMemo(
+    () => computeTheme(mode, seeds, overrides),
+    [mode, seeds, overrides],
+  );
 
   const cssBlock = Object.entries(exposedTokens)
     .map(([key, value]) => `  ${key}: ${value};`)

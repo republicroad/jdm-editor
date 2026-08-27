@@ -80,10 +80,10 @@ tailwind.css @theme inline
 - ⚠️ 改变宿主可见全局行为（选择器不再落在 documentElement 上），需通知所有接入方回归验证后再上。
 - 依赖：P0/P1/P2 完成，避免两头同时动。
 
-### P4 — 护栏固化（贯穿各阶段）
-- CI 计数断言：原始 hex 白名单外新增即 fail；`!important` 预算只减不增。
-- 几何对齐探针进 `test-storybook`（依托 LazyParity）。
-- Storybook 加 modes × palettes 组合预览页。
+### P4 — 护栏固化（贯穿各阶段）🟡 部分落地（Batch A/E）
+- CI 计数断言：原始 hex 白名单外新增即 fail；`!important` 预算只减不增。✅ `pnpm lint:debt`（Batch A），⚠️ 尚未挂 CI runner，经 `pnpm verify` 聚合入口（Batch E）统一执行
+- 几何对齐探针进 `test-storybook`（依托 LazyParity）。✅ 已随静态套件运行
+- Storybook 加 modes × palettes 组合预览页。✅ **Theming / Seeds Playground** story（Batch E；『应用到页面』留待 P3）
 
 ## 3. 双层结构决策记录
 

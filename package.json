@@ -10,6 +10,7 @@
     "lint:fix": "pnpm lint --fix",
     "lint:compiler": "eslint . --config eslint.react-compiler.mjs",
     "lint:debt": "node scripts/style-debt.mjs",
+    "verify": "run-s lint typecheck lint:compiler lint:debt test",
     "prettier": "prettier --check .",
     "prettier:fix": "pnpm prettier --write",
     "format": "run-s lint prettier",

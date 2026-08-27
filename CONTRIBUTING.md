@@ -41,6 +41,22 @@ To fix problems run:
 
 `pnpm format:fix`
 
+## Verify (full pre-commit gate)
+
+Run the whole battery — lint, types, React-compiler rules, style-debt budget
+(`!important` / raw-hex caps) and unit tests — with one command:
+
+`pnpm verify`
+
+Requires `pnpm` on your PATH (`corepack enable` once covers it). Treat any
+failure as blocking. New `!important` or raw hex literals need an explicit
+`GRL-STYLE-HACK` marker + a registry row in
+`docs/shadcn-theming-roadmap.zh-CN.md` Appendix A, or they will fail
+`lint:debt`.
+
+Palette work? Open Storybook → **Theming → Seeds Playground** to see seed
+derivations live (`computeTheme` in `src/theming/compute.ts`).
+
 ## Git commits
 
 This repository use [Commitizen](https://github.com/commitizen/cz-cli).
