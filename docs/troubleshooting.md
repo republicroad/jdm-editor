@@ -313,3 +313,103 @@ This restores the old SCSS dimensions as Tailwind utilities:
 - **When removing a CSS rule during migration, grep for the selector in the
   DOM** (not just the source) to confirm no third-party component renders
   matching elements.
+
+## 4. Map Excel Data panel: row Edit/Delete buttons dead + dialog overflows both viewport edges
+
+**Date:** 2026-08 · **Fixed in:** working tree (`primitives/popover.tsx`, `primitives/popconfirm.tsx`, `primitives/modal.tsx`) · Registered as **GRL-STYLE-HACK[HK-14]**
+
+### Symptom
+
+In `decision-table--controlled`, import an Excel file so the "Map Excel
+data" dialog opens. Per-row **Edit** and **Delete** icon buttons do
+nothing when clicked (no popover, no confirm dialog, zero console
+errors). Additionally the panel renders taller than the viewport on
+small windows: its top/bottom — including the footer OK button — are
+clipped out of reach.
+
+### Investigation timeline
+
+1. **Reproduce headlessly.** Crafted an xlsx in memory with exceljs and fed it
+   through `setInputFiles`; only-read Playwright probes measured geometry and
+   click outcomes at multiple viewport sizes.
+2. **Isolate with control experiments.** Inside the same dialog the row
+   **Switch** toggled fine via real mouse clicks and header-section
+   **Add Input** opened its Popover normally — portal mounting, z-index and
+   the Modal itself were healthy. Every failing control shared one trait:
+   they passed a custom trigger composed as `<Tooltip>` wrapping `<Button>`,
+   while every working one used a bare DOM child trigger.
+3. **Event-flow probe.** A real mouse click delivered
+   `pointerdown → mousedown → click` to the Edit button (verified by capture
+   listeners), yet no Radix popper wrapper ever appeared; a direct DOM
+   `.click()` also produced nothing — handlers were attached to something,
+   just not doing anything.
+4. **DOM audit of the trigger chain.** The Button carried only
+   `data-slot="tooltip-trigger"`; walking up gave plain DIVs then
+   `dialog-content`. No popover/trigger attributes anywhere up the chain.
+5. **Sizing probe.** At 480px viewport height the dialog reported computed
+   `max-height: 432px` yet measured **482px** — exactly its own `p-6`
+   padding ×2, i.e. classic `content-box` behavior.
+
+### Root cause
+
+Two independent migration-era defects:
+
+| Defect | Mechanism |
+| --- | --- |
+| Dead triggers | Radix `asChild` (`Slot`) clones its props/handlers onto its **direct child only**. Both rows wrapped their Buttons as `<TooltipTrigger asChild><Button/></Tooltip>` inside `<PopoverTrigger asChild>` / `<AlertDialogTrigger asChild>`. `Tooltip.Root` is a context provider — no DOM node, no event forwarding — so the outer Slot's cloned handler landed on nothing that could receive events. |
+| Dialog overflow | Radix DialogContent is fixed-centered with no height contract. Tall content overflowed both viewport edges with no scrolling. On top of that: the fix's `maxHeight` initially *didn't bind*, because **Radix portals mount under `<body>`, outside `.grl-root`**, so the library's scoped mini-preflight (`:where(*) { box-sizing: border-box }`) never reaches portaled nodes and the shadcn template defaults back to UA `content-box` — `maxHeight` excluded the dialog's own padding (+48px). |
+
+### Fix
+
+- **`primitives/popover.tsx`** — always wrap children in a real DOM span:
+  `<UiPopoverTrigger asChild><span class="inline-flex">{children}</span></UiPopoverTrigger>`.
+  The span receives the cloned handlers; nested Tooltip keeps hover-only duty.
+- **`primitives/popconfirm.tsx`** — same wrapper around
+  `AlertDialogTrigger asChild` (repairs *every* Popconfirm in the library,
+  not just this panel).
+- **`primitives/modal.tsx`** — height contract on the dialog:
+  `maxHeight: calc(100dvh - 48px)` + grid rows `[auto minmax(0,1fr)_auto]`
+  with the body in a `min-h-0 overflow-y-auto` slot; footer stays outside
+  the scroll area. Plus explicit `boxSizing: 'border-box'` because portals
+  escape the scoped preflight.
+
+### Verification
+
+- Probe matrix 11/11 PASS: Add Input / input-row Edit / output-row Edit /
+  Delete→AlertDialog→Remove actually deletes a row (4→3); dialogs fully
+  visible at 480px and 380px viewport heights (clipT=clipB=0); body scrolls;
+  OK button inside viewport at both heights; Edit still opens while
+  constrained.
+- Regression smoke outside the dialog: header field-pill popover (default
+  trigger path) and `codeeditor--lazy-parity` single-click-to-edit +
+  geometry parity all hold.
+- Gates: typecheck 0 · lint clean · vitest 206/206.
+
+### Lessons / checklist
+
+- **`asChild` requires a real-DOM direct child.** Any context-only wrapper
+  (Tooltip.Root, etc.) between the Slot and the Button silently eats
+  handlers. Library shims should guarantee a DOM element themselves
+  (that's what F1/F2 do) instead of trusting call sites.
+- **Portaled nodes live outside `.grl-root`.** All library styling that the
+  scoped preflight normally provides (box-sizing first) must be re-declared
+  explicitly inside portaled primitives — or portals must target a
+  container carrying `.grl-root` (roadmap §P3 makes this systemic).
+- **Dialog needs a height contract, not page scroll.** Fixed-centered
+  overlays clip both ends simultaneously; cap them and scroll the body.
+- **Isolation ladder saves hours:** default-trigger works vs custom-trigger
+  fails → composition bug; Switch works vs Select/Edit/Delete fail inside
+  the same overlay → not z-index/portal-wide.
+- **Probes are contaminating state too:** pressing Escape mid-test closes
+  the whole Radix modal, and stale refs report `rect(0,0)` — reset scene or
+  relaunch rather than reusing coordinates.
+
+## 5. Standing checklist item → follow-ups
+
+The table below tracks known members of the two defect families this case
+introduced (see also Appendix A of `shadcn-theming-roadmap.zh-CN.md`):
+
+| Follow-up | Where | Status |
+| --- | --- | --- |
+| Other portaled primitives relying on implicit border-box | `ui/dialog.tsx`, `ui/alert-dialog.tsx`, `ui/popover.tsx`, `ui/select.tsx`, `ui/tooltip.tsx` | open — batch under roadmap §P1/P3 |
+| Portal targeting scope (multi-island theming) | roadmap §P3 | planned |

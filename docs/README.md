@@ -28,11 +28,15 @@
 | [`migration/05-dnd-kit.zh-CN.md`](./migration/05-dnd-kit.zh-CN.md) | 中文 | react-dnd → @dnd-kit 改写(中文对照,四个拖拽场景),移除 manager 属性 |
 | [`styling-scss-vs-tailwind.md`](./styling-scss-vs-tailwind.md) | EN | SCSS vs Tailwind comparison & decision guide: utility classes, build-time scanning, runtime data-driven coloring, plain-CSS boundary, SCSS applicable scenarios, migration target |
 | [`styling-scss-vs-tailwind.zh-CN.md`](./styling-scss-vs-tailwind.zh-CN.md) | 中文 | SCSS 与 Tailwind 对比与选型指南(中文对照):工具类、构建时扫描、运行时数据驱动着色、纯 CSS 边界、SCSS 适用场景、迁移目标 |
+| [`codemirror-theme-migration.md`](./codemirror-theme-migration.md) | 中文※ | CodeMirror skin cascade-layer debt: root cause of display↔edit cursor drift, the accepted CSS workaround, and the EditorView.theme() migration plan (mapping table, steps, rollback) |
+| [`shadcn-theming-roadmap.zh-CN.md`](./shadcn-theming-roadmap.zh-CN.md) | 中文※ | 一键换肤长期路线图:验收标准、三层 token 管道现状、P0–P4 阶段计划(种子派生/硬编码收口/层叠清偿/作用域化注入/CI 护栏)、双层结构决策记录、样式债务注册表(GRL-STYLE-HACK 索引) |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
-| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题等 |
+| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
 
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。
+※ Language exception / 语言例外:`codemirror-theme-migration.md` 与 `shadcn-theming-roadmap.zh-CN.md`
+currently exist in Chinese only; translate to EN `.md` when their topic goes through its next major revision.
 
 ## Quick facts / 快速事实
 
