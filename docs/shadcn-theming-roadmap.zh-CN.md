@@ -104,7 +104,7 @@ tailwind.css @theme inline
 |---|---|---|---|---|---|
 | HK-01 | ~~tailwind.css json-tree 对抗块~~ → function-debugger-log.tsx theme 注入 | ~~inline-beat~~ 原语内 theme | react-json-tree 0.20 的 `tree.display` + `value` stylable 函数按 keyPath 复刻默认缩进、根节点贴左；6 条 `!important` 与整块 CSS 删除（2 条死选择器一并清退） | P2 | ✅ Batch G |
 | HK-02 | ~~tailwind.css `.grl-inline-tabs`~~ → primitives/tabs.tsx compact 分支 | ~~important~~ utilities | tablist/tab 间距节奏改由原语内部 utilities 承载（m-0 p-0! / px-3.5 text-[13px]），调用点零改动 | P2 | ✅ Batch D |
-| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；Spike 证实候选 A 内存 +36% 出局 → 残段转为「长期共存+测试守护」（见 migration doc §3.5） | P2 | 🔒 关闭（共存） |
+| HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；Spike 证实候选 A 内存 +36% 出局 → 残段转为「长期共存+测试守护」（见 migration doc §3.5；池化复活路径设计已归档 §3.6，触发条件见该节） | P2 | 🔒 关闭（共存） |
 | GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 | — |
 | HK-04 | tailwind.css `[data-severity]` 三连 | important | severity 底色压制 CM baseTheme → theme() 内自然胜出 | P2 | ✅ Batch D |
 | HK-05 | tailwind.css scroller/content/preview 几何声明 | important | 光标偏移修复本体 → 全部 var() 化进 theme()，LazyParity dX/dY=0.00 | P2 | ✅ Batch D |

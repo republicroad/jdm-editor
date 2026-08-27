@@ -137,6 +137,45 @@ controlled 切换 ×5）：
 删除 PARITY 块与 `.grl-ce-highlighter` 全段的既定清单作废，相应注册表
 HK-03/HK-07 状态由「待删除」改为「长期共存（测试守护）」。
 
+### 3.6 后继尝试：池化形态（Spike-A2，已归档待触发）
+
+> 2026-08 复盘：§3.5 出局候选 A 的唯一决定性指标是稳定态 heap +36%（104→141MB）。
+> 但该测量**未强制 GC**——10k 行初始渲染与滚动销毁产生的浮动垃圾可能被计入，
+> 「真常驻」与「未回收垃圾」的占比未分离，因此结论标记为**可复核**，本节归档其
+> 复活路径设计。
+
+**A2 核心设计（Table 级固定容量池）**
+
+- 容量 = 可见行 × CE列 + 2 余量；池所有权在虚拟izer之外的 Table 作用域
+  （TanStack Virtual 滚动会卸载 cell，池必须挂在稳定作用域，cell 经 context
+  acquire/release）。
+- `acquire(cellId)`：取闲置 view → reparent `view.dom` → 全量 doc 替换（小串
+  <1ms）+ compartments 重配(type/placeholder) → `view.requestMeasure()`。
+- `release(cellId)`：doc 置空串防大值常驻 → 归还池；只读视图**禁用 history**
+  （防跨格状态串扰），复用时显式清 selection。
+- 编辑接管：点击 → release → 既有 ce-base 协议零改动（高亮器路径同构）。
+
+**测量修正前置（翻案硬门槛）**
+
+- Playwright 以 `--js-flags=--expose-gc` 启动，堆读数前 `window.gc()` ×2。
+- Baseline / PoC 两条路径同法重测得 **Δ_true**；**Δ_true ≤ ~10%** 才进入池化
+  PoC，否则本节连同 §3.5 一并永久结案。
+
+**守卫三断言（池化 PoC 必过）**
+
+1. 复用后光标偏移 = 0（LazyParity 同规格）；
+2. 无跨格串扰：A 格 selection 不得出现在 B 格；
+3. placeholder 正确渲染与清除。
+
+**决策阈值与体量**
+
+- 进入实施条件：Δ_true 达标 且 滚动无 long task 且 三断言全绿。
+- 体量：Spike ≈0.5d；正式实施 ≈1–1.5d。
+
+**建议触发条件**：出现滚动 long task / GC 停顿类投诉，或 CodeMirror 高亮 API
+破坏性变更迫使高亮器重写时，作为首选复活路径执行本节。
+
+
 ### 3.4 风险与回滚
 
 - Tooltip/completion 为 portal 渲染于 view 外部时，theme 仅作用于 view 树内部元素——确认过 CM6 tooltips
