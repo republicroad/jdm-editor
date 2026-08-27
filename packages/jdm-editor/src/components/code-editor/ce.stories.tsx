@@ -2,7 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Variable, createVariableType, generateAst, generateAstUnary } from '@gorules/zen-engine-wasm';
 import type { SyntaxNodeRef } from '@lezer/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
 import { Typography } from '../primitives';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
@@ -98,6 +98,70 @@ export const NoStyle: Story = {
       </>
     ),
   ],
+};
+
+/**
+ * Regression guard for the two cell-editing bugs fixed in 2026-08:
+ *   1. Single click must enter edit mode (a regression made it double-click).
+ *   2. Display (CodeHighlighter) ↔ edit (CodeMirror) must be pixel-aligned;
+ *      drift was caused by CM runtime-injected unlayered styles beating the
+ *      layered skin (see docs/codemirror-theme-migration.md).
+ * Runs under `pnpm --filter @gorules/jdm-editor test:storybook`.
+ */
+export const LazyParity: Story = {
+  args: {
+    lazy: true,
+    value: "customer.firstName == 'John' && cart.totals > 50",
+  },
+  play: async ({ canvasElement }) => {
+    type Snapshot = { content: { x: number; y: number; padding: string }; line: { x: number; y: number; padding: string } };
+
+    const snapshot = (scope: Element): Snapshot => {
+      const measure = (el: HTMLElement | null) => {
+        if (!el) throw new Error('missing editor part');
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y, padding: getComputedStyle(el).padding };
+      };
+      return {
+        content: measure(scope.querySelector<HTMLElement>('.cm-content')),
+        line: measure(scope.querySelector<HTMLElement>('.cm-line')),
+      };
+    };
+
+    // Deterministic DISPLAY state bootstrap: the Storybook dev canvas can
+    // auto-run this play() or autofocus the tab before we sample, which would
+    // leave the editor already mounted in edit mode. Force-blur resets lazy
+    // editors back to the highlighter (internal onBlur chain).
+    let highlighter = canvasElement.querySelector<HTMLElement>('.grl-ce-highlighter');
+    if (!highlighter) {
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      await waitFor(
+        () => expect(canvasElement.querySelector('.grl-ce-highlighter')).not.toBeNull(),
+        { timeout: 5_000 },
+      );
+      highlighter = canvasElement.querySelector<HTMLElement>('.grl-ce-highlighter');
+    }
+    expect(highlighter).not.toBeNull();
+    const before = snapshot(highlighter!);
+
+    // ONE click must be enough — failing here means the mousedown→edit handoff
+    // regressed back to requiring a second click.
+    await userEvent.click(highlighter!.querySelector<HTMLElement>('.cm-content')!);
+
+    await waitFor(
+      () => expect(canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter)')).not.toBeNull(),
+      { timeout: 5_000 },
+    );
+
+    const editor = canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter)');
+    const after = snapshot(editor!);
+
+    for (const part of ['content', 'line'] as const) {
+      expect(Math.abs(after[part].x - before[part].x), `${part}.x parity`).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(after[part].y - before[part].y), `${part}.y parity`).toBeLessThanOrEqual(0.5);
+      expect(after[part].padding, `${part} padding parity`).toBe(before[part].padding);
+    }
+  },
 };
 
 export const Debug: StoryObj<
