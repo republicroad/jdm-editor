@@ -238,26 +238,6 @@
     }
   }
 
-  /*
-   * GRL-STYLE-HACK[HK-02](important): beats third-party-injected tab styles.
-   * Likely convertible to plain utilities on ui/tabs.tsx once Tab primitives own
-   * their spacing; review during P2 sweep.
-   * replace-with: utilities on the Tabs primitive — docs/shadcn-theming-roadmap.zh-CN.md §P2.
-   */
-  /* Compact inline tabs (formerly styles.scss .grl-inline-tabs); role-based
-     hooks on the Tabs primitive DOM. The legacy [data-node-key] pane rules
-     were dead and dropped. */
-  .grl-inline-tabs {
-    [role='tablist'] {
-      margin: 0 !important;
-    }
-
-    [role='tab'] {
-      padding: 0 14px !important;
-      font-size: 13px !important;
-    }
-  }
-
 }
 
 /*

@@ -56,6 +56,24 @@ line-height 两态均为 21px；cm-line padding 均 0
 
 门禁：typecheck ✅ / vitest 206✅ / lint:compiler 0 error ✅。
 
+### 2.2 Batch D（phase-1）迁移实录与迭代轨迹（2026-08，`bc2cd84`）
+
+皮肤整体迁入 `code-editor/theme.ts` 后，几何守卫探针的回归轨迹完整记录如下——
+每一轮 FAIL 都对应一类「共享规则被误删/被 theme 接管后高亮器失联」的问题，
+修复手段也成为**残留 CSS 的边界清单**：
+
+| 迭代 | dX / dY | 暴露问题 | 修复 |
+| --- | --- | --- | --- |
+| 初迁 | content pad 4px11px、lh 24 vs 高亮器 0/normal | 删除了共享的 `.grl-ce .cm-content/-scroller/-line` 几何规则——**高亮器手工 DOM 不经过 theme()** | 在 marker 后补 `Highlighter PARITY ONLY` 块（lh/pad/scroller 字体仅作用于 `.grl-ce-highlighter`） |
+| 二迁 | dx=dy=1.00 | 真实编辑器经 theme() 拥有 1px 边框，高亮器侧丢边框 | 补 `.grl-ce-highlighter .cm-editor { border: 1px solid var(--grl-color-border) }` |
+| 终态 | **dX=0.00 / dY=0.00** + padding/lh 全等 | — | 奇偶校验块封版；LazyParity 持续守护 |
+
+经验并入检查清单：
+- **theme() 只覆盖真编辑器**：任何与编辑器共享视觉的兄弟 DOM（高亮器、预览）
+  需要独立奇偶块，删除共享规则前必须枚举其全部消费者。
+- **1px 边框也会进探针雷达**：盒模型参与方（border/padding/min-height）逐一核对，
+  不要假设“视觉小差异”在 caret 定位里无害。
+
 ## 3. 备选方案（长期）：迁移到 `EditorView.theme()`
 
 CSS 层叠方案能赢，但每条碰撞都要显式 `!important` 或换赛道，维护成本随 CM 版本增长。
@@ -85,12 +103,18 @@ theme 只管视觉。
 
 ### 3.3 实施步骤
 
-1. 新增 `code-editor/theme.ts`：导出 `zenTheme(dark: boolean, tokens: CeTokens): Extension`，纯数据结构。
-2. `ce-base.tsx` 用新 Compartment `themeExt` 挂载，替换现 `compartment.theme.of(editorTheme(...))` 中的
-   HighlightStyle 部分（语法配色仍走 HighlightStyle，不动）。
-3. `ce.tsx` 把单元格 token(`9px/12px`) 作为 props 下发，删掉 table-default-cell 的 `[--ce-*]` 工具类。
-4. 按 3.2 表逐条删除 `tailwind.css` 未分层区中的对应规则，每删一批跑一次 §2.1 探针脚本。
-5. 全量门禁 + Storybook 目测（cells / field-edit / preview / hover-tooltip 四场景）。
+1. ✅（Batch D phase-1，`bc2cd84`）新增 `code-editor/theme.ts`：单对象 `buildZenSkin(): Extension`
+   （值全部 var() 引用，明暗/token 覆盖零重注册），ce-base 追加于扩展列表最末。
+2. ✅ 同批：按 3.2 表删除 tailwind.css 对应规则 315 行；`!important` 存量 35→18；
+   straggler `#f5f5f5` 归位 `--tooltip-bg`。
+3. ⬜ **phase-2 前置设计（gated）：高亮器替换**——当前 `CodeHighlighter` 手工 DOM 是
+   lazy 态性能优化（免 EditorView 常驻）。替换候选：(a) 只读共享单例 EditorView + 视口复用，
+   (b) 静态 SVG/HTML 渲染管线。**在方案评审通过前**，其奇偶校验 CSS 块（PARITY ONLY 四则 +
+   border）保留，禁止抢先删除。
+4. ⬜ phase-2 执行清单：高亮器替换 → 删 PARITY 块与 `.grl-ce-highlighter` 全段 →
+   LazyParity 断言改为「两侧均由 theme() 驱动」→ 注册表 HK-03/HK-07 清零。
+5. ⬜ 收口：D3 padding 改 props 下发（删 `[--ce-*]` 工具类通道需先证明 theme() 内
+   `var(--ce-*)` 与 utilities 覆盖解耦成立——Batch D 已实证）。
 
 ### 3.4 风险与回滚
 

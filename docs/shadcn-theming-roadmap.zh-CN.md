@@ -103,7 +103,7 @@ tailwind.css @theme inline
 | ID | 位置 | 类别 | 内容摘要 | 归属阶段 | 状态 |
 |---|---|---|---|---|---|
 | HK-01 | tailwind.css `.grl-function__debugger__log__values` | inline-beat | 对抗 react-json-tree 内联样式的 6 处 `!important` | P2/P4 | open |
-| HK-02 | tailwind.css `.grl-inline-tabs` | important | 压第三方 tab 注入样式；可评先转为 Tabs 原语 utilities | P2 | open |
+| HK-02 | ~~tailwind.css `.grl-inline-tabs`~~ → primitives/tabs.tsx compact 分支 | ~~important~~ utilities | tablist/tab 间距节奏改由原语内部 utilities 承载（m-0 p-0! / px-3.5 text-[13px]），调用点零改动 | P2 | ✅ Batch D |
 | HK-03 | tailwind.css CM 皮肤横幅 | cascade-layer | ~~整个 CodeMirror 皮肤未分层~~ **phase-1 已迁入 `code-editor/theme.ts`（EditorView.theme）**，未层残段=高亮器骨架+布局类；phase-2 随高亮器替换整体删除 | P2 | 🟡 phase-1 done (Batch D) |
 | GRL-LAYER-GUARD | tailwind.css `@layer components { .grl-ce {--ce-*} }` | （正向范例）| token 默认值必须留 layer——移出曾致单元格静默回退 4px/11px | 勿动 | — |
 | HK-04 | tailwind.css `[data-severity]` 三连 | important | severity 底色压制 CM baseTheme → theme() 内自然胜出 | P2 | ✅ Batch D |
