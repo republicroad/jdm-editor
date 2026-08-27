@@ -33,10 +33,11 @@ const ContextMenuContent = React.forwardRef<
     <ContextMenuPrimitive.Content
       ref={ref}
       data-slot="context-menu-content"
-      className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-        className,
-      )}
+        className={cn(
+          // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+          "box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          className
+        )}
       {...props}
     />
   </ContextMenuPrimitive.Portal>
@@ -111,7 +112,7 @@ const ContextMenuSubContent = React.forwardRef<
     ref={ref}
     data-slot="context-menu-sub-content"
     className={cn(
-      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg",
+      "box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg",
       className,
     )}
     {...props}
