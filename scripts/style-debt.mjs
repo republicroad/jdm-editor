@@ -16,11 +16,11 @@ import { join } from 'node:path';
 
 const SRC = new URL('../packages/jdm-editor/src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 
-/** Baselines recorded 2026-08 after Batch B of the theming roadmap
- * (P1 hardcoded-color closure). Hex budget zero: new palette literals must
- * enter theme.tsx/tokens.css, not components. */
+/** Baselines recorded 2026-08 after Batch D phase-1 of the theming roadmap
+ * (CM skin migrated to EditorView.theme; !important count nearly halved).
+ * Hex budget zero: new palette literals must enter theme.tsx/tokens.css. */
 const BUDGET = {
-  important: 35,
+  important: 18,
   hex: 0,
 };
 
@@ -28,7 +28,7 @@ const BUDGET = {
  * zen.ts / diagnostic.tsx / function-debugger-log.tsx / ce-preview.tsx carry the
  * CodeMirror & Monaco syntax palettes — they join the derivation channel in P0. */
 const HEX_WHITELIST =
-  /theme\.tsx$|tokens\.css$|extensions[\\/]zen\.ts$|extensions[\\/]diagnostic\.tsx$|function-debugger-log\.tsx$|ce-preview\.tsx$|stories\.tsx$/;
+  /theme\.tsx$|tokens\.css$|extensions[\\/]zen\.ts$|extensions[\\/]diagnostic\.tsx$|function-debugger-log\.tsx$|ce-preview\.tsx$|stories\.tsx$|theming[\\/]derive\.ts$|theming[\\/].*test\.ts$/;
 
 const HEX_RE = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g;
 
