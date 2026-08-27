@@ -13,6 +13,10 @@ import type { GraphExcelDialogProps, ItemValue, SelectedItems } from './types';
 
 export type { MergedDataItem } from './types';
 
+// GRL-STYLE-HACK[HK-12](hardcoded-color): same antd-era literals as HK-10/11 —
+// single source for column chips here and pills in the decision-table field-edit.
+// replace-with: --grl-field-input / --grl-field-output tokens (CSS var() so the
+//   color follows runtime retheming) — docs/shadcn-theming-roadmap.zh-CN.md §P1.
 const dataTypeConfig = {
   ['input']: { label: 'Input', color: '#acccec' },
   ['output']: { label: 'Output', color: '#c7e0ba' },
