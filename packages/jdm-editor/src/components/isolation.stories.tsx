@@ -48,7 +48,7 @@ const IsolationStory: Story = {
             <div
               data-dark-probe-a=''
               style={{ padding: 6, marginTop: 6 }}
-              className='bg-[var(--grl-color-bg-container)] dark:bg-red-600'
+              className='bg-[var(--grl-color-bg-container)] dark:bg-[var(--grl-color-error)]'
             >
               dark-probe A (light island must keep container bg)
             </div>
@@ -64,7 +64,7 @@ const IsolationStory: Story = {
             <div
               data-dark-probe-b=''
               style={{ padding: 6, marginTop: 6 }}
-              className='bg-[var(--grl-color-bg-container)] dark:bg-red-600'
+              className='dark:bg-[var(--grl-color-error)]'
             >
               dark-probe B (dark island — red bg proves variant ignition)
             </div>

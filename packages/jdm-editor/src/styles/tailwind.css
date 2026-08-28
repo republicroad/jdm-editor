@@ -24,18 +24,11 @@
 @import 'tailwindcss/utilities.css' layer(utilities) source(none);
 
 /* Dark variant, island-boundary isolated (Batch S2): a `.grl-root` island
-   declaring light EXEMPTS its subtree from a host page's own dark scope, so
-   host `html[data-mode=dark]` can no longer ignite `dark:` variants inside a
-   light island (variables/components disagreement). Non-island elements and
-   true dark islands behave exactly as before. */
-@custom-variant dark (
-  &:where(
-    [data-mode='dark'],
-    [data-mode='dark'] *
-  ):not(
-    :where(.grl-root[data-mode='light'], .grl-root[data-mode='light'] *)
-  )
-);
+   declaring light EXEMPTS its subtree from a host page's own dark scope, and
+   the exclusion respects nesting — a light island that CONTAINS a dark island
+   does not suppress the inner dark scope (nearest island wins). Non-island
+   elements and true dark islands behave exactly as before. */
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *):not(:where(.grl-root[data-mode='light']:not(:has(.grl-root[data-mode='dark'])), .grl-root[data-mode='light']:not(:has(.grl-root[data-mode='dark'])) *)));
 
 /* Global tokens (formerly styles.scss :root). */
 :root {
