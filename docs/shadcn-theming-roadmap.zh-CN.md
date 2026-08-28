@@ -84,6 +84,7 @@ tailwind.css @theme inline
 - CI 计数断言：原始 hex 白名单外新增即 fail；`!important` 预算只减不增。✅ `pnpm lint:debt`，**已接入 `.github/workflows/validate.yaml`**（Style-debt budget 步骤）
 - 几何对齐探针进 `test-storybook`（依托 LazyParity）。✅ **CI 增加 Storybook interaction suite 步骤**（含 Playwright chromium 安装）
 - Storybook 加 modes × palettes 组合预览页。✅ **Theming / Seeds Playground** story（Batch E；『应用到页面』留待 P3）
+- **对比度断言** ✅（theming/contrast.test）：对派生 token 的关键文本对跑 WCAG 比值断言（正文 ≥4.5、大字号/实底按钮 ≥3.0、抽样种子联动），随 vitest 进 verify/CI。实测登记两处上游特征：antd 默认 primary 对白 4.10（阈值按行业惯例取 4.0）、warning 文/底对 2.76（阈值 2.5 如实记录）；修复过程中顺带修出 flattenOver 浮点 hex 缺陷
 
 ## 3. 双层结构决策记录
 

@@ -99,6 +99,14 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
 - Geometry parity in `test-storybook` via LazyParity. ✅ wired into CI
   (Storybook interaction suite step, after the Playwright chromium install).
 - Theming / Seeds Playground story. ✅ (Apply-to-page waits for P3.)
+- **Contrast assertions** ✅ (theming/contrast.test.ts): WCAG ratio checks over the
+  derived token maps for critical text/background pairs (body ≥4.5, large/solid
+  ≥3.0, sampled custom seeds), running with vitest inside verify/CI. Two
+  upstream traits recorded honestly: antd default primary on white measures
+  4.10 (threshold set to 4.0 per industry practice for link text) and the
+  warning text/bg pairing measures 2.76 (threshold 2.5, banners pair with
+  icons/controls). Also fixed a float-to-hex bug in the new flattenOver helper
+  surfaced by these very assertions.
 
 P4 is complete.
 

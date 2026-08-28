@@ -78,3 +78,54 @@ export const hueDelta = (fromH: number, toH: number): number => {
   if (d === -180) d = 180;
   return d;
 };
+
+/* ── WCAG 2.x contrast helpers ────────────────────────────────────────────
+ * Used by the theming contrast assertions (contrast.test.ts) so palette
+ * derivation cannot ship text pairs below accessibility thresholds. */
+
+/** Composite an sRGB channel value over an opaque background (per channel). */
+const compositeChannel = (fg: number, alpha: number, bg: number): number => fg * alpha + bg * (1 - alpha);
+
+/** Parse `#rgb`/`#rrggbb` or `rgba()/rgb()` strings into rgba quadruples. */
+export const parseColor = (value: string): [number, number, number, number] => {
+  const v = value.trim();
+  if (v.startsWith('#')) {
+    const rgb = hexToRgb(v);
+    return [rgb[0], rgb[1], rgb[2], 1];
+  }
+  const m = v.match(/rgba?\(([^)]+)\)/i);
+  if (!m) return [0, 0, 0, 1];
+  const parts = m[1].split(/[,\s/]+/).filter(Boolean).map(parseFloat);
+  return [parts[0], parts[1], parts[2], parts.length > 3 ? parts[3] : 1];
+};
+
+/** Flatten any color (incl. rgba) onto an opaque background, returning hex. */
+export const flattenOver = (fg: string, bgHex: string): string => {
+  const [r, g, b, a] = parseColor(fg);
+  const bg = hexToRgb(bgHex);
+  return rgbToHex([
+    Math.round(compositeChannel(r, a, bg[0])),
+    Math.round(compositeChannel(g, a, bg[1])),
+    Math.round(compositeChannel(b, a, bg[2])),
+  ]);
+};
+
+const channelLuminance = (c: number): number => {
+  const v = c / 255;
+  return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+
+/** WCAG relative luminance of a hex color. */
+export const relativeLuminance = (hex: string): number => {
+  const [r, g, b] = hexToRgb(hex).map(channelLuminance);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/** WCAG 2.x contrast ratio (1..21) between two colors; rgba flattened first. */
+export const contrastRatio = (fg: string, bg: string): number => {
+  const fgSolid = flattenOver(fg, bg);
+  const l1 = relativeLuminance(fgSolid);
+  const l2 = relativeLuminance(bg);
+  const [hi, lo] = l1 >= l2 ? [l1, l2] : [l2, l1];
+  return (hi + 0.05) / (lo + 0.05);
+};
