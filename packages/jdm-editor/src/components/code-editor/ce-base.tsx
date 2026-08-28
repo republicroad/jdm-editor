@@ -17,7 +17,7 @@ import {
   updateVariableTypeEffect,
 } from './extensions/types';
 import { zenExtensions, zenStyleDark, zenStyleLight } from './extensions/zen';
-import { buildZenSkin } from './theme';
+import { ZEN_SKIN } from './theme';
 
 const zenHighlightDark = syntaxHighlighting(zenStyleDark);
 const zenHighlightLight = syntaxHighlighting(zenStyleLight);
@@ -135,10 +135,10 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
             compartment.readOnly.of(EditorView.editable.of(!disabled)),
             compartment.userProvided.of(extension?.({ type }) ?? []),
             // CM skin, registered LAST so it outranks the syntax-highlight
-            // theme above and CM's baseTheme below. Values are all var()
-            // references — mode flips and --ce-*/--grl-* overrides stay live
-            // without re-registering (see code-editor/theme.ts header).
-            buildZenSkin(),
+            // theme above and CM's baseTheme below. A module-level singleton:
+            // values are all var() references, so every instance shares the
+            // exact same immutable extension (see code-editor/theme.ts).
+            ZEN_SKIN,
           ],
         }),
       });

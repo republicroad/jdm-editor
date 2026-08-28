@@ -20,9 +20,15 @@ import { EditorView } from '@codemirror/view';
  * Component-owned layout classes (.max-rows/.full-height/.no-style/
  * .grl-ce-single) and the manual CodeHighlighter skeleton remain plain CSS
  * on purpose — see shadcn-theming-roadmap Appendix A, HK-03.
+ *
+ * Shared skin extension (module-level singleton).
+ *
+ * Safe to share across every EditorView in the process: the spec is immutable
+ * and every value is a `var()` reference, so instances never diverge. Sharing
+ * also removes per-instance object allocation for editors mounted en masse
+ * (decision-table cells).
  */
-export const buildZenSkin = (): Extension =>
-  EditorView.theme({
+export const ZEN_SKIN: Extension = EditorView.theme({
     // ── editor shell ────────────────────────────────────────────────────────
     '&': {
       background: 'var(--grl-color-bg-container)',
