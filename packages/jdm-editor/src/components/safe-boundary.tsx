@@ -17,8 +17,8 @@ type SafeBoundaryState = {
  *
  * A rendering crash inside a subtree (xyflow node, CodeMirror, WASM call,
  * etc.) would otherwise unmount the entire component tree. This boundary
- * catches the error, shows a minimal fallback, and offers a retry button
- * that resets the subtree's React state.
+ * catches the error, shows a fallback (custom or built-in), and offers a
+ * retry button that resets the subtree's React state.
  *
  * Wrap at component entry points (DecisionGraph, DecisionTable, Function,
  * Expression), NOT inside individual leaves — boundary granularity should
@@ -41,6 +41,9 @@ export class SafeBoundary extends React.Component<SafeBoundaryProps, SafeBoundar
 
   render(): React.ReactNode {
     if (this.state.error) {
+      if (this.props.fallback !== undefined) {
+        return this.props.fallback;
+      }
       return (
         <div
           role='alert'

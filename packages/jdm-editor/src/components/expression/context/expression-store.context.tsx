@@ -18,7 +18,13 @@ const ExpressionStoreContext = React.createContext<
   UseBoundStore<StoreApi<ExpressionStore>> & {
     setState: (partial: Partial<ExpressionStore>) => void;
   }
->({} as any);
+>(
+  // Double-cast is intentional: consumers only render inside
+  // ExpressionStoreProvider, which supplies the real store on mount.
+  {} as unknown as UseBoundStore<StoreApi<ExpressionStore>> & {
+    setState: (partial: Partial<ExpressionStore>) => void;
+  },
+);
 
 export type ExpressionEntry = {
   id: string;
