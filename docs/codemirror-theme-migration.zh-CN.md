@@ -175,6 +175,23 @@ HK-03/HK-07 状态由「待删除」改为「长期共存（测试守护）」�
 **建议触发条件**：出现滚动 long task / GC 停顿类投诉，或 CodeMirror 高亮 API
 破坏性变更迫使高亮器重写时，作为首选复活路径执行本节。
 
+### 3.7 Spike-A2 执行结果（2026-08，Batch A2）——门槛通过，已池化实装（旗标灰度）
+
+Phase 0（expose-gc 测量修正）判定 **Δ_true = 5.8 MB（5.9%）≤ 10% → 翻案成立**，
+确认此前 +36% 主体为滚动 churn 的未回收垃圾。Phase 1 按归档设计实施
+`cell-view-pool.tsx`（Table 级池、容量软上限 64、type 分桶、acquire 时
+reparent+全量 doc 替换+compartment 重配+requestMeasure、release 清 doc/selection）。
+
+实施中发现并修复一个关键缺陷：CM 全量 doc 替换必须带 `to: doc.length`，
+否则退化为位置 0 插入、池化视图累积前格内容（跨格 bleed）——三格采样守卫
+（own===doc、focused、无 err）全绿锁定。
+
+Phase 2 守卫矩阵：复用后光标偏移 0、无跨格串扰、placeholder/模式着色正确、
+点击即接管且 focused、非表格 lazy 路径走独立回退链。
+
+发布策略（已定）：**旗标灰度**——`gru-hl-view` 维持默认关，随 minor 观察一
+宿主回归周期，major 翻转默认值。D3 定案注释已写入 GRL-LAYER-GUARD 块。
+
 
 ### 3.4 风险与回滚
 

@@ -79,7 +79,7 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
 - ✅ HK-08 shrink: own-DOM blocks (edge delete button, palette dim) moved to
   `@layer components`; the remaining unlayered zone is platform-constrained
   (React Flow injects unlayered runtime styles).
-- 🔒 phase-2 highlighter replacement: Spike-A REJECTED on data (heap +36%);
+- ✅ phase-2 highlighter replacement EXECUTED via the archived Spike-A2 revival (Batch A2): expose-gc Δ_true 5.9% passed the reopen gate; CellViewPool implemented behind the gru-hl-view flag (grayscale through minor);
   pooled revival path archived in migration doc §3.6 with reopen gates.
   HK-03/HK-07 are long-term coexistence under test guard (LazyParity).
 

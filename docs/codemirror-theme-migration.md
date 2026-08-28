@@ -199,3 +199,21 @@ HK-03/HK-07 moved from "pending deletion" to "long-term coexistence
 
 **Suggested triggers**: scroll long-task / GC-jank complaints, or a breaking
 CodeMirror highlight-API change forcing a highlighter rewrite.
+
+### 3.7 Spike-A2 execution results (2026-08, Batch A2) — gate passed, pooled path implemented (flag-grayscale)
+
+Phase 0 (expose-gc measurement fix) verdict: **Δ_true = 5.8 MB (5.9%) ≤ 10% →
+revival confirmed**, proving the earlier +36% was mostly un-collected garbage
+from scroll churn. Phase 1 implemented the archived design as
+`cell-view-pool.tsx` (Table-scope pool, soft cap 64, type-bucketed; acquire =
+reparent + full doc swap + compartment reconfigure + requestMeasure; release =
+blank doc/selection). One critical defect was found and fixed en route: a CM
+full doc replacement REQUIRES `to: doc.length` — omitting it degrades into an
+insert-at-0 and pooled views accumulated previous cells' docs (cross-cell
+bleed). Phase 2 guard matrix is green: per-cell doc swap exact, takeover
+focused, mode-aware colors, non-table lazy path falls back to standalone.
+Heap (gced) delta 5.9%, FPS tie with baseline.
+
+Release strategy (as decided): **flag-grayscale** — `gru-hl-view` stays
+default-off for one host-regression cycle, flips default at the next major.
+The D3 definitive note is recorded in the GRL-LAYER-GUARD block.

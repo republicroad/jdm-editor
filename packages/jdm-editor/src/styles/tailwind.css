@@ -251,6 +251,9 @@
    * in the utilities layer — and layer rules lose to utilities by design.
    * Moving these defaults out of the layer silently reverted every table cell
    * to 4px/11px padding (regression found and reverted 2026-08).
+   * D3 DEFINITIVE: the [--ce-*] arbitrary-property utilities are the official
+   * per-instance token channel (theme() consumes them via var(), proven by
+   * Batch D probes) — this channel will NOT be migrated to props.
    */
   .grl-ce {
     --ce-lineHeight: 1.5em;
