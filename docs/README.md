@@ -34,6 +34,8 @@
 | [`shadcn-theming-roadmap.zh-CN.md`](./shadcn-theming-roadmap.zh-CN.md) | 中文 | 一键换肤长期路线图(中文对照):验收标准、token 管道、P0–P4 阶段计划、双层结构决策记录、样式债务注册表(GRL-STYLE-HACK 索引) |
 | [`editor-engines.md`](./editor-engines.md) | EN | CodeMirror 6 vs Monaco: usage matrix (table cells / expressions / function body / simulator / JSON schema), the four decisive selection dimensions, and the shared token-theming contract |
 | [`editor-engines.zh-CN.md`](./editor-engines.zh-CN.md) | 中文 | 编辑器引擎选型说明(中文对照):CodeMirror 6 与 Monaco 的场景矩阵、四个决定性选型维度、共享 token 主题契约 |
+| [`storybook.md`](./storybook.md) | EN | Storybook guide: configuration (main.ts/preview.tsx), decorator setup (.grl-root scoped injection), story inventory (57 stories), interaction test pipeline (test:storybook), height chain, multi-island testing |
+| [`storybook.zh-CN.md`](./storybook.zh-CN.md) | 中文 | Storybook 指南(中文对照):配置(main.ts/preview.tsx)、装饰器设置(.grl-root 作用域注入)、story 清单(57 个)、交互测试流水线(test:storybook)、高度链、多岛测试 |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
 | [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
 
