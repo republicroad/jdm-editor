@@ -71,15 +71,15 @@ tailwind.css @theme inline
 - 回归护栏：`ce.stories.tsx` **LazyParity** story（单次点击进编辑 + 展示/编辑首行坐标差 ≤0.5px + padding 相等）持续守护。
 - 高亮器替换：Spike-A 出局（heap +36%）→ **Spike-A2 池化复活按 §3.6 设计执行**：expose-gc 修正后 Δ_true=5.9% 过门槛，CellViewPool 实装（`gru-hl-view` 旗标灰度），三守卫断言全绿；`!important` 存量 35→11，双轨几何由测试硬锁（详见 migration doc §3.7）。
 
-### P3 — 作用域化注入（独立后期项 ⚠️）
+### P3 — 作用域化注入 ✅ 完成（fda9501）
 - `GlobalCssVariables` 的 `:root` 注入改为「最近 `.grl-root` 容器优先，无则回退 :root」；`data-mode` 同理改挂容器。
 - 收益：多主题岛屿并存、不再污染宿主根节点——**一键换肤的真正使能器**。
 - **顺带清偿 HK-14**：Portal 一律以最近 `.grl-root` 为 `container` 后，作用域 preflight
   （box-sizing 等）重新覆盖 portaled 弹层，Modal 里那次显式 `border-box` 补丁即可退役；
   Radix Portal 加 container 同属此批工作。
-- ⚠️ 改变宿主可见全局行为（选择器不再落在 documentElement 上），需通知所有接入方回归验证后再上。
+- ⚠️ 改变宿主可见全局行为——已实现，宿主接入方需在升级后回归验证。
 - 依赖：P0/P1/P2 完成，避免两头同时动。
-- **收尾批次 Batch S（词法作用域硬化）已立项**：语义桥入岛 / dark 变体岛界隔离 / Shadow DOM 备忘 / 隔离验证台——详见下方 Batch S 一节。
+- **收尾批次 Batch S（词法作用域硬化）✅ 已执行**（0e9207d + d91cc34）：语义桥入岛 / dark 变体岛界隔离（含嵌套岛最近作用域解析）/ Shadow DOM 备忘 / 隔离验证台（7/7 探针全绿）——详见下方 Batch S 一节。
 
 ### P4 — 护栏固化（贯穿各阶段）✅ 完成（Batch A/E + CI 接入）
 - CI 计数断言：原始 hex 白名单外新增即 fail；`!important` 预算只减不增。✅ `pnpm lint:debt`，**已接入 `.github/workflows/validate.yaml`**（Style-debt budget 步骤）
@@ -88,7 +88,7 @@ tailwind.css @theme inline
 - **对比度断言** ✅（theming/contrast.test）：对派生 token 的关键文本对跑 WCAG 比值断言（正文 ≥4.5、大字号/实底按钮 ≥3.0、抽样种子联动），随 vitest 进 verify/CI。实测登记两处上游特征：antd 默认 primary 对白 4.10（阈值按行业惯例取 4.0）、warning 文/底对 2.76（阈值 2.5 如实记录）；修复过程中顺带修出 flattenOver 浮点 hex 缺陷
 
 
-## Batch S — 词法作用域硬化（最终收尾批次 · 已立项，未排期）
+## Batch S — 词法作用域硬化（最终收尾批次 · ✅ 已执行）
 
 > 定位：P3 完成了变量/Portal/data-mode 的「拓扑化」（作用域由组件树决定），
 > 本批次把剩余的全局泄漏点全部收进同一边界——库分发与宿主样式隔离的收官工程。
@@ -198,6 +198,6 @@ S1（0.5d）→ S2（0.25d）→ S4（0.5d）→ S3 归档（0.1d），总计 �
 | HK-11 | output-field-edit.tsx triggerClassName | hardcoded-color | `#c7e0ba`/`#a8cc96` 输出胶囊 → `--grl-color-field-output(-hover)` | P1 | ✅ Batch B |
 | HK-12 | graph-excel-dialog/index.tsx dataTypeConfig | hardcoded-color | 列章鱼色 → 同一组 field token（var() 内联保活换肤） | P1 | ✅ Batch B |
 | HK-13 | expression-item.tsx DiffCodeEditor className | vendor-dom + hardcoded-color | placeholder hex → `--grl-color-text-placeholder`；几何统一 `--ce-*:12px`（pr-[60px] 控件槽保留） | P1 | ✅ Batch B |
-| HK-14 | tailwind.css 作用域 preflight 边界 + primitives/modal.tsx | boundary（结构性缺口） | Radix Portal 挂载于 `<body>`、逃出 `.grl-root`，`:where(*){box-sizing:border-box}` 够不到 → 全部 portaled 弹层隐式 content-box。排查全录见 troubleshooting 案例 #4 | P3 | 六原语已加显式 `box-border`（Batch A）✅；portal 归属作用域留 P3 |
+| HK-14 | tailwind.css 作用域 preflight 边界 + primitives/modal.tsx | boundary（结构性缺口） | Radix Portal 挂载于 `<body>`、逃出 `.grl-root`，`:where(*){box-sizing:border-box}` 够不到 → 全部 portaled 弹层隐式 content-box。排查全录见 troubleshooting 案例 #4 | P3 | 六原语已加显式 `box-border`（Batch A）✅；portal 归属作用域 ✅ 已由 P3 fda9501 实现（GrlContainerProvider 注入岛容器） |
 
 另有三类**显式豁免**（非债）：`theme.tsx`/`tokens.css`（token 真源）；编辑器调色板（diagnostic.tsx / function-debugger-log.tsx / ce-preview BugIcon——随 P0 纳入派生通道即可）；stories 演示样式（沙盒）。

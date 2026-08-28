@@ -83,14 +83,14 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
   pooled revival path archived in migration doc §3.6 with reopen gates.
   HK-03/HK-07 are long-term coexistence under test guard (LazyParity).
 
-### P3 — Scoped injection (separate later item ⚠️)
+### P3 — Scoped injection ✅ executed (fda9501)
 - `GlobalCssVariables` writes nearest-`.grl-root` first, `:root` fallback;
   `data-mode` on the container too. Also delivers HK-14 closure: Radix portals
   targeting the `.grl-root` container bring the scoped preflight (box-sizing)
   back to portaled nodes, retiring the explicit Modal patch.
-- ⚠️ Host-visible behavior change — requires host regression sign-off.
+- ⚠️ Host-visible behavior change — implemented; hosts must regression-test after upgrading.
 - Depends on P0/P1/P2 being done.
-- **Close-out Batch S (lexical-scope hardening) is chartered**: semantic bridge into the island / dark-variant island-boundary isolation / Shadow DOM memo / isolation harness — see the Batch S section below.
+- **Close-out Batch S (lexical-scope hardening) ✅ executed** (0e9207d + d91cc34): semantic bridge into the island / dark-variant island-boundary isolation / Shadow DOM memo / isolation harness — see the Batch S section below.
 
 ### P4 — Guardrails ✅ (Batches A/E, ongoing)
 - `pnpm lint:debt`: `!important` budget (18→11) and raw-hex zero (whitelist =
@@ -112,7 +112,7 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
 P4 is complete.
 
 
-## Batch S — Lexical-Scope Hardening (final close-out batch · chartered, unscheduled)
+## Batch S — Lexical-Scope Hardening (final close-out batch · ✅ executed)
 
 > Positioning: P3 topologized variables/portals/data-mode (scope decided by
 > component tree). This batch pulls the remaining global leaks inside the same
@@ -167,7 +167,7 @@ Append a light-island exclusion to the custom variant:
 Host dark + island light → island `dark:` variants no longer ignite; islands
 declaring dark still hit the first arm; non-island elements behave as today.
 
-### S3 · Shadow DOM decision memo (evaluated, NOT implemented, archived triggers)
+### S3 · Shadow DOM decision memo (evaluated, deferred — Monaco blocker)
 
 The ultimate lexical scope, but hard-blocked:
 
@@ -237,7 +237,7 @@ bridge), decouple first, flatten later.
 | HK-11 | output-field-edit pill | hardcoded-color | → `--grl-color-field-output(-hover)` | P1 | ✅ Batch B |
 | HK-12 | graph-excel-dialog dataTypeConfig | hardcoded-color | same field tokens via var() | P1 | ✅ Batch B |
 | HK-13 | expression-item editor className | vendor-dom + hardcoded-color | placeholder → semantic token; geometry on `--ce-*:12px`; `pr-[60px]` control gutter kept | P1 | ✅ Batch B |
-| HK-14 | scoped preflight boundary + modal.tsx | boundary | Radix portals under `<body>` miss `.grl-root` border-box; six primitives carry explicit `box-border` (Batch A); portal scoping → P3 | P3 | 🟡 |
+| HK-14 | scoped preflight boundary + modal.tsx | boundary | Radix portals under `<body>` miss `.grl-root` border-box; six primitives carry explicit `box-border` (Batch A); portal scoping ✅ executed via P3 (GrlContainerProvider) | P3 | 🟡 |
 
 Explicit exemptions (not debt): `theme.tsx`/`theming/presets.ts`/`tokens.css`
 (token truth); editor syntax palettes (`zen.ts`, `diagnostic.tsx`,
