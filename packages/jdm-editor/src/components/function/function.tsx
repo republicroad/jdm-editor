@@ -10,6 +10,7 @@ import { isWasmAvailable } from '../../helpers/wasm';
 import { useThemeMode } from '../../theme';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
 import { Spin } from '../primitives';
+import { SafeBoundary } from '../safe-boundary';
 import { FunctionDebugger } from './function-debugger';
 import { variableTypeToTypescript } from './helpers/determine-type';
 import { type FunctionLibrary, functionDefinitions, functionLibraries } from './helpers/libs';
@@ -229,74 +230,76 @@ export const Function: React.FC<FunctionProps> = ({
   }, [error, editor]);
 
   return (
-    <div
-      className='relative box-border flex flex-col'
-      style={
-        {
-          'height': '100%',
-          '--color-text': 'var(--grl-color-text-base)',
-          '--color-background-elevated': 'var(--card)',
-          '--color-border': 'var(--border)',
-          '--line-height': 1.5,
-        } as React.CSSProperties
-      }
-    >
-      <PanelGroup className='flex-1' direction='horizontal' autoSaveId='jdm-editor:function:layout'>
-        <Panel defaultSize={70} minSize={50}>
-          {previousValue ? (
-            <DiffEditor
-              loading={<Spin size='large' />}
-              language={language}
-              original={previousValue}
-              modified={innerValue}
-              onMount={(editor) => setDiffEditor(editor)}
-              theme={mode === 'dark' ? 'vs-dark' : 'light'}
-              height='100%'
-              options={{
-                ...monacoOptions,
-                readOnly: true,
-              }}
-            />
-          ) : (
-            <Editor
-              loading={<Spin size='large' />}
-              language={language}
-              value={innerValue}
-              onMount={(editor) => {
-                setEditor(editor);
-                onEditorMount?.(editor);
-              }}
-              onChange={(value) => {
-                setInnerValue(value ?? '');
-                innerChange(value ?? '');
-              }}
-              theme={mode === 'dark' ? 'vs-dark' : 'light'}
-              height='100%'
-              options={{
-                ...monacoOptions,
-                readOnly: disabled || permission !== 'edit:full',
-              }}
-            />
+    <SafeBoundary>
+      <div
+        className='relative box-border flex flex-col'
+        style={
+          {
+            'height': '100%',
+            '--color-text': 'var(--grl-color-text-base)',
+            '--color-background-elevated': 'var(--card)',
+            '--color-border': 'var(--border)',
+            '--line-height': 1.5,
+          } as React.CSSProperties
+        }
+      >
+        <PanelGroup className='flex-1' direction='horizontal' autoSaveId='jdm-editor:function:layout'>
+          <Panel defaultSize={70} minSize={50}>
+            {previousValue ? (
+              <DiffEditor
+                loading={<Spin size='large' />}
+                language={language}
+                original={previousValue}
+                modified={innerValue}
+                onMount={(editor) => setDiffEditor(editor)}
+                theme={mode === 'dark' ? 'vs-dark' : 'light'}
+                height='100%'
+                options={{
+                  ...monacoOptions,
+                  readOnly: true,
+                }}
+              />
+            ) : (
+              <Editor
+                loading={<Spin size='large' />}
+                language={language}
+                value={innerValue}
+                onMount={(editor) => {
+                  setEditor(editor);
+                  onEditorMount?.(editor);
+                }}
+                onChange={(value) => {
+                  setInnerValue(value ?? '');
+                  innerChange(value ?? '');
+                }}
+                theme={mode === 'dark' ? 'vs-dark' : 'light'}
+                height='100%'
+                options={{
+                  ...monacoOptions,
+                  readOnly: disabled || permission !== 'edit:full',
+                }}
+              />
+            )}
+          </Panel>
+          {!disableDebug && (
+            <>
+              <PanelResizeHandle />
+              <Panel minSize={25}>
+                {!disableDebug && (
+                  <FunctionDebugger
+                    libraries={functionLibraries}
+                    trace={trace}
+                    editor={editor}
+                    editorValue={value}
+                    disabled={disabled || permission !== 'edit:full'}
+                  />
+                )}
+              </Panel>
+            </>
           )}
-        </Panel>
-        {!disableDebug && (
-          <>
-            <PanelResizeHandle />
-            <Panel minSize={25}>
-              {!disableDebug && (
-                <FunctionDebugger
-                  libraries={functionLibraries}
-                  trace={trace}
-                  editor={editor}
-                  editorValue={value}
-                  disabled={disabled || permission !== 'edit:full'}
-                />
-              )}
-            </Panel>
-          </>
-        )}
-      </PanelGroup>
-    </div>
+        </PanelGroup>
+      </div>
+    </SafeBoundary>
   );
 };
 

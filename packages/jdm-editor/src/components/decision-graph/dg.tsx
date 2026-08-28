@@ -2,6 +2,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import clsx from 'clsx';
 import { forwardRef } from 'react';
 
+import { SafeBoundary } from '../safe-boundary';
 import type { DecisionGraphContextProps } from './context/dg-store.context';
 import { DecisionGraphProvider } from './context/dg-store.context';
 import { SerializerProvider } from './context/serializer.context';
@@ -19,21 +20,23 @@ export type DecisionGraphRef = GraphRef;
 export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
   ({ reactFlowProOptions, tabBarExtraContent, ...props }, ref) => {
     return (
-      <div className={clsx(['grl-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
-        <ReactFlowProvider>
-          <DecisionGraphProvider>
-            <SerializerProvider>
-              <DecisionGraphWrapper
-                ref={ref}
-                reactFlowProOptions={reactFlowProOptions}
-                tabBarExtraContent={tabBarExtraContent}
-              />
-              <DecisionGraphInferTypes />
-              <DecisionGraphEmpty {...props} />
-            </SerializerProvider>
-          </DecisionGraphProvider>
-        </ReactFlowProvider>
-      </div>
+      <SafeBoundary>
+        <div className={clsx(['grl-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
+          <ReactFlowProvider>
+            <DecisionGraphProvider>
+              <SerializerProvider>
+                <DecisionGraphWrapper
+                  ref={ref}
+                  reactFlowProOptions={reactFlowProOptions}
+                  tabBarExtraContent={tabBarExtraContent}
+                />
+                <DecisionGraphInferTypes />
+                <DecisionGraphEmpty {...props} />
+              </SerializerProvider>
+            </DecisionGraphProvider>
+          </ReactFlowProvider>
+        </div>
+      </SafeBoundary>
     );
   },
 );

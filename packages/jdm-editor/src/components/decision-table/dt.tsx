@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { DragOverlayCard, OverlayChip, OverlayIndexChip } from '../../helpers/dnd-overlay';
 import { DictionaryProvider } from '../../theme';
+import { SafeBoundary } from '../safe-boundary';
 import { DecisionTableDialogProvider } from './context/dt-dialog.context';
 import type { DecisionTableContextProps } from './context/dt-store.context';
 import {
@@ -47,31 +48,33 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   const getContainer = () => ref.current as HTMLElement;
 
   return (
-    <div
-      ref={ref}
-      className='text-sm h-full flex min-h-px flex-col pr-1 [--table-color:var(--background)]'
-      style={{ background: 'var(--card)' }}
-    >
-      {ref.current && (
-        <DecisionTableProvider>
-          <DecisionTableDnd>
-            <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
-              <DecisionTableCommandBar />
-              <DictionaryBridge>
-                <Table
-                  id={id}
-                  maxHeight={tableHeight}
-                  scrollContainerRef={scrollContainerRef}
-                  scrollApiRef={scrollApiRef}
-                />
-              </DictionaryBridge>
-              <DecisionTableDialogs />
-              <DecisionTableEmpty {...props} />
-            </DecisionTableDialogProvider>
-          </DecisionTableDnd>
-        </DecisionTableProvider>
-      )}
-    </div>
+    <SafeBoundary>
+      <div
+        ref={ref}
+        className='text-sm h-full flex min-h-px flex-col pr-1 [--table-color:var(--background)]'
+        style={{ background: 'var(--card)' }}
+      >
+        {ref.current && (
+          <DecisionTableProvider>
+            <DecisionTableDnd>
+              <DecisionTableDialogProvider getContainer={mountDialogsOnBody ? undefined : getContainer}>
+                <DecisionTableCommandBar />
+                <DictionaryBridge>
+                  <Table
+                    id={id}
+                    maxHeight={tableHeight}
+                    scrollContainerRef={scrollContainerRef}
+                    scrollApiRef={scrollApiRef}
+                  />
+                </DictionaryBridge>
+                <DecisionTableDialogs />
+                <DecisionTableEmpty {...props} />
+              </DecisionTableDialogProvider>
+            </DecisionTableDnd>
+          </DecisionTableProvider>
+        )}
+      </div>
+    </SafeBoundary>
   );
 };
 

@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { DragOverlayCard, OverlayChip, OverlayIndexChip } from '../../helpers/dnd-overlay';
 import { isWasmAvailable } from '../../helpers/wasm';
+import { SafeBoundary } from '../safe-boundary';
 import type { ExpressionDebug } from './context/expression-store.context';
 import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
@@ -27,18 +28,20 @@ export const Expression: React.FC<ExpressionProps> = ({ debug, hideCommandBar, i
   }, []);
 
   return (
-    <div ref={container}>
-      {container.current && (
-        <ExpressionStoreProvider>
-          <ExpressionDnd>
-            <ExpressionController {...props} />
-            {!hideCommandBar && <ExpressionCommandBar />}
-            <ExpressionList />
-            <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
-          </ExpressionDnd>
-        </ExpressionStoreProvider>
-      )}
-    </div>
+    <SafeBoundary>
+      <div ref={container}>
+        {container.current && (
+          <ExpressionStoreProvider>
+            <ExpressionDnd>
+              <ExpressionController {...props} />
+              {!hideCommandBar && <ExpressionCommandBar />}
+              <ExpressionList />
+              <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
+            </ExpressionDnd>
+          </ExpressionStoreProvider>
+        )}
+      </div>
+    </SafeBoundary>
   );
 };
 

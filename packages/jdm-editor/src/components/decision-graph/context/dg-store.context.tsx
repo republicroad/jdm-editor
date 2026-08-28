@@ -149,7 +149,16 @@ export const DecisionGraphStoreContext = React.createContext<{
   listenerStore: ExposedStore<DecisionGraphStoreType['listeners']>;
   referenceStore: ExposedStore<DecisionGraphStoreType['references']>;
   actions: DecisionGraphStoreType['actions'];
-}>({} as any);
+}>(
+  // Double-cast is intentional: consumers only render inside
+  // DecisionGraphProvider, which supplies the real stores on mount.
+  {} as unknown as {
+    stateStore: ExposedStore<DecisionGraphStoreType['state']>;
+    listenerStore: ExposedStore<DecisionGraphStoreType['listeners']>;
+    referenceStore: ExposedStore<DecisionGraphStoreType['references']>;
+    actions: DecisionGraphStoreType['actions'];
+  },
+);
 
 export type DecisionGraphContextProps = {
   //

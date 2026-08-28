@@ -202,7 +202,15 @@ const DecisionTableStoreContext = React.createContext<{
   stateStore: ExposedStore<DecisionTableStoreType['state']>;
   listenerStore: ExposedStore<DecisionTableStoreType['listeners']>;
   actions: DecisionTableStoreType['actions'];
-}>({} as any);
+}>(
+  // Double-cast is intentional: consumers only render inside
+  // DecisionTableProvider, which supplies the real stores on mount.
+  {} as unknown as {
+    stateStore: ExposedStore<DecisionTableStoreType['state']>;
+    listenerStore: ExposedStore<DecisionTableStoreType['listeners']>;
+    actions: DecisionTableStoreType['actions'];
+  },
+);
 
 export type DecisionTableContextProps = {
   //
