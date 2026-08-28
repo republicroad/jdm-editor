@@ -1,16 +1,22 @@
 /*
- * Semantic token bridge (Stage A of the shadcn/ReUI migration).
+ * Semantic token bridge (Stage A of the shadcn/ReUI migration), scoped per
+ * roadmap Batch S (lexical-scope hardening).
  *
- * JdmConfigProvider exposes the live antd palette as --grl-* custom
- * properties on :root at runtime (see GlobalCssVariables in theme.tsx).
- * This file gives those values generic shadcn-compatible names so Tailwind
- * utilities and future shadcn components can consume them; each declaration
- * carries a static fallback so styles resolve even before the provider
- * mounts. The dark block only swaps fallbacks — real values always come
- * from --grl-*, which already flip with the antd algorithm.
+ * Two resolution regimes:
+ *  1. ISLAND (recommended): hosts wrap their app in `.grl-root`. The provider
+ *     (theme.tsx) injects `--grl-*` inline on that container, so the bridge
+ *     below maps them to shadcn semantic names with NO mode variants needed —
+ *     every `--grl-*` upstream is already mode-correct, and fallbacks are
+ *     unreachable by construction.
+ *  2. LEGACY fallback: pages without any `.grl-root` (:root:not(:has(...)))
+ *     keep the historical global injection + mode-split static fallbacks.
+ *
+ * Design note: scoping this bridge is what keeps hosts running their own
+ * shadcn semantic layer fully isolated from ours (Batch S / L-A).
  */
-:root,
-[data-mode='light'] {
+
+/* ── ISLAND scope ──────────────────────────────────────────────────────── */
+.grl-root {
   --radius: 0.5rem;
 
   --background: var(--grl-color-bg-layout, #f5f5f5);
@@ -39,7 +45,65 @@
   --error-line-bg: #fff1f0;
 }
 
-[data-mode='dark'] {
+.grl-root[data-mode='dark'] {
+  --background: var(--grl-color-bg-layout, #000000);
+  --foreground: var(--grl-color-text, rgba(255, 255, 255, 0.85));
+  --card: var(--grl-color-bg-elevated, #1f1f1f);
+  --card-foreground: var(--foreground);
+  --popover: var(--grl-color-bg-elevated, #1f1f1f);
+  --popover-foreground: var(--foreground);
+  --primary: var(--grl-color-primary, #1668dc);
+  --primary-foreground: #ffffff;
+  --secondary: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --secondary-foreground: var(--foreground);
+  --muted: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --muted-foreground: var(--grl-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --accent: var(--grl-color-bg-text-hover, rgba(255, 255, 255, 0.1));
+  --accent-foreground: var(--foreground);
+  --destructive: var(--grl-color-error, #dc4446);
+  --destructive-foreground: #ffffff;
+  --border: var(--grl-color-border, #424242);
+  --input: var(--grl-color-border, #424242);
+  --ring: var(--grl-color-primary, #1668dc);
+
+  /* Editor chrome surfaces (CodeMirror/Monaco) with no antd counterpart */
+  --tooltip-bg: #1f1f1f;
+  --diagnostic-chip-bg: #2b2d30;
+  --error-line-bg: #4e3534;
+}
+
+/* ── LEGACY fallback (no island on the page) ───────────────────────────── */
+:root:not(:has(.grl-root)),
+[data-mode='light']:not(:has(.grl-root)) {
+  --radius: 0.5rem;
+
+  --background: var(--grl-color-bg-layout, #f5f5f5);
+  --foreground: var(--grl-color-text, rgba(0, 0, 0, 0.88));
+  --card: var(--grl-color-bg-elevated, #ffffff);
+  --card-foreground: var(--foreground);
+  --popover: var(--grl-color-bg-elevated, #ffffff);
+  --popover-foreground: var(--foreground);
+  --primary: var(--grl-color-primary, #1677ff);
+  --primary-foreground: #ffffff;
+  --secondary: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --secondary-foreground: var(--foreground);
+  --muted: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --muted-foreground: var(--grl-color-text-secondary, rgba(0, 0, 0, 0.65));
+  --accent: var(--grl-color-bg-text-hover, rgba(0, 0, 0, 0.06));
+  --accent-foreground: var(--foreground);
+  --destructive: var(--grl-color-error, #ff4d4f);
+  --destructive-foreground: #ffffff;
+  --border: var(--grl-color-border, #d9d9d9);
+  --input: var(--grl-color-border, #d9d9d9);
+  --ring: var(--grl-color-primary, #1677ff);
+
+  /* Editor chrome surfaces (CodeMirror/Monaco) with no antd counterpart */
+  --tooltip-bg: #f5f5f5;
+  --diagnostic-chip-bg: #eeeeee;
+  --error-line-bg: #fff1f0;
+}
+
+[data-mode='dark']:not(:has(.grl-root)) {
   --radius: 0.5rem;
 
   --background: var(--grl-color-bg-layout, #000000);

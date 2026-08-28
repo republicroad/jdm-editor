@@ -1,4 +1,4 @@
-import { Compartment, EditorState, type Extension } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, placeholder as placeholderExt } from '@codemirror/view';
 import { syntaxHighlighting } from '@codemirror/language';
 import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
@@ -139,10 +139,8 @@ export const useRecycledEditorView = ({
   const mode = useThemeMode();
   const dark = mode === 'dark';
 
-  const useLayout = useLayoutEffect;
-
   // mount: acquire or create; unmount: release or destroy
-  useLayout(() => {
+  useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host) return;
 
@@ -173,11 +171,10 @@ export const useRecycledEditorView = ({
       pvRef.current = null;
     };
     // value remount contract matches the lazy highlighter path
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, type, pool]);
+    }, [value, type, dark, placeholder, pool]);
 
   // live reconfiguration while mounted (mode / placeholder)
-  useLayout(() => {
+  useLayoutEffect(() => {
     const pv = pvRef.current;
     if (!pv) return;
     pv.view.dispatch({
