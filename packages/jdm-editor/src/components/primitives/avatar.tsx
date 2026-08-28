@@ -1,6 +1,5 @@
-import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export const Avatar: React.FC<
   Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -23,7 +22,7 @@ export const Avatar: React.FC<
       style={{ width: pxSize, height: pxSize, ...style }}
       {...rest}
     >
-      {src ? <img src={src} alt={alt} className="size-full object-cover" /> : children ?? icon}
+      {src ? <img src={src} alt={alt} className='size-full object-cover' /> : (children ?? icon)}
     </div>
   );
 };

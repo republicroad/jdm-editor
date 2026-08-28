@@ -51,7 +51,7 @@ export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any> }> = ({ head
           {header.column.getCanResize() && (
             <div
               className={clsx(
-                "absolute -right-[5px] top-0 z-[1] h-full w-[10px] cursor-col-resize select-none touch-none",
+                'absolute -right-[5px] top-0 z-[1] h-full w-[10px] cursor-col-resize select-none touch-none',
                 "after:content-[''] after:mx-auto after:block after:w-[3px] after:h-full after:rounded-[3px] after:transition-all after:duration-100 hover:after:bg-[var(--grl-color-primary-hover)]",
                 selfKind === 'description' && 'right-0! w-4!',
                 header.column.getIsResizing() && 'isResizing',

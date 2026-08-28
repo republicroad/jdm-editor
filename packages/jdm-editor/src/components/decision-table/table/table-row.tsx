@@ -1,8 +1,7 @@
+import { useDndContext, useDraggable, useDroppable } from '@dnd-kit/core';
 import type { Row } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import type { VirtualItem } from '@tanstack/react-virtual';
-import { Typography } from '../../primitives';
-import { useDraggable, useDroppable, useDndContext } from '@dnd-kit/core';
 import clsx from 'clsx';
 import React, { useEffect, useRef } from 'react';
 import { P, match } from 'ts-pattern';
@@ -10,6 +9,7 @@ import { P, match } from 'ts-pattern';
 import { composeRefs } from '../../../helpers/compose-refs';
 import { getDropDirection } from '../../../helpers/dnd';
 import type { DiffMetadata } from '../../decision-graph';
+import { Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 
 export const TableRow: React.FC<{
@@ -104,7 +104,10 @@ export const TableRow: React.FC<{
         !diffStatus &&
           disabled &&
           'bg-black/[0.02] [&_[contenteditable]]:bg-transparent [&_[contenteditable]]:text-[var(--muted-foreground)]',
-        !diffStatus && cursor?.y === virtualItem.index && !disabled && 'selected bg-[var(--grl-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--grl-color-primary-bg-fade)]',
+        !diffStatus &&
+          cursor?.y === virtualItem.index &&
+          !disabled &&
+          'selected bg-[var(--grl-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--grl-color-primary-bg-fade)]',
         diffStatus === 'added' && 'bg-[var(--grl-color-success-bg)]',
         diffStatus === 'removed' && 'bg-[var(--grl-color-error-bg)]',
       )}

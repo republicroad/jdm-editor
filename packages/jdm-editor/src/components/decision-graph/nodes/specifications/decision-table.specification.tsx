@@ -1,6 +1,5 @@
 import { ArrowRightOutlined, SyncOutlined } from '@/icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Form, Space } from '../../../primitives';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';
 import _ from 'lodash';
@@ -10,6 +9,7 @@ import type { z } from 'zod';
 
 import { useNodeType } from '../../../../helpers/node-type';
 import type { decisionTableSchema } from '../../../../helpers/schema';
+import { Button, Form, Space } from '../../../primitives';
 import { DiffCodeEditor, DiffInput, DiffRadio, DiffSwitch } from '../../../shared';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';

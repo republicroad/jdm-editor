@@ -26,10 +26,7 @@ export const mergeHeaders = (newHeader: TableHeader, existingHeader?: TableHeade
 };
 
 /** Merge excel headers with the table's existing headers, keeping unmatched ones. */
-export const buildMergedItems = (
-  existingTableHeaders: TableHeader[],
-  newTableHeaders: TableHeader[],
-): ItemValue[] => {
+export const buildMergedItems = (existingTableHeaders: TableHeader[], newTableHeaders: TableHeader[]): ItemValue[] => {
   const items = [
     ...newTableHeaders.map((newTableHeader) => {
       const existingHeader = existingTableHeaders.find((header) => isHeaderMatch(header, newTableHeader));
@@ -56,9 +53,7 @@ export const buildMergedItems = (
  * Auto-pick input/output roles: second-to-last matched column becomes output
  * when a description column exists, otherwise the last non-description match.
  */
-export const buildAutoSelection = (
-  matchingHeaders: ItemValue[],
-): Record<string, ItemValue> => {
+export const buildAutoSelection = (matchingHeaders: ItemValue[]): Record<string, ItemValue> => {
   return matchingHeaders.reduce((acc, tableHeader, index) => {
     const hasDescription = matchingHeaders.some((header) => header.value === 'description');
     const hasOutputAlready = matchingHeaders.slice(0, index).some((header) => header.type === 'output');
@@ -70,8 +65,7 @@ export const buildAutoSelection = (
       shouldBeOutput = index === matchingHeaders.length - 2 && !hasOutputAlready;
     } else {
       // If no description, set last as output (excluding if it IS description)
-      shouldBeOutput =
-        index === matchingHeaders.length - 1 && tableHeader.value !== 'description' && !hasOutputAlready;
+      shouldBeOutput = index === matchingHeaders.length - 1 && tableHeader.value !== 'description' && !hasOutputAlready;
     }
 
     return {

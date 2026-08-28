@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -19,6 +18,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link MenuItemType} instead. */
 export interface AntdMenuItemType {
@@ -60,27 +60,27 @@ const renderMenuItems = (
   (items ?? [])
     .filter((item): item is AntdMenuItemType => !!item)
     .map((item, index) => {
-    const itemKey = item.key ?? String(index);
-    const handleSelect = () => (item.onClick ?? onClick)?.({ key: itemKey });
-    return item.type === 'divider' ? (
-      <P.Separator key={itemKey} />
-    ) : item.children?.length ? (
-      <P.Sub key={itemKey}>
-        <P.SubTrigger disabled={item.disabled}>{item.label}</P.SubTrigger>
-        <P.SubContent>{renderMenuItems(item.children, onClick, P)}</P.SubContent>
-      </P.Sub>
-    ) : (
-      <P.Item
-        key={itemKey}
-        disabled={item.disabled}
-        variant={item.danger ? 'destructive' : 'default'}
-        onSelect={handleSelect}
-      >
-        {item.icon}
-        {item.label}
-      </P.Item>
-    );
-  }) ?? null;
+      const itemKey = item.key ?? String(index);
+      const handleSelect = () => (item.onClick ?? onClick)?.({ key: itemKey });
+      return item.type === 'divider' ? (
+        <P.Separator key={itemKey} />
+      ) : item.children?.length ? (
+        <P.Sub key={itemKey}>
+          <P.SubTrigger disabled={item.disabled}>{item.label}</P.SubTrigger>
+          <P.SubContent>{renderMenuItems(item.children, onClick, P)}</P.SubContent>
+        </P.Sub>
+      ) : (
+        <P.Item
+          key={itemKey}
+          disabled={item.disabled}
+          variant={item.danger ? 'destructive' : 'default'}
+          onSelect={handleSelect}
+        >
+          {item.icon}
+          {item.label}
+        </P.Item>
+      );
+    }) ?? null;
 
 const dropdownPrimitives: MenuPrimitiveSet = {
   Item: DropdownMenuItem,
@@ -115,16 +115,14 @@ export const Dropdown: React.FC<{
   const wrappedChildren = React.isValidElement(children) ? (
     children
   ) : (
-    <span className="inline-flex cursor-pointer items-center">{children}</span>
+    <span className='inline-flex cursor-pointer items-center'>{children}</span>
   );
 
   if (usesContextMenuTrigger(trigger)) {
     return (
       <ContextMenu modal={false}>
         <ContextMenuTrigger asChild>{wrappedChildren}</ContextMenuTrigger>
-        <ContextMenuContent>
-          {renderMenuItems(menu?.items, menu?.onClick, contextMenuPrimitives)}
-        </ContextMenuContent>
+        <ContextMenuContent>{renderMenuItems(menu?.items, menu?.onClick, contextMenuPrimitives)}</ContextMenuContent>
       </ContextMenu>
     );
   }
@@ -132,7 +130,7 @@ export const Dropdown: React.FC<{
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>{wrappedChildren}</DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align='start'>
         {renderMenuItems(menu?.items, menu?.onClick, dropdownPrimitives)}
       </DropdownMenuContent>
     </DropdownMenu>

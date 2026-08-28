@@ -1,13 +1,13 @@
+import type { CellContext } from '@tanstack/react-table';
 import { act, fireEvent, render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { CellContext } from '@tanstack/react-table';
 
 import {
-  DecisionTableProvider,
-  useDecisionTableRaw,
   type DecisionTablePermission,
+  DecisionTableProvider,
   type DecisionTableType,
+  useDecisionTableRaw,
 } from '../context/dt-store.context';
 import { TableDefaultCell } from '../table/table-default-cell';
 
@@ -25,8 +25,8 @@ const baseTable = (): DecisionTableType => ({
   inputs: [],
   outputs: [],
   rules: [
-    { _id: 'r1', _description: '', 'in-a': '40', 'out-a': '40' },
-    { _id: 'r2', _description: '', 'in-a': '60', 'out-a': '60' },
+    { '_id': 'r1', '_description': '', 'in-a': '40', 'out-a': '40' },
+    { '_id': 'r2', '_description': '', 'in-a': '60', 'out-a': '60' },
   ],
 });
 
@@ -59,9 +59,7 @@ const mountCell = (permission?: DecisionTablePermission, opts: { disabled?: bool
 };
 
 const editor = (editable: boolean) =>
-  document.querySelector<HTMLElement>(
-    `[data-cell-wrapper] .grl-textarea-input[contenteditable="${editable}"]`,
-  );
+  document.querySelector<HTMLElement>(`[data-cell-wrapper] .grl-textarea-input[contenteditable="${editable}"]`);
 
 /**
  * jsdom + React 19 event delegation does not deliver synthesized `input`
@@ -71,9 +69,7 @@ const editor = (editable: boolean) =>
  */
 const typeInto = (el: HTMLElement, text: string) => {
   const reactPropsKey = Object.keys(el).find((k) => k.startsWith('__reactProps$'));
-  const props = reactPropsKey
-    ? (el as never as Record<string, Record<string, unknown>>)[reactPropsKey]
-    : undefined;
+  const props = reactPropsKey ? (el as never as Record<string, Record<string, unknown>>)[reactPropsKey] : undefined;
   const onInput = props?.onInput as ((e: unknown) => void) | undefined;
   expect(onInput).toBeTypeOf('function');
 

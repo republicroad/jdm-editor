@@ -48,10 +48,7 @@ export const DecisionGraphWrapper = React.memo(
 
           <Graph
             ref={ref}
-            className={clsx([
-              !hasActiveNode && !viewConfig?.enabled && 'flex flex-col',
-              hasActiveNode && 'hidden',
-            ])}
+            className={clsx([!hasActiveNode && !viewConfig?.enabled && 'flex flex-col', hasActiveNode && 'hidden'])}
             reactFlowProOptions={reactFlowProOptions}
             onDisableTabs={setDisableTabs}
           />
@@ -83,9 +80,13 @@ const TabContents: React.FC = React.memo(() => {
   return (
     <div style={{ display: 'contents' }} ref={containerRef}>
       {openNodes.map((node) => (
-        <div key={node?.id} className={clsx(['relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
-          activeNodeId === node?.id ? 'flex flex-col' : 'hidden',
-        ])}>
+        <div
+          key={node?.id}
+          className={clsx([
+            'relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
+            activeNodeId === node?.id ? 'flex flex-col' : 'hidden',
+          ])}
+        >
           {match(node?.type)
             .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id }))
             .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id }))

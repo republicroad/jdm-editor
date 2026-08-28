@@ -1,10 +1,10 @@
-import { Dropdown, Tooltip } from '../primitives';
-import { useThemeMode } from '../../theme';
-import { toast } from 'sonner';
 import React from 'react';
 import { JSONTree } from 'react-json-tree';
+import { toast } from 'sonner';
 
 import { copyToClipboard } from '../../helpers/utility';
+import { useThemeMode } from '../../theme';
+import { Dropdown, Tooltip } from '../primitives';
 
 export type FunctionDebuggerLogProps = {
   lines: string[];

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link ConfirmOptions} instead. */
 export interface AntdConfirmOptions {
@@ -80,7 +79,11 @@ const ConfirmHost: React.FC = () => {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{item.title}</AlertDialogTitle>
-              {item.content ? <AlertDialogDescription asChild><div>{item.content}</div></AlertDialogDescription> : null}
+              {item.content ? (
+                <AlertDialogDescription asChild>
+                  <div>{item.content}</div>
+                </AlertDialogDescription>
+              ) : null}
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel

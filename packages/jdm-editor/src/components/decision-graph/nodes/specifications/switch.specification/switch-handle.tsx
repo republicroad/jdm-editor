@@ -1,16 +1,14 @@
 import { DeleteOutlined } from '@/icons';
-import { Handle, Position } from '@xyflow/react';
 import type { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Popconfirm } from '../../../../primitives';
+import { Handle, Position } from '@xyflow/react';
 import clsx from 'clsx';
 import React, { useLayoutEffect, useState } from 'react';
 
-import type { DiffMetadata } from '../../../dg-types';
+import { Button, Popconfirm } from '../../../../primitives';
 import { DiffCodeEditor } from '../../../../shared/diff-ce';
+import type { DiffMetadata } from '../../../dg-types';
 
-const useSyncedValue = (
-  value: string | undefined,
-): [string | undefined, (val: string) => void] => {
+const useSyncedValue = (value: string | undefined): [string | undefined, (val: string) => void] => {
   const [inner, setInner] = useState(value);
   useLayoutEffect(() => {
     if (inner !== value) {
@@ -72,16 +70,9 @@ export const SwitchHandle: React.FC<{
         diff?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
       )}
     >
-      <div
-        className={clsx('relative flex flex-row px-(--node-horizontal-padding) py-1')}
-      >
+      <div className={clsx('relative flex flex-row px-(--node-horizontal-padding) py-1')}>
         {(index === 0 || hitPolicy === 'collect') && (
-          <Button
-            disabled={disabled}
-            className={clsx('text-xs font-medium')}
-            size={'small'}
-            type={'text'}
-          >
+          <Button disabled={disabled} className={clsx('text-xs font-medium')} size={'small'} type={'text'}>
             If
           </Button>
         )}
@@ -122,7 +113,12 @@ export const SwitchHandle: React.FC<{
         />
         {!disabled && configurable && (
           <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
-            <Button className='text-[var(--grl-color-text-disabled)]' size='small' type='text' icon={<DeleteOutlined />} />
+            <Button
+              className='text-[var(--grl-color-text-disabled)]'
+              size='small'
+              type='text'
+              icon={<DeleteOutlined />}
+            />
           </Popconfirm>
         )}
         <Handle
@@ -204,7 +200,12 @@ export const SwitchHandleCompact: React.FC<{
       {!disabled && configurable && (
         <div className='absolute right-3.5 top-2.5'>
           <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
-            <Button className='text-[var(--grl-color-text-disabled)]' size='small' type='text' icon={<DeleteOutlined />} />
+            <Button
+              className='text-[var(--grl-color-text-disabled)]'
+              size='small'
+              type='text'
+              icon={<DeleteOutlined />}
+            />
           </Popconfirm>
         </div>
       )}

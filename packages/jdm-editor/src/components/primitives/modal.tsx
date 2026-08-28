@@ -1,14 +1,7 @@
-import * as React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button as UiButton } from '@/components/ui/button';
-
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export const Modal: React.FC<{
   open?: boolean;
@@ -74,12 +67,12 @@ export const Modal: React.FC<{
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
         ) : null}
-        {body ? <div className="min-h-0 overflow-y-auto">{body}</div> : null}
+        {body ? <div className='min-h-0 overflow-y-auto'>{body}</div> : null}
         {footer !== null ? (
-          <DialogFooter className="mt-4">
+          <DialogFooter className='mt-4'>
             {footer ?? (
               <>
-                <UiButton variant="outline" onClick={() => onCancel?.()}>
+                <UiButton variant='outline' onClick={() => onCancel?.()}>
                   {cancelText}
                 </UiButton>
                 <UiButton onClick={() => onOk?.()}>{okText}</UiButton>

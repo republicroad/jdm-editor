@@ -13,7 +13,6 @@ import { useStoreWithEqualityFn } from 'zustand/traditional';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
-import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
@@ -21,6 +20,7 @@ import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
 import type { Simulation } from '../simulator/simulation.types';
+import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
 
 export type PanelType = {
   id: string;

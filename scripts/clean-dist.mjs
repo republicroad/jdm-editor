@@ -19,8 +19,14 @@ if (!existsSync(dist)) {
 }
 
 const KEEP = new Set([
-  'index.js', 'index.js.map', 'index.d.ts', 'index.d.ts.map',
-  'schema.js', 'schema.js.map', 'schema.d.ts', 'schema.d.ts.map',
+  'index.js',
+  'index.js.map',
+  'index.d.ts',
+  'index.d.ts.map',
+  'schema.js',
+  'schema.js.map',
+  'schema.d.ts',
+  'schema.d.ts.map',
   'style.css',
 ]);
 

@@ -1,7 +1,6 @@
-import * as React from 'react';
 import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link CheckboxChangeEvent} instead. */
 export interface AntdCheckboxChangeEvent {

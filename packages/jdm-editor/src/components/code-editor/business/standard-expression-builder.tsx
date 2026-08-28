@@ -1,5 +1,4 @@
 import { type StandardExpressionData, parseStandardExpression } from '@gorules/zen-engine-wasm';
-import { DatePicker, InputNumber, Select } from '../../primitives';
 import dayjs from 'dayjs';
 import {
   CalendarIcon,
@@ -15,6 +14,7 @@ import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from
 import type { ColumnEnum, OutputFieldType } from '../../../helpers/schema';
 import { type DictionaryMap, useDictionaries } from '../../../theme';
 import { AutosizeTextArea } from '../../autosize-text-area';
+import { DatePicker, InputNumber, Select } from '../../primitives';
 import { CodeEditorBase } from '../ce-base';
 import { focusBuilderRoot } from './focus-helper';
 
@@ -129,7 +129,11 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
 
     if (ftType === 'auto' || isExprMode || forceExprMode) {
       return (
-        <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
+        <div
+          ref={rootRef}
+          className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]'
+          style={styleVars}
+        >
           {ftType !== 'auto' && (
             <button
               className='flex shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-1.5 py-[var(--b-v-padding)] text-[11px] text-muted-foreground transition-colors min-h-[var(--b-height)] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
@@ -151,7 +155,13 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
           )}
           <CodeEditorBase
             className='min-w-[40px] flex-1 max-h-[var(--b-max-height)] overflow-y-auto'
-            style={{ '--ce-lineHeight': 'var(--b-line-height)', '--ce-verticalPadding': 'var(--b-v-padding)', '--ce-horizontalPadding': 'var(--b-h-padding)' } as React.CSSProperties}
+            style={
+              {
+                '--ce-lineHeight': 'var(--b-line-height)',
+                '--ce-verticalPadding': 'var(--b-v-padding)',
+                '--ce-horizontalPadding': 'var(--b-h-padding)',
+              } as React.CSSProperties
+            }
             value={value}
             onChange={onChange}
             type='standard'
@@ -164,7 +174,11 @@ export const StandardExpressionBuilder = React.forwardRef<StandardExpressionBuil
     }
 
     return (
-      <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
+      <div
+        ref={rootRef}
+        className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]'
+        style={styleVars}
+      >
         <button
           className='flex shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-muted px-1.5 py-[var(--b-v-padding)] text-[11px] text-muted-foreground transition-colors min-h-[var(--b-height)] enabled:hover:bg-accent enabled:hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'
           onClick={() => setIsExprMode(true)}

@@ -1,4 +1,3 @@
-import { Button } from '../../../primitives';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightFromLineIcon } from 'lucide-react';
@@ -6,6 +5,7 @@ import React from 'react';
 import type { z } from 'zod';
 
 import type { outputNodeSchema } from '../../../../helpers/schema';
+import { Button } from '../../../primitives';
 import { useDecisionGraphActions } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';
 import { TabJsonSchema } from '../../graph/tab-json-schema';

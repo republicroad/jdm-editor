@@ -1,6 +1,5 @@
-import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 interface RadioContextValue {
   value?: string | number | boolean;
@@ -32,7 +31,7 @@ const RadioGroupRoot: React.FC<{
   return (
     <RadioContext.Provider value={context}>
       <div
-        role="radiogroup"
+        role='radiogroup'
         className={cn(
           'inline-flex rounded-md border bg-muted p-0.5',
           disabled && 'cursor-not-allowed opacity-50',
@@ -57,7 +56,7 @@ const RadioButton: React.FC<{
   const active = current !== undefined && String(current) === String(value);
   return (
     <button
-      type="button"
+      type='button'
       disabled={disabled}
       onClick={() => setValue(value!)}
       className={cn(
@@ -100,7 +99,7 @@ const RadioItem: React.FC<{
           active ? 'border-primary' : 'border-input',
         )}
       >
-        {active ? <span className="size-2 rounded-full bg-primary" /> : null}
+        {active ? <span className='size-2 rounded-full bg-primary' /> : null}
       </span>
       {children}
     </label>

@@ -78,7 +78,7 @@ export const oklchToHex = (c: Oklch): string => okLabToHex(oklchToOkLab(c));
 
 /** Shortest signed delta between two hues, in degrees (-180..180]. */
 export const hueDelta = (fromH: number, toH: number): number => {
-  let d = (((toH - fromH) % 360) + 540) % 360 - 180;
+  let d = ((((toH - fromH) % 360) + 540) % 360) - 180;
   if (d === -180) d = 180;
   return d;
 };
@@ -99,7 +99,10 @@ export const parseColor = (value: string): [number, number, number, number] => {
   }
   const m = v.match(/rgba?\(([^)]+)\)/i);
   if (!m) return [0, 0, 0, 1];
-  const parts = m[1].split(/[,\s/]+/).filter(Boolean).map(parseFloat);
+  const parts = m[1]
+    .split(/[,\s/]+/)
+    .filter(Boolean)
+    .map(parseFloat);
   return [parts[0], parts[1], parts[2], parts.length > 3 ? parts[3] : 1];
 };
 

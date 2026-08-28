@@ -1,5 +1,5 @@
-import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -18,12 +18,7 @@ export type ExpressionProps = {
   hideCommandBar?: boolean;
 } & ExpressionControllerProps;
 
-export const Expression: React.FC<ExpressionProps> = ({
-  debug,
-  hideCommandBar,
-  inputVariableType,
-  ...props
-}) => {
+export const Expression: React.FC<ExpressionProps> = ({ debug, hideCommandBar, inputVariableType, ...props }) => {
   const [_, setMounted] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 

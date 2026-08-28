@@ -1,6 +1,4 @@
 import { BookOutlined, DeleteOutlined } from '@/icons';
-import { App } from '../../../primitives';
-import { Button, Typography } from '../../../primitives';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';
@@ -9,6 +7,8 @@ import type { z } from 'zod';
 
 import { platform } from '../../../../helpers/platform';
 import { type inputNodeSchema } from '../../../../helpers/schema';
+import { App } from '../../../primitives';
+import { Button, Typography } from '../../../primitives';
 import { SpacedText } from '../../../spaced-text';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';

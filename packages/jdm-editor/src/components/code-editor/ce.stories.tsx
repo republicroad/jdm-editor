@@ -2,11 +2,11 @@ import { syntaxTree } from '@codemirror/language';
 import { Variable, createVariableType, generateAst, generateAstUnary } from '@gorules/zen-engine-wasm';
 import type { SyntaxNodeRef } from '@lezer/common';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { Typography } from '../primitives';
 import React, { useMemo, useState } from 'react';
+import { expect, fn, userEvent, waitFor } from 'storybook/test';
 import { match } from 'ts-pattern';
 
+import { Typography } from '../primitives';
 import { CodeEditor, type CodeEditorProps } from './ce';
 import { CodeEditorPreview } from './ce-preview';
 
@@ -114,7 +114,10 @@ export const LazyParity: Story = {
     value: "customer.firstName == 'John' && cart.totals > 50",
   },
   play: async ({ canvasElement }) => {
-    type Snapshot = { content: { x: number; y: number; padding: string }; line: { x: number; y: number; padding: string } };
+    type Snapshot = {
+      content: { x: number; y: number; padding: string };
+      line: { x: number; y: number; padding: string };
+    };
 
     const snapshot = (scope: Element): Snapshot => {
       const measure = (el: HTMLElement | null) => {
@@ -135,10 +138,7 @@ export const LazyParity: Story = {
     let highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     if (!highlighter) {
       (document.activeElement as HTMLElement | null)?.blur?.();
-      await waitFor(
-        () => expect(canvasElement.querySelector(HL_SEL)).not.toBeNull(),
-        { timeout: 5_000 },
-      );
+      await waitFor(() => expect(canvasElement.querySelector(HL_SEL)).not.toBeNull(), { timeout: 5_000 });
       highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     }
     expect(highlighter).not.toBeNull();
@@ -149,7 +149,10 @@ export const LazyParity: Story = {
     await userEvent.click(highlighter!.querySelector<HTMLElement>('.cm-content')!);
 
     await waitFor(
-      () => expect(canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)')).not.toBeNull(),
+      () =>
+        expect(
+          canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)'),
+        ).not.toBeNull(),
       { timeout: 5_000 },
     );
 
@@ -187,7 +190,13 @@ export const Debug: StoryObj<
     },
   },
   render: (args) => {
-    const token = { marginMD: 16, colorBgLayout: 'var(--grl-color-bg-layout)', colorBorder: 'var(--grl-color-border)', borderRadiusOuter: 8, paddingSM: 12 };
+    const token = {
+      marginMD: 16,
+      colorBgLayout: 'var(--grl-color-bg-layout)',
+      colorBorder: 'var(--grl-color-border)',
+      borderRadiusOuter: 8,
+      paddingSM: 12,
+    };
     const [editorState, setEditorState] = useState('');
     const [parserState, setParserState] = useState('');
     const [typeInfo, setTypeInfo] = useState('');

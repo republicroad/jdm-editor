@@ -1,6 +1,6 @@
-import { Dropdown } from '../../primitives';
 import React from 'react';
 
+import { Dropdown } from '../../primitives';
 import { SpacedText } from '../../spaced-text';
 import { useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 

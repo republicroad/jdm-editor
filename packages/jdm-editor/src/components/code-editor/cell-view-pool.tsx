@@ -1,6 +1,6 @@
+import { syntaxHighlighting } from '@codemirror/language';
 import { Compartment, EditorState } from '@codemirror/state';
 import { EditorView, placeholder as placeholderExt } from '@codemirror/view';
-import { syntaxHighlighting } from '@codemirror/language';
 import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
 import { useThemeMode } from '../../theme';
@@ -175,7 +175,7 @@ export const useRecycledEditorView = ({
       pvRef.current = null;
     };
     // value remount contract matches the lazy highlighter path
-    }, [value, type, dark, placeholder, pool]);
+  }, [value, type, dark, placeholder, pool]);
 
   // live reconfiguration while mounted (mode / placeholder)
   useLayoutEffect(() => {
@@ -193,4 +193,3 @@ export const useRecycledEditorView = ({
     hostRef.current = el;
   }, []);
 };
-

@@ -91,7 +91,7 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
 });
 
 export type TableCellProps = {
-  column?: { colType: string } & TableSchemaItem | undefined;
+  column?: ({ colType: string } & TableSchemaItem) | undefined;
   value: string;
   diff?: DiffMetadata | undefined;
   onChange: (value: string) => void;

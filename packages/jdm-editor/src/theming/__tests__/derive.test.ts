@@ -1,14 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { lightTokens, darkTokens } from '../../theme';
+import { darkTokens, lightTokens } from '../../theme';
 import { hexToOklch, hueDelta } from '../color';
-import {
-  CALIBRATION_TOLERANCES,
-  LIGHT_LADDER,
-  deriveSeedOverlays,
-  mixLinear,
-} from '../derive';
 import { DARK_OPS } from '../dark-ops';
+import { CALIBRATION_TOLERANCES, LIGHT_LADDER, deriveSeedOverlays, mixLinear } from '../derive';
 
 const seedLchH = (hex: string) => hexToOklch(hex).H;
 const bakedOhFor = (key: string) => DARK_OPS[key]?.oh ?? 0;

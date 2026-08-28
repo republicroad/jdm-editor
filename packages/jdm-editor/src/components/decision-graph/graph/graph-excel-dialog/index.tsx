@@ -1,14 +1,22 @@
 import { PlusOutlined, SwapOutlined } from '@/icons';
 import InformationIcon from '@/reui/icons/animated/outline/information';
-import { Button, Checkbox, Divider, Input, Modal, Radio, Select, Steps, Tag, Tooltip, Typography } from '../../../primitives';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
 import {
-  assembleMergedData,
-  buildAutoSelection,
-  buildMergedItems,
-} from './merge-data';
+  Button,
+  Checkbox,
+  Divider,
+  Input,
+  Modal,
+  Radio,
+  Select,
+  Steps,
+  Tag,
+  Tooltip,
+  Typography,
+} from '../../../primitives';
+import { assembleMergedData, buildAutoSelection, buildMergedItems } from './merge-data';
 import type { GraphExcelDialogProps, ItemValue, SelectedItems } from './types';
 
 export type { MergedDataItem } from './types';
@@ -153,9 +161,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         </div>
         {excelData?.[currentStep]?.headers.map((header, index) => (
           <Fragment key={index}>
-            <div
-              className='flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--background)] px-3'
-            >
+            <div className='flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--background)] px-3'>
               <Typography.Text>{header.name || header.value}</Typography.Text>
             </div>
 
@@ -281,9 +287,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>{option.data.label}</span>
                     {dataType && (
-                      <Tag style={{ background: dataTypeConfig[dataType].color }}>
-                        {dataTypeConfig[dataType].label}
-                      </Tag>
+                      <Tag style={{ background: dataTypeConfig[dataType].color }}>{dataTypeConfig[dataType].label}</Tag>
                     )}
                   </div>
                 );

@@ -2,8 +2,8 @@ import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined } from '@/ic
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import React from 'react';
 
-import { Button, Checkbox, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
+import { Button, Checkbox, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
 import { InputFieldEdit } from '../input-field-edit';
 import { OutputFieldEdit } from '../output-field-edit';
 import type { ImportColumn } from './types';
@@ -77,7 +77,12 @@ export const ImportColumnRow: React.FC<{
         {...listeners}
         {...attributes}
         ref={setActivatorNodeRef}
-        style={{ cursor: disabled ? 'default' : 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{
+          cursor: disabled ? 'default' : 'grab',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
       >
         <HolderOutlined style={{ color: 'var(--grl-color-text-tertiary)' }} />
       </div>

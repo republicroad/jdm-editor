@@ -1,11 +1,11 @@
 import { Editor } from '@monaco-editor/react';
-import { Spin } from '../../primitives';
-import { useThemeMode } from '../../../theme';
-import { toast } from 'sonner';
 import json5 from 'json5';
 import React from 'react';
+import { toast } from 'sonner';
 
 import { copyToClipboard } from '../../../helpers/utility';
+import { useThemeMode } from '../../../theme';
+import { Spin } from '../../primitives';
 
 type SimulatorEditorProps = {
   value?: string;

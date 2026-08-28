@@ -1,10 +1,10 @@
 import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/icons';
-import type { TabsProps } from '../../primitives';
-import { Avatar, Button, Dropdown, Tabs } from '../../primitives';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 
 import { DiffIcon } from '../../diff-icon';
+import type { TabsProps } from '../../primitives';
+import { Avatar, Button, Dropdown, Tabs } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-store.context';
 import type { DiffStatus } from '../dg-types';
 import { NodeColor } from '../nodes/specifications/colors';

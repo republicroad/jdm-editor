@@ -11,7 +11,7 @@
  * Registry context: docs/shadcn-theming-roadmap.zh-CN.md Appendix A,
  * searchable source markers via `rg 'GRL-STYLE-HACK' src`.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const SRC = new URL('../packages/jdm-editor/src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');

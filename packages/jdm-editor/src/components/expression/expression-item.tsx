@@ -1,6 +1,5 @@
+import { useDndContext, useDraggable, useDroppable } from '@dnd-kit/core';
 import type { VariableType } from '@gorules/zen-engine-wasm';
-import { useDraggable, useDroppable, useDndContext } from '@dnd-kit/core';
-import { Typography } from '../primitives';
 import clsx from 'clsx';
 import { GripVerticalIcon } from 'lucide-react';
 import React, { useRef, useState } from 'react';
@@ -10,6 +9,7 @@ import { getTrace } from '../../helpers/trace';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
+import { Typography } from '../primitives';
 import { DiffAutosizeTextArea } from '../shared';
 import { DiffCodeEditor } from '../shared/diff-ce';
 import type { ExpressionEntry } from './context/expression-store.context';
@@ -188,7 +188,10 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
 
   return (
     <div className='absolute top-1/2 right-[3px] -translate-y-1/2 rounded border border-[var(--grl-color-success-border)] bg-[var(--grl-color-success-bg)] px-1.5 py-0.5 max-h-[calc(100%-5px)] max-w-[50%] overflow-x-auto whitespace-nowrap [&>span]:text-xs [&>span]:[font-family:var(--mono-font-family)]'>
-      <Typography.Text ellipsis={{ tooltip: (trace ?? undefined) as React.ReactNode }} style={{ maxWidth: 60, overflow: 'hidden' }}>
+      <Typography.Text
+        ellipsis={{ tooltip: (trace ?? undefined) as React.ReactNode }}
+        style={{ maxWidth: 60, overflow: 'hidden' }}
+      >
         = {JSON.stringify(trace)}
       </Typography.Text>
     </div>

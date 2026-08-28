@@ -1,7 +1,7 @@
 import type { ReactFlowInstance, XYPosition } from '@xyflow/react';
+import type { DragEvent, MutableRefObject } from 'react';
 import { toast } from 'sonner';
 import { P, match } from 'ts-pattern';
-import type { DragEvent, MutableRefObject } from 'react';
 
 import { nodeSchema } from '../../../helpers/schema';
 import type { DecisionGraphStoreType } from '../context/dg-store.context';

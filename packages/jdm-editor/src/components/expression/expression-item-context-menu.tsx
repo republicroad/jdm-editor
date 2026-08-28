@@ -1,6 +1,6 @@
-import { Dropdown } from '../primitives';
 import React from 'react';
 
+import { Dropdown } from '../primitives';
 import { SpacedText } from '../spaced-text';
 import { useExpressionStore } from './context/expression-store.context';
 

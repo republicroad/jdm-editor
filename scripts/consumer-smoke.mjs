@@ -9,9 +9,9 @@
  * Usage:  pnpm test:consumer            (requires `pnpm build` first)
  * Flags:  --keep   keep temp workspace for debugging
  */
-import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import net from 'node:net';
 import os from 'node:os';
@@ -58,7 +58,10 @@ const runPnpm = (args, cwd) => {
   try {
     return run(pnpmInvocation.cmd, [...pnpmInvocation.prefix, ...args], cwd);
   } catch (e) {
-    const out = [e.stdout, e.stderr].filter(Boolean).map((b) => b.toString()).join('\n');
+    const out = [e.stdout, e.stderr]
+      .filter(Boolean)
+      .map((b) => b.toString())
+      .join('\n');
     console.error(`[smoke] pnpm ${args.join(' ')} failed:\n${out.slice(-2000)}`);
     throw e;
   }
@@ -73,7 +76,13 @@ const freePort = () =>
     });
   });
 
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm' };
+const MIME = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.css': 'text/css',
+  '.wasm': 'application/wasm',
+};
 
 const serve = async (dir) => {
   const port = await freePort();
@@ -146,7 +155,9 @@ try {
 
     const ok = state.reactFlow && state.svgs > 0 && errors.length === 0;
     results.push({ host: host.label, ok, ...state, errors: errors.slice(0, 3) });
-    console.log(`[smoke] ${host.label}: ${ok ? 'PASS' : 'FAIL'} ${JSON.stringify(state)}${errors.length ? ` errors=${JSON.stringify(errors.slice(0, 3))}` : ''}`);
+    console.log(
+      `[smoke] ${host.label}: ${ok ? 'PASS' : 'FAIL'} ${JSON.stringify(state)}${errors.length ? ` errors=${JSON.stringify(errors.slice(0, 3))}` : ''}`,
+    );
   }
 
   await browser.close();

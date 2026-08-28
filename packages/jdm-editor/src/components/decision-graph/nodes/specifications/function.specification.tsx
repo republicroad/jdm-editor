@@ -1,10 +1,10 @@
 import { WarningFilled } from '@/icons';
-import { Button, Tooltip, Typography } from '../../../primitives';
 import _ from 'lodash';
 import React from 'react';
 import { P, match } from 'ts-pattern';
 
 import { defaultFunctionValue } from '../../../function/helpers/libs';
+import { Button, Tooltip, Typography } from '../../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import type { DiffMetadata } from '../../dg-types';
 import { TabFunction } from '../../graph/tab-function';

@@ -1,10 +1,10 @@
 import { type Variable } from '@gorules/zen-engine-wasm';
-import { Typography } from '../primitives';
 import stringifyPretty from 'json-stringify-pretty-compact';
 import { BugIcon } from 'lucide-react';
 import React, { useMemo } from 'react';
 
 import { isWasmAvailable } from '../../helpers/wasm';
+import { Typography } from '../primitives';
 import { CodeEditor } from './ce';
 
 export type CodeEditorPreviewProps = {

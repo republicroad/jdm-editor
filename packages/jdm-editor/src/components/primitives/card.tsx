@@ -1,6 +1,5 @@
-import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export const Card = React.forwardRef<
   HTMLDivElement,
@@ -23,7 +22,7 @@ export const Card = React.forwardRef<
       onClick={onClick}
       {...rest}
     >
-      <div className="p-4" style={{ ...bodyStyle, ...styles?.body }}>
+      <div className='p-4' style={{ ...bodyStyle, ...styles?.body }}>
         {children}
       </div>
     </div>

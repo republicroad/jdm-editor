@@ -44,7 +44,8 @@ describe('buildImportColumns', () => {
           schemaItem({ id: 'out-b', name: 'total', field: 'TOTAL', type: 'output' }),
         ],
         hitPolicy: 'F',
-      },    });
+      },
+    });
 
     const columns = buildImportColumns(data);
     expect(columns.find((c) => c.id === 'in-a')?.excelHeaderId).toBe('x1');
@@ -150,9 +151,9 @@ describe('assembleMappedData', () => {
 
   it('omits description item when disabled or unselected', () => {
     expect(assemble({ descriptionEnabled: false }).items.map((i) => i.id)).not.toContain('_description');
-    expect(
-      assemble({ descriptionEnabled: true, descriptionExcelId: undefined }).items.map((i) => i.id),
-    ).not.toContain('_description');
+    expect(assemble({ descriptionEnabled: true, descriptionExcelId: undefined }).items.map((i) => i.id)).not.toContain(
+      '_description',
+    );
   });
 
   it('quotes comma-split wrapped values and leaves unwrapped values raw', () => {

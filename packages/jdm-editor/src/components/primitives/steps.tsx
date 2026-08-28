@@ -1,20 +1,17 @@
-import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 export const Steps: React.FC<{
   current?: number;
   items?: Array<{ title?: React.ReactNode; description?: React.ReactNode }>;
 }> = ({ current = 0, items = [] }) => (
-  <div className="flex w-full items-center">
+  <div className='flex w-full items-center'>
     {items.map((item, index) => {
       const state = index < current ? 'done' : index === current ? 'active' : 'pending';
       return (
         <React.Fragment key={index}>
-          {index > 0 ? (
-            <div className={cn('h-px flex-1', state === 'pending' ? 'bg-border' : 'bg-primary')} />
-          ) : null}
-          <div className="flex items-center gap-2 px-2">
+          {index > 0 ? <div className={cn('h-px flex-1', state === 'pending' ? 'bg-border' : 'bg-primary')} /> : null}
+          <div className='flex items-center gap-2 px-2'>
             <span
               className={cn(
                 'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',

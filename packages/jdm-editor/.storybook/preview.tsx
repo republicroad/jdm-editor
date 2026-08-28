@@ -30,8 +30,8 @@ const preview: Preview = {
     layout: 'fullscreen',
 
     docs: {
-      codePanel: true
-    }
+      codePanel: true,
+    },
   },
   decorators: [
     (Story) => {

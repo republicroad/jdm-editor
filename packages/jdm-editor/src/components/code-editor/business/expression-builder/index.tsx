@@ -11,16 +11,16 @@ import {
   BUILDER_TOKENS,
   NO_VALUE_OPS,
   OPS_BY_KIND,
+  type OperatorType,
+  type ValueKind,
   defaultValue,
   getEnumOptions,
   getOp,
   getValueKind,
-  type OperatorType,
-  type ValueKind,
 } from './constants';
 import { OpDropdown } from './op-dropdown';
-import { EnumValInput, ValInput } from './value-inputs';
 import { inferKindFromExpr, isExprCompatibleWithKind, useExpressionState } from './use-expression-state';
+import { EnumValInput, ValInput } from './value-inputs';
 
 export type ExpressionBuilderProps = {
   value: string;
@@ -115,11 +115,21 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
 
     if (isCustom || forceCustom || expr.kind === 'complex') {
       return (
-        <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
+        <div
+          ref={rootRef}
+          className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]'
+          style={styleVars}
+        >
           <OpDropdown {...dropdownProps} isCustom />
           <CodeEditorBase
             className='min-w-[40px] flex-1 max-h-[var(--b-max-height)] overflow-y-auto'
-            style={{ '--ce-lineHeight': 'var(--b-line-height)', '--ce-verticalPadding': 'var(--b-v-padding)', '--ce-horizontalPadding': 'var(--b-h-padding)' } as React.CSSProperties}
+            style={
+              {
+                '--ce-lineHeight': 'var(--b-line-height)',
+                '--ce-verticalPadding': 'var(--b-v-padding)',
+                '--ce-horizontalPadding': 'var(--b-h-padding)',
+              } as React.CSSProperties
+            }
             value={value}
             onChange={onChange}
             type='unary'
@@ -134,10 +144,16 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
 
     const op = expr.operator.type;
     return (
-      <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
+      <div
+        ref={rootRef}
+        className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]'
+        style={styleVars}
+      >
         <OpDropdown {...dropdownProps} operator={op} />
         {NO_VALUE_OPS.includes(op) ? (
-          op !== 'any' && <span className='text-xs leading-[var(--b-height)] text-[var(--muted-foreground)]'>{getOp(op).label}</span>
+          op !== 'any' && (
+            <span className='text-xs leading-[var(--b-height)] text-[var(--muted-foreground)]'>{getOp(op).label}</span>
+          )
         ) : isEnum ? (
           <EnumValInput
             value={expr.value}

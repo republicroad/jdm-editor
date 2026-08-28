@@ -1,6 +1,5 @@
-import * as React from 'react';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 const typoColorClass: Record<string, string> = {
   secondary: 'text-muted-foreground',
@@ -54,7 +53,7 @@ interface TitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
 }
 
 const Title: React.FC<TitleProps> = ({ level = 1, className, ...rest }) => {
-  const Tag = (`h${Math.min(Math.max(level, 1), 5)}`) as 'h1' | 'h2' | 'h3' | 'h4' | 'h5';
+  const Tag = `h${Math.min(Math.max(level, 1), 5)}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5';
   return <Tag className={cn(titleLevelClass[level], 'm-0', className)} {...rest} />;
 };
 
@@ -82,7 +81,9 @@ const Link: React.FC<LinkProps> = ({ type, ellipsis, className, children, ...res
   </a>
 );
 
-export const Typography = Object.assign(
-  ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  { Text, Title, Paragraph, Link },
-);
+export const Typography = Object.assign(({ children }: { children?: React.ReactNode }) => <>{children}</>, {
+  Text,
+  Title,
+  Paragraph,
+  Link,
+});

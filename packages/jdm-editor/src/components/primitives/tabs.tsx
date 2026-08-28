@@ -1,10 +1,9 @@
-import * as React from 'react';
 import { Tabs as UiTabs } from '@/components/ui/tabs';
 import { TabsContent as UiTabsContent } from '@/components/ui/tabs';
 import { TabsList as UiTabsList } from '@/components/ui/tabs';
 import { TabsTrigger as UiTabsTrigger } from '@/components/ui/tabs';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link TabsItemType} instead. */
 export interface AntdTabsItemType {
@@ -39,9 +38,7 @@ export const Tabs: React.FC<TabsProps> = ({
   tabBarExtraContent,
 }) => {
   const list = items ?? [];
-  const [uncontrolled, setUncontrolled] = React.useState<string>(
-    defaultActiveKey ?? list[0]?.key ?? '',
-  );
+  const [uncontrolled, setUncontrolled] = React.useState<string>(defaultActiveKey ?? list[0]?.key ?? '');
   const current = activeKey ?? uncontrolled;
   /*
    * Compact inline-tab rhythm (formerly .grl-inline-tabs in tailwind.css,
@@ -58,7 +55,7 @@ export const Tabs: React.FC<TabsProps> = ({
 
   return (
     <UiTabs value={current} onValueChange={select} style={style} className={cn(rootClassName, className)}>
-      <div className="flex w-full items-center justify-between gap-2">
+      <div className='flex w-full items-center justify-between gap-2'>
         <UiTabsList className={cn(size === 'small' && 'h-8', compact && 'm-0 p-0!')}>
           {list.map((item) => (
             <UiTabsTrigger

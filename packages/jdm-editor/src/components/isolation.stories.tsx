@@ -28,10 +28,10 @@ const IsolationStory: Story = {
         data-host-probe=''
         style={
           {
-            padding: 12,
-            borderRadius: 8,
+            'padding': 12,
+            'borderRadius': 8,
             '--background': 'magenta',
-            background: 'var(--background)',
+            'background': 'var(--background)',
           } as React.CSSProperties
         }
       >
@@ -61,11 +61,7 @@ const IsolationStory: Story = {
         <JdmConfigProvider theme={{ mode: 'dark' }} seeds={{ primary: '#7c3aed' }}>
           <div style={{ background: 'var(--grl-color-bg-container)', padding: 8 }}>
             <Typography.Text strong>island B — dark / violet seeds</Typography.Text>
-            <div
-              data-dark-probe-b=''
-              style={{ padding: 6, marginTop: 6 }}
-              className='dark:bg-[var(--grl-color-error)]'
-            >
+            <div data-dark-probe-b='' style={{ padding: 6, marginTop: 6 }} className='dark:bg-[var(--grl-color-error)]'>
               dark-probe B (dark island — red bg proves variant ignition)
             </div>
           </div>

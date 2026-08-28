@@ -1,11 +1,11 @@
 import type { Monaco } from '@monaco-editor/react';
-import { Spin } from '../../primitives';
 import type { editor } from 'monaco-editor';
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { useNodeType } from '../../../helpers/node-type';
 import type { FunctionPermission } from '../../function';
+import { Spin } from '../../primitives';
 import {
   useDecisionGraphActions,
   useDecisionGraphListeners,

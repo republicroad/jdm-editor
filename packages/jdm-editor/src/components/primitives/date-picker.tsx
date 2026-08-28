@@ -1,7 +1,7 @@
-import * as React from 'react';
-import dayjs, { type Dayjs } from 'dayjs';
-
 import { cn } from '@/lib/utils';
+import dayjs, { type Dayjs } from 'dayjs';
+import * as React from 'react';
+
 import { borderlessInputClass } from './shared';
 
 /** @deprecated antd-migration compat alias — use {@link DatePickerProps} instead. */
@@ -30,7 +30,7 @@ export const DatePicker: React.FC<AntdDatePickerProps> = ({
   placeholder,
 }) => (
   <input
-    type="date"
+    type='date'
     value={value?.format ? value.format('YYYY-MM-DD') : ''}
     placeholder={placeholder}
     disabled={disabled}
@@ -60,7 +60,7 @@ export const TimePicker: React.FC<AntdDatePickerProps> = ({
   style,
 }) => (
   <input
-    type="time"
+    type='time'
     value={value?.format ? value.format('HH:mm') : ''}
     disabled={disabled}
     onChange={(event) => {

@@ -3,12 +3,12 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  type DecisionGraphSnapshot,
   SerializerProvider,
+  type Slice,
   useGraphSerializer,
   useSerializerRegistry,
   useTabSerializer,
-  type DecisionGraphSnapshot,
-  type Slice,
 } from '../context/serializer.context';
 
 type Registry = NonNullable<ReturnType<typeof useSerializerRegistry>>;
@@ -83,13 +83,13 @@ const HookedTabHost: React.FC<{ tabId: string | null; sk: string | null }> = ({ 
 
 describe('graph registration', () => {
   it('serializes registered graph slices under the graph key', () => {
-    const reg = mountTree(<GraphHost sk="viewport" slice={makeSlice({ x: 10, y: 20 })} />);
+    const reg = mountTree(<GraphHost sk='viewport' slice={makeSlice({ x: 10, y: 20 })} />);
 
     expect(reg.serialize()).toEqual({ graph: { viewport: { x: 10, y: 20 } } });
   });
 
   it('stops serializing a graph slice after its host unmounts', () => {
-    const reg = mountTree(<GraphHost sk="viewport" slice={makeSlice(1)} />);
+    const reg = mountTree(<GraphHost sk='viewport' slice={makeSlice(1)} />);
 
     expect(reg.serialize().graph).toEqual({ viewport: 1 });
 
@@ -114,9 +114,9 @@ describe('tab registration', () => {
   it('nests tab slices under their tab id and merges keys', () => {
     const reg = mountTree(
       <>
-        <TabHost tabId="table" sk="order" slice={makeSlice(['a'])} />
-        <TabHost tabId="table" sk="filters" slice={makeSlice({ enabled: true })} />
-        <TabHost tabId="graph" sk="zoom" slice={makeSlice(3)} />
+        <TabHost tabId='table' sk='order' slice={makeSlice(['a'])} />
+        <TabHost tabId='table' sk='filters' slice={makeSlice({ enabled: true })} />
+        <TabHost tabId='graph' sk='zoom' slice={makeSlice(3)} />
       </>,
     );
 
@@ -127,7 +127,7 @@ describe('tab registration', () => {
   });
 
   it('removes an empty tab bag after its last slice unmounts', () => {
-    const reg = mountTree(<TabHost tabId="table" sk="order" slice={makeSlice(['a'])} />);
+    const reg = mountTree(<TabHost tabId='table' sk='order' slice={makeSlice(['a'])} />);
 
     expect(reg.serialize().tabs).toEqual({ table: { order: ['a'] } });
 
@@ -156,7 +156,7 @@ describe('pending buffer', () => {
     act(() => reg.restore({ graph: { zoom: 7 } }));
     expect(reg.serialize()).toEqual({});
 
-    rerenderTree(<GraphHost sk="zoom" slice={makeSlice(0, { onRestore: (v) => restored.push(v) })} />);
+    rerenderTree(<GraphHost sk='zoom' slice={makeSlice(0, { onRestore: (v) => restored.push(v) })} />);
 
     expect(restored).toEqual([7]);
   });
@@ -167,7 +167,7 @@ describe('pending buffer', () => {
 
     act(() => reg.restore({ graph: { zoom: 7 } }));
 
-    const host = <GraphHost sk="zoom" slice={makeSlice(0, { onRestore: (v) => restored.push(v) })} />;
+    const host = <GraphHost sk='zoom' slice={makeSlice(0, { onRestore: (v) => restored.push(v) })} />;
     rerenderTree(host);
     rerenderTree(null);
     rerenderTree(host);
@@ -181,7 +181,7 @@ describe('pending buffer', () => {
 
     act(() => reg.restore({ tabs: { table: { order: ['b'] } } }));
 
-    rerenderTree(<TabHost tabId="table" sk="order" slice={makeSlice([], { onRestore: (v) => restored.push(v) })} />);
+    rerenderTree(<TabHost tabId='table' sk='order' slice={makeSlice([], { onRestore: (v) => restored.push(v) })} />);
 
     expect(restored).toEqual([['b']]);
   });
@@ -191,8 +191,8 @@ describe('snapshot filtering', () => {
   it('skips slices whose serialized value is undefined', () => {
     const reg = mountTree(
       <>
-        <GraphHost sk="empty" slice={makeSlice(undefined)} />
-        <GraphHost sk="kept" slice={makeSlice(1)} />
+        <GraphHost sk='empty' slice={makeSlice(undefined)} />
+        <GraphHost sk='kept' slice={makeSlice(1)} />
       </>,
     );
 
@@ -225,8 +225,8 @@ describe('error isolation', () => {
     try {
       const reg = mountTree(
         <>
-          <GraphHost sk="bad" slice={makeSlice('x', { serializeError: new Error('serialize boom') })} />
-          <GraphHost sk="good" slice={makeSlice('ok')} />
+          <GraphHost sk='bad' slice={makeSlice('x', { serializeError: new Error('serialize boom') })} />
+          <GraphHost sk='good' slice={makeSlice('ok')} />
         </>,
       );
 
@@ -247,10 +247,10 @@ describe('error isolation', () => {
       const reg = mountTree(
         <>
           <GraphHost
-            sk="bad"
+            sk='bad'
             slice={makeSlice('', { restoreError: new Error('restore boom'), onRestore: (v) => badRestored.push(v) })}
           />
-          <GraphHost sk="good" slice={makeSlice('', { onRestore: (v) => goodRestored.push(v) })} />
+          <GraphHost sk='good' slice={makeSlice('', { onRestore: (v) => goodRestored.push(v) })} />
         </>,
       );
 
@@ -272,7 +272,7 @@ describe('error isolation', () => {
       const reg = mountTree(null);
 
       act(() => reg.restore({ graph: { bad: 'x' } }));
-      rerenderTree(<GraphHost sk="bad" slice={makeSlice('', { restoreError: new Error('late boom') })} />);
+      rerenderTree(<GraphHost sk='bad' slice={makeSlice('', { restoreError: new Error('late boom') })} />);
 
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('graph.bad'), expect.any(Error));
     } finally {
@@ -283,11 +283,11 @@ describe('error isolation', () => {
 
 describe('serializer hooks', () => {
   it('re-registers graph hooks when the serialization key changes', () => {
-    const reg = mountTree(<HookedGraphHost sk="alpha" />);
+    const reg = mountTree(<HookedGraphHost sk='alpha' />);
 
     expect(reg.serialize().graph).toEqual({ alpha: 'alpha' });
 
-    rerenderTree(<HookedGraphHost sk="beta" />);
+    rerenderTree(<HookedGraphHost sk='beta' />);
 
     expect(reg.serialize().graph).toEqual({ beta: 'beta' });
   });
@@ -299,19 +299,19 @@ describe('serializer hooks', () => {
   });
 
   it('moves tab hook registration when the tab id changes', () => {
-    const reg = mountTree(<HookedTabHost tabId="one" sk="state" />);
+    const reg = mountTree(<HookedTabHost tabId='one' sk='state' />);
 
     expect(reg.serialize().tabs).toEqual({ one: { state: 'one:state' } });
 
-    rerenderTree(<HookedTabHost tabId="two" sk="state" />);
+    rerenderTree(<HookedTabHost tabId='two' sk='state' />);
 
     expect(reg.serialize().tabs).toEqual({ two: { state: 'two:state' } });
   });
 
   it('skips tab registration when the tab id or key is null', () => {
-    const reg = mountTree(<HookedTabHost tabId={null} sk="state" />);
+    const reg = mountTree(<HookedTabHost tabId={null} sk='state' />);
 
-    rerenderTree(<HookedTabHost tabId="one" sk={null} />);
+    rerenderTree(<HookedTabHost tabId='one' sk={null} />);
 
     expect(reg.serialize()).toEqual({});
   });

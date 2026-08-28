@@ -1,10 +1,10 @@
-import * as React from 'react';
 import {
-  Tooltip as UiTooltipRoot,
   TooltipContent as UiTooltipContent,
   TooltipProvider as UiTooltipProvider,
+  Tooltip as UiTooltipRoot,
   TooltipTrigger as UiTooltipTrigger,
 } from '@/components/ui/tooltip';
+import * as React from 'react';
 
 const placementSideMap: Record<string, 'top' | 'right' | 'bottom' | 'left'> = {
   top: 'top',
@@ -32,7 +32,7 @@ export const Tooltip: React.FC<
     <UiTooltipProvider delayDuration={200}>
       <UiTooltipRoot>
         <UiTooltipTrigger asChild>
-          {React.isValidElement(children) ? children : <span className="inline-flex">{children}</span>}
+          {React.isValidElement(children) ? children : <span className='inline-flex'>{children}</span>}
         </UiTooltipTrigger>
         <UiTooltipContent side={placementSideMap[placement] ?? 'top'}>{title}</UiTooltipContent>
       </UiTooltipRoot>

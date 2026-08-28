@@ -19,11 +19,11 @@ import {
   SearchIcon,
   TextCursorInputIcon,
 } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { P, match } from 'ts-pattern';
 
 import type { ColumnFieldType } from '../../../../helpers/schema';
 import type { DictionaryMap } from '../../../../theme';
-import type { CSSProperties } from 'react';
 
 export const BUILDER_TOKENS: CSSProperties = {
   '--b-font-size': '13px',
@@ -45,7 +45,8 @@ export const BUILDER_BG_VARS: CSSProperties = {
 // inset match the autosize textarea.
 export const FIELD_COMPACT = 'h-[var(--b-height)]! border-0! px-[var(--b-h-padding)]! py-0! text-[13px]!';
 // Multi/tags native input: auto height, min builder height, side padding.
-export const FIELD_AUTO = 'min-h-[var(--b-height)]! h-auto! border-0! px-[var(--b-h-padding)]! text-[13px]! overflow-hidden';
+export const FIELD_AUTO =
+  'min-h-[var(--b-height)]! h-auto! border-0! px-[var(--b-h-padding)]! text-[13px]! overflow-hidden';
 
 export type OperatorType = SimpleOperator['type'];
 export type ValueKind = 'string' | 'number' | 'boolean' | 'date' | 'any';

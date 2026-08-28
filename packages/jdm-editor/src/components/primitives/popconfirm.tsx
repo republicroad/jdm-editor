@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import * as React from 'react';
 
 export const Popconfirm: React.FC<
   React.HTMLAttributes<HTMLDivElement> & {
@@ -34,7 +34,7 @@ export const Popconfirm: React.FC<
        * dt-excel-dialog) made clicks vanish before reaching the dialog.
        */}
       <AlertDialogTrigger asChild disabled={disabled}>
-        <span className="inline-flex">{children}</span>
+        <span className='inline-flex'>{children}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

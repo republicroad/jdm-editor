@@ -192,186 +192,184 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
         }}
       >
         <div style={{ padding: '8px 0' }}>
-        {/* Inputs Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Inputs
-          </Typography.Text>
-          <InputFieldEdit
-            mode='create'
-            variableType={inputVariableType}
-            onCreate={handleAddInput}
-            trigger={addInputTrigger}
-          />
-        </div>
-        <div
-          style={{
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '4px 12px',
-            marginBottom: 16,
-            minHeight: 40,
-          }}
-        >
-          {/* Column headers */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '24px 36px 1fr 12px 1fr 28px 28px 28px',
-              gap: '8px',
-              padding: '6px 0 2px',
-            }}
-          >
-            <div />
-            <div />
-            <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
-              Table column
+          {/* Inputs Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Inputs
             </Typography.Text>
-            <div />
-            <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
-              Excel column
-            </Typography.Text>
-            <div />
-            <div />
-            <div />
-          </div>
-          {inputColumns.length === 0 && (
-            <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
-              No input columns
-            </Typography.Text>
-          )}
-          {inputColumns.map((col) => (
-            <ImportColumnRow
-              key={col.id}
-              col={col}
-
-              section='input'
-              excelHeaders={excelHeaders}
-              disabled={!!disabledColumns[col.id]}
-              wrapChecked={wrapStates[col.id] || false}
-              onToggle={(enabled) => {
-                setDisabledColumns((prev) => {
-                  const updated = { ...prev };
-                  if (enabled) {
-                    delete updated[col.id];
-                  } else {
-                    updated[col.id] = true;
-                  }
-                  return updated;
-                });
-              }}
-              onExcelHeaderChange={(excelHeaderId) => {
-                setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
-              }}
-              onWrapChange={(checked) => {
-                setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
-              }}
-              onFieldChange={(field, fieldType, outputFieldType) =>
-                handleFieldChange(col.id, field, fieldType, outputFieldType)
-              }
-              onRemove={() => handleRemoveColumn(col.id)}
-            />
-          ))}
-        </div>
-
-        {/* Outputs Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Outputs
-          </Typography.Text>
-          <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
-        </div>
-        <div
-          style={{
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '4px 12px',
-            marginBottom: 16,
-            minHeight: 40,
-          }}
-        >
-          {outputColumns.length === 0 && (
-            <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
-              No output columns
-            </Typography.Text>
-          )}
-          {outputColumns.map((col) => (
-            <ImportColumnRow
-              key={col.id}
-              col={col}
-
-              section='output'
-              excelHeaders={excelHeaders}
-              disabled={!!disabledColumns[col.id]}
-              wrapChecked={wrapStates[col.id] || false}
-              onToggle={(enabled) => {
-                setDisabledColumns((prev) => {
-                  const updated = { ...prev };
-                  if (enabled) {
-                    delete updated[col.id];
-                  } else {
-                    updated[col.id] = true;
-                  }
-                  return updated;
-                });
-              }}
-              onExcelHeaderChange={(excelHeaderId) => {
-                setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
-              }}
-              onWrapChange={(checked) => {
-                setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
-              }}
-              onFieldChange={(field, fieldType, outputFieldType) =>
-                handleFieldChange(col.id, field, fieldType, outputFieldType)
-              }
-              onRemove={() => handleRemoveColumn(col.id)}
-            />
-          ))}
-        </div>
-
-        {/* Description Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <Typography.Text strong style={{ fontSize: 13 }}>
-            Description
-          </Typography.Text>
-        </div>
-        <div
-          style={{
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '8px 12px',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '36px 24px 1fr',
-              gap: '8px',
-              alignItems: 'center',
-            }}
-          >
-            <Switch
-              size='small'
-              checked={descriptionEnabled}
-              onChange={setDescriptionEnabled}
-              style={{ minWidth: 28 }}
-            />
-            <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
-            <Select
-              allowClear
-              style={{ width: '100%' }}
-              placeholder='Select Excel column for description'
-              value={descriptionExcelId}
-              disabled={!descriptionEnabled}
-              onChange={(val) => setDescriptionExcelId(val ?? undefined)}
-              options={excelHeaders.map((h) => ({
-                label: h.name || h.value || h.id,
-                value: h.id,
-              }))}
+            <InputFieldEdit
+              mode='create'
+              variableType={inputVariableType}
+              onCreate={handleAddInput}
+              trigger={addInputTrigger}
             />
           </div>
+          <div
+            style={{
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '4px 12px',
+              marginBottom: 16,
+              minHeight: 40,
+            }}
+          >
+            {/* Column headers */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '24px 36px 1fr 12px 1fr 28px 28px 28px',
+                gap: '8px',
+                padding: '6px 0 2px',
+              }}
+            >
+              <div />
+              <div />
+              <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
+                Table column
+              </Typography.Text>
+              <div />
+              <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
+                Excel column
+              </Typography.Text>
+              <div />
+              <div />
+              <div />
+            </div>
+            {inputColumns.length === 0 && (
+              <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
+                No input columns
+              </Typography.Text>
+            )}
+            {inputColumns.map((col) => (
+              <ImportColumnRow
+                key={col.id}
+                col={col}
+                section='input'
+                excelHeaders={excelHeaders}
+                disabled={!!disabledColumns[col.id]}
+                wrapChecked={wrapStates[col.id] || false}
+                onToggle={(enabled) => {
+                  setDisabledColumns((prev) => {
+                    const updated = { ...prev };
+                    if (enabled) {
+                      delete updated[col.id];
+                    } else {
+                      updated[col.id] = true;
+                    }
+                    return updated;
+                  });
+                }}
+                onExcelHeaderChange={(excelHeaderId) => {
+                  setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
+                }}
+                onWrapChange={(checked) => {
+                  setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
+                }}
+                onFieldChange={(field, fieldType, outputFieldType) =>
+                  handleFieldChange(col.id, field, fieldType, outputFieldType)
+                }
+                onRemove={() => handleRemoveColumn(col.id)}
+              />
+            ))}
+          </div>
+
+          {/* Outputs Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Outputs
+            </Typography.Text>
+            <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
+          </div>
+          <div
+            style={{
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '4px 12px',
+              marginBottom: 16,
+              minHeight: 40,
+            }}
+          >
+            {outputColumns.length === 0 && (
+              <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
+                No output columns
+              </Typography.Text>
+            )}
+            {outputColumns.map((col) => (
+              <ImportColumnRow
+                key={col.id}
+                col={col}
+                section='output'
+                excelHeaders={excelHeaders}
+                disabled={!!disabledColumns[col.id]}
+                wrapChecked={wrapStates[col.id] || false}
+                onToggle={(enabled) => {
+                  setDisabledColumns((prev) => {
+                    const updated = { ...prev };
+                    if (enabled) {
+                      delete updated[col.id];
+                    } else {
+                      updated[col.id] = true;
+                    }
+                    return updated;
+                  });
+                }}
+                onExcelHeaderChange={(excelHeaderId) => {
+                  setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
+                }}
+                onWrapChange={(checked) => {
+                  setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
+                }}
+                onFieldChange={(field, fieldType, outputFieldType) =>
+                  handleFieldChange(col.id, field, fieldType, outputFieldType)
+                }
+                onRemove={() => handleRemoveColumn(col.id)}
+              />
+            ))}
+          </div>
+
+          {/* Description Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Typography.Text strong style={{ fontSize: 13 }}>
+              Description
+            </Typography.Text>
+          </div>
+          <div
+            style={{
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '8px 12px',
+            }}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '36px 24px 1fr',
+                gap: '8px',
+                alignItems: 'center',
+              }}
+            >
+              <Switch
+                size='small'
+                checked={descriptionEnabled}
+                onChange={setDescriptionEnabled}
+                style={{ minWidth: 28 }}
+              />
+              <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
+              <Select
+                allowClear
+                style={{ width: '100%' }}
+                placeholder='Select Excel column for description'
+                value={descriptionExcelId}
+                disabled={!descriptionEnabled}
+                onChange={(val) => setDescriptionExcelId(val ?? undefined)}
+                options={excelHeaders.map((h) => ({
+                  label: h.name || h.value || h.id,
+                  value: h.id,
+                }))}
+              />
+            </div>
+          </div>
         </div>
-      </div>
       </ExcelDnd>
     </Modal>
   );

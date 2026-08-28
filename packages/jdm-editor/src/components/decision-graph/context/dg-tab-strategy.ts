@@ -30,12 +30,7 @@ export const applyOpenTab = (openTabs: string[], id: string): StateSlice => {
  * (verbatim legacy behaviour, including its index-based quirk) or to
  * 'graph'.
  */
-export const applyCloseTab = (
-  openTabs: string[],
-  activeTab: string,
-  id: string,
-  action?: string,
-): StateSlice => {
+export const applyCloseTab = (openTabs: string[], activeTab: string, id: string, action?: string): StateSlice => {
   const index = openTabs?.findIndex((i) => i === id);
   const tab = openTabs?.[index];
 
@@ -53,7 +48,12 @@ export const applyCloseTab = (
   return updatedState;
 };
 
-const matchAction = (openTabs: string[], action: string | undefined, tab: string | undefined, index: number): string[] => {
+const matchAction = (
+  openTabs: string[],
+  action: string | undefined,
+  tab: string | undefined,
+  index: number,
+): string[] => {
   switch (action) {
     case undefined:
     case 'close':

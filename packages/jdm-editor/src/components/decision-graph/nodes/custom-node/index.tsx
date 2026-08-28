@@ -1,11 +1,11 @@
 import { DownOutlined } from '@/icons';
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { XYPosition } from '@xyflow/react';
-import { Button, Checkbox, Form, Typography } from '../../../primitives';
 import React, { useState } from 'react';
 import { match } from 'ts-pattern';
 
 import { CodeEditor } from '../../../code-editor';
+import { Button, Checkbox, Form, Typography } from '../../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import { type DecisionNode } from '../../dg-types';
 import { GraphNode } from '../graph-node';
@@ -178,9 +178,7 @@ export const createJdmNode = <
 
                     const outerLabel = match({ control })
                       .with({ control: 'bool' }, () => null)
-                      .otherwise(() => (
-                        <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>
-                      ));
+                      .otherwise(() => <Typography.Text style={{ fontSize: 12 }}>{label}</Typography.Text>);
 
                     const valuePropName = match({ control })
                       .with({ control: 'bool' }, () => 'checked')

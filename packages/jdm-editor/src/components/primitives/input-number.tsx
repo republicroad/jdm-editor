@@ -1,6 +1,6 @@
+import { cn } from '@/lib/utils';
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
 import { borderlessInputClass } from './shared';
 
 export const InputNumber: React.FC<{
@@ -20,16 +20,14 @@ export const InputNumber: React.FC<{
   onChange?: (value: number | null) => void;
 }> = ({ value, min, max, step, disabled, size, placeholder, className, style, onChange }) => (
   <input
-    type="number"
+    type='number'
     value={value === undefined || value === null ? '' : value}
     min={min}
     max={max}
     step={step}
     placeholder={placeholder}
     disabled={disabled}
-    onChange={(event) =>
-      onChange?.(event.target.value === '' ? null : Number(event.target.value))
-    }
+    onChange={(event) => onChange?.(event.target.value === '' ? null : Number(event.target.value))}
     className={cn(
       borderlessInputClass,
       size === 'large' ? 'h-10 text-base' : undefined,

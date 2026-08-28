@@ -1,19 +1,19 @@
 import type { SimpleValue } from '@gorules/zen-engine-wasm';
+import clsx from 'clsx';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
-import clsx from 'clsx';
 
+import { useThemeMode } from '../../../../theme';
 import { AutosizeTextArea } from '../../../autosize-text-area';
 import { DatePicker, InputNumber, Select, TimePicker } from '../../../primitives';
-import { useThemeMode } from '../../../../theme';
 import {
-  enumFilterOption,
   FIELD_AUTO,
   FIELD_COMPACT,
   GRANULARITIES,
   type OperatorType,
   type ValueKind,
+  enumFilterOption,
 } from './constants';
 
 export type ValInputProps = {
@@ -185,7 +185,8 @@ const ChipInput: React.FC<SimpleInputProps & { options: { v: number; l: string }
           key={o.v}
           className={clsx(
             'cursor-pointer select-none rounded-full border border-border bg-transparent px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors [font-family:var(--grl-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:border-[var(--grl-color-primary-border)] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-active)] [&:hover:not(.active):not(.disabled)]:text-[var(--color-active-text)]',
-            sel.includes(o.v) && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
+            sel.includes(o.v) &&
+              'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
             disabled && 'cursor-not-allowed opacity-50',
           )}
           onClick={() => toggle(o.v)}
@@ -228,7 +229,10 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
   const upd = (p: Partial<typeof iv>) => onChange({ type: 'interval', ...iv, ...p });
   return (
     <div className='flex flex-1 items-center gap-0.5 min-h-[var(--b-height)]'>
-      <span className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70' onClick={() => !disabled && upd({ leftInclusive: !iv.leftInclusive })}>
+      <span
+        className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70'
+        onClick={() => !disabled && upd({ leftInclusive: !iv.leftInclusive })}
+      >
         {iv.leftInclusive ? '[' : '('}
       </span>
       <InputNumber
@@ -250,7 +254,10 @@ const IntervalInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }
         size='small'
         controls={false}
       />
-      <span className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70' onClick={() => !disabled && upd({ rightInclusive: !iv.rightInclusive })}>
+      <span
+        className='cursor-pointer select-none px-0.5 text-sm leading-[var(--b-height)] hover:opacity-70'
+        onClick={() => !disabled && upd({ rightInclusive: !iv.rightInclusive })}
+      >
         {iv.rightInclusive ? ']' : ')'}
       </span>
     </div>

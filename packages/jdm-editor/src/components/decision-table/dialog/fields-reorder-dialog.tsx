@@ -1,8 +1,16 @@
-import { DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
-import { Card, Form, Modal, Typography } from '../../primitives';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { DragOverlayCard, OverlayChip } from '../../../helpers/dnd-overlay';
+import { Card, Form, Modal, Typography } from '../../primitives';
 import { Stack } from '../../stack';
 import type { TableSchemaItem } from '../context/dt-store.context';
 
@@ -18,7 +26,13 @@ const FieldCard: React.FC<{
   col: TableSchemaItem;
   index: number;
 }> = ({ col, index }) => {
-  const { attributes, listeners, setNodeRef: setDragNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    setActivatorNodeRef,
+    isDragging,
+  } = useDraggable({
     id: `field-${col.id}`,
     data: { index },
   });
@@ -39,11 +53,9 @@ const FieldCard: React.FC<{
     >
       <div className='hover:cursor-grab'>
         <Stack horizontal verticalAlign='center'>
-          <div
-            ref={setActivatorNodeRef}
-            {...listeners}
-            {...attributes}
-          >=</div>
+          <div ref={setActivatorNodeRef} {...listeners} {...attributes}>
+            =
+          </div>
           <Stack grow gap={0}>
             <Typography.Text>{col.name}</Typography.Text>
             <Typography.Text type='secondary' style={{ fontSize: 12 }}>

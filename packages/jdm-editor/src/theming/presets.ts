@@ -6,13 +6,11 @@ const fontFamily =
  * do not hand-edit without re-running that suite.
  */
 
-export const MODE_EXTRAS: Record<
-  'light' | 'dark',
-  { borderHover: string; borderFade: string; primaryBgFade: string }
-> = {
-  light: { borderHover: '#c3c3c3', borderFade: '#eef0f5', primaryBgFade: '#f8fafc' },
-  dark: { borderHover: '#555555', borderFade: '#333333', primaryBgFade: '#141414' },
-};
+export const MODE_EXTRAS: Record<'light' | 'dark', { borderHover: string; borderFade: string; primaryBgFade: string }> =
+  {
+    light: { borderHover: '#c3c3c3', borderFade: '#eef0f5', primaryBgFade: '#f8fafc' },
+    dark: { borderHover: '#555555', borderFade: '#333333', primaryBgFade: '#141414' },
+  };
 
 /** Golden preset (antd-calibrated). Exported for the derive golden test; do
  * not hand-edit without re-running `src/theme/__tests__/derive.test.ts`. */

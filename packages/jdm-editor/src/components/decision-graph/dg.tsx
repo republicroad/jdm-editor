@@ -12,10 +12,7 @@ import type { DecisionGraphWrapperProps } from './dg-wrapper';
 import { DecisionGraphWrapper } from './dg-wrapper';
 import type { GraphRef } from './graph/graph';
 
-export type DecisionGraphProps = {
-} & DecisionGraphWrapperProps &
-  DecisionGraphContextProps &
-  DecisionGraphEmptyType;
+export type DecisionGraphProps = {} & DecisionGraphWrapperProps & DecisionGraphContextProps & DecisionGraphEmptyType;
 
 export type DecisionGraphRef = GraphRef;
 

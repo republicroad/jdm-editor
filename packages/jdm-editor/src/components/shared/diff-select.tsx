@@ -1,8 +1,8 @@
-import { Select, type SelectProps, Space, type SpaceProps } from '../primitives';
 import clsx from 'clsx';
 import React from 'react';
 
 import { ArrowDiffIcon } from '../arrow-diff-icon';
+import { Select, type SelectProps, Space, type SpaceProps } from '../primitives';
 
 export type DiffSelectProps = Omit<SelectProps, 'direction'> & {
   previousValue?: string;
@@ -24,10 +24,7 @@ export const DiffSelect: React.FC<DiffSelectProps> = ({
             {...rest}
             disabled
             value={previousValue}
-            className={clsx(
-              rest.className,
-              'text-[var(--destructive)] line-through decoration-[var(--destructive)]',
-            )}
+            className={clsx(rest.className, 'text-[var(--destructive)] line-through decoration-[var(--destructive)]')}
             onChange={undefined}
           />
           <ArrowDiffIcon />

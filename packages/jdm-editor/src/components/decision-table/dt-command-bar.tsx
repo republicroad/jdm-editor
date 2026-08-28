@@ -6,13 +6,13 @@ import {
   ExportOutlined,
   ImportOutlined,
 } from '@/icons';
-import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from '../primitives';
-import { toast } from 'sonner';
 import React, { useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { P, match } from 'ts-pattern';
 
 import type { ParsedExcelData } from '../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../helpers/excel';
+import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from '../primitives';
 import { Stack } from '../stack';
 import type { MappedExcelData } from './components/dt-excel-dialog';
 import { DtExcelDialog } from './components/dt-excel-dialog';
@@ -188,7 +188,12 @@ export const DecisionTableCommandBar: React.FC = () => {
 
   return (
     <>
-      <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className='p-[7px] box-border border-b border-[var(--border)]'>
+      <Stack
+        horizontal
+        horizontalAlign={'space-between'}
+        verticalAlign={'center'}
+        className='p-[7px] box-border border-b border-[var(--border)]'
+      >
         <Stack gap={8} horizontal className='w-full'>
           <Button type='text' size={'small'} icon={<ExportOutlined />} onClick={exportExcel}>
             Export Excel

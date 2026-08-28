@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   DecisionTableProvider,
-  parseDecisionTable,
-  useDecisionTableRaw,
   type DecisionTableType,
   type TableSchemaItem,
+  parseDecisionTable,
+  useDecisionTableRaw,
 } from '../context/dt-store.context';
 
 type ContextValue = ReturnType<typeof useDecisionTableRaw>;
@@ -49,8 +49,8 @@ const baseTable = (): DecisionTableType => ({
   inputs: [inputCol('in-a'), inputCol('in-b')],
   outputs: [outputCol('out-a')],
   rules: [
-    { _id: 'r1', _description: '', 'in-a': '40', 'in-b': '"US"', 'out-a': '40' },
-    { _id: 'r2', _description: '', 'in-a': '60', 'in-b': '"DE"', 'out-a': '60' },
+    { '_id': 'r1', '_description': '', 'in-a': '40', 'in-b': '"US"', 'out-a': '40' },
+    { '_id': 'r2', '_description': '', 'in-a': '60', 'in-b': '"DE"', 'out-a': '60' },
   ],
 });
 

@@ -1,15 +1,10 @@
+import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
-import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
-  addons: [
-    '@storybook/addon-links',
-    'storybook-dark-mode',
-    '@storybook/addon-docs',
-    '@storybook/addon-mcp'
-  ],
+  addons: ['@storybook/addon-links', 'storybook-dark-mode', '@storybook/addon-docs', '@storybook/addon-mcp'],
   staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: '/zen-engine-wasm' }],
   framework: {
     name: '@storybook/react-vite',

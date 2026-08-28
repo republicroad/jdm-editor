@@ -1,10 +1,10 @@
 import { CloseOutlined, MoreOutlined } from '@/icons';
-import { Button, Dropdown, type MenuProps, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import { DiffIcon } from '../../diff-icon';
+import { Button, Dropdown, type MenuProps, Typography } from '../../primitives';
 import { TextEdit } from '../../text-edit';
 import { GraphCard } from './graph-card';
 import { NodeColor } from './specifications/colors';
@@ -138,8 +138,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           <div
             className={clsx(
               'p-2 border-t border-t-[var(--border)]',
-              actions.length === 0 &&
-                'rounded-[0_0_var(--node-border-radius)_var(--node-border-radius)]',
+              actions.length === 0 && 'rounded-[0_0_var(--node-border-radius)_var(--node-border-radius)]',
               noBodyPadding && 'p-0!',
             )}
           >
@@ -172,9 +171,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
             >
               <div className='flex flex-col'>
                 <div className='flex items-center justify-between pl-2.5 bg-[var(--grl-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
-                  <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>
-                    {detailsTitle}
-                  </Typography.Text>
+                  <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>{detailsTitle}</Typography.Text>
                   <Button
                     type={'text'}
                     size={'small'}

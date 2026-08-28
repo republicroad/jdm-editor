@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
 import React, { useState } from 'react';
+import { fn } from 'storybook/test';
 
 import type { DictionaryMap } from '../../../theme';
 import { JdmConfigProvider } from '../../../theme';

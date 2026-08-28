@@ -3,7 +3,10 @@ type BoxLike = {
   height: number;
 };
 
-export const getDropDirection = (activeBox: BoxLike | null | undefined, targetBox: DOMRect | null | undefined): 'up' | 'down' => {
+export const getDropDirection = (
+  activeBox: BoxLike | null | undefined,
+  targetBox: DOMRect | null | undefined,
+): 'up' | 'down' => {
   if (!activeBox || !targetBox) {
     return 'up';
   }

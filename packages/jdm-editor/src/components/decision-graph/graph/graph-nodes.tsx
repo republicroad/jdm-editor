@@ -1,9 +1,9 @@
 import { CloseOutlined, SearchOutlined } from '@/icons';
-import { Avatar, Button, Input, Space, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { Avatar, Button, Input, Space, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphListeners, useDecisionGraphState } from '../context/dg-store.context';
 import { type DecisionNode } from '../dg-types';
 import { NodeColor } from '../nodes/specifications/colors';

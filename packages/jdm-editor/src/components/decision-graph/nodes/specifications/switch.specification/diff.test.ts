@@ -11,10 +11,7 @@ const statement = (id: string, condition?: string, isDefault = false): SwitchSta
 
 describe('diffSwitchContent', () => {
   it('marks hitPolicy changes at the node level', () => {
-    const next = diffSwitchContent(
-      { hitPolicy: 'collect', statements: [] },
-      { hitPolicy: 'first', statements: [] },
-    );
+    const next = diffSwitchContent({ hitPolicy: 'collect', statements: [] }, { hitPolicy: 'first', statements: [] });
 
     expect(next._diff?.status).toBe('modified');
     // Upstream quirk preserved verbatim: previousValue reads the CURRENT hit policy.
@@ -46,16 +43,11 @@ describe('diffSwitchContent', () => {
 
     expect(next._diff).toBeUndefined();
     // The unified list may attach bookkeeping metadata, but no real change status.
-    expect(
-      next.statements?.every((s) => !['modified', 'added', 'removed'].includes(s._diff?.status ?? '')),
-    ).toBe(true);
+    expect(next.statements?.every((s) => !['modified', 'added', 'removed'].includes(s._diff?.status ?? ''))).toBe(true);
   });
 
   it('treats empty-vs-value as a condition change', () => {
-    const next = diffSwitchContent(
-      { statements: [statement('s1', 'x')] },
-      { statements: [statement('s1')] },
-    );
+    const next = diffSwitchContent({ statements: [statement('s1', 'x')] }, { statements: [statement('s1')] });
 
     expect(next.statements?.[0]._diff?.status).toBe('modified');
   });
@@ -69,16 +61,10 @@ describe('diffSwitchContent', () => {
   });
 
   it('handles missing statements arrays on either side', () => {
-    const added = diffSwitchContent(
-      { statements: [statement('s1', 'a')] },
-      {},
-    );
+    const added = diffSwitchContent({ statements: [statement('s1', 'a')] }, {});
     expect(added._diff?.status).toBe('modified');
 
-    const removed = diffSwitchContent(
-      {},
-      { statements: [statement('s1', 'a')] },
-    );
+    const removed = diffSwitchContent({}, { statements: [statement('s1', 'a')] });
     expect(removed._diff?.status).toBe('modified');
   });
 });

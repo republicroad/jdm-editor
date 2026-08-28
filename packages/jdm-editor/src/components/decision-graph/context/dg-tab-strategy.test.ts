@@ -23,7 +23,7 @@ describe('applyCloseTab', () => {
     expect(applyCloseTab(TABS, 't3', 't1')).toEqual({ openTabs: ['t2', 't3'] });
   });
 
-  it("falls back to the tab left of the closed position when the active tab is closed", () => {
+  it('falls back to the tab left of the closed position when the active tab is closed', () => {
     expect(applyCloseTab(TABS, 't3', 't3')).toEqual({ openTabs: ['t1', 't2'], activeTab: 't2' });
   });
 

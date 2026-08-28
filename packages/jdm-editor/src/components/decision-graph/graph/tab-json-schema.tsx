@@ -1,14 +1,14 @@
 import { FormatPainterOutlined, ImportOutlined } from '@/icons';
 import InformationIcon from '@/reui/icons/animated/outline/information';
 import { DiffEditor, Editor } from '@monaco-editor/react';
-import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
-import { useThemeMode } from '../../../theme';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PanelGroup } from 'react-resizable-panels';
 import { match } from 'ts-pattern';
 import { useThrottledCallback } from 'use-debounce';
 
+import { useThemeMode } from '../../../theme';
+import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';
 import { useTabSerializer } from '../context/serializer.context';
 import { JsonToJsonSchemaDialog } from './json-to-json-schema-dialog';
@@ -114,11 +114,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
         } as React.CSSProperties
       }
     >
-      <PanelGroup
-        className='flex-1'
-        direction='horizontal'
-        autoSaveId={`jdm-editor:${type}:schema:layout`}
-      >
+      <PanelGroup className='flex-1' direction='horizontal' autoSaveId={`jdm-editor:${type}:schema:layout`}>
         <div className='h-full w-full'>
           <div className='flex h-full flex-col overflow-hidden bg-[var(--card)]'>
             <div className='flex shrink-0 items-center border-b border-b-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'>

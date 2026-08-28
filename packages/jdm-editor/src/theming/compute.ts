@@ -7,7 +7,7 @@
  * presets.ts; seeds only overlay brand families (see derive.ts for the
  * ladder / dark limitation notes).
  */
-import { deriveSeedOverlays, type ThemeSeeds } from './derive';
+import { type ThemeSeeds, deriveSeedOverlays } from './derive';
 import { MODE_EXTRAS, darkTokens, lightTokens } from './presets';
 
 export type ThemeMode = 'light' | 'dark';

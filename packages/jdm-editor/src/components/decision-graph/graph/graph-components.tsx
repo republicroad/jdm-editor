@@ -1,9 +1,9 @@
 import type { XYPosition } from '@xyflow/react';
-import { Input } from '../../primitives';
 import clsx from 'clsx';
 import React, { useCallback, useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { Input } from '../../primitives';
 import { useDecisionGraphState } from '../context/dg-store.context';
 import { DecisionNode } from '../nodes/decision-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';

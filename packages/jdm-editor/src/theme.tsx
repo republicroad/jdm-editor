@@ -1,13 +1,13 @@
-import { App } from './components/primitives';
 import React, { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 
+import { App } from './components/primitives';
+import { useWasmReady } from './helpers/wasm';
 import { computeTheme } from './theming/compute';
 import type { ThemeSeeds } from './theming/derive';
 import { GrlContainerProvider } from './theming/portal-context';
 
 export { MODE_EXTRAS, darkTokens, lightTokens } from './theming/presets';
-import { useWasmReady } from './helpers/wasm';
 
 export type ThemeConfig = {
   mode?: 'light' | 'dark';
@@ -65,10 +65,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   const styleRef = useRef<HTMLStyleElement>(null);
   const [container, setContainer] = useState<HTMLElement | undefined>(undefined);
 
-  const exposedTokens = useMemo(
-    () => computeTheme(mode, seeds, token),
-    [mode, seeds, token],
-  );
+  const exposedTokens = useMemo(() => computeTheme(mode, seeds, token), [mode, seeds, token]);
 
   useLayoutEffect(() => {
     const root = (anchorRef.current?.closest?.('.grl-root') as HTMLElement | null) ?? undefined;
@@ -112,7 +109,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
     }
   }, [container, exposedTokens]);
 
-    return (
+  return (
     <ThemeModeContext.Provider value={mode}>
       <DictionaryContext.Provider value={dicts}>
         <App>
@@ -131,7 +128,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
             />
           )}
           <GrlContainerProvider container={container}>
-            <Toaster theme={mode} position="bottom-right" richColors />
+            <Toaster theme={mode} position='bottom-right' richColors />
             {children}
           </GrlContainerProvider>
         </App>

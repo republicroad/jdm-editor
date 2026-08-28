@@ -11,12 +11,11 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-
-import { App, Button, Typography } from '../../primitives';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
+import { App, Button, Typography } from '../../primitives';
 import {
   type DecisionGraphStoreType,
   type ExposedStore,
@@ -29,11 +28,11 @@ import {
 import { type DecisionGraphSnapshot, useSerializerRegistry } from '../context/serializer.context';
 import { edgeFunction } from '../custom-edge';
 import { mapToDecisionEdge } from '../dg-util';
-import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import { useGraphDnd } from '../hooks/use-graph-dnd';
 import { componentsOpenedKey, useGraphSerializers } from '../hooks/use-graph-serializers';
 import { useNodeAdd } from '../hooks/use-node-add';
+import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { GraphNode } from '../nodes/graph-node';
 import type { MinimalNodeProps } from '../nodes/specifications/specification-types';
 import { NodeKind } from '../nodes/specifications/specification-types';

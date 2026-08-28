@@ -1,7 +1,8 @@
-import type { RadioGroupProps } from '../primitives';
-import { Radio } from '../primitives';
 import clsx from 'clsx';
 import React from 'react';
+
+import type { RadioGroupProps } from '../primitives';
+import { Radio } from '../primitives';
 
 export type DiffRadioProps = {
   previousValue?: string;

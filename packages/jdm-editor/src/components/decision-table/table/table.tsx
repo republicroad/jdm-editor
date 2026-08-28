@@ -2,16 +2,15 @@ import { PlusCircleOutlined } from '@/icons';
 import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Button, Typography } from '../../primitives';
-import { useThemeMode } from '../../../theme';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
+import { useThemeMode } from '../../../theme';
 import { CellViewPoolProvider } from '../../code-editor/cell-view-pool';
-
+import { Button, Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
 import { TableDefaultCell } from './table-default-cell';
@@ -370,5 +369,14 @@ const StyledTable: React.FC<React.HTMLAttributes<HTMLTableElement> & { width: nu
   width,
   ...props
 }) => {
-  return <table className={clsx('border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--grl-color-bg-container)] h-px min-w-full', className)} style={{ width, ...style }} {...props} />;
+  return (
+    <table
+      className={clsx(
+        'border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--grl-color-bg-container)] h-px min-w-full',
+        className,
+      )}
+      style={{ width, ...style }}
+      {...props}
+    />
+  );
 };

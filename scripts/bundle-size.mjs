@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
 import path from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const dist = path.join(root, 'packages', 'jdm-editor', 'dist');

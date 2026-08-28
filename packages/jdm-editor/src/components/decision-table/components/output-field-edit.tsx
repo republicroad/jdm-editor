@@ -1,9 +1,9 @@
-import type { InputRef } from '../../primitives';
-import { Checkbox, Input, Select } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { type ColumnEnum, OUTPUT_FIELD_TYPE_OPTIONS, type OutputFieldType } from '../../../helpers/schema';
 import { AutosizeTextArea } from '../../autosize-text-area';
+import type { InputRef } from '../../primitives';
+import { Checkbox, Input, Select } from '../../primitives';
 import { useDecisionTableState } from '../context/dt-store.context';
 import { ENUM_MODE_OPTIONS, type EnumMode, getEnumMode, parseEnumString, serializeEnumValues } from './enum-utils';
 import { FieldEditPopover } from './field-edit-popover';
@@ -130,7 +130,13 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
     >
       <div className='space-y-1.5'>
         <FieldLabel>Output Field</FieldLabel>
-        <Input ref={input} value={innerValue} onChange={(e) => setInnerValue(e.target.value)} readOnly={disabled} className='h-8' />
+        <Input
+          ref={input}
+          value={innerValue}
+          onChange={(e) => setInnerValue(e.target.value)}
+          readOnly={disabled}
+          className='h-8'
+        />
       </div>
       {mode === 'create' && (
         <div className='space-y-1.5'>

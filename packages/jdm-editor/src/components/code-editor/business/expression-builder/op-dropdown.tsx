@@ -1,16 +1,9 @@
+import clsx from 'clsx';
 import { SquareFunctionIcon } from 'lucide-react';
 import React, { useState } from 'react';
-import clsx from 'clsx';
 
 import { Popover } from '../../../primitives';
-import {
-  GRID_OPS,
-  OPS_BY_KIND,
-  VALUE_KINDS,
-  getOp,
-  type OperatorType,
-  type ValueKind,
-} from './constants';
+import { GRID_OPS, OPS_BY_KIND, type OperatorType, VALUE_KINDS, type ValueKind, getOp } from './constants';
 import { OpIcon } from './op-icon';
 
 export type OpDropdownProps = {
@@ -48,7 +41,13 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
   const content = (
     <div
       className='bg-popover'
-      style={{ '--bg-light': 'var(--muted)', '--bg-active': 'var(--grl-color-primary-bg)', '--color-active-text': 'var(--primary)' } as React.CSSProperties}
+      style={
+        {
+          '--bg-light': 'var(--muted)',
+          '--bg-active': 'var(--grl-color-primary-bg)',
+          '--color-active-text': 'var(--primary)',
+        } as React.CSSProperties
+      }
     >
       {onKindChange && (
         <div className='flex gap-1.5 border-b border-border p-2'>
@@ -57,7 +56,8 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
               key={t.kind}
               className={clsx(
                 'cursor-pointer rounded-md border-0 bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
-                t.kind === kind && 'bg-[var(--bg-active)] text-[var(--color-active-text)] hover:bg-[var(--bg-active)] hover:text-[var(--color-active-text)]',
+                t.kind === kind &&
+                  'bg-[var(--bg-active)] text-[var(--color-active-text)] hover:bg-[var(--bg-active)] hover:text-[var(--color-active-text)]',
               )}
               onClick={() => onKindChange(t.kind)}
             >
@@ -79,8 +79,19 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
                 )}
                 onClick={() => pick(o.type)}
               >
-                <OpIcon op={o} size={20} className={clsx('mb-1 text-foreground', isSel && 'text-[var(--color-active-text)]')} />
-                <span className={clsx('text-[11px] text-muted-foreground', isSel && 'font-medium text-[var(--color-active-text)]')}>{o.label}</span>
+                <OpIcon
+                  op={o}
+                  size={20}
+                  className={clsx('mb-1 text-foreground', isSel && 'text-[var(--color-active-text)]')}
+                />
+                <span
+                  className={clsx(
+                    'text-[11px] text-muted-foreground',
+                    isSel && 'font-medium text-[var(--color-active-text)]',
+                  )}
+                >
+                  {o.label}
+                </span>
               </button>
             );
           })}
@@ -125,7 +136,14 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
                       size={16}
                       className={clsx('w-5 shrink-0 text-muted-foreground', isSel && 'text-[var(--color-active-text)]')}
                     />
-                    <span className={clsx('text-xs text-foreground', isSel && 'font-medium text-[var(--color-active-text)]')}>{o.label}</span>
+                    <span
+                      className={clsx(
+                        'text-xs text-foreground',
+                        isSel && 'font-medium text-[var(--color-active-text)]',
+                      )}
+                    >
+                      {o.label}
+                    </span>
                   </button>
                 );
               })}

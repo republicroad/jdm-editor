@@ -1,13 +1,13 @@
-import * as React from 'react';
 import {
-  Select as SelectPrimitiveRoot,
   SelectContent as SelectPrimitiveContent,
   SelectItem as SelectPrimitiveItem,
+  Select as SelectPrimitiveRoot,
   SelectTrigger as SelectPrimitiveTrigger,
   SelectValue as SelectPrimitiveValue,
 } from '@/components/ui/select';
-
 import { cn } from '@/lib/utils';
+import * as React from 'react';
+
 import { borderlessInputClass } from './shared';
 
 /** @deprecated antd-migration compat alias — use {@link SelectOption} instead. */
@@ -110,11 +110,7 @@ export const Select: React.FC<AntdSelectProps> = ({
   const menu = (
     <>
       {list.map((option) => (
-        <SelectPrimitiveItem
-          key={String(option.value)}
-          value={String(option.value)}
-          disabled={option.disabled}
-        >
+        <SelectPrimitiveItem key={String(option.value)} value={String(option.value)} disabled={option.disabled}>
           {optionRender ? optionRender({ data: option }) : (option.label ?? String(option.value))}
         </SelectPrimitiveItem>
       ))}
@@ -122,7 +118,7 @@ export const Select: React.FC<AntdSelectProps> = ({
   );
 
   return (
-    <div className="relative inline-flex w-full items-center">
+    <div className='relative inline-flex w-full items-center'>
       <SelectPrimitiveRoot
         value={current}
         defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
@@ -145,26 +141,25 @@ export const Select: React.FC<AntdSelectProps> = ({
           style={style}
         >
           <SelectPrimitiveValue>
-            {selected?.label ?? (placeholder ? (
-              <span className="text-muted-foreground">{placeholder}</span>
-            ) : null)}
+            {selected?.label ?? (placeholder ? <span className='text-muted-foreground'>{placeholder}</span> : null)}
           </SelectPrimitiveValue>
         </SelectPrimitiveTrigger>
-        <SelectPrimitiveContent position="popper">
+        <SelectPrimitiveContent position='popper'>
           {dropdownRender ? dropdownRender(menu) : menu}
         </SelectPrimitiveContent>
       </SelectPrimitiveRoot>
       {allowClear && current ? (
         <button
-          type="button"
-          aria-label="Clear"
+          type='button'
+          aria-label='Clear'
           onClick={() => {
             onClear?.();
             onChange?.(undefined, undefined);
           }}
-          className="absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50"
+          className='absolute right-7 flex size-3.5 items-center justify-center rounded-full bg-muted-foreground/30 text-[10px] leading-none text-background hover:bg-muted-foreground/50'
         >
-          ✕        </button>
+          ✕{' '}
+        </button>
       ) : null}
     </div>
   );

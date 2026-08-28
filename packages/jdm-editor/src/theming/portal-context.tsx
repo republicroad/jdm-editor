@@ -16,12 +16,10 @@ import * as React from 'react';
 
 const GrlContainerContext = React.createContext<HTMLElement | undefined>(undefined);
 
-export const GrlContainerProvider: React.FC<
-  React.PropsWithChildren<{ container: HTMLElement | undefined }>
-> = ({ container, children }) => (
-  <GrlContainerContext.Provider value={container}>{children}</GrlContainerContext.Provider>
-);
+export const GrlContainerProvider: React.FC<React.PropsWithChildren<{ container: HTMLElement | undefined }>> = ({
+  container,
+  children,
+}) => <GrlContainerContext.Provider value={container}>{children}</GrlContainerContext.Provider>;
 
 /** Portal target for `components/ui/*` — the island container, if scoped. */
-export const useGrlPortalContainer = (): HTMLElement | undefined =>
-  React.useContext(GrlContainerContext);
+export const useGrlPortalContainer = (): HTMLElement | undefined => React.useContext(GrlContainerContext);

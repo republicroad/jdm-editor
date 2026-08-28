@@ -1,7 +1,5 @@
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { DiffEditor, Editor, type Monaco, useMonaco } from '@monaco-editor/react';
-import { Spin } from '../primitives';
-import { useThemeMode } from '../../theme';
 import { MarkerSeverity, type editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -9,7 +7,9 @@ import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 
 import '../../helpers/monaco';
 import { isWasmAvailable } from '../../helpers/wasm';
+import { useThemeMode } from '../../theme';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
+import { Spin } from '../primitives';
 import { FunctionDebugger } from './function-debugger';
 import { variableTypeToTypescript } from './helpers/determine-type';
 import { type FunctionLibrary, functionDefinitions, functionLibraries } from './helpers/libs';

@@ -12,63 +12,63 @@ export const DARK_OPS: Record<string, DarkOp> = {
   colorPrimaryHover: {
     oh: -3.49,
     ls: true,
-    lMul: 1.1631
+    lMul: 1.1631,
   },
   colorPrimaryActive: {
     oh: -37.45,
     ls: true,
-    lMul: 1.2542
+    lMul: 1.2542,
   },
   colorPrimaryBg: {
     oh: 4.46,
-    cMul: 0.197
+    cMul: 0.197,
   },
   colorPrimaryBgHover: {
     oh: 0.52,
     ls: true,
-    lMul: 0.4933
+    lMul: 0.4933,
   },
   colorPrimaryBorder: {
     oh: -1.38,
-    cMul: 0.421
+    cMul: 0.421,
   },
   colorPrimaryBorderHover: {
     oh: -4.77,
     ls: true,
-    lMul: 0.9999
+    lMul: 0.9999,
   },
   colorPrimaryTextHover: {
     oh: -3.49,
     ls: true,
-    lMul: 1.1631
+    lMul: 1.1631,
   },
   colorSuccessBg: {
     oh: 0.27,
-    cMul: 0.187
+    cMul: 0.187,
   },
   colorSuccessBorder: {
     oh: -4.95,
-    cMul: 0.525
+    cMul: 0.525,
   },
   colorErrorBg: {
     oh: -9.71,
-    cMul: 0.19
+    cMul: 0.19,
   },
   colorErrorBorder: {
     oh: -3.23,
-    cMul: 0.498
+    cMul: 0.498,
   },
   colorWarningBg: {
     oh: 2.01,
-    cMul: 0.212
+    cMul: 0.212,
   },
   colorWarningBorder: {
     oh: 4.91,
-    cMul: 0.469
+    cMul: 0.469,
   },
   colorWarningText: {
     oh: 0,
     ls: true,
-    lMul: 1
-  }
+    lMul: 1,
+  },
 };

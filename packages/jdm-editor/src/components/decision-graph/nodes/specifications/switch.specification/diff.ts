@@ -1,15 +1,12 @@
 import { produce } from 'immer';
 import _ from 'lodash';
 
-import { compareAndUnifyLists } from '../../../diff/comparison';
 import type { DiffMetadata } from '../../../dg-types';
+import { compareAndUnifyLists } from '../../../diff/comparison';
 import type { NodeSwitchData } from './types';
 
 /** Compute statement-level + node-level diff metadata between two switch contents. */
-export const diffSwitchContent = (
-  current: NodeSwitchData,
-  previous: NodeSwitchData,
-): NodeSwitchData => {
+export const diffSwitchContent = (current: NodeSwitchData, previous: NodeSwitchData): NodeSwitchData => {
   return produce(current, (draft) => {
     const fields: DiffMetadata['fields'] = {};
     if ((current.hitPolicy ?? '') !== (previous.hitPolicy ?? '')) {

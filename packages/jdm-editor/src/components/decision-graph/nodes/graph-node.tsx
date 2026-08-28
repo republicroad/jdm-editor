@@ -1,14 +1,14 @@
 import { BookOutlined } from '@/icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
-import type { MenuProps } from '../../primitives';
-import { App, Button, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React from 'react';
 import { P, match } from 'ts-pattern';
 
 import { platform } from '../../../helpers/platform';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
+import type { MenuProps } from '../../primitives';
+import { App, Button, Typography } from '../../primitives';
 import { SpacedText } from '../../spaced-text';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';
 import type { DecisionNodeProps } from './decision-node';

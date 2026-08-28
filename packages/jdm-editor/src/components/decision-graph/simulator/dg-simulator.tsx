@@ -1,7 +1,6 @@
 import { ClearOutlined, CloseOutlined } from '@/icons';
 import CheckCircleIcon from '@/reui/icons/animated/outline/check-circle';
 import CrossCircleIcon from '@/reui/icons/animated/outline/cross-circle';
-import { Button, Spin, Tabs, Tooltip, Typography } from '../../primitives';
 import clsx from 'clsx';
 import json5 from 'json5';
 import React, { useMemo, useState } from 'react';
@@ -10,6 +9,7 @@ import { P, match } from 'ts-pattern';
 
 import '../../../helpers/monaco';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
+import { Button, Spin, Tabs, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
 import type { SimulationTrace } from './simulation.types';
@@ -79,7 +79,11 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   }, [simulate, search]);
 
   return (
-    <PanelGroup className='h-full w-full bg-[var(--grl-color-primary-bg-fade)]' direction='horizontal' autoSaveId='jdm-editor:simulator:layout'>
+    <PanelGroup
+      className='h-full w-full bg-[var(--grl-color-primary-bg-fade)]'
+      direction='horizontal'
+      autoSaveId='jdm-editor:simulator:layout'
+    >
       <Panel minSize={20} defaultSize={30} className='flex w-[300px] flex-col'>
         <LeftPanel
           defaultRequest={defaultRequest}
@@ -168,7 +172,11 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
                   onClick={() => setSelectedNode(trace.nodeId)}
                   onDoubleClick={() => actions.goToNode(trace.nodeId)}
                 >
-                  <Typography.Text data-role='name' ellipsis={{ tooltip: trace.name }} className='[&>svg]:inline [&>svg]:align-middle'>
+                  <Typography.Text
+                    data-role='name'
+                    ellipsis={{ tooltip: trace.name }}
+                    className='[&>svg]:inline [&>svg]:align-middle'
+                  >
                     <StatusIcon status={trace.nodeId === simulate?.error?.data?.nodeId ? 'error' : 'success'} />
                     {trace.name}
                   </Typography.Text>
@@ -246,16 +254,8 @@ const StatusIcon: React.FC<{ status: 'success' | 'error' | 'not-run' }> = ({ sta
   }
 
   if (status === 'success') {
-    return (
-      <CheckCircleIcon
-        className='size-3 mr-1.5 shrink-0 opacity-50 text-[var(--grl-color-success)]'
-      />
-    );
+    return <CheckCircleIcon className='size-3 mr-1.5 shrink-0 opacity-50 text-[var(--grl-color-success)]' />;
   }
 
-  return (
-    <CrossCircleIcon
-      className='size-3 mr-[5px] shrink-0 text-[var(--destructive)]'
-    />
-  );
+  return <CrossCircleIcon className='size-3 mr-[5px] shrink-0 text-[var(--destructive)]' />;
 };

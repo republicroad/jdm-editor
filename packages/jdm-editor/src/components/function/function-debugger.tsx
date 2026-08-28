@@ -1,11 +1,11 @@
 import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '@/icons';
-import { Button, Tabs, Tooltip, Typography } from '../primitives';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import typeScriptIcon from '../../assets/typescript.svg?inline';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
+import { Button, Tabs, Tooltip, Typography } from '../primitives';
 import { FunctionDebuggerLog } from './function-debugger-log';
 import { type FunctionLibrary } from './helpers/libs';
 
@@ -115,7 +115,10 @@ const FunctionLibraryItem: React.FC<{
   }, [lib.name, editorValue]);
 
   return (
-    <div key={lib.name} className='flex items-center gap-2 border-b border-[var(--grl-color-border-fade)] p-2 no-underline'>
+    <div
+      key={lib.name}
+      className='flex items-center gap-2 border-b border-[var(--grl-color-border-fade)] p-2 no-underline'
+    >
       <img alt='TypeScript Library' src={typeScriptIcon} height={18} />
       <Typography.Text strong>{lib.name}</Typography.Text>
       <Typography.Text type='secondary' style={{ fontSize: 12, marginTop: 1.5 }}>

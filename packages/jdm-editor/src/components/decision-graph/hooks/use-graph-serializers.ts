@@ -1,7 +1,7 @@
 import type { ReactFlowInstance, Viewport } from '@xyflow/react';
 import type { MutableRefObject } from 'react';
 
-import type { ExposedStore, DecisionGraphStoreType } from '../context/dg-store.context';
+import type { DecisionGraphStoreType, ExposedStore } from '../context/dg-store.context';
 import { useGraphSerializer } from '../context/serializer.context';
 
 type TabsSlice = { openTabs: string[]; activeTab: string };

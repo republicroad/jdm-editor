@@ -1,8 +1,9 @@
-import type { ButtonProps } from './primitives';
-import { Button, Tooltip } from './primitives';
 import { TrashIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import { P, match } from 'ts-pattern';
+
+import type { ButtonProps } from './primitives';
+import { Button, Tooltip } from './primitives';
 
 export type ConfirmActionProps = {
   iconOnly?: boolean;

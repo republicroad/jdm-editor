@@ -1,9 +1,9 @@
 import { PlusOutlined, SwapOutlined } from '@/icons';
-import { Button, Tooltip, Typography } from '../../primitives';
 import clsx from 'clsx';
 import React from 'react';
 
 import { DiffIcon } from '../../diff-icon';
+import { Button, Tooltip, Typography } from '../../primitives';
 import { Stack } from '../../stack';
 import { TextEdit } from '../../text-edit';
 import { InputFieldEdit } from '../components/input-field-edit';

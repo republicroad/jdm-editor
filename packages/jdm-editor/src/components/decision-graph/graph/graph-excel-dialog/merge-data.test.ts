@@ -2,13 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ParsedExcelData } from '../../../../helpers/excel';
 import type { NodeKind } from '../../../../helpers/schema';
-import {
-  assembleMergedData,
-  buildAutoSelection,
-  buildMergedItems,
-  isHeaderMatch,
-  mergeHeaders,
-} from './merge-data';
+import { assembleMergedData, buildAutoSelection, buildMergedItems, isHeaderMatch, mergeHeaders } from './merge-data';
 import type { ItemValue, TableHeader } from './types';
 
 const header = (id: string, label = id, value?: string, type?: TableHeader['type']): TableHeader => ({

@@ -3,10 +3,10 @@ import React from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
-  createExpression,
-  ExpressionStoreProvider,
-  useExpressionStoreRaw,
   type ExpressionEntry,
+  ExpressionStoreProvider,
+  createExpression,
+  useExpressionStoreRaw,
 } from '../context/expression-store.context';
 
 type Store = ReturnType<typeof useExpressionStoreRaw>;

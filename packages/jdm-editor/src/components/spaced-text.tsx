@@ -1,6 +1,6 @@
-import { Typography } from './primitives';
 import React from 'react';
 
+import { Typography } from './primitives';
 import { Stack } from './stack';
 
 export type SpacedTextProps = {

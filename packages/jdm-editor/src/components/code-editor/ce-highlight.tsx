@@ -3,12 +3,12 @@ import type { Diagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { highlightCode as lzHighlightCode } from '@lezer/highlight';
-import { useThemeMode } from '../../theme';
 import clsx from 'clsx';
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { P, match } from 'ts-pattern';
 
 import { isWasmAvailable } from '../../helpers/wasm';
+import { useThemeMode } from '../../theme';
 import type { CodeEditorBaseProps } from './ce-base';
 import { escapeHtml, renderDiagnosticMessage } from './extensions/diagnostic';
 import { validateZenExpression } from './extensions/linter';

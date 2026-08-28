@@ -42,7 +42,6 @@ export {
   ChevronRight as RightOutlined,
   Search as SearchOutlined,
   ArrowLeftRight as SwapOutlined,
-
   List as UnorderedListOutlined,
   TriangleAlert as WarningFilled,
   TriangleAlert as WarningOutlined,

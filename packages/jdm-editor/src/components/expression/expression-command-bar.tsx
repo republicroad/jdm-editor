@@ -1,7 +1,7 @@
-import { Select, Typography } from '../primitives';
 import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 
+import { Select, Typography } from '../primitives';
 import { Stack } from '../stack';
 import { useExpressionStoreRaw } from './context/expression-store.context';
 
@@ -30,7 +30,12 @@ export const ExpressionCommandBar: React.FC = () => {
   }
 
   return (
-    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'p-[7px] box-border border-b border-[var(--border)]'}>
+    <Stack
+      horizontal
+      horizontalAlign={'space-between'}
+      verticalAlign={'center'}
+      className={'p-[7px] box-border border-b border-[var(--border)]'}
+    >
       <Stack gap={8} horizontal className='w-full' />
       {traceIndexOptions && (
         <Stack horizontal verticalAlign='center' horizontalAlign='end'>

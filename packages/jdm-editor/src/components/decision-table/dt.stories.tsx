@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
-import { Checkbox } from '../primitives';
 import React, { useEffect, useState } from 'react';
+import { fn } from 'storybook/test';
 
 import type { DictionaryMap } from '../../theme';
 import { JdmConfigProvider } from '../../theme';
+import { Checkbox } from '../primitives';
 import type { DecisionTableType } from './context/dt-store.context';
 import { DecisionTable } from './dt';
 

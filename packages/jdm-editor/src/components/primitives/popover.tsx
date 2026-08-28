@@ -1,9 +1,9 @@
-import * as React from 'react';
 import {
   Popover as UiPopover,
   PopoverContent as UiPopoverContent,
   PopoverTrigger as UiPopoverTrigger,
 } from '@/components/ui/popover';
+import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link PopoverProps} instead. */
 export interface AntdPopoverProps {
@@ -21,12 +21,7 @@ export interface AntdPopoverProps {
   children?: React.ReactNode;
 }
 
-export const Popover: React.FC<AntdPopoverProps> = ({
-  open,
-  onOpenChange,
-  content,
-  children,
-}) => (
+export const Popover: React.FC<AntdPopoverProps> = ({ open, onOpenChange, content, children }) => (
   <UiPopover open={open} onOpenChange={onOpenChange}>
     {/*
      * Wrap the child in a real DOM element unconditionally: Radix `asChild`
@@ -36,7 +31,7 @@ export const Popover: React.FC<AntdPopoverProps> = ({
      * and the popover never opened.
      */}
     <UiPopoverTrigger asChild>
-      <span className="inline-flex">{children}</span>
+      <span className='inline-flex'>{children}</span>
     </UiPopoverTrigger>
     <UiPopoverContent>{content}</UiPopoverContent>
   </UiPopover>

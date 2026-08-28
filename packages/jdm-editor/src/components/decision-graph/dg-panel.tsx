@@ -1,8 +1,8 @@
 import { CloseOutlined } from '@/icons';
-import { Button, Tooltip, Typography } from '../primitives';
 import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';
 
+import { Button, Tooltip, Typography } from '../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from './context/dg-store.context';
 
 const heightKey = 'jdmEditor:graphPanel:height';
@@ -26,7 +26,9 @@ export const GraphPanel: React.FC = () => {
 
   return (
     <Resizable
-      className={'relative flex h-full w-full flex-col border-t border-t-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'}
+      className={
+        'relative flex h-full w-full flex-col border-t border-t-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'
+      }
       defaultSize={{ height: defaultHeight }}
       handleStyles={{
         bottom: { display: 'none' },
@@ -44,7 +46,11 @@ export const GraphPanel: React.FC = () => {
       }}
     >
       {!activePanel.hideHeader && (
-        <div className={'flex flex-row items-center justify-start gap-2 border-b border-b-[var(--border)] py-1 pl-2 pr-1 [&>span]:text-[13px]'}>
+        <div
+          className={
+            'flex flex-row items-center justify-start gap-2 border-b border-b-[var(--border)] py-1 pl-2 pr-1 [&>span]:text-[13px]'
+          }
+        >
           <div className={'grow'}>
             <Typography.Text style={{ fontSize: 13 }}>{activePanel.title}</Typography.Text>
           </div>

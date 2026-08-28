@@ -6,12 +6,12 @@ import {
   NO_VALUE_OPS,
   OPS,
   OPS_BY_KIND,
+  type ValueKind,
   defaultValue,
   enumFilterOption,
   getEnumOptions,
   getOp,
   getValueKind,
-  type ValueKind,
 } from './constants';
 import { inferKindFromExpr, isExprCompatibleWithKind } from './use-expression-state';
 
@@ -111,9 +111,7 @@ describe('getValueKind / enumFilterOption / getEnumOptions', () => {
 
   it('returns null without an enum, with empty inline values, or on non-string fields', () => {
     expect(getEnumOptions({ type: 'string' })).toBeNull();
-    expect(
-      getEnumOptions({ type: 'string', enum: { type: 'inline', values: [] } } as ColumnFieldType),
-    ).toBeNull();
+    expect(getEnumOptions({ type: 'string', enum: { type: 'inline', values: [] } } as ColumnFieldType)).toBeNull();
     expect(getEnumOptions({ type: 'number' })).toBeNull();
   });
 });

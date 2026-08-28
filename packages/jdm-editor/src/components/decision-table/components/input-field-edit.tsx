@@ -1,6 +1,4 @@
 import { type Variable } from '@gorules/zen-engine-wasm';
-import type { InputRef } from '../../primitives';
-import { Checkbox, Input, Select } from '../../primitives';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';
@@ -8,6 +6,8 @@ import { AutosizeTextArea } from '../../autosize-text-area';
 import type { CodeEditorRef } from '../../code-editor';
 import { CodeEditor } from '../../code-editor';
 import { CodeEditorPreview } from '../../code-editor/ce-preview';
+import type { InputRef } from '../../primitives';
+import { Checkbox, Input, Select } from '../../primitives';
 import { useDecisionTableState } from '../context/dt-store.context';
 import { ENUM_MODE_OPTIONS, type EnumMode, getEnumMode, parseEnumString, serializeEnumValues } from './enum-utils';
 import { FieldEditPopover } from './field-edit-popover';

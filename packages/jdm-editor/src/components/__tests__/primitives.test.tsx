@@ -106,13 +106,7 @@ describe('Select shim value semantics (antd contract)', () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(
-      <Select
-        allowClear
-        value='x'
-        onClear={onClear}
-        onChange={onChange}
-        options={[{ value: 'x', label: 'x' }]}
-      />,
+      <Select allowClear value='x' onClear={onClear} onChange={onChange} options={[{ value: 'x', label: 'x' }]} />,
     );
 
     await user.click(document.querySelector('button[aria-label="Clear"]')!);
@@ -243,7 +237,11 @@ describe('Button shim mapping', () => {
 
 describe('Typography shim', () => {
   it('Text applies semantic color class and ellipsis tooltip title', () => {
-    render(<Typography.Text type='secondary' ellipsis={{ tooltip: 'Full text' }}>hi</Typography.Text>);
+    render(
+      <Typography.Text type='secondary' ellipsis={{ tooltip: 'Full text' }}>
+        hi
+      </Typography.Text>,
+    );
 
     const el = screen.getByText('hi');
     expect(el).toHaveClass('text-muted-foreground');

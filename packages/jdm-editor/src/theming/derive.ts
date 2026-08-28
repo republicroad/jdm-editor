@@ -18,7 +18,6 @@
  * not decompose into seed mixes (offline spread > 0.6). Dark mode therefore
  * keeps its calibrated constants until P0 phase 2 introduces an OKLCH model.
  */
-
 import { hexToOklch, oklchToHex } from './color';
 import { DARK_OPS } from './dark-ops';
 import { darkTokens } from './presets';
@@ -119,9 +118,7 @@ export const DARK_DEF_SEEDS: Record<'primary' | 'success' | 'error' | 'warning',
 /** Family seeds behind the calibrated DARK preset. */
 function isDefaultSeedSet(mode: ThemeModeLite, seeds: ThemeSeeds): boolean {
   const defaults =
-    mode === 'dark'
-      ? (DARK_DEF_SEEDS as Record<string, string>)
-      : (ANTD_DEFAULT_SEEDS as Record<string, string>);
+    mode === 'dark' ? (DARK_DEF_SEEDS as Record<string, string>) : (ANTD_DEFAULT_SEEDS as Record<string, string>);
   const entries = Object.entries(seeds).filter(([, v]) => v !== undefined);
   if (entries.length === 0) return true;
   if (mode === 'dark') {

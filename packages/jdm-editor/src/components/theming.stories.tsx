@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useMemo, useState } from 'react';
 
-import { computeTheme, type ThemeMode } from '../theming/compute';
+import { type ThemeMode, computeTheme } from '../theming/compute';
 import type { ThemeSeeds } from '../theming/derive';
 import { Typography } from './primitives';
 
@@ -90,9 +90,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
     const [copied, setCopied] = useState(false);
 
     const pick = (...names: string[]) =>
-      names
-        .map((n) => [n, theme[n]] as [string, string])
-        .filter(([, v]) => v !== undefined);
+      names.map((n) => [n, theme[n]] as [string, string]).filter(([, v]) => v !== undefined);
 
     const familyBlock = (fam: string) => {
       const keys = Object.keys(theme)
@@ -104,8 +102,9 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
     return (
       <div style={{ maxWidth: 1080 }}>
         <Typography.Title level={5}>Seeds → derived tokens</Typography.Title>
-        <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-          Values come straight from <code>computeTheme(mode, seeds)</code>. Both modes respond to seeds (dark = OKLab hue/lightness transforms over the calibrated navy anchors).
+        <Typography.Paragraph type='secondary' style={{ fontSize: 12 }}>
+          Values come straight from <code>computeTheme(mode, seeds)</code>. Both modes respond to seeds (dark = OKLab
+          hue/lightness transforms over the calibrated navy anchors).
         </Typography.Paragraph>
 
         <SwatchRow label={`primary (${mode})`} entries={familyBlock('primary')} />
@@ -113,7 +112,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
           <SwatchRow key={f} label={f} entries={familyBlock(f)} />
         ))}
         <SwatchRow
-          label="fields"
+          label='fields'
           entries={[
             ['--grl-color-field-input', theme['--grl-color-field-input']],
             ['--grl-color-field-input-hover', theme['--grl-color-field-input-hover']],
@@ -123,7 +122,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
           ]}
         />
         <SwatchRow
-          label="surfaces"
+          label='surfaces'
           entries={pick(
             '--grl-color-bg-layout',
             '--grl-color-bg-container',
@@ -136,7 +135,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
 
         <div style={{ marginTop: 16 }}>
           <button
-            type="button"
+            type='button'
             onClick={() => {
               void navigator.clipboard?.writeText(JSON.stringify(theme, null, 2));
               setCopied(true);
@@ -147,7 +146,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
             {copied ? 'Copied!' : 'Copy --grl-* map'}
           </button>{' '}
           <a
-            href="#"
+            href='#'
             onClick={(e) => {
               e.preventDefault();
               window.alert(JSON.stringify(theme, null, 2));

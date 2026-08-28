@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import React, { forwardRef } from 'react';
 
-import { useRecycledEditorView, type DisplayType } from './cell-view-pool';
+import { type DisplayType, useRecycledEditorView } from './cell-view-pool';
 
 /**
  * Read-only display surface backed by a RECYCLED EditorView from the
