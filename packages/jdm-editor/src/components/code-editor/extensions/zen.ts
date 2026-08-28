@@ -260,7 +260,7 @@ export const zenLanguage = new LanguageSupport(
   }),
 );
 
-const zenTemplateLanguage = new LanguageSupport(
+export const zenTemplateLanguage = new LanguageSupport(
   LRLanguage.define({
     parser: zenTemplateParser.configure({
       wrap: parseMixed((node) => {

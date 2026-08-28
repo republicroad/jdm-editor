@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
+import { CellViewPoolProvider } from '../../code-editor/cell-view-pool';
 
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
@@ -325,35 +326,39 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
 
     return (
       <tbody ref={ref} {...props} onKeyDown={onKeyDown}>
-        {paddingTop > 0 && (
-          <tr>
-            <td
-              className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
-              style={{ height: `${paddingTop}px` }}
-            />
-          </tr>
-        )}
-        {virtualItems.map((item) => {
-          const row = rows[item.index];
+        {/* Display-view pool for the lazy highlighter-view path (roadmap §3.6):
+            DOM-less provider, lives for the whole table, default cap 64. */}
+        <CellViewPoolProvider>
+          {paddingTop > 0 && (
+            <tr>
+              <td
+                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+                style={{ height: `${paddingTop}px` }}
+              />
+            </tr>
+          )}
+          {virtualItems.map((item) => {
+            const row = rows[item.index];
 
-          return (
-            <TableRow
-              key={item.key}
-              virtualItem={item}
-              row={row}
-              disabled={disabled}
-              onResize={virtualizer.measureElement}
-            />
-          );
-        })}
-        {paddingBottom > 0 && (
-          <tr>
-            <td
-              className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
-              style={{ height: `${paddingBottom}px` }}
-            />
-          </tr>
-        )}
+            return (
+              <TableRow
+                key={item.key}
+                virtualItem={item}
+                row={row}
+                disabled={disabled}
+                onResize={virtualizer.measureElement}
+              />
+            );
+          })}
+          {paddingBottom > 0 && (
+            <tr>
+              <td
+                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+                style={{ height: `${paddingBottom}px` }}
+              />
+            </tr>
+          )}
+        </CellViewPoolProvider>
       </tbody>
     );
   },
