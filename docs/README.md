@@ -32,6 +32,8 @@
 | [`codemirror-theme-migration.zh-CN.md`](./codemirror-theme-migration.zh-CN.md) | 中文 | CodeMirror 皮肤层叠债(中文对照):光标漂移根因、已接受 workaround、theme() 迁移实录与迭代轨迹、Spike-A 否决备忘、池化复活路径归档 |
 | [`shadcn-theming-roadmap.md`](./shadcn-theming-roadmap.md) | EN | One-click retheming roadmap: acceptance criteria, token pipeline review, P0–P4 phases (seed derivation incl. OKLab dark, hardcoded closure, cascade cleanup incl. Spike-A verdict, scoped injection deferred, CI guards), double-layer decision record, style-debt registry |
 | [`shadcn-theming-roadmap.zh-CN.md`](./shadcn-theming-roadmap.zh-CN.md) | 中文 | 一键换肤长期路线图(中文对照):验收标准、token 管道、P0–P4 阶段计划、双层结构决策记录、样式债务注册表(GRL-STYLE-HACK 索引) |
+| [`editor-engines.md`](./editor-engines.md) | EN | CodeMirror 6 vs Monaco: usage matrix (table cells / expressions / function body / simulator / JSON schema), the four decisive selection dimensions, and the shared token-theming contract |
+| [`editor-engines.zh-CN.md`](./editor-engines.zh-CN.md) | 中文 | 编辑器引擎选型说明(中文对照):CodeMirror 6 与 Monaco 的场景矩阵、四个决定性选型维度、共享 token 主题契约 |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
 | [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
 
