@@ -1,7 +1,7 @@
 /**
  * Removes declaration side-products that vite-plugin-dts@5 (unplugin-dts) emits
- * alongside the rolled-up entry files. Only artifacts referenced by package.json
- * `files`/exports survive.
+ * alongside the rolled-up entry files. Keeps all JS/CSS output (including
+ * code-split chunks) so the published dist is self-contained.
  *
  * Usage: node clean-dist.mjs [distDir]   (defaults to <repo>/packages/jdm-editor/dist)
  */
@@ -18,21 +18,15 @@ if (!existsSync(dist)) {
   process.exit(1);
 }
 
-const KEEP = new Set([
-  'index.js',
-  'index.js.map',
-  'index.d.ts',
-  'index.d.ts.map',
-  'schema.js',
-  'schema.js.map',
-  'schema.d.ts',
-  'schema.d.ts.map',
-  'style.css',
-]);
+/* Keep everything Vite/Rollup emits as functional output (JS, CSS, sourcemaps).
+ * Only remove non-functional artifacts (e.g. unbundled .d.ts entry stubs from
+ * vite-plugin-dts that are superseded by the bundled index.d.ts). */
+const isOutput = (name) =>
+  /\.js$/.test(name) || /\.js\.map$/.test(name) || /\.css$/.test(name) || /^index\.d\.ts(\.map)?$/.test(name);
 
 for (const entry of readdirSync(dist)) {
-  if (!KEEP.has(entry)) {
+  if (!isOutput(entry)) {
     rmSync(path.join(dist, entry), { recursive: true, force: true });
   }
 }
-console.log('[clean-dist] kept:', [...KEEP].join(', '));
+console.log('[clean-dist] kept functional output, removed non-JS/CSS side-products');
