@@ -38,23 +38,23 @@ const preview: Preview = {
       const isDark = useDarkMode();
 
       return (
-        <JdmConfigProvider theme={{ mode: isDark ? 'dark' : 'light' }}>
-          <div className='grl-root' style={{ height: '100%' }}>
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
-                body {
-                  height: 100vh;
-                }
-                #storybook-root {
-                  height: 100%;
-                }
-                `,
-              }}
-            />
+        <div className='grl-root' style={{ height: '100%' }}>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }
+              body {
+                height: 100vh;
+              }
+              #storybook-root {
+                height: 100%;
+              }
+              `,
+            }}
+          />
+          <JdmConfigProvider theme={{ mode: isDark ? 'dark' : 'light' }}>
             <Story />
-          </div>
-        </JdmConfigProvider>
+          </JdmConfigProvider>
+        </div>
       );
     },
   ],

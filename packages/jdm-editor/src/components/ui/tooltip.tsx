@@ -1,4 +1,7 @@
+
 "use client"
+
+import { useGrlPortalContainer } from '../../theming/portal-context';
 
 import * as React from "react"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
@@ -36,8 +39,9 @@ function TooltipContent({
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  const grlContainer = useGrlPortalContainer();
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal container={grlContainer}>
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}

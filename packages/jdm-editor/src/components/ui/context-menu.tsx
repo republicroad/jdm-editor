@@ -1,4 +1,7 @@
+
 "use client"
+
+import { useGrlPortalContainer } from '../../theming/portal-context';
 
 import * as React from "react"
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
@@ -20,28 +23,32 @@ function ContextMenuTrigger(
 function ContextMenuPortal(
   props: React.ComponentProps<typeof ContextMenuPrimitive.Portal>,
 ) {
+  const grlContainer = useGrlPortalContainer();
   return (
-    <ContextMenuPrimitive.Portal data-slot="context-menu-portal" {...props} />
+    <ContextMenuPrimitive.Portal data-slot="context-menu-portal" container={grlContainer} {...props} />
   )
 }
 
 const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <ContextMenuPrimitive.Portal>
-    <ContextMenuPrimitive.Content
-      ref={ref}
-      data-slot="context-menu-content"
+>(({ className, ...props }, ref) => {
+  const grlContainer = useGrlPortalContainer();
+  return (
+    <ContextMenuPrimitive.Portal container={grlContainer}>
+      <ContextMenuPrimitive.Content
+        ref={ref}
+        data-slot="context-menu-content"
         className={cn(
           // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
-          "box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-          className
+          'box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+          className,
         )}
-      {...props}
-    />
-  </ContextMenuPrimitive.Portal>
-))
+        {...props}
+      />
+    </ContextMenuPrimitive.Portal>
+  );
+});
 ContextMenuContent.displayName = "ContextMenuContent"
 
 const ContextMenuItem = React.forwardRef<

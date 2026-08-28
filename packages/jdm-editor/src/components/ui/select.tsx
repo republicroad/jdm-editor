@@ -1,3 +1,4 @@
+import { useGrlPortalContainer } from '../../theming/portal-context';
 import * as React from "react"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
@@ -55,8 +56,9 @@ function SelectContent({
   align = "center",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const grlContainer = useGrlPortalContainer();
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={grlContainer}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(

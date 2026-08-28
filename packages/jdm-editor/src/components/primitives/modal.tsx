@@ -67,13 +67,6 @@ export const Modal: React.FC<{
         style={{
           maxWidth: typeof width === 'number' ? `${width}px` : width,
           maxHeight: 'calc(100dvh - 48px)',
-          // Radix PORTALS mount under <body>, outside .grl-root, so the scoped
-          // preflight (`:where(*) { box-sizing: border-box }`) never reaches
-          // them and the shadcn template silently becomes content-box — maxHeight
-          // then excludes its own p-6 padding (+48px overflow). Declare it here.
-          // Registered as GRL-STYLE-HACK[HK-14]; systemic fix = portal scoping,
-          // docs/shadcn-theming-roadmap.zh-CN.md §P3 + troubleshooting case #4.
-          boxSizing: 'border-box',
         }}
       >
         {title ? (

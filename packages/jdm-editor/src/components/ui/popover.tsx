@@ -1,3 +1,4 @@
+import { useGrlPortalContainer } from '../../theming/portal-context';
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
@@ -21,8 +22,9 @@ function PopoverContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  const grlContainer = useGrlPortalContainer();
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={grlContainer}>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}

@@ -1,9 +1,10 @@
 import { App } from './components/primitives';
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'sonner';
 
 import { computeTheme } from './theming/compute';
 import type { ThemeSeeds } from './theming/derive';
+import { GrlContainerProvider } from './theming/portal-context';
 
 export { MODE_EXTRAS, darkTokens, lightTokens } from './theming/presets';
 import { useWasmReady } from './helpers/wasm';
@@ -30,15 +31,11 @@ export const DictionaryProvider: React.FC<React.PropsWithChildren<{ value: Dicti
   children,
 }) => <DictionaryContext.Provider value={value}>{children}</DictionaryContext.Provider>;
 
-
-/** Mode-scoped constants formerly inline ternaries in GlobalCssVariables
- * (roadmap P0/C4: single source, no branch literals in the render path). */
 export type JdmConfigProviderProps = {
   theme?: ThemeConfig;
   /**
-   * Brand seed colors (roadmap P0, one-click retheming). Light mode derives
-   * the brand families; dark mode currently keeps its calibrated constants.
-   * Explicit `theme.token` entries always win over derived values.
+   * Brand seed colors (roadmap P0, one-click retheming). Both modes derive
+   * brand families; explicit `theme.token` entries always win.
    */
   seeds?: ThemeSeeds;
   prefixCls?: string;
@@ -56,39 +53,84 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
 
   const dicts = useMemo(() => dictionaries ?? {}, [dictionaries]);
 
-  return (
+  /* ── Scoped injection (roadmap P3) ─────────────────────────────────────────
+   * When the provider mounts inside a `.grl-root` island, tokens become inline
+   * properties on THAT container and `data-mode` lives there too — multiple
+   * independently-themed islands can coexist, and Radix portals (via
+   * GrlContainerProvider) stay inside the island's variable scope, which also
+   * brings the scoped preflight over portaled nodes (HK-14).
+   * Legacy fallback: no `.grl-root` ancestor → global `:root` style tag +
+   * documentElement dataset, exactly as before P3. */
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const styleRef = useRef<HTMLStyleElement>(null);
+  const [container, setContainer] = useState<HTMLElement | undefined>(undefined);
+
+  const exposedTokens = useMemo(
+    () => computeTheme(mode, seeds, token),
+    [mode, seeds, token],
+  );
+
+  useLayoutEffect(() => {
+    const root = (anchorRef.current?.closest?.('.grl-root') as HTMLElement | null) ?? undefined;
+    setContainer(root);
+  }, []);
+
+  useLayoutEffect(() => {
+    const target = (container ?? document.documentElement) as HTMLElement & {
+      dataset: Record<string, string>;
+    };
+    target.dataset.mode = mode;
+    return () => {
+      delete target.dataset.mode;
+    };
+  }, [container, mode]);
+
+  useLayoutEffect(() => {
+    if (container) {
+      const keys = Object.keys(exposedTokens);
+      for (const key of keys) {
+        container.style.setProperty(key, exposedTokens[key]);
+      }
+      return () => {
+        for (const key of keys) {
+          container.style.removeProperty(key);
+        }
+      };
+    }
+
+    const el = styleRef.current;
+    if (el) {
+      const cssBlock = Object.entries(exposedTokens)
+        .map(([key, value]) => `  ${key}: ${value};`)
+        .join('\n');
+      el.textContent = `:root {\n${cssBlock}\n}`;
+    }
+  }, [container, exposedTokens]);
+
+    return (
     <ThemeModeContext.Provider value={mode}>
       <DictionaryContext.Provider value={dicts}>
         <App>
-          <GlobalCssVariables mode={mode} overrides={token} seeds={seeds} />
-          <Toaster theme={mode} position="bottom-right" richColors />
-          {children}
+          <span ref={anchorRef} style={{ display: 'none' }} data-grl-anchor='' />
+          {!container && (
+            <style
+              ref={styleRef}
+              dangerouslySetInnerHTML={{
+                __html: (() => {
+                  const cssBlock = Object.entries(exposedTokens)
+                    .map(([key, value]) => `  ${key}: ${value};`)
+                    .join('\n');
+                  return `:root {\n${cssBlock}\n}`;
+                })(),
+              }}
+            />
+          )}
+          <GrlContainerProvider container={container}>
+            <Toaster theme={mode} position="bottom-right" richColors />
+            {children}
+          </GrlContainerProvider>
         </App>
       </DictionaryContext.Provider>
     </ThemeModeContext.Provider>
   );
-};
-
-const GlobalCssVariables: React.FC<{
-  mode: 'light' | 'dark';
-  overrides: Record<string, unknown>;
-  seeds?: ThemeSeeds;
-}> = ({ mode, overrides, seeds }) => {
-  useEffect(() => {
-    document.documentElement.dataset.mode = mode;
-    return () => {
-      delete document.documentElement.dataset.mode;
-    };
-  }, [mode]);
-
-  const exposedTokens = useMemo(
-    () => computeTheme(mode, seeds, overrides),
-    [mode, seeds, overrides],
-  );
-
-  const cssBlock = Object.entries(exposedTokens)
-    .map(([key, value]) => `  ${key}: ${value};`)
-    .join('\n');
-
-  return <style dangerouslySetInnerHTML={{ __html: `:root {\n${cssBlock}\n}` }} />;
 };

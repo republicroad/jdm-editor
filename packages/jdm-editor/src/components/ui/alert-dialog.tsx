@@ -1,4 +1,7 @@
+
 "use client"
+
+import { useGrlPortalContainer } from '../../theming/portal-context';
 
 import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
@@ -51,8 +54,9 @@ function AlertDialogContent({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: "default" | "sm"
 }) {
+  const grlContainer = useGrlPortalContainer();
   return (
-    <AlertDialogPortal>
+    <AlertDialogPortal container={grlContainer}>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
