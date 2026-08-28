@@ -90,6 +90,7 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
   back to portaled nodes, retiring the explicit Modal patch.
 - ⚠️ Host-visible behavior change — requires host regression sign-off.
 - Depends on P0/P1/P2 being done.
+- **Close-out Batch S (lexical-scope hardening) is chartered**: semantic bridge into the island / dark-variant island-boundary isolation / Shadow DOM memo / isolation harness — see the Batch S section below.
 
 ### P4 — Guardrails ✅ (Batches A/E, ongoing)
 - `pnpm lint:debt`: `!important` budget (18→11) and raw-hex zero (whitelist =
@@ -109,6 +110,98 @@ mode ✅ · provider `token` passthrough ✅ · `seeds` derivation both modes �
   surfaced by these very assertions.
 
 P4 is complete.
+
+
+## Batch S — Lexical-Scope Hardening (final close-out batch · chartered, unscheduled)
+
+> Positioning: P3 topologized variables/portals/data-mode (scope decided by
+> component tree). This batch pulls the remaining global leaks inside the same
+> boundary — the closing act for library distribution and host style isolation.
+> Audit baseline: 2026-08, three leaks (L-A/L-B/L-C) + one directional
+> decision (S3).
+
+### Leak audit
+
+| # | Leak | Location | Risk scenario |
+| --- | --- | --- | --- |
+| L-A | Semantic bridge on `:root`: `tokens.css` defines `--background/--primary/--radius…` globally | `tokens.css:12-68` | A host also running shadcn has its own `:root` semantic layer; load order decides who clobbers whom — the canonical library-pollution incident |
+| L-B | dark variant cross-island bleed: `@custom-variant dark` matches `[data-mode='dark']` and descendants | `tailwind.css` (`@custom-variant` line) | Host page sets `html[data-mode=dark]` while the island Provider forces light → island `dark:` variants still ignite; variables say light, components say dark |
+| L-C | misc globals (`--mono-font-family`, `--grl-transition`…) | `tokens.css` / `tailwind.css` | generic names, constant values, benign collisions — document only |
+
+### S1 · Semantic bridge into the island (core, fixes L-A)
+
+A P3-established fact makes this clean: **on an island, `.grl-*` are always
+defined** (inline-injected), so the bridge's static fallbacks are unreachable
+there. Bridge selectors become:
+
+```css
+.grl-root { --background: var(--grl-color-bg-layout, #f5f5f5); /* …all semantic keys */ }
+
+/* legacy: only when no island exists on the page */
+:root:not(:has(.grl-root)) { /* existing light/dark mode blocks */ }
+```
+
+- Effect: the host's shadcn semantic layer and ours become fully mutually
+  oblivious; multiple islands resolve independently
+- `:has()` is green across evergreen browsers (2023+), acceptable for
+  distribution
+- Risk check: every bridged key (incl. `--radius`) must have an island-level
+  upstream or its own default
+- ⚠️ **Open question (must be answered before executing)**: hosts referencing
+  `var(--background)`-style semantic vars OUTSIDE the island (to follow our
+  theme) break under S1 — provide an explicit opt-out variable package
+  (standalone css or a documented copy list) for those hosts
+
+### S2 · dark-variant island-boundary isolation (fixes L-B)
+
+Append a light-island exclusion to the custom variant:
+
+```css
+@custom-variant dark (
+  &:where([data-mode='dark'], [data-mode='dark'] *):not(
+    :where(.grl-root[data-mode='light'], .grl-root[data-mode='light'] *)
+  )
+);
+```
+
+Host dark + island light → island `dark:` variants no longer ignite; islands
+declaring dark still hit the first arm; non-island elements behave as today.
+
+### S3 · Shadow DOM decision memo (evaluated, NOT implemented, archived triggers)
+
+The ultimate lexical scope, but hard-blocked:
+
+- **Monaco relies on document-level listeners/globals with known shadow-DOM
+  defects** — not viable while the function editor uses Monaco (see
+  `editor-engines.md`)
+- Feasible surfaces: CM6 supports a `root` option ✓ · Radix Portal
+  `container=shadowRoot` ✓ · custom properties inherit across shadow
+  boundaries ✓ (token layer is naturally compatible)
+- Trigger: any point where Monaco is replaced/removed
+
+### S4 · Isolation harness (regression guard)
+
+New `theming--isolation` story + Playwright probes:
+
+1. Two islands side-by-side (different seeds × modes) → same-name vars differ,
+   no cross-influence
+2. Mock host element outside islands (own `--background`) → unaffected by
+   island/bridge
+3. Host html forced dark + island light → island `dark:` variants inactive
+   (S2 regression lock)
+4. Full 57-story regression (S1 selector changes touch the whole surface)
+
+### Explicitly out of scope
+
+- **Utility prefix** (Tailwind prefix): README rules collisions benign; change
+  surface = every component className, payoff disproportional
+- **`@scope`**: Firefox not ready, fails the distribution baseline
+- **Shadow DOM implementation**: see S3
+
+### Sizing & order
+
+S1 (0.5d) → S2 (0.25d) → S4 (0.5d) → S3 archive (0.1d); ≈1.5d total.
+Execution gate: an answer to the S1 open question; host regression notice.
 
 ## 3. Double-Layer Structure Decision Record
 

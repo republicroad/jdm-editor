@@ -79,12 +79,93 @@ tailwind.css @theme inline
   Radix Portal 加 container 同属此批工作。
 - ⚠️ 改变宿主可见全局行为（选择器不再落在 documentElement 上），需通知所有接入方回归验证后再上。
 - 依赖：P0/P1/P2 完成，避免两头同时动。
+- **收尾批次 Batch S（词法作用域硬化）已立项**：语义桥入岛 / dark 变体岛界隔离 / Shadow DOM 备忘 / 隔离验证台——详见下方 Batch S 一节。
 
 ### P4 — 护栏固化（贯穿各阶段）✅ 完成（Batch A/E + CI 接入）
 - CI 计数断言：原始 hex 白名单外新增即 fail；`!important` 预算只减不增。✅ `pnpm lint:debt`，**已接入 `.github/workflows/validate.yaml`**（Style-debt budget 步骤）
 - 几何对齐探针进 `test-storybook`（依托 LazyParity）。✅ **CI 增加 Storybook interaction suite 步骤**（含 Playwright chromium 安装）
 - Storybook 加 modes × palettes 组合预览页。✅ **Theming / Seeds Playground** story（Batch E；『应用到页面』留待 P3）
 - **对比度断言** ✅（theming/contrast.test）：对派生 token 的关键文本对跑 WCAG 比值断言（正文 ≥4.5、大字号/实底按钮 ≥3.0、抽样种子联动），随 vitest 进 verify/CI。实测登记两处上游特征：antd 默认 primary 对白 4.10（阈值按行业惯例取 4.0）、warning 文/底对 2.76（阈值 2.5 如实记录）；修复过程中顺带修出 flattenOver 浮点 hex 缺陷
+
+
+## Batch S — 词法作用域硬化（最终收尾批次 · 已立项，未排期）
+
+> 定位：P3 完成了变量/Portal/data-mode 的「拓扑化」（作用域由组件树决定），
+> 本批次把剩余的全局泄漏点全部收进同一边界——库分发与宿主样式隔离的收官工程。
+> 审计基线：2026-08，3 处泄漏点（L-A/L-B/L-C）+ 1 项方向性决策（S3）。
+
+### 泄漏点审计
+
+| # | 泄漏点 | 位置 | 风险场景 |
+| --- | --- | --- | --- |
+| L-A | 语义桥挂 `:root`：`tokens.css` 的 `--background/--primary/--radius…` 全局定义 | `tokens.css:12-68` | 宿主同用 shadcn 时，双方 ` :root` 语义变量按加载顺序互相覆写——库分发最典型的污染事故 |
+| L-B | dark 变体跨岛串扰：`@custom-variant dark` 匹配 `[data-mode='dark']` 及其后代 | `tailwind.css`（`@custom-variant` 行） | 宿主页面级 `html[data-mode=dark]` + 岛内 Provider 强制 light → 岛内 `dark:` 变体仍被点亮，变量说亮、组件说暗的混合态 |
+| L-C | 杂项全局声明（`--mono-font-family`、`--grl-transition` 等） | `tokens.css` /`tailwind.css` | 通用命名但值恒定，冲突良性——仅文档化，不动 |
+
+### S1 · 语义桥入岛（核心，修 L-A）
+
+利用 P3 已成立的事实——**岛上 `.grl-*` 恒有定义**（provider 内联注入），语义桥的
+静态回退值在岛上不可达。桥选择器改为：
+
+```css
+.grl-root { --background: var(--grl-color-bg-layout, #f5f5f5); /* …其余语义键 */ }
+
+/* legacy：仅当页面不存在任何岛时生效 */
+:root:not(:has(.grl-root)) { /* 现有 light/dark 双模式块 */ }
+```
+
+- 效果：宿主的 shadcn 语义层与本库**完全互不感知**；多岛各自解析
+- `:has()` 已全主流可用（2023+），满足库分发基线
+- 风险核对：桥内每个键（含 `--radius`）在岛内必须有 `--grl-*` 上游或自身默认
+- ⚠️ **开放问题（执行前必须回答）**：若宿主在岛**外**引用 `var(--background)` 等
+  语义变量以跟随本库主题（S1 后将失效），需为这类宿主提供 `.grl-root` 外的
+  显式 opt-out 变量包（独立静态 css 或文档化复制清单）
+
+### S2 · dark 变体岛界隔离（修 L-B）
+
+`@custom-variant dark` 追加亮岛排除的复合选择器：
+
+```css
+@custom-variant dark (
+  &:where([data-mode='dark'], [data-mode='dark'] *):not(
+    :where(.grl-root[data-mode='light'], .grl-root[data-mode='light'] *)
+  )
+);
+```
+
+宿主暗 + 岛明 → 岛内不再被宿主的暗色变体点亮；岛自宣告 dark 时走第一臂；
+非岛元素行为与现状一致。
+
+### S3 · Shadow DOM 决策备忘（评估后不实施，归档触发条件）
+
+词法作用域的终极形态，但存在硬阻断：
+
+- **Monaco 依赖 document 级监听/Globals，Shadow DOM 下有已知缺陷**——函数
+  编辑器仍用 Monaco 则不可行（选型依据见 `editor-engines.md`）
+- 可行面盘点：CM6 支持 `root` 选项 ✓ · Radix Portal `container=shadowRoot` ✓ ·
+  custom properties 穿透 shadow 边界继承 ✓（token 层天然兼容）
+- 触发条件：Monaco 被替换/移除的任何时点重评
+
+### S4 · 隔离验证台（防回归）
+
+新增 `theming--isolation` story + Playwright 探针：
+
+1. 双岛并排（不同 seeds × 不同 mode）→ 两岛同名变量值不同且互不影响
+2. 岛外模拟宿主元素（自设 `--background`）→ 不受岛/桥影响
+3. 宿主 html 强制 dark + 岛 light → 岛内 `dark:` 变体未激活（S2 回归锁）
+4. 全量 57 stories 回归（S1 选择器变更影响面 = 全站）
+
+### 明确不做
+
+- **工具类前缀**（Tailwind prefix）：README 已裁定良性冲突，改动面=全部组件
+  className，收益不成比例
+- **`@scope` 原生隔离**：Firefox 未就绪，不满足库分发基线
+- **Shadow DOM 实施**：见 S3
+
+### 体量与顺序
+
+S1（0.5d）→ S2（0.25d）→ S4（0.5d）→ S3 归档（0.1d），总计 ≈1.5d。
+执行门槛：S1 开放问题（岛外语义变量消费）有明确答案；通知宿主回归。
 
 ## 3. 双层结构决策记录
 
