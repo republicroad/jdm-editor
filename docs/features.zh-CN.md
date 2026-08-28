@@ -2,8 +2,8 @@
 
 > 中文对照版,英文原版:[`features.md`](./features.md)。
 
-公共包:`@gorules/jdm-editor`(`packages/jdm-editor`)。所有组件从包根导出;样式通过
-`import '@gorules/jdm-editor/dist/style.css'` 引入。
+公共包:`@republicroad/jdm-editor`(`packages/jdm-editor`)。所有组件从包根导出;样式通过
+`import '@republicroad/jdm-editor/dist/style.css'` 引入。
 
 ## 1. 决策图 DecisionGraph(`components/decision-graph`)
 

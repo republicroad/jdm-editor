@@ -8,14 +8,14 @@
 
 ```bash
 # Dev server (foreground, Ctrl+C to stop)
-corepack pnpm@10 --filter @gorules/jdm-editor storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor storybook
 # → http://localhost:9009
 
 # Build static site
-corepack pnpm@10 --filter @gorules/jdm-editor build:storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor build:storybook
 
 # Build + serve + run all interaction tests (CI-grade)
-corepack pnpm@10 --filter @gorules/jdm-editor test:storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 ```
 
 ## Configuration
@@ -86,7 +86,7 @@ Story IDs are derived from the file path and export name (kebab-cased):
 ## Interaction Tests (`test:storybook`)
 
 ```bash
-pnpm --filter @gorules/jdm-editor test:storybook
+pnpm --filter @republicroad/jdm-editor test:storybook
 ```
 
 This is a three-stage pipeline run via `concurrently`:

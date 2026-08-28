@@ -2,8 +2,8 @@
 
 > English is canonical. Chinese version: [`features.zh-CN.md`](./features.zh-CN.md).
 
-Public package: `@gorules/jdm-editor` (`packages/jdm-editor`). All components are exported from the
-package root; styling via `import '@gorules/jdm-editor/dist/style.css'`.
+Public package: `@republicroad/jdm-editor` (`packages/jdm-editor`). All components are exported from the
+package root; styling via `import '@republicroad/jdm-editor/dist/style.css'`.
 
 ## 1. DecisionGraph (`components/decision-graph`)
 

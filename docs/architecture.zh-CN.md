@@ -23,7 +23,7 @@ JDM Editor 是一个 React 组件库,用于构建与编辑 **JDM(JSON Decision M
 ```
 jdm-editor/                  # gorules/jdm-editor 的内部分叉
 ├── packages/
-│   └── jdm-editor/          # 唯一的本地包 —— React 组件库(@gorules/jdm-editor)
+│   └── jdm-editor/          # 唯一的本地包 —— React 组件库(@republicroad/jdm-editor)
 ├── .github/workflows/       # CI:validate、publish、version、version-beta、pages
 ├── docs/                    # 本文档集
 ├── pnpm-workspace.yaml      # workspace = packages/*
@@ -155,7 +155,7 @@ store/规格中的类型推断。
 `prettier`、`format`/`format:fix`。
 
 自动化测试(本分叉新增):`packages/jdm-editor` 使用 **Vitest**(jsdom + Testing Library)执行单元/组件测试
-——`pnpm --filter @gorules/jdm-editor test`(监听模式:`test:watch`);另通过 `test:storybook` 运行无头
+——`pnpm --filter @republicroad/jdm-editor test`(监听模式:`test:watch`);另通过 `test:storybook` 运行无头
 Storybook 冒烟套件(静态构建 → `http-server` → `@storybook/test-runner` 于 Chromium 中逐 story 渲染;
 一次性前置 `npx playwright install chromium`)。`package.json` 中 CRA 时代遗留的 jest 配置块已移除。
 首批覆盖:zod schema、dg-util 映射器、图遍历 walker、决策图 store 动作,以及 DecisionGraph /

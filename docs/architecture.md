@@ -26,7 +26,7 @@ Key architectural properties:
 ```
 jdm-editor/                  # internal fork of gorules/jdm-editor
 ├── packages/
-│   └── jdm-editor/          # the only local package — React component library (@gorules/jdm-editor)
+│   └── jdm-editor/          # the only local package — React component library (@republicroad/jdm-editor)
 ├── .github/workflows/       # CI: validate, publish, version, version-beta, pages
 ├── docs/                    # this documentation set
 ├── pnpm-workspace.yaml      # workspace = packages/*
@@ -158,7 +158,7 @@ Scripts (root): `pnpm build|test|typecheck` fan out through Lerna; `lint` (ESLin
 `prettier`, `format`/`format:fix`.
 
 Automated tests (added by this fork): `packages/jdm-editor` runs **Vitest** (jsdom + Testing Library)
-for unit/component tests — `pnpm --filter @gorules/jdm-editor test` (watch: `test:watch`) — and a
+for unit/component tests — `pnpm --filter @republicroad/jdm-editor test` (watch: `test:watch`) — and a
 headless Storybook smoke suite via `test:storybook` (static storybook build → `http-server` →
 `@storybook/test-runner` in Chromium; one-time prerequisite `npx playwright install chromium`). The
 vestigial CRA-era jest block was removed from `package.json`. First-batch coverage: zod schemas,

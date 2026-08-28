@@ -1,6 +1,6 @@
 {
-  "name": "@gorules/jdm-editor",
-  "version": "1.52.0",
+  "name": "@republicroad/jdm-editor",
+  "version": "0.1.0",
   "description": "",
   "author": "GoRules <hi@gorules.io> (https://gorules.io)",
   "homepage": "https://github.com/gorules/jdm-editor",
@@ -121,5 +121,9 @@
   "peerDependencies": {
     "react": ">= 18",
     "react-dom": ">= 18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

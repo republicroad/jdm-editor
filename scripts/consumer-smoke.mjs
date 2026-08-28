@@ -1,5 +1,5 @@
 /**
- * Dual-host consumer smoke for @gorules/jdm-editor.
+ * Dual-host consumer smoke for @republicroad/jdm-editor.
  *
  * Proves the published artifact works when consumed the way real hosts do:
  *   pnpm add file:<this repo>/packages/jdm-editor   (+ its dependencies & peers)
@@ -98,8 +98,8 @@ const INDEX_HTML = `<!doctype html><html><head><meta charset="utf-8"/></head>
 
 const MAIN_JS = `import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { DecisionGraph } from '@gorules/jdm-editor';
-import '@gorules/jdm-editor/dist/style.css';
+import { DecisionGraph } from '@republicroad/jdm-editor';
+import '@republicroad/jdm-editor/dist/style.css';
 
 createRoot(document.getElementById('app')).render(
   React.createElement(DecisionGraph, { value: { nodes: [], edges: [] }, onChange: () => {} }),

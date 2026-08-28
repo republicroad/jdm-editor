@@ -44,8 +44,8 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 
 ## Quick facts / 快速事实
 
-- Main deliverable: `@gorules/jdm-editor` — React component library for JDM (JSON Decision Model) editing.
-  主要产物:`@gorules/jdm-editor`,用于编辑 JDM(JSON Decision Model)的 React 组件库。
+- Main deliverable: `@republicroad/jdm-editor` — React component library for JDM (JSON Decision Model) editing.
+  主要产物:`@republicroad/jdm-editor`,用于编辑 JDM(JSON Decision Model)的 React 组件库。
 - Support packages (`@gorules/lezer-zen`, `@gorules/lezer-zen-template`, `@gorules/zen-engine-wasm`)
   are consumed **from npm**, not from this repository.
   支撑包(`@gorules/lezer-zen`、`@gorules/lezer-zen-template`、`@gorules/zen-engine-wasm`)直接取自 npm,不在本仓库内维护。

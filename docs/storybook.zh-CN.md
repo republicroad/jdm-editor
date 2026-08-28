@@ -7,14 +7,14 @@
 
 ```bash
 # Dev server(前台运行,Ctrl+C 停止)
-corepack pnpm@10 --filter @gorules/jdm-editor storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor storybook
 # → http://localhost:9009
 
 # 构建静态站点
-corepack pnpm@10 --filter @gorules/jdm-editor build:storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor build:storybook
 
 # 构建 + 静态服务 + 运行全部交互测试(CI 级)
-corepack pnpm@10 --filter @gorules/jdm-editor test:storybook
+corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 ```
 
 ## 配置
@@ -79,7 +79,7 @@ Story ID 由文件路径和导出名派生(kebab-case):
 ## 交互测试(`test:storybook`)
 
 ```bash
-pnpm --filter @gorules/jdm-editor test:storybook
+pnpm --filter @republicroad/jdm-editor test:storybook
 ```
 
 这是一个三段流水线,经 `concurrently` 并行运行:
