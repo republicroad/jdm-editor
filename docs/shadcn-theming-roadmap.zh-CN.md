@@ -66,10 +66,10 @@ tailwind.css @theme inline
 - 替换 HK-10/11/12（field 胶囊与 Excel 弹窗共用一组）、HK-13（placeholder 色 → `var(--grl-color-text-placeholder)`）、HK-09 的 `#fff`。
 - 双层结构期间这些变量同样由 P0 派生输出。
 
-### P2 — 层叠清偿（第三方皮肤归位）
-- CodeMirror 皮肤迁入 `EditorView.theme()` 扩展（详案：`codemirror-theme-migration.md` §3，含映射表与五步法）。
-- 回归护栏先行落地：`ce.stories.tsx` **LazyParity** story 已就位（单次点击进编辑 + 展示/编辑首行坐标差 ≤0.5px + padding 相等），迁移期间每批删除都跑它。
-- 目标：`!important` 存量归零；未分层区仅剩决策图段且逐块收缩到 React Flow 节点自己的 className API + utilities。
+### P2 — 层叠清偿（第三方皮肤归位）✅ 完成（Batch D + G + A2 复活）
+- CodeMirror 皮肤迁入 `EditorView.theme()` 扩展 ✅（Batch D phase-1，含映射表与五步法）。
+- 回归护栏：`ce.stories.tsx` **LazyParity** story（单次点击进编辑 + 展示/编辑首行坐标差 ≤0.5px + padding 相等）持续守护。
+- 高亮器替换：Spike-A 出局（heap +36%）→ **Spike-A2 池化复活按 §3.6 设计执行**：expose-gc 修正后 Δ_true=5.9% 过门槛，CellViewPool 实装（`gru-hl-view` 旗标灰度），三守卫断言全绿；`!important` 存量 35→11，双轨几何由测试硬锁（详见 migration doc §3.7）。
 
 ### P3 — 作用域化注入（独立后期项 ⚠️）
 - `GlobalCssVariables` 的 `:root` 注入改为「最近 `.grl-root` 容器优先，无则回退 :root」；`data-mode` 同理改挂容器。
