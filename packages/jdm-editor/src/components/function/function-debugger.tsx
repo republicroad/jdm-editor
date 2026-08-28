@@ -33,9 +33,9 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
   const [activeTab, setActiveTab] = useState<TabKey>(TabKey.Console);
 
   return (
-    <div className='h-full border-l border-[var(--grl-color-border)]'>
-      <div className='flex h-full flex-col overflow-hidden bg-[var(--grl-color-bg-elevated)]'>
-        <div className='flex shrink-0 items-center border-b border-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)]'>
+    <div className='h-full border-l border-[var(--border)]'>
+      <div className='flex h-full flex-col overflow-hidden bg-[var(--card)]'>
+        <div className='flex shrink-0 items-center border-b border-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'>
           <Tabs
             rootClassName='grl-inline-tabs'
             size='small'

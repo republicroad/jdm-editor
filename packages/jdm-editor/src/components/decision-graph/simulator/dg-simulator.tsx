@@ -91,7 +91,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
       </Panel>
       <PanelResizeHandle />
       <Panel minSize={20} maxSize={20} className={'flex w-[260px] flex-col'}>
-        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] pl-0 pr-2'>
+        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
           <input
             className='h-full w-full border-none bg-transparent pl-3 text-[13px] outline-none!'
             type='text'
@@ -183,7 +183,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
       </Panel>
       <PanelResizeHandle />
       <Panel minSize={30} defaultSize={50} className={'flex min-w-[300px] flex-1 flex-col'}>
-        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] pl-0 pr-2'>
+        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
           <Tabs
             rootClassName='grl-inline-tabs'
             size='small'
@@ -255,7 +255,7 @@ const StatusIcon: React.FC<{ status: 'success' | 'error' | 'not-run' }> = ({ sta
 
   return (
     <CrossCircleIcon
-      className='size-3 mr-[5px] shrink-0 text-[var(--grl-color-error)]'
+      className='size-3 mr-[5px] shrink-0 text-[var(--destructive)]'
     />
   );
 };

@@ -9,7 +9,7 @@ export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any> }> = ({ head
     <th
       colSpan={1}
       style={{ width: 72 }}
-      className='h-10 box-border text-left relative font-normal shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] [&_button]:text-[var(--grl-color-text-secondary)]'
+      className='h-10 box-border text-left relative font-normal shadow-[inset_0_0_0_0.3px_var(--border)] [&_button]:text-[var(--muted-foreground)]'
     />
     {headerGroup.headers.map((header) => {
       const context = header.getContext();
@@ -33,7 +33,7 @@ export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any> }> = ({ head
           data-self={selfKind}
           data-parent={parentKind}
           className={clsx(
-            'h-10 box-border text-left relative font-normal bg-[var(--table-color)] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] [&_button]:text-[var(--grl-color-text-secondary)]',
+            'h-10 box-border text-left relative font-normal bg-[var(--table-color)] shadow-[inset_0_0_0_0.3px_var(--border)] [&_button]:text-[var(--muted-foreground)]',
             (selfKind === 'input' || selfKind === 'output') && 'text-black',
           )}
           style={

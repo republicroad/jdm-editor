@@ -26,7 +26,7 @@ export const DiffSelect: React.FC<DiffSelectProps> = ({
             value={previousValue}
             className={clsx(
               rest.className,
-              'text-[var(--grl-color-error)] line-through decoration-[var(--grl-color-error)]',
+              'text-[var(--destructive)] line-through decoration-[var(--destructive)]',
             )}
             onChange={undefined}
           />

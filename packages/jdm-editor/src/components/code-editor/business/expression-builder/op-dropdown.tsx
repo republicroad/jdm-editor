@@ -48,7 +48,7 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
   const content = (
     <div
       className='bg-popover'
-      style={{ '--bg-light': 'var(--grl-color-bg-container-disabled)', '--bg-active': 'var(--grl-color-primary-bg)', '--color-active-text': 'var(--grl-color-primary)' } as React.CSSProperties}
+      style={{ '--bg-light': 'var(--muted)', '--bg-active': 'var(--grl-color-primary-bg)', '--color-active-text': 'var(--primary)' } as React.CSSProperties}
     >
       {onKindChange && (
         <div className='flex gap-1.5 border-b border-border p-2'>

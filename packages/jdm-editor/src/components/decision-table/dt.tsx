@@ -49,8 +49,8 @@ export const DecisionTable: React.FC<DecisionTableProps> = ({
   return (
     <div
       ref={ref}
-      className='text-sm h-full flex min-h-px flex-col pr-1 [--table-color:var(--grl-color-bg-layout)]'
-      style={{ background: 'var(--grl-color-bg-elevated)' }}
+      className='text-sm h-full flex min-h-px flex-col pr-1 [--table-color:var(--background)]'
+      style={{ background: 'var(--card)' }}
     >
       {ref.current && (
         <DecisionTableProvider>

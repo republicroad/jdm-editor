@@ -15,7 +15,7 @@ export const DiffAutosizeTextArea = forwardRef<HTMLDivElement, DiffAutosizeTextA
       return (
         <div
           className={clsx(
-            'w-full overflow-hidden border border-[var(--grl-color-border)] rounded-[var(--grl-border-radius)]',
+            'w-full overflow-hidden border border-[var(--border)] rounded-[var(--grl-border-radius)]',
             noStyle && 'border-0 rounded-none',
           )}
         >
@@ -26,7 +26,7 @@ export const DiffAutosizeTextArea = forwardRef<HTMLDivElement, DiffAutosizeTextA
               onChange={undefined}
               className={clsx(
                 rest.className,
-                'border-0 shadow-none focus:shadow-none focus:ring-0 line-through decoration-[var(--grl-color-error)]',
+                'border-0 shadow-none focus:shadow-none focus:ring-0 line-through decoration-[var(--destructive)]',
               )}
             />
           )}

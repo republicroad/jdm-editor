@@ -206,7 +206,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
         </div>
         <div
           style={{
-            border: '1px solid var(--grl-color-border)',
+            border: '1px solid var(--border)',
             borderRadius: 8,
             padding: '4px 12px',
             marginBottom: 16,
@@ -283,7 +283,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
         </div>
         <div
           style={{
-            border: '1px solid var(--grl-color-border)',
+            border: '1px solid var(--border)',
             borderRadius: 8,
             padding: '4px 12px',
             marginBottom: 16,
@@ -337,7 +337,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
         </div>
         <div
           style={{
-            border: '1px solid var(--grl-color-border)',
+            border: '1px solid var(--border)',
             borderRadius: 8,
             padding: '8px 12px',
           }}
@@ -356,7 +356,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               onChange={setDescriptionEnabled}
               style={{ minWidth: 28 }}
             />
-            <LeftOutlined style={{ fontSize: 12, color: 'var(--grl-color-primary)' }} />
+            <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
             <Select
               allowClear
               style={{ width: '100%' }}

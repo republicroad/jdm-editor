@@ -137,7 +137,7 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
       <div ref={rootRef} className='flex items-start gap-1 min-h-[var(--b-height)] text-[var(--b-font-size)] leading-[var(--b-line-height)]' style={styleVars}>
         <OpDropdown {...dropdownProps} operator={op} />
         {NO_VALUE_OPS.includes(op) ? (
-          op !== 'any' && <span className='text-xs leading-[var(--b-height)] text-[var(--grl-color-text-secondary)]'>{getOp(op).label}</span>
+          op !== 'any' && <span className='text-xs leading-[var(--b-height)] text-[var(--muted-foreground)]'>{getOp(op).label}</span>
         ) : isEnum ? (
           <EnumValInput
             value={expr.value}

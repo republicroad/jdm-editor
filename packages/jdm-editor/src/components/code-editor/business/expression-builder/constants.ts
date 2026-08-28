@@ -35,9 +35,9 @@ export const BUILDER_TOKENS: CSSProperties = {
 } as CSSProperties;
 
 export const BUILDER_BG_VARS: CSSProperties = {
-  '--bg-light': 'var(--grl-color-bg-container-disabled)',
+  '--bg-light': 'var(--muted)',
   '--bg-active': 'var(--grl-color-primary-bg)',
-  '--color-active-text': 'var(--grl-color-primary)',
+  '--color-active-text': 'var(--primary)',
 } as CSSProperties;
 
 // Single-line fields (native input / Radix trigger): fixed compact height,

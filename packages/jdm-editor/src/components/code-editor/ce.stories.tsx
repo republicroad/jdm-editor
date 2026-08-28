@@ -128,18 +128,18 @@ export const LazyParity: Story = {
       };
     };
 
-    // Deterministic DISPLAY state bootstrap: the Storybook dev canvas can
-    // auto-run this play() or autofocus the tab before we sample, which would
-    // leave the editor already mounted in edit mode. Force-blur resets lazy
-    // editors back to the highlighter (internal onBlur chain).
-    let highlighter = canvasElement.querySelector<HTMLElement>('.grl-ce-highlighter');
+    // Deterministic display-state bootstrap: blur any focused editor so lazy
+    // cells return to their display surface (pooled view or legacy
+    // highlighter, depending on the active path).
+    const HL_SEL = '.grl-ce-highlighter, .grl-ce-highlighter-view';
+    let highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     if (!highlighter) {
       (document.activeElement as HTMLElement | null)?.blur?.();
       await waitFor(
-        () => expect(canvasElement.querySelector('.grl-ce-highlighter')).not.toBeNull(),
+        () => expect(canvasElement.querySelector(HL_SEL)).not.toBeNull(),
         { timeout: 5_000 },
       );
-      highlighter = canvasElement.querySelector<HTMLElement>('.grl-ce-highlighter');
+      highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     }
     expect(highlighter).not.toBeNull();
     const before = snapshot(highlighter!);
@@ -149,11 +149,11 @@ export const LazyParity: Story = {
     await userEvent.click(highlighter!.querySelector<HTMLElement>('.cm-content')!);
 
     await waitFor(
-      () => expect(canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter)')).not.toBeNull(),
+      () => expect(canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)')).not.toBeNull(),
       { timeout: 5_000 },
     );
 
-    const editor = canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter)');
+    const editor = canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)');
     const after = snapshot(editor!);
 
     for (const part of ['content', 'line'] as const) {

@@ -34,7 +34,7 @@ export const ZEN_SKIN: Extension = EditorView.theme({
       background: 'var(--grl-color-bg-container)',
       width: '100%',
       maxWidth: '100%',
-      border: '1px solid var(--grl-color-border)',
+      border: '1px solid var(--border)',
       borderRadius: '6px',
       transition: 'border-color, box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
       lineHeight: 'var(--ce-lineHeight)',
@@ -79,10 +79,10 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     '& .grl-ce-hover-tooltip': {
       fontFamily: 'var(--grl-font-family)',
       fontSize: '13px',
-      background: 'var(--grl-color-bg-elevated)',
+      background: 'var(--card)',
       border: 'none',
       borderRadius: '6px',
-      color: 'var(--grl-color-text)',
+      color: 'var(--foreground)',
       padding: '2px 8px',
     },
     '& .cm-lintPoint': {
@@ -109,7 +109,7 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     },
     '& .cm-line': {
       padding: '0',
-      caretColor: 'var(--grl-color-text)',
+      caretColor: 'var(--foreground)',
     },
     '& .cm-line:focus-visible': { outline: 'none' },
 
@@ -117,14 +117,14 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     '& .cm-tooltip': {
       fontFamily: 'var(--grl-font-family)',
       fontSize: '13px',
-      background: 'var(--grl-color-bg-elevated)',
+      background: 'var(--card)',
       border: 'none',
       borderRadius: '6px',
-      color: 'var(--grl-color-text)',
+      color: 'var(--foreground)',
     },
     '& .cm-tooltip.cm-tooltip-below': { marginTop: '8px' },
     '& .cm-tooltip > *': {
-      border: '1px solid var(--grl-color-border)',
+      border: '1px solid var(--border)',
       borderRadius: '6px',
     },
     '& .cm-tooltip > ul li[aria-selected]': {
@@ -138,17 +138,17 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     },
     '& .cm-tooltip .cm-completionDetail': {
       fontStyle: 'normal',
-      color: 'var(--grl-color-text-secondary)',
+      color: 'var(--muted-foreground)',
     },
     '& .cm-tooltip .cm-tooltip-section:not(.cm-tooltip-lint)': {
       background: 'var(--tooltip-bg)',
       padding: '4px',
     },
     '& .cm-tooltip .cm-tooltip-lint': {
-      background: 'var(--grl-color-bg-elevated)',
-      border: '1px solid var(--grl-color-border)',
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
       padding: '4px',
-      color: 'var(--grl-color-text)',
+      color: 'var(--foreground)',
     },
     '& .cm-tooltip .cm-tooltip-lint .cm-diagnostic:not(:last-of-type)': { marginBottom: '4px' },
     '& .cm-tooltip .cm-tooltip-lint .cm-diagnostic-error': {
@@ -168,7 +168,7 @@ export const ZEN_SKIN: Extension = EditorView.theme({
       borderRadius: '4px',
     },
     '& .cm-tooltip-autocomplete li[aria-selected="true"]': {
-      backgroundColor: 'var(--grl-color-border)',
+      backgroundColor: 'var(--border)',
     },
     '& .cm-completionIcon': { marginRight: '4px', opacity: '1' },
     '& .cm-completionIcon::after': {
@@ -186,17 +186,17 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     },
     '& .cm-completionIcon-function::after': {
       content: "'f'",
-      '--icon-primary': 'var(--grl-color-error)',
+      '--icon-primary': 'var(--destructive)',
       '--icon-secondary': 'var(--grl-color-error-bg)',
     },
     '& .cm-completionIcon-method::after': {
       content: "'m'",
-      '--icon-primary': 'var(--grl-color-error)',
+      '--icon-primary': 'var(--destructive)',
       '--icon-secondary': 'var(--grl-color-error-bg)',
     },
     '& .cm-completionIcon-class::after': {
       content: "'C'",
-      '--icon-primary': 'var(--grl-color-primary)',
+      '--icon-primary': 'var(--primary)',
       '--icon-secondary': 'var(--grl-color-primary-bg)',
     },
     '& .cm-completionIcon-interface::after': {
@@ -223,13 +223,13 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     },
     '& .cm-completionIcon-enum::after': {
       content: "'E'",
-      '--icon-primary': 'var(--grl-color-primary)',
+      '--icon-primary': 'var(--primary)',
       '--icon-secondary': 'var(--grl-color-primary-bg)',
       filter: 'hue-rotate(35deg)',
     },
     '& .cm-completionIcon-property::after': {
       content: "'P'",
-      '--icon-primary': 'var(--grl-color-primary)',
+      '--icon-primary': 'var(--primary)',
       '--icon-secondary': 'var(--grl-color-primary-bg)',
       filter: 'hue-rotate(40deg)',
     },

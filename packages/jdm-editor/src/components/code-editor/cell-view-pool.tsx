@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, 
 
 import { useThemeMode } from '../../theme';
 import { zenLanguage, zenStyleDark, zenStyleLight, zenTemplateLanguage } from './extensions/zen';
+import { ZEN_SKIN } from './theme';
 
 /**
  * CellViewPool (roadmap P2 phase-2 revival, §3.6 design).
@@ -37,6 +38,9 @@ function createDisplayView(bucket: DisplayType, dark: boolean, placeholder?: str
     state: EditorState.create({
       doc: '',
       extensions: [
+        // full skin: pooled display views must be pixel-identical to the live
+        // editor they hand off to (content padding, line metrics, caret colors)
+        ZEN_SKIN,
         EditorView.editable.of(false),
         EditorState.readOnly.of(true),
         EditorView.lineWrapping,

@@ -45,7 +45,7 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({}) => {
 
   const listClass = 'flex flex-col box-border gap-px pb-px bg-[var(--grl-color-border-fade)]';
   const itemClass =
-    'relative grid grid-cols-[40px_minmax(240px,1.1fr)_3fr_40px] items-start bg-[var(--grl-color-bg-container)] focus-within:[box-shadow:0_0_0_1px_var(--grl-color-border)]';
+    'relative grid grid-cols-[40px_minmax(240px,1.1fr)_3fr_40px] items-start bg-[var(--grl-color-bg-container)] focus-within:[box-shadow:0_0_0_1px_var(--border)]';
   const thClass = 'p-3 pointer-events-none';
 
   return (

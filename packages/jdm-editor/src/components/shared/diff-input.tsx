@@ -10,7 +10,7 @@ export type DiffInputProps = InputProps & {
 export const DiffInput: React.FC<DiffInputProps> = ({ previousValue, displayDiff, ...rest }) => {
     if (displayDiff) {
       return (
-        <div className='w-full overflow-hidden border border-[var(--grl-color-border)] rounded-[var(--grl-border-radius)]'>
+        <div className='w-full overflow-hidden border border-[var(--border)] rounded-[var(--grl-border-radius)]'>
           {(previousValue || '')?.length > 0 && (
             <Input
               {...rest}
@@ -18,7 +18,7 @@ export const DiffInput: React.FC<DiffInputProps> = ({ previousValue, displayDiff
               onChange={undefined}
               className={clsx(
                 rest.className,
-                'border-0 shadow-none focus:shadow-none focus:ring-0 line-through decoration-[var(--grl-color-error)]',
+                'border-0 shadow-none focus:shadow-none focus:ring-0 line-through decoration-[var(--destructive)]',
               )}
             />
           )}

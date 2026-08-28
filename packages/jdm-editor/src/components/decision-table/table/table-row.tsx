@@ -97,13 +97,13 @@ export const TableRow: React.FC<{
       )}
       className={clsx(
         'relative w-fit min-h-[36px]',
-        "after:content-[''] after:absolute after:left-0 after:right-0 after:bg-[var(--grl-color-primary)]",
+        "after:content-[''] after:absolute after:left-0 after:right-0 after:bg-[var(--primary)]",
         isOver && direction === 'down' && 'after:bottom-0 after:h-[2px]',
         isOver && direction === 'up' && 'after:top-0 after:h-[2px]',
         !diffStatus && isActive && 'bg-[var(--grl-color-success-bg)]',
         !diffStatus &&
           disabled &&
-          'bg-black/[0.02] [&_[contenteditable]]:bg-transparent [&_[contenteditable]]:text-[var(--grl-color-text-secondary)]',
+          'bg-black/[0.02] [&_[contenteditable]]:bg-transparent [&_[contenteditable]]:text-[var(--muted-foreground)]',
         !diffStatus && cursor?.y === virtualItem.index && !disabled && 'selected bg-[var(--grl-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--grl-color-primary-bg-fade)]',
         diffStatus === 'added' && 'bg-[var(--grl-color-success-bg)]',
         diffStatus === 'removed' && 'bg-[var(--grl-color-error-bg)]',
@@ -115,7 +115,7 @@ export const TableRow: React.FC<{
     >
       <td
         className={clsx(
-          'py-[2px] px-[14px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)] outline-[1.5px] outline-transparent -outline-offset-[1.5px]',
+          'py-[2px] px-[14px] shadow-[inset_0_0_0_0.3px_var(--border)] outline-[1.5px] outline-transparent -outline-offset-[1.5px]',
           diffStatus ? 'bg-transparent!' : 'bg-[var(--table-color)]!',
           !disabled && 'cursor-grab',
         )}
@@ -132,8 +132,8 @@ export const TableRow: React.FC<{
         <td
           key={cell.id}
           className={clsx(
-            'min-h-[36px] p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]',
-            !disabled && cursor?.x === cell.column.id && cursor?.y === virtualItem.index && 'outline-[var(--grl-color-border)]',
+            'min-h-[36px] p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]',
+            !disabled && cursor?.x === cell.column.id && cursor?.y === virtualItem.index && 'outline-[var(--border)]',
             diff?.fields?.[cell?.column?.id]?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
             diff?.fields?.[cell?.column?.id]?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
             diff?.fields?.[cell?.column?.id]?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',

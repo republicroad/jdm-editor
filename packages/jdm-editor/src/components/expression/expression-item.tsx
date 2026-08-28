@@ -84,8 +84,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         setDragNodeRef(el);
       }}
       className={clsx(
-        'group/item relative grid grid-cols-[40px_minmax(240px,1.1fr)_3fr_40px] items-start focus-within:[box-shadow:0_0_0_1px_var(--grl-color-border)]',
-        "after:absolute after:left-0 after:right-0 after:bg-[var(--grl-color-primary)] after:content-['']",
+        'group/item relative grid grid-cols-[40px_minmax(240px,1.1fr)_3fr_40px] items-start focus-within:[box-shadow:0_0_0_1px_var(--border)]',
+        "after:absolute after:left-0 after:right-0 after:bg-[var(--primary)] after:content-['']",
         isOver && direction === 'down' && 'after:-bottom-px after:h-[2px]',
         isOver && direction === 'up' && 'after:-top-px after:h-[2px]',
         diffBg,
@@ -96,7 +96,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         ref={setActivatorNodeRef}
         {...listeners}
         {...attributes}
-        className='box-border flex h-full items-start justify-center border-r border-[var(--grl-color-border-fade)] pt-[15px] text-[var(--grl-color-text-secondary)] cursor-grab aria-disabled:cursor-not-allowed'
+        className='box-border flex h-full items-start justify-center border-r border-[var(--grl-color-border-fade)] pt-[15px] text-[var(--muted-foreground)] cursor-grab aria-disabled:cursor-not-allowed'
         aria-disabled={actionDisabled}
       >
         <div className='flex content-center gap-[3px] opacity-50 [&>span]:leading-[1.4]'>
@@ -172,7 +172,7 @@ const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) =>
   });
 
   return (
-    <div className='absolute top-full right-0 z-[5] rounded-br-lg border-t border-[var(--grl-color-bg-layout)] bg-[var(--grl-color-bg-layout)] p-2 w-[400px] max-w-[50%] overflow-x-auto whitespace-nowrap opacity-100 [pointer-events:bounding-box] hover:opacity-50 [&_.grl-ce-preview]:bg-white'>
+    <div className='absolute top-full right-0 z-[5] rounded-br-lg border-t border-[var(--background)] bg-[var(--background)] p-2 w-[400px] max-w-[50%] overflow-x-auto whitespace-nowrap opacity-100 [pointer-events:bounding-box] hover:opacity-50 [&_.grl-ce-preview]:bg-white'>
       <CodeEditorPreview expression={value} inputData={inputData} initial={initial} />
     </div>
   );

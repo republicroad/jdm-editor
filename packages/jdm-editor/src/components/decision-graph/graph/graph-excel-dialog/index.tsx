@@ -115,7 +115,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           style={{
             fontSize: '12px',
             fontWeight: 600,
-            color: 'var(--grl-color-text-secondary)',
+            color: 'var(--muted-foreground)',
             marginBottom: '-8px',
           }}
         >
@@ -127,7 +127,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           style={{
             fontSize: '12px',
             fontWeight: 600,
-            color: 'var(--grl-color-text-secondary)',
+            color: 'var(--muted-foreground)',
             marginBottom: '-8px',
           }}
         >
@@ -137,7 +137,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           style={{
             fontSize: '12px',
             fontWeight: 600,
-            color: 'var(--grl-color-text-secondary)',
+            color: 'var(--muted-foreground)',
             marginBottom: '-8px',
           }}
         >
@@ -146,7 +146,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {/*placeholder for grid*/}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-8px' }}>
           <Tooltip title='Wrap value in quotes'>
-            <span className='inline-flex cursor-pointer text-[var(--grl-color-text-secondary)] [&_svg]:block'>
+            <span className='inline-flex cursor-pointer text-[var(--muted-foreground)] [&_svg]:block'>
               <InformationIcon className='size-3.5' />
             </span>
           </Tooltip>
@@ -154,7 +154,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         {excelData?.[currentStep]?.headers.map((header, index) => (
           <Fragment key={index}>
             <div
-              className='flex h-9 items-center rounded-lg border border-[var(--grl-color-border)] bg-[var(--grl-color-bg-layout)] px-3'
+              className='flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--background)] px-3'
             >
               <Typography.Text>{header.name || header.value}</Typography.Text>
             </div>
@@ -162,7 +162,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
             <SwapOutlined
               style={{
                 fontSize: '16px',
-                color: 'var(--grl-color-primary)',
+                color: 'var(--primary)',
               }}
             />
 

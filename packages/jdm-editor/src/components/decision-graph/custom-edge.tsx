@@ -36,7 +36,7 @@ export const CustomEdge: React.FC<EdgeProps> = (props) => {
           ...(style || {}),
           stroke: match(diff)
             .with({ status: 'added' }, () => 'var(--grl-color-success)')
-            .with({ status: 'removed' }, () => 'var(--grl-color-error)')
+            .with({ status: 'removed' }, () => 'var(--destructive)')
             .otherwise(() => undefined),
         }}
       />

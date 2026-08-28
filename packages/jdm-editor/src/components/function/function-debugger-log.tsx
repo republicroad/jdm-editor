@@ -95,7 +95,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
                 valueRenderer={valueRenderer(jsonTheme)}
                 theme={
                   {
-                    base00: 'var(--grl-color-bg-elevated)',
+                    base00: 'var(--card)',
                     base03: 'var(--grl-color-text-base)',
                     base0B: 'var(--grl-color-text-base)',
                     base0D: 'var(--grl-color-text-base)',

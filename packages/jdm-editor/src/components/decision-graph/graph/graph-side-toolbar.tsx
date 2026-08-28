@@ -308,7 +308,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
             (event.target as HTMLInputElement).value = '';
           }}
         />
-        <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--grl-color-border)] py-2'>
+        <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--border)] py-2'>
           <div className={'flex flex-col items-center gap-2'}>
             {!disabled && (
               <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>

@@ -222,7 +222,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       data-theme={mode}
     >
       <StyledTable width={table.getCenterTotalSize()}>
-        <thead className='bg-[var(--table-color)] border-[var(--grl-color-border)] m-0 sticky top-0 z-10'>
+        <thead className='bg-[var(--table-color)] border-[var(--border)] m-0 sticky top-0 z-10'>
           {table
             .getHeaderGroups()
             .filter((_, i) => i === 0)
@@ -232,7 +232,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         </thead>
       </StyledTable>
       <StyledTable width={table.getCenterTotalSize()}>
-        <thead className='bg-[var(--table-color)] border-[var(--grl-color-border)] m-0 sticky top-0 z-10'>
+        <thead className='bg-[var(--table-color)] border-[var(--border)] m-0 sticky top-0 z-10'>
           {table
             .getHeaderGroups()
             .filter((_, i) => i === 1)
@@ -243,7 +243,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         <TableContextMenu>
           <TableBody tableContainerRef={tableContainerRef} table={table} scrollApiRef={scrollApiRef} />
         </TableContextMenu>
-        <tfoot className='bg-[var(--grl-color-bg-elevated)]'>
+        <tfoot className='bg-[var(--card)]'>
           <tr>
             <td colSpan={inputs.length + outputs.length + 2}>
               <div className='p-2 sticky bottom-0'>
@@ -332,7 +332,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
           {paddingTop > 0 && (
             <tr>
               <td
-                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]'
                 style={{ height: `${paddingTop}px` }}
               />
             </tr>
@@ -353,7 +353,7 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
           {paddingBottom > 0 && (
             <tr>
               <td
-                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--grl-color-border)]'
+                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]'
                 style={{ height: `${paddingBottom}px` }}
               />
             </tr>

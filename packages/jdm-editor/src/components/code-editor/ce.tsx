@@ -7,12 +7,12 @@ import { CodeHighlighter } from './ce-highlight';
 import { CodeHighlighterView } from './ce-highlight-view';
 
 /**
- * P2 phase-2 SPIKE flag (Batch H): read-only-EditorView display path.
- * `localStorage.gru-hl-view = '1'` enables it; default remains the manual
- * highlighter. Decision memo pending — do not ship enabled.
+ * Pooled display path (A2 revival) — DEFAULT ON since the major release
+ * (Phase 2 guards green; grayscale period complete). Opt OUT with
+ * `localStorage.gru-hl-view = '0'` (escape hatch, not a supported config).
  */
 const highlighterViewEnabled = (): boolean =>
-  typeof localStorage !== 'undefined' && localStorage.getItem('gru-hl-view') === '1';
+  typeof localStorage === 'undefined' || localStorage.getItem('gru-hl-view') !== '0';
 
 export type CodeEditorRef = CodeEditorBaseRef;
 

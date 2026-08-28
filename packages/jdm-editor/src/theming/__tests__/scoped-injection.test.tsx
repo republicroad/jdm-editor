@@ -48,7 +48,7 @@ describe('JdmConfigProvider scoped injection (P3)', () => {
     expect(scoped!.style.getPropertyValue('--grl-color-primary')).toBe('#1677ff');
     expect(scoped!.dataset.mode).toBe('light');
     // text-color scoping: dark-mode inputs inherit a visible color (P3 followup)
-    expect(scoped!.style.getPropertyValue('color')).toBe('var(--grl-color-text)');
+    expect(scoped!.style.getPropertyValue('color')).toBe('var(--foreground)');
 
     island.remove();
   });

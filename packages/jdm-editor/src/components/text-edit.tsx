@@ -25,7 +25,7 @@ export const TextEdit: React.FC<TextEditProps> = ({ className, value, onChange, 
       {!contentEditing && (
         <Typography.Text
           className={clsx(
-            'w-min max-w-full truncate rounded border border-transparent px-[5px] py-px text-sm! leading-[1.2] transition-colors hover:bg-[var(--grl-color-bg-text-hover)]',
+            'w-min max-w-full truncate rounded border border-transparent px-[5px] py-px text-sm! leading-[1.2] transition-colors hover:bg-[var(--accent)]',
           )}
           onClick={() => {
             if (!disabled) {

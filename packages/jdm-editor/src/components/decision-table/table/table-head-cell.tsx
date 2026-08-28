@@ -13,7 +13,7 @@ import type { DecisionTablePermission } from '../context/dt-store.context';
 import { type TableSchemaItem, useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
 import { getReferenceMap } from '../util';
 
-const TEXT_REMOVED = 'text-[var(--grl-color-error)] line-through decoration-[var(--grl-color-error)]';
+const TEXT_REMOVED = 'text-[var(--destructive)] line-through decoration-[var(--destructive)]';
 
 export type TableHeadCellProps = {
   permission?: DecisionTablePermission;

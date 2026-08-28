@@ -127,7 +127,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               id={props.id}
               specification={{
                 displayName: `${props.data?.kind}`,
-                color: 'var(--grl-color-error)',
+                color: 'var(--destructive)',
                 icon: <WarningOutlined />,
               }}
               name={props?.data?.name}
@@ -386,18 +386,18 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                   <CompressOutlined />
                 </ControlButton>
               </Controls>
-              <Background id={id} color='var(--grl-color-border)' gap={20} />
+              <Background id={id} color='var(--border)' gap={20} />
             </ReactFlow>
           </div>
         </div>
         {!disabled && (
           <div
             className={clsx(
-              'flex h-full min-h-0 flex-col border-l border-l-[var(--grl-color-border)] bg-[var(--grl-color-bg-container)]',
+              'flex h-full min-h-0 flex-col border-l border-l-[var(--border)] bg-[var(--grl-color-bg-container)]',
               !componentsOpened ? 'w-10 min-w-10' : 'w-[260px] min-w-[260px]',
             )}
           >
-            <div className='box-border flex flex-row items-center border-b border-b-[var(--grl-color-border)] bg-[var(--grl-color-primary-bg-fade)] px-3 py-1.5'>
+            <div className='box-border flex flex-row items-center border-b border-b-[var(--border)] bg-[var(--grl-color-primary-bg-fade)] px-3 py-1.5'>
               {componentsOpened && (
                 <div className='flex flex-1 items-center'>
                   <Typography.Text strong style={{ marginBottom: 0 }}>

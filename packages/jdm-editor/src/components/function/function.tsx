@@ -235,8 +235,8 @@ export const Function: React.FC<FunctionProps> = ({
         {
           'height': '100%',
           '--color-text': 'var(--grl-color-text-base)',
-          '--color-background-elevated': 'var(--grl-color-bg-elevated)',
-          '--color-border': 'var(--grl-color-border)',
+          '--color-background-elevated': 'var(--card)',
+          '--color-border': 'var(--border)',
           '--line-height': 1.5,
         } as React.CSSProperties
       }

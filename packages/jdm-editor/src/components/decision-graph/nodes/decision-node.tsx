@@ -65,7 +65,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         : diffStatus === 'modified'
           ? 'border-[var(--grl-color-warning)] group-hover/dn:border-[var(--grl-color-warning)]'
           : diffStatus === 'removed'
-            ? 'border-[var(--grl-color-error)] group-hover/dn:border-[var(--grl-color-error)]'
+            ? 'border-[var(--destructive)] group-hover/dn:border-[var(--destructive)]'
             : isSelected
               ? 'border-[var(--grl-color-primary-active)] group-hover/dn:border-[var(--grl-color-primary-active)]'
               : '';
@@ -86,7 +86,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
       className={clsx(
         'group/dn flex flex-col gap-2',
         '[--node-border-radius:8px] [--node-horizontal-padding:8px] [--node-small-text:12px]',
-        '[--node-color:var(--grl-color-primary)] [--node-background:var(--grl-color-bg-container)]',
+        '[--node-color:var(--primary)] [--node-background:var(--grl-color-bg-container)]',
         statusBg,
       )}
       style={
@@ -106,13 +106,13 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               .map((h, i) => (
                 <div
                   key={i}
-                  className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold text-[var(--grl-color-text-secondary)]'
+                  className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold text-[var(--muted-foreground)]'
                 >
                   {h}
                 </div>
               ))}
           {status === 'error' && (
-            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--grl-color-error)] text-white'>
+            <div className='flex justify-center items-center rounded-2xl w-4 h-4 text-[10px] font-bold bg-[var(--destructive)] text-white'>
               <CloseOutlined />
             </div>
           )}
@@ -137,7 +137,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {children && (
           <div
             className={clsx(
-              'p-2 border-t border-t-[var(--grl-color-border)]',
+              'p-2 border-t border-t-[var(--border)]',
               actions.length === 0 &&
                 'rounded-[0_0_var(--node-border-radius)_var(--node-border-radius)]',
               noBodyPadding && 'p-0!',
@@ -153,7 +153,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--grl-color-border-fade)]',
             )}
           >
-            <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--grl-color-text-secondary)]'>
+            <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--muted-foreground)]'>
               {actions}
             </div>
           </div>
@@ -171,14 +171,14 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               }}
             >
               <div className='flex flex-col'>
-                <div className='flex items-center justify-between pl-2.5 bg-[var(--grl-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--grl-color-border)]'>
-                  <Typography.Text className='text-xs! text-[var(--grl-color-text-secondary)]'>
+                <div className='flex items-center justify-between pl-2.5 bg-[var(--grl-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
+                  <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>
                     {detailsTitle}
                   </Typography.Text>
                   <Button
                     type={'text'}
                     size={'small'}
-                    className='text-[var(--grl-color-text-secondary)] [font-size:0]!'
+                    className='text-[var(--muted-foreground)] [font-size:0]!'
                     icon={<CloseOutlined style={{ fontSize: 8 }} />}
                     onClick={onDetailsClose}
                   />

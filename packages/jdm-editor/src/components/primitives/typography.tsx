@@ -6,7 +6,7 @@ const typoColorClass: Record<string, string> = {
   secondary: 'text-muted-foreground',
   success: 'text-[var(--grl-color-success)]',
   warning: 'text-[var(--grl-color-warning)]',
-  danger: 'text-[var(--grl-color-error)]',
+  danger: 'text-[var(--destructive)]',
 };
 
 type Ellipsis = boolean | { tooltip?: React.ReactNode };

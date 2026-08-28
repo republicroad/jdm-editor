@@ -53,7 +53,7 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
 
   return (
     <>
-      <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--grl-color-border)] px-2'>
+      <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] px-2'>
         <Tooltip title={requestTooltip}>
           <Typography.Text
             style={{ fontSize: 13, cursor: 'help' }}

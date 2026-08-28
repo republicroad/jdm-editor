@@ -62,7 +62,7 @@ export const GraphTabs: React.FC<GraphTabsProps> = ({ disabled, tabBarExtraConte
         type='line'
         size='small'
         className={clsx(
-          'max-w-full [box-sizing:content-box] border-b border-b-[var(--grl-color-border)] bg-[var(--grl-color-bg-container)]',
+          'max-w-full [box-sizing:content-box] border-b border-b-[var(--border)] bg-[var(--grl-color-bg-container)]',
           '[&_[role=tablist]]:m-0',
         )}
         activeKey={activeNodeId || 'graph'}

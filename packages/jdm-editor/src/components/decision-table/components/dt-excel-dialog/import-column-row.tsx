@@ -89,9 +89,9 @@ export const ImportColumnRow: React.FC<{
           display: 'flex',
           flexDirection: 'column',
           padding: '4px 10px',
-          backgroundColor: 'var(--grl-color-bg-layout)',
+          backgroundColor: 'var(--background)',
           borderRadius: '6px',
-          border: '1px solid var(--grl-color-border)',
+          border: '1px solid var(--border)',
           minHeight: 36,
           justifyContent: 'center',
         }}
@@ -104,7 +104,7 @@ export const ImportColumnRow: React.FC<{
         )}
       </div>
 
-      <LeftOutlined style={{ fontSize: 12, color: 'var(--grl-color-primary)' }} />
+      <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
 
       <Select
         allowClear

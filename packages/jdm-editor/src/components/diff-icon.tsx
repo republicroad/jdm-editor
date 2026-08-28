@@ -14,7 +14,7 @@ export const DiffIcon: React.FC<{
       <MinusSquareOutlined
         className={className}
         style={{
-          color: 'var(--grl-color-error)',
+          color: 'var(--destructive)',
           ...(style || {}),
         }}
       />

@@ -173,13 +173,13 @@
     --textarea-padding: 4px;
 
     line-height: var(--textarea-line-height);
-    color: var(--grl-color-text);
+    color: var(--foreground);
     resize: none;
     width: 100%;
     box-sizing: border-box;
     font-family: var(--grl-font-family);
     border-radius: var(--grl-border-radius);
-    border: 1px solid var(--grl-color-border);
+    border: 1px solid var(--border);
     background: var(--grl-color-bg-container);
     padding: var(--textarea-padding) 11px;
     font-size: 14px;
@@ -209,9 +209,9 @@
 
     &[aria-disabled='true'] {
       cursor: not-allowed;
-      background-color: var(--grl-color-bg-container-disabled);
+      background-color: var(--muted);
       color: var(--grl-color-text-disabled);
-      border-color: var(--grl-color-border);
+      border-color: var(--border);
       box-shadow: none;
     }
   }
@@ -283,7 +283,7 @@
 }
 
 .grl-ce-highlighter .cm-editor {
-  border: 1px solid var(--grl-color-border);
+  border: 1px solid var(--border);
 }
 
 .grl-ce-highlighter .cm-scroller {
@@ -302,7 +302,7 @@
   .grl-ce-preview {
     border-radius: 8px;
     padding: 8px;
-    background: var(--grl-color-bg-container-disabled);
+    background: var(--muted);
   }
 
   .grl-ce-preview .grl-ce.no-style .cm-editor {
@@ -483,13 +483,13 @@
 
 .grl-dg .react-flow__panel {
   box-shadow: none;
-  border: 1px solid var(--grl-color-border);
+  border: 1px solid var(--border);
 }
 
 .grl-dg .react-flow__controls-button {
-  background: var(--grl-color-bg-elevated);
-  color: var(--grl-color-text);
-  border-color: var(--grl-color-border);
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--border);
   transition: var(--grl-transition);
   height: 24px;
   width: 24px;
@@ -504,7 +504,7 @@
 }
 
 .grl-dg .react-flow__attribution {
-  color: var(--grl-color-text);
+  color: var(--foreground);
   border: none;
   background: transparent;
 }
@@ -513,7 +513,7 @@
   flex: 1;
   height: 100%;
   width: 100%;
-  background-color: var(--grl-color-bg-layout);
+  background-color: var(--background);
 }
 
 .grl-dg .nodrag {
@@ -551,7 +551,7 @@
 
   .draggable-component[draggable='false'] [data-dn-icon],
   .draggable-component[draggable='false'] .grl-dn {
-    color: var(--grl-color-bg-container-disabled);
+    color: var(--muted);
   }
 
   .draggable-component[draggable='false'] [data-dn-icon] {
@@ -594,15 +594,15 @@
 .grl-graph-excel-dialog [data-slot='select-trigger'] {
   height: 36px;
   background: var(--grl-color-bg-container);
-  border-color: var(--grl-color-border);
-  color: var(--grl-color-text);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .grl-graph-excel-dialog [role='radiogroup'] {
   height: 36px;
   padding: 0;
   background: var(--grl-color-bg-container);
-  border: 1px solid var(--grl-color-border);
+  border: 1px solid var(--border);
   border-radius: var(--radius, 8px);
   overflow: hidden;
 }
@@ -612,15 +612,15 @@
   height: 100%;
   border-radius: 0;
   font-size: 13px;
-  color: var(--grl-color-text-secondary);
+  color: var(--muted-foreground);
   background: var(--grl-color-bg-container);
 }
 
 .grl-graph-excel-dialog [role='radiogroup'] button + button {
-  border-left: 1px solid var(--grl-color-border);
+  border-left: 1px solid var(--border);
 }
 
 .grl-graph-excel-dialog [role='radiogroup'] button.bg-background {
-  background: var(--grl-color-primary);
+  background: var(--primary);
   color: var(--grl-color-text-light-solid);
 }

@@ -94,7 +94,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
       // Text color must be scoped alongside the variables: nothing else in the
       // cascade sets `color` (antd used to do it globally), so in dark mode
       // every input/editor would inherit UA black-on-dark and go invisible.
-      container.style.setProperty('color', 'var(--grl-color-text)');
+      container.style.setProperty('color', 'var(--foreground)');
       return () => {
         for (const key of keys) {
           container.style.removeProperty(key);
@@ -108,7 +108,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
       const cssBlock = Object.entries(exposedTokens)
         .map(([key, value]) => `  ${key}: ${value};`)
         .join('\n');
-      el.textContent = `:root {\n${cssBlock}\n  color: var(--grl-color-text);\n}`;
+      el.textContent = `:root {\n${cssBlock}\n  color: var(--foreground);\n}`;
     }
   }, [container, exposedTokens]);
 
@@ -125,7 +125,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
                   const cssBlock = Object.entries(exposedTokens)
                     .map(([key, value]) => `  ${key}: ${value};`)
                     .join('\n');
-                  return `:root {\n${cssBlock}\n  color: var(--grl-color-text);\n}`;
+                  return `:root {\n${cssBlock}\n  color: var(--foreground);\n}`;
                 })(),
               }}
             />

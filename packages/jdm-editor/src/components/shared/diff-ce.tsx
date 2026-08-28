@@ -16,14 +16,14 @@ export const DiffCodeEditor = React.forwardRef<CodeEditorRef, DiffCodeEditorProp
       return (
         <div
           className={clsx(
-            'w-full overflow-hidden border border-[var(--grl-color-border)] rounded-[var(--grl-border-radius)]',
+            'w-full overflow-hidden border border-[var(--border)] rounded-[var(--grl-border-radius)]',
             noStyle && 'border-0 rounded-none',
           )}
         >
           {(previousValue || '')?.length > 0 && (
             <CodeEditor
               {...rest}
-              className={clsx(rest.className, 'line-through decoration-[var(--grl-color-error)]')}
+              className={clsx(rest.className, 'line-through decoration-[var(--destructive)]')}
               value={previousValue}
               onChange={undefined}
               disabled={true}

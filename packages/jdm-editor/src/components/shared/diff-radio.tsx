@@ -18,7 +18,7 @@ export const DiffRadio: React.FC<DiffRadioProps> = ({ displayDiff, previousValue
           className={clsx([
             displayDiff &&
               option.value === previousValue &&
-              'text-[var(--grl-color-error)] line-through decoration-[var(--grl-color-error)]',
+              'text-[var(--destructive)] line-through decoration-[var(--destructive)]',
             displayDiff && option.value === rest.value && 'text-[var(--grl-color-success)]',
           ])}
         >
