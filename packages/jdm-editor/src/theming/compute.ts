@@ -78,9 +78,10 @@ export const computeTheme = (
     '--grl-color-text-base': String(t.colorTextBase),
     '--grl-color-text-disabled': String(t.colorTextDisabled),
     '--grl-color-text-secondary': String(t.colorTextSecondary),
+    // L2 removal (docs/grl-var-flatten.md): --grl-primary-color(-bg) were
+    // exact duplicates of --grl-color-primary(-bg) with zero in-repo
+    // consumers; removed with a host migration checklist in that doc.
     '--grl-control-outline': String(t.controlOutline),
-    '--grl-primary-color': String(t.colorPrimary),
-    '--grl-primary-color-bg': String(t.colorPrimaryBg),
     '--grl-font-family': String(t.fontFamily),
     '--grl-line-height': String(t.lineHeight),
     '--grl-border-radius': `${t.borderRadius}px`,

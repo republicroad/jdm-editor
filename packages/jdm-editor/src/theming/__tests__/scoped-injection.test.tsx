@@ -42,7 +42,7 @@ describe('JdmConfigProvider scoped injection (P3)', () => {
     expect(getByTestId('probe')).toBeInTheDocument();
     expect(document.documentElement.dataset.mode).toBeUndefined();
 
-    const islands = [...document.querySelectorAll('.grl-root')];
+    const islands = [...document.querySelectorAll<HTMLElement>('.grl-root')];
     const scoped = islands.find((el) => el.style.getPropertyValue('--grl-color-primary') !== '');
     expect(scoped).toBeTruthy();
     expect(scoped!.style.getPropertyValue('--grl-color-primary')).toBe('#1677ff');
