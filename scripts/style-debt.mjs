@@ -28,7 +28,7 @@ const BUDGET = {
  * zen.ts / diagnostic.tsx / function-debugger-log.tsx / ce-preview.tsx carry the
  * CodeMirror & Monaco syntax palettes — they join the derivation channel in P0. */
 const HEX_WHITELIST =
-  /theme\.tsx$|tokens\.css$|extensions[\\/]zen\.ts$|extensions[\\/]diagnostic\.tsx$|function-debugger-log\.tsx$|ce-preview\.tsx$|stories\.tsx$|theming[\\/]presets\.ts$|theming[\\/]compute\.ts$|theming[\\/]derive\.ts$|theming[\\/].*test\.ts$/;
+  /theme\.tsx$|tokens\.css$|extensions[\\/]zen\.ts$|extensions[\\/]diagnostic\.tsx$|function-debugger-log\.tsx$|ce-preview\.tsx$|stories\.tsx$|theming[\\/]presets\.ts$|theming[\\/]compute\.ts$|theming[\\/]derive\.ts$|theming[\\/].*test\.tsx?$/;
 
 const HEX_RE = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g;
 
