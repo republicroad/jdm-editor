@@ -22,7 +22,11 @@ export const hexToRgb = (hex: string): Rgb => {
 };
 
 export const rgbToHex = ([r, g, b]: Rgb): string =>
-  `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+  `#${[r, g, b]
+    // quantize here by contract: hex is an integer format, so callers may pass
+    // fractional channels (e.g. rgba compositing) without producing garbage hex
+    .map((x) => Math.round(x).toString(16).padStart(2, '0'))
+    .join('')}`;
 
 export type OkLab = { L: number; a: number; b: number };
 
