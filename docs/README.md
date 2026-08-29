@@ -36,6 +36,8 @@
 | [`editor-engines.zh-CN.md`](./editor-engines.zh-CN.md) | 中文 | 编辑器引擎选型说明(中文对照):CodeMirror 6 与 Monaco 的场景矩阵、四个决定性选型维度、共享 token 主题契约 |
 | [`storybook.md`](./storybook.md) | EN | Storybook guide: configuration (main.ts/preview.tsx), decorator setup (.grl-root scoped injection), story inventory (57 stories), interaction test pipeline (test:storybook), height chain, multi-island testing |
 | [`storybook.zh-CN.md`](./storybook.zh-CN.md) | 中文 | Storybook 指南(中文对照):配置(main.ts/preview.tsx)、装饰器设置(.grl-root 作用域注入)、story 清单(57 个)、交互测试流水线(test:storybook)、高度链、多岛测试 |
+| [`i18n.md`](./i18n.md) | EN | i18n guide: provider setup via JdmConfigProvider, useT/createT, en+zh-CN catalogs, fallback chain, interpolation, coverage and known limitation (renderNode specs) |
+| [`i18n.zh-CN.md`](./i18n.zh-CN.md) | 中文 | 国际化指南(中文对照):Provider 接入、useT/createT、en+zh-CN 词条表、回退链、插值、覆盖范围与已知限制(renderNode 规格回调) |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
 | [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
 
