@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { SquareFunctionIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { useT } from '../../../../theming/i18n';
 import { Popover } from '../../../primitives';
 import { GRID_OPS, OPS_BY_KIND, type OperatorType, VALUE_KINDS, type ValueKind, getOp } from './constants';
 import { OpIcon } from './op-icon';
@@ -25,6 +26,7 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
   onCustomToggle,
   disabled,
 }) => {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -115,7 +117,7 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
           <div className='flex min-w-[170px] flex-1 flex-col border-l border-border bg-muted/40 p-2.5'>
             <input
               className='mb-1.5 w-full rounded-md border border-input bg-transparent px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30'
-              placeholder='Search...'
+              placeholder={t('misc.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

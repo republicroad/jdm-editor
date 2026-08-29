@@ -6,6 +6,7 @@ import React, { useRef, useState } from 'react';
 
 import { getDropDirection } from '../../helpers/dnd';
 import { getTrace } from '../../helpers/trace';
+import { useT } from '../../theming/i18n';
 import { CodeEditorPreview } from '../code-editor/ce-preview';
 import { ConfirmAction } from '../confirm-action';
 import { DiffIcon } from '../diff-icon';
@@ -24,6 +25,7 @@ export type ExpressionItemProps = {
 
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const t = useT();
   const expressionRef = useRef<HTMLDivElement>(null);
   const { updateRow, removeRow, disabled, permission } = useExpressionStore(
     ({ updateRow, removeRow, disabled, permission }) => ({
@@ -117,7 +119,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           <DiffAutosizeTextArea
             noStyle
             className='min-h-full py-3 px-3 text-[13px] leading-[1.5em] [font-family:var(--mono-font-family)] focus:shadow-none'
-            placeholder='Key'
+            placeholder={t('expression.key')}
             maxRows={10}
             readOnly={permission !== 'edit:full' || disabled}
             displayDiff={expression?._diff?.fields?.key?.status === 'modified'}
@@ -136,7 +138,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
               // placeholder via the semantic token. pr-[60px] stays — reserved
               // right gutter for item controls.
               className='[--ce-verticalPadding:12px] [--ce-horizontalPadding:12px] [&_.cm-content]:pr-[60px]! [&_.cm-placeholder]:text-[color:var(--grl-color-text-placeholder)]!'
-              placeholder='Expression'
+              placeholder={t('expression.placeholder')}
               maxRows={9}
               disabled={disabled}
               value={expression?.value}

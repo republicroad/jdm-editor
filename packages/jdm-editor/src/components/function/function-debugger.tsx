@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
 import typeScriptIcon from '../../assets/typescript.svg?inline';
+import { useT } from '../../theming/i18n';
 import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-graph/simulator/simulation.types';
 import { Button, Tabs, Tooltip, Typography } from '../primitives';
 import { FunctionDebuggerLog } from './function-debugger-log';
@@ -32,6 +33,8 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
   const traceLog = trace?.traceData?.log || [];
   const [activeTab, setActiveTab] = useState<TabKey>(TabKey.Console);
 
+  const t = useT();
+
   return (
     <div className='h-full border-l border-[var(--border)]'>
       <div className='flex h-full flex-col overflow-hidden bg-[var(--card)]'>
@@ -45,7 +48,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
             onChange={(t) => setActiveTab(t as TabKey)}
             tabBarExtraContent={
               <div style={{ marginRight: 8 }}>
-                <Tooltip title='Format code' placement='bottomLeft'>
+                <Tooltip title={t('func.debugger.formatCode')} placement='bottomLeft'>
                   <Button
                     size='small'
                     type='text'
@@ -106,6 +109,7 @@ const FunctionLibraryItem: React.FC<{
   editorValue?: string;
   disabled?: boolean;
 }> = ({ lib, onImport, editorValue, disabled }) => {
+  const t = useT();
   const canImport = useMemo(() => {
     if (!editorValue) {
       return true;
@@ -125,7 +129,7 @@ const FunctionLibraryItem: React.FC<{
         {lib.tagline}
       </Typography.Text>
       <div className='ml-auto flex gap-2'>
-        <Tooltip title='Import library' placement='bottomLeft'>
+        <Tooltip title={t('func.debugger.importLibrary')} placement='bottomLeft'>
           <Button
             type='text'
             size='small'
@@ -134,7 +138,7 @@ const FunctionLibraryItem: React.FC<{
             onClick={onImport}
           />
         </Tooltip>
-        <Tooltip title='Go to documentation' placement='bottomLeft'>
+        <Tooltip title={t('func.debugger.goToDocs')} placement='bottomLeft'>
           <Button
             type='text'
             size='small'

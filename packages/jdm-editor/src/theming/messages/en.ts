@@ -81,12 +81,18 @@ export const en = {
 
   // ── expression ──
   'expression.placeholder': 'Expression',
+  'expression.key': 'Key',
   'expression.addRowAbove': 'Add row above',
   'expression.addRowBelow': 'Add row below',
 
   // ── function ──
   'func.debugger.copy': 'Copy to clipboard',
   'func.debugger.copied': 'Copied to clipboard',
+  'func.debugger.formatCode': 'Format code',
+  'func.debugger.importLibrary': 'Import library',
+  'func.debugger.goToDocs': 'Go to documentation',
+  'func.debugger.msSinceRun': 'Time since start of execution of script.',
+  'misc.search': 'Search...',
   'func.preview.noResults': 'Run simulation to see the results',
 
   // ── safe boundary ──

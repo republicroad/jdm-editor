@@ -71,10 +71,16 @@ export const zhCN: Record<string, string> = {
   'dg.condition.removeConfirm': '移除此条件？',
 
   'expression.placeholder': '表达式',
+  'expression.key': '键名',
   'expression.addRowAbove': '在上方添加行',
   'expression.addRowBelow': '在下方添加行',
 
   'func.debugger.copy': '复制到剪贴板',
+  'func.debugger.formatCode': '格式化代码',
+  'func.debugger.importLibrary': '导入库',
+  'func.debugger.goToDocs': '前往文档',
+  'func.debugger.msSinceRun': '脚本开始执行至今的时长。',
+  'misc.search': '搜索...',
   'func.debugger.copied': '已复制到剪贴板',
   'func.preview.noResults': '运行模拟器以查看结果',
 

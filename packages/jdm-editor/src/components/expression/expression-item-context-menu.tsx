@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useT } from '../../theming/i18n';
 import { Dropdown } from '../primitives';
 import { SpacedText } from '../spaced-text';
 import { useExpressionStore } from './context/expression-store.context';
@@ -15,6 +16,7 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
     addRowAbove,
     disabled,
   }));
+  const t = useT();
 
   return (
     <Dropdown
@@ -27,14 +29,14 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
         items: [
           {
             key: 'addRowAbove',
-            label: <SpacedText left='Add row above' />,
+            label: <SpacedText left={t('expression.addRowAbove')} />,
             onClick: () => {
               addRowAbove(index);
             },
           },
           {
             key: 'addRowBelow',
-            label: <SpacedText left='Add row below' />,
+            label: <SpacedText left={t('expression.addRowBelow')} />,
             onClick: () => {
               addRowBelow(index);
             },

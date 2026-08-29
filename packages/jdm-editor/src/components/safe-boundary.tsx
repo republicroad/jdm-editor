@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { useT } from '../theming/i18n';
+
 type SafeBoundaryProps = {
   children: React.ReactNode;
   /** Custom fallback UI shown when an error is caught. */
@@ -10,6 +12,49 @@ type SafeBoundaryProps = {
 
 type SafeBoundaryState = {
   error: Error | null;
+};
+
+const DefaultFallback: React.FC<{ message: string; onReset: () => void }> = ({ message, onReset }) => {
+  const t = useT();
+  return (
+    <div
+      role='alert'
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: 24,
+        border: '1px solid var(--grl-color-error-border, #ffccc7)',
+        borderRadius: 8,
+        background: 'var(--grl-color-error-bg, #fff2f0)',
+        color: 'var(--grl-color-text, rgba(0,0,0,0.88))',
+        minHeight: 120,
+      }}
+    >
+      <div style={{ fontWeight: 600, fontSize: 14 }}>{t('safe.title')}</div>
+      <div style={{ fontSize: 12, opacity: 0.65, wordBreak: 'break-all', maxWidth: 480, textAlign: 'center' }}>
+        {message}
+      </div>
+      <button
+        type='button'
+        onClick={onReset}
+        style={{
+          marginTop: 4,
+          padding: '4px 16px',
+          borderRadius: 6,
+          border: '1px solid var(--grl-color-border, #d9d9d9)',
+          background: 'var(--grl-color-bg-container, #fff)',
+          color: 'inherit',
+          cursor: 'pointer',
+          fontSize: 13,
+        }}
+      >
+        {t('safe.retry')}
+      </button>
+    </div>
+  );
 };
 
 /**
@@ -44,45 +89,7 @@ export class SafeBoundary extends React.Component<SafeBoundaryProps, SafeBoundar
       if (this.props.fallback !== undefined) {
         return this.props.fallback;
       }
-      return (
-        <div
-          role='alert'
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            padding: 24,
-            border: '1px solid var(--grl-color-error-border, #ffccc7)',
-            borderRadius: 8,
-            background: 'var(--grl-color-error-bg, #fff2f0)',
-            color: 'var(--grl-color-text, rgba(0,0,0,0.88))',
-            minHeight: 120,
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: 14 }}>Something went wrong</div>
-          <div style={{ fontSize: 12, opacity: 0.65, wordBreak: 'break-all', maxWidth: 480, textAlign: 'center' }}>
-            {this.state.error.message}
-          </div>
-          <button
-            type='button'
-            onClick={this.reset}
-            style={{
-              marginTop: 4,
-              padding: '4px 16px',
-              borderRadius: 6,
-              border: '1px solid var(--grl-color-border, #d9d9d9)',
-              background: 'var(--grl-color-bg-container, #fff)',
-              color: 'inherit',
-              cursor: 'pointer',
-              fontSize: 13,
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      );
+      return <DefaultFallback message={this.state.error.message} onReset={this.reset} />;
     }
 
     return this.props.children;

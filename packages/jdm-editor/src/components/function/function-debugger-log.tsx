@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 import { copyToClipboard } from '../../helpers/utility';
 import { useThemeMode } from '../../theme';
+import { useT } from '../../theming/i18n';
 import { Dropdown, Tooltip } from '../primitives';
 
 export type FunctionDebuggerLogProps = {
@@ -41,6 +42,7 @@ const themes: Record<'dark' | 'light', JsonTheme> = {
 
 export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines, msSinceRun }) => {
   const mode = useThemeMode();
+  const t = useT();
   const jsonTheme = themes[mode ?? 'light'];
 
   return (
@@ -51,7 +53,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
           items: [
             {
               key: 'copy',
-              label: 'Copy to clipboard',
+              label: t('func.debugger.copy'),
               onClick: async () => {
                 await copyToClipboard(lines.length === 1 ? lines[0] : `[${lines.join(', ')}]`);
                 toast.success('Copied to clipboard');
@@ -137,7 +139,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
         </div>
       </Dropdown>
       <div className='pt-[1ch] opacity-50'>
-        {msSinceRun !== null && <Tooltip title='Time since start of execution of script.'>{msSinceRun}ms</Tooltip>}
+        {msSinceRun !== null && <Tooltip title={t('func.debugger.msSinceRun')}>{msSinceRun}ms</Tooltip>}
       </div>
     </div>
   );

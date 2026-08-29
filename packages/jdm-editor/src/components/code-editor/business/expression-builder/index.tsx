@@ -4,6 +4,7 @@ import { P, match } from 'ts-pattern';
 
 import type { ColumnFieldType } from '../../../../helpers/schema';
 import { useDictionaries } from '../../../../theme';
+import { useT } from '../../../../theming/i18n';
 import { CodeEditorBase } from '../../ce-base';
 import { focusBuilderRoot } from '../focus-helper';
 import {
@@ -52,6 +53,7 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
     const isAutoType = !isEnum && externalKind === 'any';
     const { expr, update, setVal, isCustom, setIsCustom, toggleCustom } = useExpressionState(value, onChange);
     const [localKind, setLocalKind] = useState<ValueKind | null>(null);
+    const t = useT();
     const kind = isEnum ? 'string' : isAutoType ? (localKind ?? inferKindFromExpr(expr) ?? 'string') : externalKind;
     const forceCustom = !isAutoType && expr.kind === 'simple' && !isExprCompatibleWithKind(expr, kind);
 
@@ -136,7 +138,7 @@ export const ExpressionBuilder = React.forwardRef<ExpressionBuilderRef, Expressi
             disabled={disabled}
             noStyle
             maxRows={maxRows}
-            placeholder='Expression...'
+            placeholder={t('expression.placeholder')}
           />
         </div>
       );
