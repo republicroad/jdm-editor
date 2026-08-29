@@ -2,6 +2,7 @@ import { type Variable } from '@gorules/zen-engine-wasm';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { COLUMN_FIELD_TYPE_OPTIONS, type ColumnEnum, type ColumnFieldType } from '../../../helpers/schema';
+import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import type { CodeEditorRef } from '../../code-editor';
 import { CodeEditor } from '../../code-editor';
@@ -48,6 +49,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
   const uiMode = useDecisionTableState((s) => s.mode);
   const showAdvanced = uiMode === 'business';
   const [open, setOpen] = useState(false);
+  const t = useT();
   const [innerName, setInnerName] = useState('');
   const [innerValue, setInnerValue] = useState(value);
   const [innerFieldType, setInnerFieldType] = useState<string>(fieldType?.type ?? 'any');
@@ -152,7 +154,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
             ref={nameInput}
             value={innerName}
             onChange={(e) => setInnerName(e.target.value)}
-            placeholder='Field label'
+            placeholder={t('dt.field.label')}
             disabled={disabled}
             className='h-8'
           />

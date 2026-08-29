@@ -3,6 +3,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import React from 'react';
 
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
+import { useT } from '../../../../theming/i18n';
 import { Button, Checkbox, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
 import { InputFieldEdit } from '../input-field-edit';
 import { OutputFieldEdit } from '../output-field-edit';
@@ -31,6 +32,7 @@ export const ImportColumnRow: React.FC<{
   onFieldChange,
   onRemove,
 }) => {
+  const t = useT();
   const {
     attributes,
     listeners,
@@ -53,7 +55,7 @@ export const ImportColumnRow: React.FC<{
   }));
 
   const editTrigger = (
-    <Tooltip title='Edit column'>
+    <Tooltip title={t('dt.field.editColumn')}>
       <Button type='text' size='small' icon={<EditOutlined />} style={{ padding: 0 }} />
     </Tooltip>
   );
@@ -114,7 +116,7 @@ export const ImportColumnRow: React.FC<{
       <Select
         allowClear
         style={{ width: '100%' }}
-        placeholder='Select Excel column'
+        placeholder={t('dt.table.selectExcelColumn')}
         value={col.excelHeaderId}
         disabled={disabled}
         onChange={(val) => onExcelHeaderChange(val ?? undefined)}
@@ -122,7 +124,7 @@ export const ImportColumnRow: React.FC<{
       />
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <Tooltip title='Wrap values in quotes'>
+        <Tooltip title={t('dt.field.wrapQuotes')}>
           <Checkbox disabled={disabled} checked={wrapChecked} onChange={(e) => onWrapChange(e.target.checked)} />
         </Tooltip>
       </div>
@@ -147,8 +149,8 @@ export const ImportColumnRow: React.FC<{
         />
       )}
 
-      <Popconfirm title='Remove this column?' okText='Remove' onConfirm={onRemove}>
-        <Tooltip title='Remove column'>
+      <Popconfirm title={t('dt.field.removeConfirm')} okText={t('common.remove')} onConfirm={onRemove}>
+        <Tooltip title={t('dt.field.removeColumn')}>
           <Button type='text' size='small' danger icon={<DeleteOutlined />} style={{ padding: 0 }} />
         </Tooltip>
       </Popconfirm>

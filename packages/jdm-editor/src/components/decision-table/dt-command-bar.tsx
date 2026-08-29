@@ -12,6 +12,7 @@ import { P, match } from 'ts-pattern';
 
 import type { ParsedExcelData } from '../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../helpers/excel';
+import { useT } from '../../theming/i18n';
 import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from '../primitives';
 import { Stack } from '../stack';
 import type { MappedExcelData } from './components/dt-excel-dialog';
@@ -186,6 +187,8 @@ export const DecisionTableCommandBar: React.FC = () => {
     }));
   }, [debugIndex, traceCount]);
 
+  const t = useT();
+
   return (
     <>
       <Stack
@@ -196,7 +199,7 @@ export const DecisionTableCommandBar: React.FC = () => {
       >
         <Stack gap={8} horizontal className='w-full'>
           <Button type='text' size={'small'} icon={<ExportOutlined />} onClick={exportExcel}>
-            Export Excel
+            {t('dt.toolbar.export')}
           </Button>
           <Button
             type='text'
@@ -205,7 +208,7 @@ export const DecisionTableCommandBar: React.FC = () => {
             icon={<ImportOutlined />}
             onClick={() => importExcel()}
           >
-            Import Excel
+            {t('dt.toolbar.import')}
           </Button>
           {cursor && !disabled && (
             <>
@@ -215,7 +218,7 @@ export const DecisionTableCommandBar: React.FC = () => {
                   height: 24,
                 }}
               />
-              <Tooltip title={'Add row below'}>
+              <Tooltip title={t('dt.toolbar.addRowBelow')}>
                 <Button
                   type='text'
                   size={'small'}
@@ -223,7 +226,7 @@ export const DecisionTableCommandBar: React.FC = () => {
                   onClick={() => tableActions.addRowBelow(cursor?.y)}
                 />
               </Tooltip>
-              <Tooltip title={'Add row above'}>
+              <Tooltip title={t('dt.toolbar.addRowAbove')}>
                 <Button
                   type='text'
                   size={'small'}
@@ -232,7 +235,11 @@ export const DecisionTableCommandBar: React.FC = () => {
                 />
               </Tooltip>
               <Tooltip>
-                <Popconfirm title='Remove row?' okText='Remove' onConfirm={() => tableActions.removeRow(cursor?.y)}>
+                <Popconfirm
+                  title={t('dt.toolbar.removeRowConfirm')}
+                  okText={t('common.remove')}
+                  onConfirm={() => tableActions.removeRow(cursor?.y)}
+                >
                   <Button type='text' danger size={'small'} icon={<DeleteOutlined />} />
                 </Popconfirm>
               </Tooltip>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { type ColumnEnum, OUTPUT_FIELD_TYPE_OPTIONS, type OutputFieldType } from '../../../helpers/schema';
+import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import type { InputRef } from '../../primitives';
 import { Checkbox, Input, Select } from '../../primitives';
@@ -44,6 +45,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
   const uiMode = useDecisionTableState((s) => s.mode);
   const showAdvanced = uiMode === 'business';
   const [open, setOpen] = useState(false);
+  const t = useT();
   const [innerName, setInnerName] = useState('');
   const [innerValue, setInnerValue] = useState(value);
   const [innerFieldType, setInnerFieldType] = useState<OutputFieldType['type']>(fieldType?.type ?? 'auto');
@@ -129,7 +131,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
       trigger={trigger}
     >
       <div className='space-y-1.5'>
-        <FieldLabel>Output Field</FieldLabel>
+        <FieldLabel>{t('dt.field.output.label')}</FieldLabel>
         <Input
           ref={input}
           value={innerValue}
@@ -145,7 +147,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
             ref={nameInput}
             value={innerName}
             onChange={(e) => setInnerName(e.target.value)}
-            placeholder='Field label'
+            placeholder={t('dt.field.label')}
             disabled={disabled}
             className='h-8'
           />
