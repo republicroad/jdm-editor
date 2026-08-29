@@ -38,6 +38,7 @@ export const zhCN: Record<string, string> = {
   'dt.field.removeColumn': '移除列',
   'dt.field.removeConfirm': '确定移除该列？',
   'dt.field.wrapQuotes': '值用引号包裹',
+  'dt.field.selectDictionary': '选择字典...',
 
   'dt.excel.title': '映射 Excel 数据',
   'dt.excel.input': '输入',

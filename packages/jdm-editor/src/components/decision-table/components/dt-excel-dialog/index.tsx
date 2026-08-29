@@ -2,6 +2,7 @@ import { LeftOutlined, PlusOutlined } from '@/icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
+import { useT } from '../../../../theming/i18n';
 import { Button, Modal, Select, Switch, Typography } from '../../../primitives';
 import { useDecisionTableDialog } from '../../context/dt-dialog.context';
 import { useDecisionTableState } from '../../context/dt-store.context';
@@ -15,6 +16,7 @@ import type { DtExcelDialogProps, ImportColumn } from './types';
 export type { MappedExcelData } from './types';
 
 export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
+  const t = useT();
   const spreadSheetData = useMemo(() => excelData?.[0], [excelData]);
   const { getContainer } = useDecisionTableDialog();
   const { inputVariableType } = useDecisionTableState(({ inputVariableType }) => ({ inputVariableType }));
@@ -358,7 +360,7 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
               <Select
                 allowClear
                 style={{ width: '100%' }}
-                placeholder='Select Excel column for description'
+                placeholder={t('dt.table.selectDescription')}
                 value={descriptionExcelId}
                 disabled={!descriptionEnabled}
                 onChange={(val) => setDescriptionExcelId(val ?? undefined)}

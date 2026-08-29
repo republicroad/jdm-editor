@@ -202,7 +202,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
               <Select
                 value={enumRef || undefined}
                 onChange={setEnumRef}
-                placeholder='Select dictionary...'
+                placeholder={t('dt.field.selectDictionary')}
                 disabled={disabled}
                 className='w-full'
                 size='small'

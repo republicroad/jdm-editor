@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import type { ParsedExcelData } from '../../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../../helpers/excel';
 import { decisionModelSchema } from '../../../helpers/schema';
+import { useT } from '../../../theming/i18n';
 import { parseDecisionTable } from '../../decision-table/context/dt-store.context';
 import type { MenuProps } from '../../primitives';
 import { Button, Dropdown, Tooltip } from '../../primitives';
@@ -21,6 +22,7 @@ export type GraphSideToolbarProps = {
 };
 
 export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
+  const t = useT();
   const decisionGraphRaw = useDecisionGraphRaw();
   const fileInput = useRef<HTMLInputElement>(null);
   const excelFileInput = useRef<HTMLInputElement>(null);
@@ -262,12 +264,12 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const uploadItems: MenuProps['items'] = [
     !viewConfig?.enabled && {
       key: 'upload-json',
-      label: 'Upload JSON',
+      label: t('dg.toolbar.uploadJson'),
       onClick: () => fileInput?.current?.click?.(),
     },
     {
       key: 'upload-excel',
-      label: 'Upload Excel',
+      label: t('dg.toolbar.uploadExcel'),
       onClick: () => excelFileInput?.current?.click?.(),
     },
   ].filter((item) => !!item);
@@ -275,12 +277,12 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const downloadItems: MenuProps['items'] = [
     !viewConfig?.enabled && {
       key: 'download-json',
-      label: 'Download JSON',
+      label: t('dg.toolbar.downloadJson'),
       onClick: () => downloadJDM(),
     },
     {
       key: 'download-excel',
-      label: 'Download Excel',
+      label: t('dg.toolbar.downloadExcel'),
       onClick: () => downloadJDMExcel(),
     },
   ].filter((item) => !!item);

@@ -2,6 +2,7 @@ import { PlusOutlined, SwapOutlined } from '@/icons';
 import clsx from 'clsx';
 import React from 'react';
 
+import { useT } from '../../../theming/i18n';
 import { DiffIcon } from '../../diff-icon';
 import { Button, Tooltip, Typography } from '../../primitives';
 import { Stack } from '../../stack';
@@ -27,6 +28,7 @@ export type TableHeadCellFieldProps = {
 };
 
 export const TableHeadCellInput: React.FC<TableHeadCellProps> = ({ permission, disabled }) => {
+  const t = useT();
   const inputs = useDecisionTableState((store) => store.decisionTable?.inputs);
   const tableActions = useDecisionTableActions();
   const { setDialog } = useDecisionTableDialog();
@@ -44,7 +46,7 @@ export const TableHeadCellInput: React.FC<TableHeadCellProps> = ({ permission, d
         {(permission === 'edit:full' || permission === 'edit:rules') && (
           <div className='flex'>
             {inputs?.length > 1 && (
-              <Tooltip title='Reorder fields'>
+              <Tooltip title={t('dt.table.reorderFields')}>
                 <Button
                   className='grl-dt-text-secondary'
                   icon={<SwapOutlined />}
@@ -92,6 +94,7 @@ export const TableHeadCellInput: React.FC<TableHeadCellProps> = ({ permission, d
 };
 
 export const TableHeadCellOutput: React.FC<TableHeadCellProps> = ({ permission, disabled }) => {
+  const t = useT();
   const outputs = useDecisionTableState((store) => store.decisionTable?.outputs);
   const tableActions = useDecisionTableActions();
   const { setDialog } = useDecisionTableDialog();
@@ -105,7 +108,7 @@ export const TableHeadCellOutput: React.FC<TableHeadCellProps> = ({ permission, 
         {permission === 'edit:full' && (
           <div className='flex'>
             {outputs?.length > 1 && (
-              <Tooltip title='Reorder fields'>
+              <Tooltip title={t('dt.table.reorderFields')}>
                 <Button
                   className='grl-dt-text-secondary'
                   icon={<SwapOutlined />}
