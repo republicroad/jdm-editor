@@ -363,4 +363,45 @@ expression 列(CodeMirror)不受影响。
 | 跟进项 | 位置 | 状态 |
 | --- | --- | --- |
 | 其余依赖隐式 border-box 的 portaled 原语 | `ui/dialog.tsx`、`ui/alert-dialog.tsx`、`ui/popover.tsx`、`ui/select.tsx`、`ui/tooltip.tsx` | 待办——随 roadmap §P1/P3 批量处理 |
-| Portal 归属作用域(多岛屿换肤前置) | roadmap §P3 | 计划内 |
+| Portal 归属作用域(多岛屿换肤前置) | roadmap §P3 | ✅ 已由 fda9501 实现（GrlContainerProvider） |
+
+## 6. consumer-smoke 构建失败：代码分割 chunk 被清理脚本删除
+
+**日期:** 2026-08 · **修复位置:** `scripts/clean-dist.mjs` · 已登记 **GRL-STYLE-HACK** 无关（非样式问题）
+
+### 症状
+
+`pnpm test:consumer` 在 Vite 构建宿主 app 时报 Rolldown `UNRESOLVED_IMPORT`：
+`Could not resolve './index-DNumq_39.js'`——库的 dist/index.js 引用了一个不存在的
+代码分割 chunk 文件。
+
+### 排查
+
+1. 使用 `--keep` 保留 consumer-smoke 临时工作区，直接在临时项目里复现 `vite build`。
+2. Rolldown 错误输出精确定位到 `dist/index.js:13253` 行的动态导入。
+3. 检查 `packages/jdm-editor/dist/` 目录：仅 8 个文件，无任何 chunk。
+
+### 根因
+
+`scripts/clean-dist.mjs` 使用**硬编码 9 文件白名单**清理 dist 目录。Vite lib mode
+构建时对 `React.lazy` 包装的组件生成了代码分割 chunk（`index-DNumq_39.js`），
+但该文件不在白名单内被删除——导致 dist 不完整，消费者打包时报 UNRESOLVED_IMPORT。
+
+### 修复
+
+`clean-dist.mjs` 白名单改为**模式匹配**：保留全部 `.js`/`.css`/`.map` 功能产物，
+仅清除 vite-plugin-dts 产生的非功能 `.d.ts` 副本。代码分割 chunk 从此不会被误删。
+
+### 验证
+
+- `pnpm test:consumer`：React 18 + React 19 双宿主均 PASS
+- `pnpm --filter @republicroad/jdm-editor build` → dist 包含 chunk 文件
+- 门禁全套绿
+
+### 经验 / 检查清单
+
+- **构建后清理脚本不能硬编码文件名白名单**——Vite/Rollup 可能因 React.lazy 等
+  动态导入产生额外 chunk。应按文件扩展名模式匹配保留功能产物。
+- **库的 dist 必须自包含**：任何被 `import()` 引用的文件都必须出现在发布产物中。
+- **`pnpm size` 只检查入口文件大小**，不会检测缺失的 chunk——需用 consumer-smoke
+  端到端验证。
