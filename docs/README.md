@@ -42,6 +42,21 @@
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。
 
+
+## CI / Release / 快速命令
+
+| 操作 | 命令 |
+|---|---|
+| 全量本地门禁 | `pnpm verify` |
+| 样式债务预算 | `pnpm lint:debt` |
+| Storybook 交互套件 | `pnpm --filter @republicroad/jdm-editor test:storybook` |
+| 双宿主冒烟 (React 18+19) | `pnpm test:consumer` |
+| Bundle 尺寸检查 | `pnpm size` |
+| 版本发布触发 | `git commit --allow-empty -m "chore(release)" && git push` |
+| 版本号升级 | GitHub Actions → Version → Run workflow → 选 patch/minor/major |
+
+详见 [CONTRIBUTING.md](../CONTRIBUTING.md) CI Workflows 一节。
+
 ## Quick facts / 快速事实
 
 - Main deliverable: `@republicroad/jdm-editor` — React component library for JDM (JSON Decision Model) editing.
