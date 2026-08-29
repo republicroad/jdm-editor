@@ -5,6 +5,7 @@ import { App } from './components/primitives';
 import { useWasmReady } from './helpers/wasm';
 import { computeTheme } from './theming/compute';
 import type { ThemeSeeds } from './theming/derive';
+import { I18nProvider } from './theming/i18n';
 import { GrlContainerProvider } from './theming/portal-context';
 
 export { MODE_EXTRAS, darkTokens, lightTokens } from './theming/presets';
@@ -38,6 +39,10 @@ export type JdmConfigProviderProps = {
    * brand families; explicit `theme.token` entries always win.
    */
   seeds?: ThemeSeeds;
+  /** BCP 47 locale tag (e.g. `'en'`, `'zh-CN'`). Defaults to `'en'`. */
+  locale?: string;
+  /** Consumer i18n overrides — highest priority in the resolution chain. */
+  messages?: Record<string, string>;
   prefixCls?: string;
   dictionaries?: DictionaryMap;
   children?: React.ReactNode;
@@ -46,6 +51,8 @@ export type JdmConfigProviderProps = {
 export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   theme: { mode = 'light' as const, token = {} } = {},
   seeds,
+  locale = 'en',
+  messages,
   dictionaries,
   children,
 }) => {
@@ -128,8 +135,10 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
             />
           )}
           <GrlContainerProvider container={container}>
-            <Toaster theme={mode} position='bottom-right' richColors />
-            {children}
+            <I18nProvider locale={locale} overrides={messages}>
+              <Toaster theme={mode} position='bottom-right' richColors />
+              {children}
+            </I18nProvider>
           </GrlContainerProvider>
         </App>
       </DictionaryContext.Provider>
