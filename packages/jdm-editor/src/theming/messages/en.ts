@@ -70,6 +70,14 @@ export const en = {
   'dg.tabs.closeLeft': 'Close Tabs to the left',
   'dg.jsonSchema.title': 'Convert to JSON Schema',
   'dg.jsonSchema.copyJson': 'Copy JSON',
+  'dg.node.documentation': 'Documentation',
+  'dg.node.duplicate': 'Duplicate',
+  'dg.node.deleteNode': 'Delete node',
+  'dg.schema.formatCode': 'Format code',
+  'dg.schema.importFromJson': 'Import from JSON',
+  'dg.excel.wrapQuotes': 'Wrap value in quotes',
+  'dg.excel.enterFieldName': 'Enter field name',
+  'dg.condition.removeConfirm': 'Remove condition?',
 
   // ── expression ──
   'expression.placeholder': 'Expression',

@@ -3,6 +3,7 @@ import InformationIcon from '@/reui/icons/animated/outline/information';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
+import { useT } from '../../../../theming/i18n';
 import {
   Button,
   Checkbox,
@@ -31,6 +32,7 @@ const dataTypeConfig = {
 const stepKeyOf = (step: number) => `step${step}`;
 
 export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
+  const t = useT();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const steps = useMemo(() => excelData?.map((item) => ({ key: item.id, title: item.name })), [excelData]);
 
@@ -153,7 +155,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
         </Typography.Text>
         {/*placeholder for grid*/}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-8px' }}>
-          <Tooltip title='Wrap value in quotes'>
+          <Tooltip title={t('dg.excel.wrapQuotes')}>
             <span className='inline-flex cursor-pointer text-[var(--muted-foreground)] [&_svg]:block'>
               <InformationIcon className='size-3.5' />
             </span>
@@ -254,7 +256,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
                       }}
                     >
                       <Input
-                        placeholder='Enter field name'
+                        placeholder={t('dg.excel.enterFieldName')}
                         value={newItemName}
                         onChange={(event) => setNewItemName(event.target.value)}
                       />

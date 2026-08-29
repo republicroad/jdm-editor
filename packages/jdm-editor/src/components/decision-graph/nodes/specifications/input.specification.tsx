@@ -7,6 +7,7 @@ import type { z } from 'zod';
 
 import { platform } from '../../../../helpers/platform';
 import { type inputNodeSchema } from '../../../../helpers/schema';
+import { createT } from '../../../../theming/i18n';
 import { App } from '../../../primitives';
 import { Button, Typography } from '../../../primitives';
 import { SpacedText } from '../../../spaced-text';
@@ -17,6 +18,8 @@ import { GraphNode } from '../graph-node';
 import { NodeColor } from './colors';
 import type { NodeSpecification } from './specification-types';
 import { NodeKind } from './specification-types';
+
+const t = createT('en');
 
 type InferredContent = z.infer<typeof inputNodeSchema>['content'];
 
@@ -66,12 +69,12 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
             key: 'delete',
             icon: <DeleteOutlined />,
             danger: true,
-            label: <SpacedText left='Delete' right={platform.shortcut('Backspace')} />,
+            label: <SpacedText left={t('common.delete')} right={platform.shortcut('Backspace')} />,
             disabled,
             onClick: () =>
               modal.confirm({
                 icon: null,
-                title: 'Delete node',
+                title: t('dg.node.deleteNode'),
                 content: (
                   <Typography.Text>
                     Are you sure you want to delete <Typography.Text strong>{data.name}</Typography.Text> node.

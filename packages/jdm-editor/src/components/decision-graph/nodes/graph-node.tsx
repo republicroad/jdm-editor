@@ -7,6 +7,7 @@ import { P, match } from 'ts-pattern';
 
 import { platform } from '../../../helpers/platform';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
+import { useT } from '../../../theming/i18n';
 import type { MenuProps } from '../../primitives';
 import { App, Button, Typography } from '../../primitives';
 import { SpacedText } from '../../spaced-text';
@@ -44,6 +45,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     },
     ref,
   ) => {
+    const t = useT();
     const [currentDetails, setCurrentDetails] = usePersistentState<Details>(`node:details:${id}`, Details.Settings);
     const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
     const graphActions = useDecisionGraphActions();
@@ -69,32 +71,32 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       specification.documentationUrl
         ? {
             key: 'documentation',
-            label: <SpacedText left='Documentation' right={<BookOutlined />} />,
+            label: <SpacedText left={t('dg.node.documentation')} right={<BookOutlined />} />,
             onClick: () => window.open(specification.documentationUrl, '_href'),
           }
         : null,
       specification.documentationUrl ? { key: 'divider-1', type: 'divider' } : null,
       !displayError && {
         key: 'copy-clipboard',
-        label: <SpacedText left='Copy to clipboard' right={platform.shortcut('Ctrl + C')} />,
+        label: <SpacedText left={t('func.debugger.copy')} right={platform.shortcut('Ctrl + C')} />,
         onClick: () => graphActions.copyNodes([id]),
       },
       !displayError && {
         key: 'duplicate',
         disabled,
-        label: <SpacedText left='Duplicate' right={platform.shortcut('Ctrl + D')} />,
+        label: <SpacedText left={t('dg.node.duplicate')} right={platform.shortcut('Ctrl + D')} />,
         onClick: () => graphActions.duplicateNodes([id]),
       },
       !displayError && { key: 'divider-2', type: 'divider' },
       {
         key: 'delete',
         danger: true,
-        label: <SpacedText left='Delete' right={platform.shortcut('Backspace')} />,
+        label: <SpacedText left={t('common.delete')} right={platform.shortcut('Backspace')} />,
         disabled,
         onClick: () =>
           modal.confirm({
             icon: null,
-            title: 'Delete node',
+            title: t('dg.node.deleteNode'),
             content: (
               <Typography.Text>
                 Are you sure you want to delete <Typography.Text strong>{name}</Typography.Text> node.

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { copyToClipboard } from '../../../helpers/utility';
 import { useThemeMode } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { Spin } from '../../primitives';
 
 type SimulatorEditorProps = {
@@ -15,6 +16,8 @@ type SimulatorEditorProps = {
 
 export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChange, readOnly }) => {
   const mode = useThemeMode();
+
+  const t = useT();
 
   return (
     <Editor
@@ -36,7 +39,7 @@ export const SimulatorEditor: React.FC<SimulatorEditorProps> = ({ value, onChang
 
         editor.addAction({
           id: 'copy-json',
-          label: 'Copy JSON',
+          label: t('dg.jsonSchema.copyJson'),
           contextMenuGroupId: 'utils',
           run: async (editor) => {
             try {

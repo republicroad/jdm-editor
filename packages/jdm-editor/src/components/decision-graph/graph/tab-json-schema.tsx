@@ -8,6 +8,7 @@ import { match } from 'ts-pattern';
 import { useThrottledCallback } from 'use-debounce';
 
 import { useThemeMode } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { Button, Space, Spin, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState, useNodeDiff } from '../context/dg-store.context';
 import { useTabSerializer } from '../context/serializer.context';
@@ -47,6 +48,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
 
   const mode = useThemeMode();
 
+  const t = useT();
   const [jsonToJsonSchemaOpen, setJsonToJsonSchemaOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState(TabKey.Schema);
@@ -139,7 +141,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                 onChange={(t) => setActiveTab(t as TabKey)}
                 tabBarExtraContent={
                   <Space style={{ marginRight: 8 }} size={'small'}>
-                    <Tooltip title='Format code' placement='bottomRight'>
+                    <Tooltip title={t('dg.schema.formatCode')} placement='bottomRight'>
                       <Button
                         size='small'
                         type='text'
@@ -148,7 +150,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
                         onClick={() => editor?.getAction?.('editor.action.formatDocument')?.run?.()}
                       />
                     </Tooltip>
-                    <Tooltip title='Import from JSON' placement='bottomRight'>
+                    <Tooltip title={t('dg.schema.importFromJson')} placement='bottomRight'>
                       <Button
                         type='text'
                         size={'small'}

@@ -4,6 +4,7 @@ import { Handle, Position } from '@xyflow/react';
 import clsx from 'clsx';
 import React, { useLayoutEffect, useState } from 'react';
 
+import { useT } from '../../../../../theming/i18n';
 import { Button, Popconfirm } from '../../../../primitives';
 import { DiffCodeEditor } from '../../../../shared/diff-ce';
 import type { DiffMetadata } from '../../../dg-types';
@@ -50,6 +51,7 @@ export const SwitchHandle: React.FC<{
   hitPolicy,
   variableType,
 }) => {
+  const t = useT();
   const [inner, setInner] = useSyncedValue(value);
   const handleChange = (val: string) => {
     setInner(val);
@@ -112,7 +114,11 @@ export const SwitchHandle: React.FC<{
           }}
         />
         {!disabled && configurable && (
-          <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
+          <Popconfirm
+            title={t('dg.condition.removeConfirm')}
+            okText={t('common.remove')}
+            onConfirm={() => onDelete?.()}
+          >
             <Button
               className='text-[var(--grl-color-text-disabled)]'
               size='small'
@@ -166,6 +172,7 @@ export const SwitchHandleCompact: React.FC<{
   index: number;
   variableType?: VariableType;
 }> = ({ id, value, diff, onChange, disabled, configurable = true, onDelete, isActive, variableType }) => {
+  const t = useT();
   const [inner, setInner] = useSyncedValue(value);
   const handleChange = (val: string) => {
     setInner(val);
@@ -199,7 +206,11 @@ export const SwitchHandleCompact: React.FC<{
       </div>
       {!disabled && configurable && (
         <div className='absolute right-3.5 top-2.5'>
-          <Popconfirm title='Remove condition?' okText='Remove' onConfirm={() => onDelete?.()}>
+          <Popconfirm
+            title={t('dg.condition.removeConfirm')}
+            okText={t('common.remove')}
+            onConfirm={() => onDelete?.()}
+          >
             <Button
               className='text-[var(--grl-color-text-disabled)]'
               size='small'

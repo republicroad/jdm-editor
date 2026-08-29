@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { useT } from '../../../theming/i18n';
 import { Avatar, Button, Input, Space, Typography } from '../../primitives';
 import { useDecisionGraphActions, useDecisionGraphListeners, useDecisionGraphState } from '../context/dg-store.context';
 import { type DecisionNode } from '../dg-types';
@@ -17,6 +18,7 @@ export type GraphComponentsProps = {
 };
 
 export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ className }) => {
+  const t = useT();
   const { decisionGraph, customComponents, viewConfig, viewConfigCta } = useDecisionGraphState((store) => ({
     decisionGraph: store.decisionGraph || [],
     customComponents: store.components,
@@ -160,7 +162,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
           <div className={'flex items-center justify-between mb-8'}>
             <Space>
               <Input
-                placeholder='Search nodes'
+                placeholder={t('dg.toolbar.searchNodes')}
                 prefix={<SearchOutlined />}
                 style={{ width: 350 }}
                 onChange={(e) => setSearch(e.target.value)}

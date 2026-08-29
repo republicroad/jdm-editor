@@ -6,6 +6,7 @@ import toJsonSchema from 'to-json-schema';
 
 import { copyToClipboard } from '../../../helpers/utility';
 import { useThemeMode } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { Modal, Spin, Typography } from '../../primitives';
 
 export type JsonToJsonSchemaDialogProps = {
@@ -21,6 +22,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
 
   const mode = useThemeMode();
 
+  const t = useT();
   const [value, setValue] = useState<string>('');
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export const JsonToJsonSchemaDialog: React.FC<JsonToJsonSchemaDialogProps> = (pr
 
           editor.addAction({
             id: 'copy-json',
-            label: 'Copy JSON',
+            label: t('dg.jsonSchema.copyJson'),
             contextMenuGroupId: 'utils',
             run: async (editor) => {
               try {

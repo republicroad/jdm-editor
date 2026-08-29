@@ -2,6 +2,7 @@ import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 
+import { useT } from '../../../theming/i18n';
 import { DiffIcon } from '../../diff-icon';
 import type { TabsProps } from '../../primitives';
 import { Avatar, Button, Dropdown, Tabs } from '../../primitives';
@@ -110,6 +111,7 @@ const TabLabel: React.FC<{
   active?: boolean;
   onContextClick?: (action: string) => void;
 }> = ({ total = 0, index = -1, icon, name, active, diffStatus, color = NodeColor.Blue, onClose, onContextClick }) => {
+  const t = useT();
   const items = [
     total > 0 &&
       index !== -1 && {
@@ -120,25 +122,25 @@ const TabLabel: React.FC<{
     total > 0 &&
       index !== -1 && {
         key: 'close-all',
-        label: 'Close all Tabs',
+        label: t('dg.tabs.closeAll'),
         onClick: () => onContextClick?.('close-all'),
       },
     total > 0 &&
       index !== -1 && {
         key: 'close-other',
-        label: 'Close other Tabs',
+        label: t('dg.tabs.closeOthers'),
         onClick: () => onContextClick?.('close-other'),
       },
     total > 0 &&
       index + 1 < total && {
         key: 'close-right',
-        label: 'Close Tabs to the right',
+        label: t('dg.tabs.closeRight'),
         onClick: () => onContextClick?.('close-right'),
       },
     total > 0 &&
       index > 0 && {
         key: 'close-left',
-        label: 'Close Tabs to the left',
+        label: t('dg.tabs.closeLeft'),
         onClick: () => onContextClick?.('close-left'),
       },
   ].filter((item) => !!item);

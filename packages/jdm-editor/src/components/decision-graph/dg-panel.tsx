@@ -2,12 +2,14 @@ import { CloseOutlined } from '@/icons';
 import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';
 
+import { useT } from '../../theming/i18n';
 import { Button, Tooltip, Typography } from '../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from './context/dg-store.context';
 
 const heightKey = 'jdmEditor:graphPanel:height';
 
 export const GraphPanel: React.FC = () => {
+  const t = useT();
   const graphActions = useDecisionGraphActions();
   const { panels, activePanel: activePanelId } = useDecisionGraphState(({ panels, activePanel }) => ({
     panels,
@@ -55,7 +57,7 @@ export const GraphPanel: React.FC = () => {
             <Typography.Text style={{ fontSize: 13 }}>{activePanel.title}</Typography.Text>
           </div>
           <div className={'shrink'}>
-            <Tooltip placement='topLeft' title={'Close panel'}>
+            <Tooltip placement='topLeft' title={t('dg.toolbar.closeClose')}>
               <Button
                 size={'small'}
                 type={'text'}

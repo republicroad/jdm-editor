@@ -9,6 +9,7 @@ import { P, match } from 'ts-pattern';
 
 import '../../../helpers/monaco';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
+import { useT } from '../../../theming/i18n';
 import { Button, Spin, Tabs, Tooltip, Typography } from '../../primitives';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
@@ -39,6 +40,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
   loading = false,
   leftPanel: LeftPanel = SimulatorRequestPanel,
 }) => {
+  const t = useT();
   const [search, setSearch] = usePersistentState<string>('simulation.search', '');
   const [segment, setSegment] = usePersistentState<SimulationSegment>('simulation.segment', SimulationSegment.Output);
 
@@ -99,7 +101,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
           <input
             className='h-full w-full border-none bg-transparent pl-3 text-[13px] outline-none!'
             type='text'
-            placeholder='Search nodes...'
+            placeholder={t('dg.toolbar.searchNodes')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -202,7 +204,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               label: s,
             }))}
             tabBarExtraContent={
-              <Tooltip title='Close panel'>
+              <Tooltip title={t('dg.toolbar.closeClose')}>
                 <Button
                   type='text'
                   icon={<CloseOutlined style={{ fontSize: 12 }} />}
