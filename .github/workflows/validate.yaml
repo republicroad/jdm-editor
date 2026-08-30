@@ -43,7 +43,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Storybook interaction suite (incl. geometry parity guard)
-        run: pnpm --filter @ryefccd/jdm-editor test:storybook
+        run: pnpm --filter @republicroad/jdm-editor test:storybook
 
       - name: Consumer smoke (react 18 & 19)
         run: pnpm test:consumer
