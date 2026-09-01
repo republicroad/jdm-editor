@@ -3,7 +3,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { JdmConfigProvider } from '../../theme';
-import { createT } from '../i18n';
+import { createT, useT } from '../i18n';
 import { interpolate } from '../i18n-types';
 
 describe('i18n interpolate', () => {
@@ -60,5 +60,39 @@ describe('I18nProvider integration', () => {
       </JdmConfigProvider>,
     );
     expect(screen.getByText('OK')).toBeInTheDocument();
+  });
+});
+
+describe('useT hook locale resolution', () => {
+  const HookProbe: React.FC = () => {
+    const t = useT();
+    return <div>{t('dg.node.deleteNode')}</div>;
+  };
+
+  it('renders English without a locale', () => {
+    render(
+      <JdmConfigProvider>
+        <HookProbe />
+      </JdmConfigProvider>,
+    );
+    expect(screen.getByText('Delete node')).toBeInTheDocument();
+  });
+
+  it('renders Chinese under zh-CN locale', () => {
+    render(
+      <JdmConfigProvider locale='zh-CN'>
+        <HookProbe />
+      </JdmConfigProvider>,
+    );
+    expect(screen.getByText('删除节点')).toBeInTheDocument();
+  });
+
+  it('prefers host message overrides over the locale catalog', () => {
+    render(
+      <JdmConfigProvider locale='zh-CN' messages={{ 'dg.node.deleteNode': 'Knoten löschen' }}>
+        <HookProbe />
+      </JdmConfigProvider>,
+    );
+    expect(screen.getByText('Knoten löschen')).toBeInTheDocument();
   });
 });

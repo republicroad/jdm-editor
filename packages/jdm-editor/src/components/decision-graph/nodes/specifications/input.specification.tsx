@@ -7,7 +7,7 @@ import type { z } from 'zod';
 
 import { platform } from '../../../../helpers/platform';
 import { type inputNodeSchema } from '../../../../helpers/schema';
-import { createT } from '../../../../theming/i18n';
+import { useT } from '../../../../theming/i18n';
 import { App } from '../../../primitives';
 import { Button, Typography } from '../../../primitives';
 import { SpacedText } from '../../../spaced-text';
@@ -18,8 +18,6 @@ import { GraphNode } from '../graph-node';
 import { NodeColor } from './colors';
 import type { NodeSpecification } from './specification-types';
 import { NodeKind } from './specification-types';
-
-const t = createT('en');
 
 type InferredContent = z.infer<typeof inputNodeSchema>['content'];
 
@@ -45,6 +43,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
       disabled,
     }));
     const { modal } = App.useApp();
+    const t = useT();
 
     return (
       <GraphNode
