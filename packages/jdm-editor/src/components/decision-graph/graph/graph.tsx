@@ -133,12 +133,11 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               id={props.id}
               specification={{
                 displayName: `${props.data?.kind}`,
-                color: 'var(--grl-color-error)',
+                color: 'var(--grl-color-warning)',
                 icon: <WarningOutlined />,
               }}
               name={props?.data?.name}
               isSelected={props.selected}
-              displayError
               noBodyPadding
               handleLeft={true}
               handleRight={true}
@@ -147,7 +146,13 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                   {t('editExpression')}
                 </Button>,
               ]}
-            />
+            >
+              <div className='p-3 text-xs leading-5 opacity-75'>
+                {t('nodeSpecMismatch')}
+                <br />
+                <span className='font-mono'>kind: {`${props.data?.kind}`}</span>
+              </div>
+            </GraphNode>
           );
         }
 

@@ -9,6 +9,8 @@ import { useDrag, useDrop } from 'react-dnd';
 
 import {
   emptyCustomFunctionReturnSchema,
+  type FunctionScope,
+  getFunctionNameFromValue,
   getFunctionReturnSchema,
   isFunctionExpression,
   normalizeCustomFunctions,
@@ -32,17 +34,29 @@ export type ExpressionItemProps = {
   index: number;
   variableType?: VariableType;
   customFunctions?: any;
+  functionScope?: FunctionScope;
 };
 
 const emptyReturnSchema = emptyCustomFunctionReturnSchema;
 
-export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType, customFunctions }) => {
+export const ExpressionItem: React.FC<ExpressionItemProps> = ({
+  expression,
+  index,
+  variableType,
+  customFunctions,
+  functionScope,
+}) => {
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
   const [editMode, setEditMode] = useState<'code' | 'function'>('function');
   const expressionRef = useRef<HTMLDivElement>(null);
+  const scopeMode = functionScope?.mode ?? 'free';
   const normalizedCustomFunctions = useMemo(() => normalizeCustomFunctions(customFunctions), [customFunctions]);
-  const hasCustomFunctions = normalizedCustomFunctions.length > 0;
+  const availableFunctions = useMemo(
+    () => (scopeMode === 'scoped' ? (functionScope?.functions ?? []) : normalizedCustomFunctions),
+    [scopeMode, functionScope, normalizedCustomFunctions],
+  );
+  const hasCustomFunctions = availableFunctions.length > 0;
 
   const getEnumOptions = (argDef?: any) => {
     if (!Array.isArray(argDef?.enum) || argDef.enum.length === 0) {
@@ -319,7 +333,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
 
   previewRef(dropRef(expressionRef));
 
-  const functionOptions = normalizedCustomFunctions.map((func: any) => ({
+  const functionOptions = availableFunctions.map((func: any) => ({
     value: func.name,
     label: func.name,
     fun: func,
@@ -337,7 +351,11 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
       )}
       style={{ opacity: !isDragging ? 1 : 0.5 }}
     >
-      <div ref={dragRef} className='expression-list-item__drag' aria-disabled={permission !== 'edit:full' || disabled}>
+      <div
+        ref={dragRef}
+        className='expression-list-item__drag'
+        aria-disabled={permission !== 'edit:full' || disabled}
+      >
         <div className='expression-list-item__drag__inner'>
           {expression?._diff?.status ? (
             <DiffIcon
@@ -394,6 +412,8 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                               Object.keys(currentFunctionInfo.funcmeta.parameters.properties).map((argName: string) => {
                                 const argDef = currentFunctionInfo.funcmeta.parameters.properties[argName];
                                 const placeholder = argDef?.description || '';
+                                const requiredArgs = currentFunctionInfo.funcmeta?.parameters?.required;
+                                const isRequired = Array.isArray(requiredArgs) && requiredArgs.includes(argName);
 
                                 let value = '';
                                 const argValue = currentFunctionInfo?.arg_exprs?.[argName];
@@ -404,35 +424,43 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                                 }
 
                                 const enumOptions = getEnumOptions(argDef);
-                                if (enumOptions.length > 0) {
-                                  return (
-                                    <Select
-                                      key={argName}
-                                      placeholder={placeholder}
-                                      value={value ? stripExpressionStringQuotes(value) : undefined}
-                                      options={enumOptions}
-                                      style={{ minWidth: 120, width: 160 }}
-                                      onChange={(nextValue) =>
-                                        onArgChange(argName, toEnumExpressionValue(nextValue, argDef))
-                                      }
-                                      disabled={!configurable || disabled}
-                                    />
-                                  );
-                                }
 
                                 return (
-                                  <CodeEditor
-                                    key={argName}
-                                    noStyle
-                                    lint={false}
-                                    className='function-arg-code-editor'
-                                    placeholder={placeholder}
-                                    value={value}
-                                    maxRows={3}
-                                    disabled={!configurable || disabled}
-                                    variableType={variableType}
-                                    onChange={(nextValue) => onArgChange(argName, nextValue)}
-                                  />
+                                  <div key={argName} className='function-arg-row'>
+                                    <Typography.Text
+                                      className='function-arg-row__label'
+                                      ellipsis={{ tooltip: argDef?.description || argName }}
+                                    >
+                                      {argName}
+                                      {isRequired && <span className='function-arg-row__required'>*</span>}
+                                    </Typography.Text>
+                                    {enumOptions.length > 0 ? (
+                                      <Select
+                                        className='function-arg-row__editor'
+                                        placeholder={placeholder}
+                                        value={value ? stripExpressionStringQuotes(value) : undefined}
+                                        options={enumOptions}
+                                        style={{ width: '100%' }}
+                                        onChange={(nextValue) =>
+                                          onArgChange(argName, toEnumExpressionValue(nextValue, argDef))
+                                        }
+                                        disabled={!configurable || disabled}
+                                      />
+                                    ) : (
+                                      <CodeEditor
+                                        key={argName}
+                                        noStyle
+                                        lint={false}
+                                        className='function-arg-code-editor'
+                                        placeholder={placeholder}
+                                        value={value}
+                                        maxRows={3}
+                                        disabled={!configurable || disabled}
+                                        variableType={variableType}
+                                        onChange={(nextValue) => onArgChange(argName, nextValue)}
+                                      />
+                                    )}
+                                  </div>
                                 );
                               })}
                           </div>
@@ -457,7 +485,9 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
                         disabled={disabled}
                         value={toOperatorExprDisplay(expression?.value)}
                         displayDiff={expression?._diff?.fields?.value?.status === 'modified'}
-                        previousValue={toOperatorExprDisplay(expression?._diff?.fields?.value?.previousValue ?? '')}
+                        previousValue={toOperatorExprDisplay(
+                          expression?._diff?.fields?.value?.previousValue ?? '',
+                        )}
                         onChange={(value) => onChange({ value: parseOperatorExprInput(value) })}
                         variableType={variableType}
                         onFocus={() => setIsFocused(true)}
@@ -474,7 +504,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         />
       </div>
       <div className='expression-list-item__action'>
-        <ConfirmAction iconOnly disabled={permission !== 'edit:full' || disabled} onConfirm={onRemove} />
+        {<ConfirmAction iconOnly disabled={permission !== 'edit:full' || disabled} onConfirm={onRemove} />}
         {isFocused && <LivePreview id={expression.id} value={expression.value} />}
       </div>
     </div>

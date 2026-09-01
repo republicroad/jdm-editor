@@ -38,6 +38,16 @@
       &--order {
         height: 100%;
       }
+
+      &--scope {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+
+        .ant-tag {
+          margin-inline-end: 0;
+        }
+      }
     }
 
     &:after {

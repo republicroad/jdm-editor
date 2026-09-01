@@ -1,10 +1,11 @@
 import { PlusCircleOutlined } from '@ant-design/icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
-import { Button, Typography } from 'antd';
+import { Button, Tag, Typography } from 'antd';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useState } from 'react';
 
+import type { FunctionScope } from '../../helpers/custom-function-schema';
 import { isFunctionExpressionValue } from '../../helpers/custom-function-schema';
 import { jsonSchemaToVariableType } from '../../helpers/json-schema';
 import { isWasmAvailable } from '../../helpers/wasm';
@@ -14,12 +15,14 @@ import { ExpressionItem } from './expression-item';
 
 export type ExpressionListProps = {
   customFunctions?: any;
+  functionScope?: FunctionScope;
 };
 
 const emptyReturnSchema = {};
 
-export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions }) => {
+export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions, functionScope }) => {
   const { t } = useTranslation();
+  const scopeMode = functionScope?.mode ?? 'free';
   const { expressions, addRowBelow, permission, disabled, inputVariableType } = useExpressionStore(
     ({ expressions, addRowBelow, permission, disabled, inputVariableType }) => ({
       expressions,
@@ -64,7 +67,9 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions 
           <Typography.Text type='secondary' className={'expression-list__item__th'}>
             {t('expression')}
           </Typography.Text>
-          <div />
+          <div className={'expression-list__item__th expression-list__item__th--scope'}>
+            {scopeMode === 'legacy' && <Tag>{t('legacy')}</Tag>}
+          </div>
         </div>
         {(expressions || []).map((expression, index) => (
           <ExpressionItem
@@ -73,6 +78,7 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions 
             index={index}
             variableType={variableType}
             customFunctions={customFunctions}
+            functionScope={functionScope}
           />
         ))}
       </div>

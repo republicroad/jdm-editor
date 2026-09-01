@@ -2,6 +2,7 @@ import equal from 'fast-deep-equal/es6/react';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 
+import { healExpressionsForScope, type FunctionScope } from '../../helpers/custom-function-schema';
 import type { ExpressionEntry, ExpressionStore } from './context/expression-store.context';
 import { useExpressionStore, useExpressionStoreRaw } from './context/expression-store.context';
 
@@ -11,6 +12,7 @@ export type ExpressionControllerProps = {
   permission?: ExpressionStore['permission'];
   value?: ExpressionEntry[];
   onChange?: (value: ExpressionEntry[]) => void;
+  functionScope?: FunctionScope;
 };
 
 export const ExpressionController: React.FC<ExpressionControllerProps> = ({
@@ -19,6 +21,7 @@ export const ExpressionController: React.FC<ExpressionControllerProps> = ({
   defaultValue = [],
   disabled = false,
   permission = 'edit:full',
+  functionScope,
 }) => {
   const mounted = useRef<boolean>(false);
   const store = useExpressionStoreRaw();
@@ -54,11 +57,13 @@ export const ExpressionController: React.FC<ExpressionControllerProps> = ({
 
   useEffect(() => {
     if (value) {
-      setExpressions(value);
+      const healed = healExpressionsForScope(value, functionScope);
+      setExpressions(healed ?? value);
     } else if (defaultValue) {
       setExpressions(defaultValue);
     }
     mounted.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 治愈仅在挂载(打开节点)时执行一次
   }, []);
 
   return null;

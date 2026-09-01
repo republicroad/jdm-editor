@@ -7,6 +7,7 @@ import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
 import { useNodeType } from '../../../helpers/node-type';
 import type { customNodeSchema } from '../../../helpers/schema';
+import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import { get, toOperatorExprArray } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { CustomFunction } from '../../custom-function-table';
@@ -50,6 +51,11 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, mana
         .otherwise(() => null),
       viewConfig,
     }),
+  );
+
+  const functionScope = useMemo(
+    () => resolveFunctionScope((content as { kind?: string } | undefined)?.kind, customFunctions),
+    [content?.kind, customFunctions],
   );
 
   const inputVariableType = useMemo(() => {
@@ -103,6 +109,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, mana
         permission={(viewConfig?.enabled ? viewConfig?.permissions?.[id] : 'edit:full') as ExpressionPermission}
         manager={manager}
         customFunctions={customFunctions}
+        functionScope={functionScope}
         debug={debug as any}
         inputVariableType={inputVariableType}
         onChange={(val: any) => {

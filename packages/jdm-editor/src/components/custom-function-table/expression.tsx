@@ -6,6 +6,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { isWasmAvailable } from '../../helpers/wasm';
+import type { FunctionScope } from '../../helpers/custom-function-schema';
 import type { ExpressionStore } from './context/expression-store.context';
 import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
@@ -20,6 +21,7 @@ export type CustomFunctionProps = {
   debug?: ExpressionStore['debug'];
   hideCommandBar?: boolean;
   customFunctions?: any;
+  functionScope?: FunctionScope;
 } & ExpressionControllerProps;
 
 export const CustomFunction: React.FC<CustomFunctionProps> = ({
@@ -28,6 +30,7 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
   debug,
   hideCommandBar,
   inputVariableType,
+  functionScope,
   ...props
 }) => {
   const [_, setMounted] = useState(false);
@@ -57,9 +60,9 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
       {container.current && (
         <DndProvider {...dndProps}>
           <ExpressionStoreProvider>
-            <ExpressionController {...props} />
+            <ExpressionController {...props} functionScope={functionScope} />
             {!hideCommandBar && <ExpressionCommandBar />}
-            <ExpressionList customFunctions={customFunctions} />
+            <ExpressionList customFunctions={customFunctions} functionScope={functionScope} />
             <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
           </ExpressionStoreProvider>
         </DndProvider>

@@ -57,6 +57,8 @@
   "editFunction": "Edit Function",
   "editExpression": "Edit Expression",
   "editRequest": "Edit Request",
+  "nodeSpecMismatch": "Node spec mismatch — its type is unregistered or removed. Data is preserved.",
+  "legacy": "Legacy",
 
   "importJson": "Import JSON",
   "downloadJson": "Download JSON",

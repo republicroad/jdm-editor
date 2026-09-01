@@ -57,6 +57,8 @@
   "editFunction": "Edit Function",
   "editExpression": "编辑表达式",
   "editRequest": "Edit Request",
+  "nodeSpecMismatch": "配置不符合规范——节点类型未注册或已移除，数据已保留。",
+  "legacy": "旧版",
 
   "importJson": "导入 JSON",
   "downloadJson": "下载 JSON",
