@@ -1,4 +1,3 @@
-import type { editor } from 'monaco-editor';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -21,7 +20,6 @@ type UseRequestSchemaEditingParams = {
 };
 
 export const useRequestSchemaEditing = ({ id, type, content, graphActions }: UseRequestSchemaEditingParams) => {
-  const schemaEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const [jsonToJsonSchemaOpen, setJsonToJsonSchemaOpen] = useState(false);
 
   const sourceSchemaValue = useMemo(
@@ -216,7 +214,6 @@ export const useRequestSchemaEditing = ({ id, type, content, graphActions }: Use
   };
 
   return {
-    schemaEditorRef,
     sourceSchemaValue,
     schemaDraft,
     jsonToJsonSchemaOpen,

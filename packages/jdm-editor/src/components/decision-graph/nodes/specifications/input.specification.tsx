@@ -13,7 +13,7 @@ import { Button, Typography } from '../../../primitives';
 import { SpacedText } from '../../../spaced-text';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
 import type { Diff, DiffMetadata } from '../../dg-types';
-import { TabJsonSchema } from '../../graph/tab-json-schema';
+import { TabRequest } from '../../graph/tab-request';
 import { GraphNode } from '../graph-node';
 import { NodeColor } from './colors';
 import type { NodeSpecification } from './specification-types';
@@ -39,7 +39,7 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
       outputPath: null,
     },
   }),
-  renderTab: ({ id }) => <TabJsonSchema id={id} type={'input'} />,
+  renderTab: ({ id }) => <TabRequest id={id} type={'input'} />,
   renderNode: ({ id, data, selected, specification }) => {
     const graphActions = useDecisionGraphActions();
     const { disabled } = useDecisionGraphState(({ disabled }) => ({

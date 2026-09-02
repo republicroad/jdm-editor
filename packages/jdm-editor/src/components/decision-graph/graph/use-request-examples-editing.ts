@@ -1,5 +1,4 @@
 import json5 from 'json5';
-import type { editor } from 'monaco-editor';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -53,7 +52,6 @@ export const useRequestExamplesEditing = ({
   definitionDrafts,
 }: UseRequestExamplesEditingParams) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const exampleJsonEditorRef = useRef<editor.IStandaloneCodeEditor | undefined>(undefined);
   const activeExampleSourceIdRef = useRef<string | null>(null);
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const [editingSourceIndex, setEditingSourceIndex] = useState<number | null>(null);
@@ -557,7 +555,6 @@ export const useRequestExamplesEditing = ({
     activeDescriptionDraft,
     exampleFieldSummary,
     fileInputRef,
-    exampleJsonEditorRef,
     addExampleSource,
     removeExampleSource,
     persistExamples,
