@@ -31,7 +31,7 @@ export type PersistRequestToExampleSourceOptions = {
   requestValueOverride?: string;
   silentOnError?: boolean;
   validateDefinitionTypes?: boolean;
-  triggeredBy?: 'manual-save';
+  triggeredBy?: 'manual-save' | 'auto-sync';
 };
 
 export const useRequestExamplePersistence = ({
@@ -52,7 +52,7 @@ export const useRequestExamplePersistence = ({
   }: {
     activeExampleBinding: RequestExampleBinding;
     preparedParsed: Record<string, unknown>;
-    triggeredBy: 'manual-save';
+    triggeredBy: 'manual-save' | 'auto-sync';
     showSuccessMessage?: boolean;
   }) => {
     const { decisionGraph } = stateStore.getState();

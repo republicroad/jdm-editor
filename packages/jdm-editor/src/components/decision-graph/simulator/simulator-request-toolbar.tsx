@@ -4,7 +4,6 @@ import {
   InfoCircleOutlined,
   LinkOutlined,
   PlayCircleOutlined,
-  SaveOutlined,
 } from '@ant-design/icons';
 import { Button, Select, Tooltip, Typography } from 'antd';
 import React from 'react';
@@ -21,7 +20,6 @@ export type SimulatorRequestToolbarProps = {
   loading?: boolean;
   onSourceChange: (sourceIndex: number) => void;
   onFormat: () => void;
-  onSave: () => void;
   onCopy: () => void;
   onRun?: () => void;
 };
@@ -36,7 +34,6 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
   loading,
   onSourceChange,
   onFormat,
-  onSave,
   onCopy,
   onRun,
 }) => {
@@ -90,16 +87,6 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
           <Tooltip title={!hasInputNode ? t('requestNodeRequired') : undefined}>
             <Tooltip title={t('format')}>
               <Button size={'small'} type={'text'} shape={'circle'} icon={<FormatPainterOutlined />} onClick={onFormat} />
-            </Tooltip>
-            <Tooltip title={t('requestSaveDataSource')}>
-              <Button
-                size={'small'}
-                type={'text'}
-                shape={'circle'}
-                icon={<SaveOutlined />}
-                disabled={!hasInputNode}
-                onClick={onSave}
-              />
             </Tooltip>
             <Tooltip title={t('copyJson')}>
               <Button size={'small'} type={'text'} shape={'circle'} icon={<CopyOutlined />} onClick={onCopy} />

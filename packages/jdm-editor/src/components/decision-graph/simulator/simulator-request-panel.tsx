@@ -1,7 +1,7 @@
 ﻿import { VariableType } from '@gorules/zen-engine-wasm';
 import { Spin, message, notification } from 'antd';
 import json5 from 'json5';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { copyToClipboard } from '../../../helpers/utility';
@@ -87,6 +87,9 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     if (!inputNodeId || !source) {
       return;
     }
+
+    // 源切换前冲刷未落盘的编辑（以旧 binding 立即持久化，防串源写入）
+    flushPendingAutoSync();
 
     const mergedData = mergeRequestExampleDefaultsByDefinitions(source.data, requestDefinitions);
     const normalizedData = normalizeRequestExampleDataByDefinitions(mergedData, requestDefinitions);
@@ -181,6 +184,87 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
     onExternalChange: onChange,
   });
 
+  // 自动同步：simulator 编辑（去抖 700ms，静默、类型归一不阻断）→ schema.examples
+  const AUTO_SYNC_DEBOUNCE_MS = 700;
+  const pendingAutoSyncRef = useRef<number | null>(null);
+  const lastAutoSyncedRequestRef = useRef<string | undefined>(undefined);
+  const requestValueRef = useRef(requestValue);
+  requestValueRef.current = requestValue;
+
+  const flushPendingAutoSync = () => {
+    if (pendingAutoSyncRef.current === null) {
+      return;
+    }
+    window.clearTimeout(pendingAutoSyncRef.current);
+    pendingAutoSyncRef.current = null;
+    lastAutoSyncedRequestRef.current = requestValueRef.current;
+    persistRequestToExampleSource({
+      validateDefinitionTypes: false,
+      silentWhenUnbound: true,
+      showSuccessMessage: false,
+      silentOnError: true,
+      triggeredBy: 'auto-sync',
+    });
+  };
+
+  useEffect(() => {
+    if (!hasInputNode || !resolvedSimulatorExampleBinding) {
+      return;
+    }
+    if (requestValue === lastAutoSyncedRequestRef.current) {
+      return;
+    }
+    if (pendingAutoSyncRef.current !== null) {
+      window.clearTimeout(pendingAutoSyncRef.current);
+    }
+    pendingAutoSyncRef.current = window.setTimeout(() => {
+      pendingAutoSyncRef.current = null;
+      lastAutoSyncedRequestRef.current = requestValueRef.current;
+      persistRequestToExampleSource({
+        validateDefinitionTypes: false,
+        silentWhenUnbound: true,
+        showSuccessMessage: false,
+        silentOnError: true,
+        triggeredBy: 'auto-sync',
+      });
+    }, AUTO_SYNC_DEBOUNCE_MS);
+    return () => {
+      if (pendingAutoSyncRef.current !== null) {
+        window.clearTimeout(pendingAutoSyncRef.current);
+        pendingAutoSyncRef.current = null;
+      }
+    };
+  }, [hasInputNode, requestValue, resolvedSimulatorExampleBinding]);
+
+  // 反向同步：request 子tab 编辑 schema.examples 后推送至 simulator 编辑器
+  // （守卫：与本面板最近一次推送相同则跳过，防回灌）
+  const requestSourcesSignature = JSON.stringify(requestSources.map((source) => source.data));
+  const lastPushedSourcesSignatureRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (requestSourcesSignature === lastPushedSourcesSignatureRef.current) {
+      return;
+    }
+    lastPushedSourcesSignatureRef.current = requestSourcesSignature;
+
+    if (boundRequestSourceIndex < 0 || !requestSources[boundRequestSourceIndex]) {
+      return;
+    }
+
+    const mergedData = mergeRequestExampleDefaultsByDefinitions(
+      requestSources[boundRequestSourceIndex].data,
+      requestDefinitions,
+    );
+    const normalizedData = normalizeRequestExampleDataByDefinitions(mergedData, requestDefinitions);
+    actions.setSimulatorRequest(JSON.stringify(normalizedData, null, 2));
+  }, [
+    actions,
+    boundRequestSourceIndex,
+    requestDefinitions,
+    requestSources,
+    requestSourcesSignature,
+  ]);
+
   const handleFormat = () => {
     try {
       const parsed = json5.parse(requestValue || '');
@@ -253,7 +337,6 @@ export const SimulatorRequestPanel: React.FC<SimulatorRequestPanelProps> = ({
         loading={loading}
         onSourceChange={handleSourceChange}
         onFormat={handleFormat}
-        onSave={() => persistRequestToExampleSource({ validateDefinitionTypes: true })}
         onCopy={handleCopy}
         onRun={onRun ? handleRun : undefined}
       />

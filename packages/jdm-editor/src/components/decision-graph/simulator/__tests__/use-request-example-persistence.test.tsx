@@ -178,4 +178,26 @@ describe('useRequestExamplePersistence', () => {
     expect(mockSimulatorRequests.length).toBe(0);
     expect(messageCalls.at(-1)).toEqual({ kind: 'success', text: 'requestDataSourceSaved' });
   });
+
+  it('auto-sync persists silently without success toast', () => {
+    setupGraph();
+    const { result } = renderHook(() =>
+      useRequestExamplePersistence({
+        t,
+        requestValue: '{"a":"7"}',
+        resolvedSimulatorExampleBinding: { nodeId: 'n1', sourceIndex: 0, sourceName: 'Alpha' },
+        onRequestValueChange: () => {},
+        onMarkEdited: () => {},
+      }),
+    );
+
+    const outcome = result.current.persistRequestToExampleSource({
+      showSuccessMessage: false,
+      triggeredBy: 'auto-sync',
+    });
+
+    expect(outcome).toEqual({ context: { a: '7' }, formatted: '{\n  "a": "7"\n}' });
+    expect(mockUpdateCount).toBe(1);
+    expect(messageCalls.filter((call) => call.kind === 'success')).toHaveLength(0);
+  });
 });
