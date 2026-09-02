@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { stringifyRequestSchemaValue } from './request-schema';
+
 export const DECISION_GRAPH_CONTENT_TYPE = 'application/vnd.gorules.decision';
 const id = z.string().default(() => crypto.randomUUID());
 
@@ -71,12 +73,35 @@ export const inputNodeSchema = z
     content: z
       .object({
         schema: z
+          .union([z.string(), z.record(z.string(), z.any())])
+          .nullish()
+          .transform((val) => stringifyRequestSchemaValue(val)),
+        expressions: z
+          .array(
+            z.object({
+              id,
+              key: z.string().default(''),
+              value: z.any().default(''),
+              type: z.string().optional(),
+            }),
+          )
+          .default([]),
+        inputField: z
           .string()
           .nullish()
-          .transform((val) => val ?? ''),
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
+        outputPath: z
+          .string()
+          .nullish()
+          .default(null)
+          .transform((val) => (val && val.trim().length > 0 ? val : null)),
       })
       .default({
         schema: '',
+        expressions: [],
+        inputField: null,
+        outputPath: null,
       }),
   })
   .merge(nodeCommon);

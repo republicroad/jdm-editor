@@ -34,6 +34,9 @@ export const inputSpecification: NodeSpecification<NodeInputData> = {
     name: 'request',
     content: {
       schema: '',
+      expressions: [],
+      inputField: null,
+      outputPath: null,
     },
   }),
   renderTab: ({ id }) => <TabJsonSchema id={id} type={'input'} />,
