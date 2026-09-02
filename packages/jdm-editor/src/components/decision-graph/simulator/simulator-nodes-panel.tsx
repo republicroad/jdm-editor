@@ -1,4 +1,6 @@
-import { CheckCircleTwoTone, ClearOutlined, CloseCircleTwoTone } from '@/icons';
+import { ClearOutlined } from '@/icons';
+import CheckCircleIcon from '@/reui/icons/animated/outline/check-circle';
+import CrossCircleIcon from '@/reui/icons/animated/outline/cross-circle';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
@@ -100,14 +102,14 @@ export const SimulatorNodesPanel: React.FC<SimulatorNodesPanelProps> = ({
                 )}
                 onClick={() => onSelectNode('graph')}
               >
-                <Typography.Text data-role='name' className='min-w-0 items-center truncate'>
+                <Typography.Text data-role='name' className='flex min-w-0 items-center [&>svg]:align-[-3px]'>
                   <StatusIcon
                     status={match(simulate)
                       .with({ error: P.nonNullable }, () => 'error' as const)
                       .with({ result: P.nonNullable }, () => 'success' as const)
                       .otherwise(() => 'not-run' as const)}
                   />
-                  Graph
+                  <span className='truncate'>Graph</span>
                 </Typography.Text>
                 <Typography.Text type='secondary' data-role='performance'>
                   {match(simulate)
@@ -126,9 +128,13 @@ export const SimulatorNodesPanel: React.FC<SimulatorNodesPanelProps> = ({
                 onClick={() => onSelectNode(trace.nodeId)}
                 onDoubleClick={() => onGoToNode(trace.nodeId)}
               >
-                <Typography.Text data-role='name' className='min-w-0 truncate' title={trace.name}>
+                <Typography.Text
+                  data-role='name'
+                  className='flex min-w-0 items-center [&>svg]:align-[-3px]'
+                  title={trace.name}
+                >
                   <StatusIcon status={trace.nodeId === simulate?.error?.data?.nodeId ? 'error' : 'success'} />
-                  {trace.name}
+                  <span className='truncate'>{trace.name}</span>
                 </Typography.Text>
                 <Typography.Text type='secondary' data-role='performance'>
                   {trace.performance}
@@ -148,12 +154,8 @@ const StatusIcon: React.FC<{ status: SimulatorNodesPanelStatus }> = ({ status })
   }
 
   if (status === 'success') {
-    return (
-      <CheckCircleTwoTone
-        style={{ marginRight: 6, fontSize: 12, opacity: 0.5, color: 'var(--grl-color-success, #16a34a)' }}
-      />
-    );
+    return <CheckCircleIcon className='mr-1.5 size-3 shrink-0 text-[var(--grl-color-success)] opacity-60' />;
   }
 
-  return <CloseCircleTwoTone style={{ marginRight: 5, fontSize: 12, color: 'var(--grl-color-error, #dc2626)' }} />;
+  return <CrossCircleIcon className='mr-1 size-3 shrink-0 text-[var(--grl-color-error)]' />;
 };

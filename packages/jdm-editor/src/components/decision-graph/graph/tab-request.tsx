@@ -3,10 +3,10 @@ import {
   CloudUploadOutlined,
   FormatPainterOutlined,
   ImportOutlined,
-  InfoCircleOutlined,
   PlayCircleOutlined,
   PlusOutlined,
 } from '@/icons';
+import InformationIcon from '@/reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useRef, useState } from 'react';
@@ -250,9 +250,9 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
                 <span>
                   {t('request.schema')}
                   <Tooltip title={t('request.schemaPriorityTooltip')}>
-                    <InfoCircleOutlined
-                      style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }}
-                    />
+                    <span className='ml-1 inline-flex align-super opacity-50 [&_svg]:block'>
+                      <InformationIcon className='size-2.5' />
+                    </span>
                   </Tooltip>
                 </span>
               ),

@@ -1,4 +1,4 @@
-import { CloseOutlined } from '@/icons';
+import CrossIcon from '@/reui/icons/animated/outline/cross';
 import json5 from 'json5';
 import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -109,7 +109,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               <Tooltip title={t('dg.toolbar.closeClose')} placement='bottomRight'>
                 <Button
                   type='text'
-                  icon={<CloseOutlined style={{ fontSize: 12 }} />}
+                  icon={<CrossIcon className='size-3' />}
                   onClick={() => actions.setActivePanel(undefined)}
                 />
               </Tooltip>
