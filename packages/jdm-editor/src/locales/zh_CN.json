@@ -272,7 +272,7 @@
   "requestUploadJsonSuccess": "JSON 上传成功",
   "requestUploadJsonFailed": "JSON 上传失败",
   "requestDownloadJsonNoData": "暂无可下载的用例数据",
-  "requestFormatSchema": "格式化 Schema",  "requestSaveDataSource": "保存用例数据",
+  "requestFormatSchema": "格式化 Schema",
   "requestToggleFieldDescriptions": "显示字段描述",
   "requestToggleFieldDescriptionsTooltip": "开关字段描述提示",
   "requestDataSourceSaved": "用例数据保存成功",

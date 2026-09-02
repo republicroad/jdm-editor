@@ -85,4 +85,19 @@ export {
   normalizeRequestJsonKeys,
 } from '../../helpers/request-schema';
 
+export {
+  resolveFunctionScope,
+  healExpressionsForScope,
+  buildDefaultFunctionExpression,
+  LEGACY_CUSTOM_FUNCTION_KIND,
+  type FunctionScope,
+  type FunctionScopeMode,
+} from '../../helpers/custom-function-schema';
+
+export {
+  useSimulatorAutoSync,
+  AUTO_SYNC_DEBOUNCE_MS,
+  type UseSimulatorAutoSyncParams,
+} from './simulator/use-simulator-auto-sync';
+
 export { jsonSchemaToVariableType } from '../../helpers/json-schema';

@@ -272,7 +272,7 @@
   "requestUploadJsonSuccess": "JSON uploaded successfully",
   "requestUploadJsonFailed": "Failed to upload JSON",
   "requestDownloadJsonNoData": "No data available to download",
-  "requestFormatSchema": "Format schema",  "requestSaveDataSource": "Save data",
+  "requestFormatSchema": "Format schema",
   "requestToggleFieldDescriptions": "Show field descriptions",
   "requestToggleFieldDescriptionsTooltip": "Toggle field description hints",
   "requestDataSourceSaved": "Data saved",
