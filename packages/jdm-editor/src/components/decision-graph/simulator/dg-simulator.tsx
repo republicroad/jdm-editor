@@ -1,20 +1,17 @@
-import { ClearOutlined, CloseOutlined } from '@/icons';
-import CheckCircleIcon from '@/reui/icons/animated/outline/check-circle';
-import CrossCircleIcon from '@/reui/icons/animated/outline/cross-circle';
-import clsx from 'clsx';
+import { CloseOutlined } from '@/icons';
 import json5 from 'json5';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { P, match } from 'ts-pattern';
 
 import '../../../helpers/monaco';
 import { usePersistentState } from '../../../helpers/use-persistent-state';
 import { useT } from '../../../theming/i18n';
-import { Button, Spin, Tabs, Tooltip, Typography } from '../../primitives';
+import { Button, Tabs, Tooltip } from '../../primitives';
 import { useDecisionGraphRaw, useDecisionGraphState } from '../context/dg-store.context';
 import { NodeKind } from '../nodes/specifications/specification-types';
-import type { SimulationTrace } from './simulation.types';
 import { SimulatorEditor } from './simulator-editor';
+import { SimulatorNodesPanel } from './simulator-nodes-panel';
 import { SimulatorRequestPanel, type SimulatorRequestPanelProps } from './simulator-request-panel';
 
 enum SimulationSegment {
@@ -63,30 +60,13 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
 
   const [selectedNode, setSelectedNode] = useState<string>('graph');
 
-  const traces = useMemo<Array<SimulationTrace & { nodeId: string }>>(() => {
-    if (!simulate) {
-      return [];
-    }
-
-    if (!('result' in simulate)) {
-      return [];
-    }
-
-    return Object.entries(simulate.result?.trace ?? {})
-      .filter(([id]) => (viewConfig?.enabled ? !!viewConfig?.permissions?.[id] : true))
-      .map(([key, data]) => ({ ...data, nodeId: key }))
-      .filter((t) => ![NodeKind.Input].includes(nodeTypes?.[t.nodeId] as NodeKind))
-      .filter((t) => t.name.toLowerCase().includes(search?.toLowerCase() ?? ''))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }, [simulate, search]);
-
   return (
     <PanelGroup
       className='h-full w-full bg-[var(--grl-color-primary-bg-fade)]'
       direction='horizontal'
       autoSaveId='jdm-editor:simulator:layout'
     >
-      <Panel minSize={20} defaultSize={30} className='flex w-[300px] flex-col'>
+      <Panel minSize={20} defaultSize={38} className='flex w-[300px] flex-col'>
         <LeftPanel
           defaultRequest={defaultRequest}
           loading={loading}
@@ -97,105 +77,27 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
       </Panel>
       <PanelResizeHandle />
       <Panel minSize={20} maxSize={20} className={'flex w-[260px] flex-col'}>
-        <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
-          <input
-            className='h-full w-full border-none bg-transparent pl-3 text-[13px] outline-none!'
-            type='text'
-            placeholder={t('dg.toolbar.searchNodes')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className={'flex items-center gap-2'}>
-            {onClear && (
-              <Tooltip title={'Clear'}>
-                <Button
-                  size={'small'}
-                  type={'text'}
-                  icon={<ClearOutlined />}
-                  onClick={() => {
-                    onClear?.();
-                    setSelectedNode('graph');
-                    setSearch('');
-                  }}
-                />
-              </Tooltip>
-            )}
-          </div>
-        </div>
-        <div className={'min-h-0 flex-1 overflow-y-auto'}>
-          <Spin spinning={loading}>
-            <div className={'box-border flex h-full flex-col gap-1 p-2'}>
-              {!simulate && (
-                <Typography.Text type='secondary' style={{ textAlign: 'center', marginTop: 60, fontSize: 13 }}>
-                  Ready to simulate!
-                  <br />
-                  Run a request to see the node trace in action.
-                  <br />
-                  <Typography.Link
-                    href='https://docs.gorules.io/docs/simulator'
-                    target='_blank'
-                    style={{ fontSize: 13, marginTop: 4, display: 'inline-block' }}
-                  >
-                    Learn more
-                  </Typography.Link>
-                </Typography.Text>
-              )}
-              {'graph'.includes(search?.toLowerCase() ?? '') && simulate && (
-                <div
-                  className={clsx(
-                    'flex cursor-pointer select-none flex-row items-center justify-between gap-4 rounded-md bg-transparent px-2 py-[5px] hover:bg-black/6 [&>span]:text-[13px] [&_[data-role=name]]:whitespace-nowrap [&_[data-role=performance]]:shrink-0',
-                    selectedNode === 'graph' && 'bg-black/10',
-                  )}
-                  onClick={() => setSelectedNode('graph')}
-                >
-                  <Typography.Text data-role='name' ellipsis className='[&>svg]:inline [&>svg]:align-middle'>
-                    <StatusIcon
-                      status={match(simulate)
-                        .with({ error: P.nonNullable }, () => 'error' as const)
-                        .with({ result: P.nonNullable }, () => 'success' as const)
-                        .otherwise(() => 'not-run' as const)}
-                    />
-                    Graph
-                  </Typography.Text>
-                  <Typography.Text type={'secondary'} data-role='performance'>
-                    {match(simulate)
-                      .with({ result: P._ }, ({ result }) => result?.performance)
-                      .otherwise(() => undefined)}
-                  </Typography.Text>
-                </div>
-              )}
-              {traces.map((trace) => (
-                <div
-                  key={trace.nodeId}
-                  className={clsx(
-                    'flex cursor-pointer select-none flex-row items-center justify-between gap-4 rounded-md bg-transparent px-2 py-[5px] hover:bg-black/6 [&>span]:text-[13px] [&_[data-role=name]]:whitespace-nowrap [&_[data-role=performance]]:shrink-0',
-                    trace.nodeId === selectedNode && 'bg-black/10',
-                  )}
-                  onClick={() => setSelectedNode(trace.nodeId)}
-                  onDoubleClick={() => actions.goToNode(trace.nodeId)}
-                >
-                  <Typography.Text
-                    data-role='name'
-                    ellipsis={{ tooltip: trace.name }}
-                    className='[&>svg]:inline [&>svg]:align-middle'
-                  >
-                    <StatusIcon status={trace.nodeId === simulate?.error?.data?.nodeId ? 'error' : 'success'} />
-                    {trace.name}
-                  </Typography.Text>
-                  <Typography.Text type={'secondary'} data-role='performance'>
-                    {trace.performance}
-                  </Typography.Text>
-                </div>
-              ))}
-            </div>
-          </Spin>
-        </div>
+        <SimulatorNodesPanel
+          search={search}
+          onSearchChange={setSearch}
+          loading={loading}
+          simulate={simulate}
+          nodeTypes={nodeTypes}
+          viewConfig={viewConfig}
+          selectedNode={selectedNode}
+          onSelectNode={setSelectedNode}
+          onClear={() => {
+            onClear?.();
+            setSelectedNode('graph');
+            setSearch('');
+          }}
+          onGoToNode={(nodeId) => actions.goToNode(nodeId)}
+        />
       </Panel>
       <PanelResizeHandle />
-      <Panel minSize={30} defaultSize={50} className={'flex min-w-[300px] flex-1 flex-col'}>
+      <Panel minSize={30} defaultSize={42} className={'flex min-w-[300px] flex-1 flex-col'}>
         <div className='flex h-9 select-none items-center justify-between gap-1 border-b border-b-[var(--border)] pl-0 pr-2'>
           <Tabs
-            rootClassName='grl-inline-tabs'
             size='small'
             style={{ width: '100%' }}
             onChange={(tab) => setSegment(tab as SimulationSegment)}
@@ -204,7 +106,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
               label: s,
             }))}
             tabBarExtraContent={
-              <Tooltip title={t('dg.toolbar.closeClose')}>
+              <Tooltip title={t('dg.toolbar.closeClose')} placement='bottomRight'>
                 <Button
                   type='text'
                   icon={<CloseOutlined style={{ fontSize: 12 }} />}
@@ -248,16 +150,4 @@ const displaySegment = (data: unknown, segment: SimulationSegment) => {
     .otherwise(() => ({}));
 
   return json5.stringify(jsonData, undefined, 2);
-};
-
-const StatusIcon: React.FC<{ status: 'success' | 'error' | 'not-run' }> = ({ status }) => {
-  if (status === 'not-run') {
-    return null;
-  }
-
-  if (status === 'success') {
-    return <CheckCircleIcon className='size-3 mr-1.5 shrink-0 opacity-50 text-[var(--grl-color-success)]' />;
-  }
-
-  return <CrossCircleIcon className='size-3 mr-[5px] shrink-0 text-[var(--destructive)]' />;
 };

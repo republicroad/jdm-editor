@@ -142,8 +142,26 @@ export const zhCN: Record<string, string> = {
   'request.uploadJsonTooltip': '上传用例数据 JSON',
 
   // ── simulator ──
+  // ── simulator ──
   'simulator.boundRequestNodeNotFound': '未找到已绑定的请求节点',
   'simulator.requestMustBeObjectToSave': '当前请求内容必须是 JSON 对象才能保存',
+  'simulator.description': '通过请求节点进入的业务上下文,启动决策流程。支持 JSON 或 JSON5 格式。',
+  'simulator.currentBinding': '当前绑定',
+  'simulator.nodeRequired': '需要请求节点才能运行图表。从组件面板拖放一个请求节点。',
+  'simulator.run': '运行',
+  'simulator.formatSuccess': '格式化成功!',
+  'simulator.formatFailed': '格式化失败。无效的 JSON 格式。',
+  'simulator.nothingToCopy': '没有可复制的内容。',
+  'simulator.copiedToClipboard': '已复制到剪贴板!',
+  'simulator.copyFailedInvalidJson': '复制失败。无效的 JSON 格式。',
+  'simulator.dataRequiredBeforeRun': '当前请求参数为空,请先添加用例数据',
+  'simulator.invalidFormatTitle': '请求格式无效',
+  'simulator.invalidFormatDescription': '请输入合法的 JSON 或 JSON5 对象后再运行。',
+  'simulator.searchPlaceholder': '搜索节点...',
+  'simulator.clear': '清空',
+  'simulator.readyTitle': '准备就绪,可以开始模拟!',
+  'simulator.readyHint': '运行一次请求即可查看节点执行轨迹。',
+  'simulator.learnMore': '了解更多',
 
   'misc.delete': '删除',
 };

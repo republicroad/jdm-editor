@@ -158,8 +158,27 @@ export const en = {
   // ── simulator ──
   'simulator.boundRequestNodeNotFound': 'Bound request node not found',
   'simulator.requestMustBeObjectToSave': 'The current request must be a JSON object to save',
+  'simulator.description':
+    'Your business context that enters through the Request node, starting the decision process. Supply JSON or JSON5 format.',
+  'simulator.currentBinding': 'Current binding',
+  'simulator.nodeRequired': 'Request node is required to run the graph. Drag-and-drop it from the Components panel.',
+  'simulator.run': 'Run',
+  'simulator.formatSuccess': 'Formatted successfully!',
+  'simulator.formatFailed': 'Failed to format. Invalid JSON format.',
+  'simulator.nothingToCopy': 'Nothing to copy.',
+  'simulator.copiedToClipboard': 'Copied to clipboard!',
+  'simulator.copyFailedInvalidJson': 'Failed to copy. Invalid JSON format.',
+  'simulator.dataRequiredBeforeRun': 'The current request is empty. Please add example data first.',
+  'simulator.invalidFormatTitle': 'Invalid request format',
+  'simulator.invalidFormatDescription': 'Enter a valid JSON or JSON5 object before running.',
+  'simulator.searchPlaceholder': 'Search nodes...',
+  'simulator.clear': 'Clear',
+  'simulator.readyTitle': 'Ready to simulate!',
+  'simulator.readyHint': 'Run a request to see the node trace in action.',
+  'simulator.learnMore': 'Learn more',
 
   // ── misc ──
+  'common.clear': 'Clear',
   'misc.delete': 'Delete',
 } as const;
 

@@ -1,0 +1,94 @@
+import { CopyOutlined, FormatPainterOutlined, InfoCircleOutlined, LinkOutlined, PlayCircleOutlined } from '@/icons';
+import React from 'react';
+
+import type { TranslationKey } from '../../../theming/i18n';
+import { Button, Select, Tooltip, Typography } from '../../primitives';
+
+export type SimulatorRequestToolbarProps = {
+  t: (key: TranslationKey) => string;
+  shouldShowSimulatorSourceSelect: boolean;
+  boundRequestSourceIndex: number;
+  sourceOptions: Array<{ value: number; label: string }>;
+  bindingName?: string;
+  hasInputNode?: boolean;
+  loading?: boolean;
+  onSourceChange: (sourceIndex: number) => void;
+  onFormat: () => void;
+  onCopy: () => void;
+  onRun?: () => void;
+};
+
+export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = ({
+  t,
+  shouldShowSimulatorSourceSelect,
+  boundRequestSourceIndex,
+  sourceOptions,
+  bindingName,
+  hasInputNode,
+  loading,
+  onSourceChange,
+  onFormat,
+  onCopy,
+  onRun,
+}) => {
+  return (
+    <div className='flex items-center justify-between gap-2 border-b border-border px-3 py-2'>
+      <Tooltip title={t('simulator.description')}>
+        <Typography.Text
+          className='min-w-0 shrink cursor-help overflow-hidden text-ellipsis whitespace-nowrap'
+          style={{ fontSize: 13 }}
+        >
+          {t('request')}
+          <InfoCircleOutlined style={{ fontSize: 10, marginLeft: 4, opacity: 0.5, verticalAlign: 'text-top' }} />
+        </Typography.Text>
+      </Tooltip>
+      {shouldShowSimulatorSourceSelect && (
+        <Tooltip title={t('simulator.currentBinding')}>
+          <div className='flex min-w-0 items-center gap-1'>
+            <LinkOutlined style={{ fontSize: 12, color: 'var(--muted-foreground)' }} />
+            <Select
+              size='small'
+              value={boundRequestSourceIndex}
+              options={sourceOptions}
+              popupMatchSelectWidth={false}
+              onChange={onSourceChange}
+            />
+          </div>
+        </Tooltip>
+      )}
+      {bindingName && !shouldShowSimulatorSourceSelect && (
+        <Typography.Text type='secondary' className='flex min-w-0 items-center gap-1 text-xs'>
+          <Tooltip title={t('simulator.currentBinding')}>
+            <LinkOutlined style={{ fontSize: 12, color: 'var(--muted-foreground)' }} />
+          </Tooltip>
+          <span className='truncate'>{bindingName}</span>
+        </Typography.Text>
+      )}
+      <div className='flex shrink-0 items-center gap-1'>
+        {onRun && (
+          <React.Fragment>
+            <Tooltip title={!hasInputNode ? t('simulator.nodeRequired') : undefined}>
+              <Tooltip title={t('common.format')}>
+                <Button size='small' type='text' shape='circle' icon={<FormatPainterOutlined />} onClick={onFormat} />
+              </Tooltip>
+            </Tooltip>
+            <Tooltip title={t('dg.jsonSchema.copyJson')}>
+              <Button size='small' type='text' shape='circle' icon={<CopyOutlined />} onClick={onCopy} />
+            </Tooltip>
+            <Tooltip title={t('simulator.run')}>
+              <Button
+                size='small'
+                type='primary'
+                shape='circle'
+                loading={loading}
+                icon={<PlayCircleOutlined />}
+                disabled={!hasInputNode}
+                onClick={onRun}
+              />
+            </Tooltip>
+          </React.Fragment>
+        )}
+      </div>
+    </div>
+  );
+};
