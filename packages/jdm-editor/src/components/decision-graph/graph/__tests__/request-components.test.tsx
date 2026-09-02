@@ -17,8 +17,12 @@ const def = (overrides: Partial<RequestDefinition> = {}): RequestDefinition => (
   path: 'weight',
   name: 'weight',
   type: 'number' as RequestDefinitionType,
-  depth: 0,
   description: '',
+  format: '',
+  order: 0,
+  depth: 0,
+  parentPath: null,
+  source: 'schema.properties',
   ...overrides,
 });
 
@@ -180,12 +184,12 @@ describe('RequestExampleSummary', () => {
 describe('RequestExamples', () => {
   const mkProps = () => ({
     sources: [
-      { id: 's1', name: 'US Light', description: 'base case', data: { a: 1 } },
-      { id: 's2', name: 'DE Heavy', data: { a: 2 } },
+      { id: 's1', name: 'US Light', description: 'base case', data: { a: 1 }, source: 'schema.examples' as const },
+      { id: 's2', name: 'DE Heavy', data: { a: 2 }, source: 'schema.examples' as const },
     ],
     activeSourceIndex: 0,
     editingSourceIndex: null,
-    activeSource: { id: 's1', name: 'US Light', data: { a: 1 } },
+    activeSource: { id: 's1', name: 'US Light', data: { a: 1 }, source: 'schema.examples' as const },
     activeDescriptionDraft: '',
     activeJsonDraft: '{}',
     disabled: false,
