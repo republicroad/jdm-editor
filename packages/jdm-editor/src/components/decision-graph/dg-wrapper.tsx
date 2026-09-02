@@ -1,11 +1,12 @@
 import type { ProOptions } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
-import React, { forwardRef, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { match } from 'ts-pattern';
 
-import { useDecisionGraphState } from './context/dg-store.context';
+import { useDecisionGraphRaw, useDecisionGraphState } from './context/dg-store.context';
 import { GraphPanel } from './dg-panel';
+import type { UserResolver } from './dg-types';
 import type { GraphRef } from './graph/graph';
 import { Graph } from './graph/graph';
 import { GraphNodes } from './graph/graph-nodes';
@@ -22,11 +23,44 @@ import { NodeKind } from './nodes/specifications/specification-types';
 export type DecisionGraphWrapperProps = {
   reactFlowProOptions?: ProOptions;
   tabBarExtraContent?: GraphTabsProps['tabBarExtraContent'];
+  userResolver?: UserResolver;
+  customFunctions?: any;
+};
+
+const ResolveUserEffect: React.FC<{ userResolver?: UserResolver }> = ({ userResolver }) => {
+  const { stateStore } = useDecisionGraphRaw();
+
+  useEffect(() => {
+    if (!userResolver) {
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await userResolver();
+        if (!cancelled && result) {
+          stateStore.setState({ user: result.user ?? '' });
+        }
+      } catch (err) {
+        console.warn('[jdm-editor] userResolver failed:', err);
+        if (!cancelled) {
+          stateStore.setState({ user: '' });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userResolver]);
+
+  return null;
 };
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent },
+    { reactFlowProOptions, tabBarExtraContent, userResolver, customFunctions },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -42,6 +76,7 @@ export const DecisionGraphWrapper = React.memo(
 
     return (
       <>
+        <ResolveUserEffect userResolver={userResolver} />
         {!hideLeftToolbar && <GraphSideToolbar />}
         <div className={'flex flex-1 flex-col gap-1 overflow-hidden bg-white'}>
           <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
@@ -53,7 +88,7 @@ export const DecisionGraphWrapper = React.memo(
             onDisableTabs={setDisableTabs}
           />
           <GraphNodes className={clsx([!hasActiveNode && viewConfig?.enabled && 'flex flex-col'])} />
-          <TabContents />
+          <TabContents customFunctions={customFunctions} />
         </div>
         <GraphPanel />
       </>
@@ -61,16 +96,22 @@ export const DecisionGraphWrapper = React.memo(
   }),
 );
 
-const TabContents: React.FC = React.memo(() => {
-  const { openNodes, activeNodeId, components } = useDecisionGraphState(
-    ({ decisionGraph, openTabs, activeTab, components }) => {
+const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFunctions }) => {
+  const { openNodes, activeNodeId, components, user, customNodes } = useDecisionGraphState(
+    ({ decisionGraph, openTabs, activeTab, components, user, customNodes }) => {
       const activeNodeId = (decisionGraph?.nodes ?? []).find((node) => node.id === activeTab)?.id;
       const openNodes = (decisionGraph?.nodes ?? []).filter((node) => openTabs.includes(node.id));
 
       return {
-        openNodes: openNodes.map(({ id, type }) => ({ id, type })),
+        openNodes: openNodes.map(({ id, type, content }) => ({
+          id,
+          type,
+          kind: (content as { kind?: unknown } | undefined)?.kind,
+        })),
         activeNodeId,
         components,
+        user,
+        customNodes,
       };
     },
   );
@@ -88,16 +129,24 @@ const TabContents: React.FC = React.memo(() => {
           ])}
         >
           {match(node?.type)
-            .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id }))
-            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id }))
-            .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id }))
-            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id }))
-            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id }))
+            .with(NodeKind.DecisionTable, () => decisionTableSpecification?.renderTab?.({ id: node?.id, user }))
+            .with(NodeKind.Function, () => functionSpecification?.renderTab?.({ id: node?.id, user }))
+            .with(NodeKind.Expression, () => expressionSpecification?.renderTab?.({ id: node?.id, user }))
+            .with(NodeKind.Input, () => inputSpecification?.renderTab?.({ id: node?.id, user }))
+            .with(NodeKind.Output, () => outputSpecification?.renderTab?.({ id: node?.id, user }))
 
             .otherwise(() => {
               const component = components.find((cmp) => cmp.type === node.type);
               if (component) {
-                return component?.renderTab?.({ id: node.id });
+                return component?.renderTab?.({ id: node.id, user, customFunctions });
+              }
+
+              const kind = (node as { kind?: unknown })?.kind;
+              if (kind) {
+                const customSpec = customNodes?.find((n) => n.kind === kind);
+                if (customSpec?.renderTab) {
+                  return customSpec.renderTab({ id: node.id, user, customFunctions });
+                }
               }
 
               return null;

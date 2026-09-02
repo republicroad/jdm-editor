@@ -32,7 +32,7 @@ export type CustomNodeSpecification<Data extends object, Component extends strin
   group?: string;
   documentationUrl?: string;
   shortDescription?: string;
-  renderTab?: (props: { id: string }) => React.ReactNode;
+  renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
   calculateDiff?: (current: any, previous: any) => [any, any];
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode, 'position' | 'id' | 'type' | 'content'> & {
     config?: Data;

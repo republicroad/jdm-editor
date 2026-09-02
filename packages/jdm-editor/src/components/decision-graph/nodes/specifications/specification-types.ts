@@ -38,7 +38,7 @@ export type NodeSpecification<T = any> = {
   documentationUrl?: string;
   shortDescription?: string;
   helper?: string | React.ReactNode;
-  renderTab?: (props: { id: string }) => React.ReactNode;
+  renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
   getDiffContent?: (current: T, previous: T) => T;
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode<T>, 'position' | 'id' | 'type'>;
   renderNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecification }>;

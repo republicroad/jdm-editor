@@ -10,6 +10,7 @@ import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 
+import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
 import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
@@ -81,6 +82,8 @@ export type DecisionGraphStoreType = {
     onPanelsChange?: (val?: string) => void;
 
     simulate?: Simulation;
+
+    user: string;
 
     simulatorRequest?: string;
     simulatorExampleBinding?: SimulatorExampleBinding;
@@ -194,6 +197,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         customNodes: [],
         activePanel: undefined,
         panels: [],
+        user: '',
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
         nodeTypes: {},
         globalType: {},
@@ -512,6 +516,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         const newDecisionGraph = produce(decisionGraph, (draft) => {
           Object.assign(draft, graph);
+          if (draft.nodes) {
+            draft.nodes = normalizeCustomNodeExpressions(draft.nodes);
+          }
         });
 
         edgesState?.current?.[1](mapToGraphEdges(newDecisionGraph?.edges ?? []));
