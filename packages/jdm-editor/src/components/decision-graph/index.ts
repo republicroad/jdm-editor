@@ -49,6 +49,8 @@ export { nodeSpecification } from './nodes/specifications/specifications';
 export { addStrikethrough, buildDiffString, compareAndUnifyLists, compareStringFields } from './diff/comparison';
 export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOptions } from './diff/utility';
 
+export { TabRequest, type TabRequestProps } from './graph/tab-request';
+
 export {
   type DecisionEdge,
   type DecisionNode,
@@ -58,3 +60,28 @@ export {
   type Position,
   type DiffStatus,
 } from './dg-types';
+
+export {
+  type RequestDefinition,
+  type RequestDefinitionType,
+  type RequestExampleSource,
+  getRequestDefinitions,
+  getRequestExampleSources,
+  getRequestSchemaSourceValue,
+  stringifyRequestSchemaValue,
+  resolveRequestSchemaValue,
+  buildRequestSchemaFromDefinitions,
+  buildRequestExampleTemplateFromDefinitions,
+  updateRequestSchemaExamples,
+  normalizeRequestDefinitionOrders,
+  normalizeRequestFieldKey,
+  normalizeRequestJsonKeys,
+} from '../../helpers/request-schema';
+
+export {
+  useSimulatorAutoSync,
+  AUTO_SYNC_DEBOUNCE_MS,
+  type UseSimulatorAutoSyncParams,
+} from './simulator/use-simulator-auto-sync';
+
+export { jsonSchemaToVariableType } from '../../helpers/json-schema';

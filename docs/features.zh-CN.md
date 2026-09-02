@@ -56,6 +56,18 @@
 成功结果包含 `performance`、`result`、实际执行的图 `snapshot`,以及按 nodeId 索引的 `trace`
 (每个节点的输入/输出/耗时/traceData),用于可视化执行顺序并检查各节点 I/O。
 
+当图中包含输入(Request)节点时,左面板会切换为**请求面板**(`simulator-request-panel.tsx`):
+编辑器绑定到节点上的具名用例数据源,与节点 Definitions 及 schema.examples 双向同步
+(`use-simulator-auto-sync`),经 WASM 推断请求的 `VariableType`,并把编辑器修改持久化回绑定的
+schema 示例(`use-request-example-persistence`)。节点执行轨迹列表位于 `simulator-nodes-panel.tsx`。
+
+### 1.4a 请求节点页签(`graph/tab-request.tsx`)
+
+输入节点的编辑页签提供三个视图:**字段定义**(递归字段树,含类型/默认值/描述)、
+**用例数据**(具名数据源 + JSON 编辑器,inlay 提示展示字段描述,含数据与定义比对的字段摘要)
+与 **Schema**(原始 JSON Schema 编辑器,支持格式化与 JSON→Schema 转换)。配套助手位于
+`helpers/request-schema/*`(规范化、示例/定义合并、冲突检测)与 `helpers/json-path-extractor.ts`。
+
 ### 1.5 Diff 支持(`diff/`)
 
 对比当前与历史 JDM 文档(`comparison.ts`、`utility.ts`);各节点规格提供 `getDiffContent` 以投影可比内容;
