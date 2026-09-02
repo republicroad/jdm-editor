@@ -59,6 +59,21 @@ Runs the graph against a JSON input. Types in `simulation.types.ts`: `Simulation
 successful runs expose `performance`, `result`, the executed graph `snapshot`, and per-node `trace`
 (input/output/performance/traceData per nodeId) used to visualize execution order and inspect node I/O.
 
+When the graph contains an input (Request) node, the left panel becomes the **request panel**
+(`simulator-request-panel.tsx`): the editor binds to a named example source on the node, syncs with the
+node's Definitions and schema examples bidirectionally (`use-simulator-auto-sync`), infers the request's
+`VariableType` via WASM, and persists editor edits back into the bound schema example
+(`use-request-example-persistence`). The node trace list lives in `simulator-nodes-panel.tsx`.
+
+### 1.4a Request node tab (`graph/tab-request.tsx`)
+
+The input node's edit tab offers three views: **Definitions** (recursive field tree with types,
+defaults, descriptions), **Data** (named example sources with JSON editors, inlay hints showing
+definition descriptions, and a field summary comparing data vs definitions), and **Schema**
+(raw JSON schema editor with format + JSON→Schema conversion). Helpers live in
+`helpers/request-schema/*` (normalization, example/definition merge, conflict detection) and
+`helpers/json-path-extractor.ts`.
+
 ### 1.5 Diff support (`diff/`)
 
 Compares current vs previous JDM documents (`comparison.ts`, `utility.ts`); specifications provide
