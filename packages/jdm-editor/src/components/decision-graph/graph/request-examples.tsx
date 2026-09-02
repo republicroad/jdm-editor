@@ -130,8 +130,8 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
 
   return (
     <div className='flex h-full min-h-0 flex-col'>
-      <div className='flex h-full min-h-0 flex-col gap-3 lg:flex-row'>
-        <div className='flex w-48 shrink-0 flex-col gap-1.5 overflow-y-auto lg:max-h-full'>
+      <div className='flex min-h-0 flex-1 gap-4'>
+        <div className='flex w-[220px] shrink-0 flex-col gap-2 overflow-y-auto'>
           {sources.map((source, index) => (
             <div
               key={source.id}

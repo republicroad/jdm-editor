@@ -238,7 +238,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
         type={match(column)
           .with({ colType: 'input', field: P.string }, () => 'unary' as const)
           .otherwise(() => 'standard' as const)}
-        className='[--ce-verticalPadding:9px] [--ce-horizontalPadding:0.75rem] [&_.cm-editor]:border-0! [&_.cm-editor]:shadow-none! [&_.cm-editor]:rounded-none [&_.cm-editor]:w-full [&_.cm-editor]:bg-transparent'
+        className='[--ce-verticalPadding:9px] [--ce-horizontalPadding:0.75rem] [&_.cm-editor]:border-0! [&_.cm-editor]:shadow-none! [&_.cm-editor]:rounded-none [&_.cm-editor]:w-full [&_.cm-editor]:bg-transparent!'
         noStyle
         displayDiff={diff?.status === 'modified'}
         previousValue={diff?.previousValue}
