@@ -4,6 +4,8 @@ import { type InterpolationParams, interpolate } from './i18n-types';
 import { type TranslationKey, en } from './messages/en';
 import { zhCN } from './messages/zh-CN';
 
+export type { TranslationKey };
+
 /** Built-in locale catalogs. */
 const BUILTIN: Record<string, Record<string, string>> = {
   en,

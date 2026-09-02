@@ -88,5 +88,29 @@ export const zhCN: Record<string, string> = {
   'safe.title': '出现问题',
   'safe.retry': '重试',
 
+  // ── request node ──
+  'request': '请求',
+  'request.dataLabel': '用例数据',
+  'request.dataSourceSaved': '用例数据保存成功',
+  'request.dataTypeMismatchWarning': '当前请求数据类型格式与定义不吻合,如需要修改定义,请前往请求定义处修改。',
+  'request.downloadJsonNoData': '当前无可下载的数据内容',
+  'request.jsonInvalidError': '请输入合法的 JSON 或 JSON5',
+  'request.jsonObjectError': '请输入 JSON 对象',
+  'request.saveDataSourceFailed': '当前用例数据保存失败',
+  'request.selectDataSourceFirst': '请先选择一条用例数据',
+  'request.typeArray': 'Array',
+  'request.typeBoolean': 'Boolean',
+  'request.typeDatetime': 'Datetime',
+  'request.typeNumber': 'Number',
+  'request.typeObject': 'Object',
+  'request.typeString': 'String',
+  'request.uploadJsonFailed': 'JSON 上传失败',
+  'request.uploadJsonObjectRequired': '上传的 JSON 必须是对象',
+  'request.uploadJsonSuccess': 'JSON 上传成功',
+
+  // ── simulator ──
+  'simulator.boundRequestNodeNotFound': '未找到已绑定的请求节点',
+  'simulator.requestMustBeObjectToSave': '当前请求内容必须是 JSON 对象才能保存',
+
   'misc.delete': '删除',
 };

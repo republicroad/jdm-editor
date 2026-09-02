@@ -100,6 +100,31 @@ export const en = {
   'safe.title': 'Something went wrong',
   'safe.retry': 'Retry',
 
+  // ── request node ──
+  'request': 'Request',
+  'request.dataLabel': 'Example data',
+  'request.dataSourceSaved': 'Data saved',
+  'request.dataTypeMismatchWarning':
+    'The current request data type does not match the definitions. To change the definition, update it in Definitions.',
+  'request.downloadJsonNoData': 'No data available to download',
+  'request.jsonInvalidError': 'Enter valid JSON or JSON5',
+  'request.jsonObjectError': 'Enter a JSON object',
+  'request.saveDataSourceFailed': 'Failed to save data',
+  'request.selectDataSourceFirst': 'Select a data first',
+  'request.typeArray': 'Array',
+  'request.typeBoolean': 'Boolean',
+  'request.typeDatetime': 'Datetime',
+  'request.typeNumber': 'Number',
+  'request.typeObject': 'Object',
+  'request.typeString': 'String',
+  'request.uploadJsonFailed': 'Failed to upload JSON',
+  'request.uploadJsonObjectRequired': 'Uploaded JSON must be an object',
+  'request.uploadJsonSuccess': 'JSON uploaded successfully',
+
+  // ── simulator ──
+  'simulator.boundRequestNodeNotFound': 'Bound request node not found',
+  'simulator.requestMustBeObjectToSave': 'The current request must be a JSON object to save',
+
   // ── misc ──
   'misc.delete': 'Delete',
 } as const;
