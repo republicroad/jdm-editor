@@ -46,6 +46,8 @@ export const en = {
   'dt.field.removeConfirm': 'Remove this column?',
   'dt.field.wrapQuotes': 'Wrap values in quotes',
   'dt.field.selectDictionary': 'Select dictionary...',
+  'dt.field.allowCustomValues': 'Allow custom values',
+  'dt.toolbar.simulationIndex': 'Simulation index:',
 
   // ── excel dialog ──
   'dt.excel.title': 'Map Excel data',

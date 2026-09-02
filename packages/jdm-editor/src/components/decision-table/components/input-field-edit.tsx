@@ -213,7 +213,7 @@ export const InputFieldEdit: React.FC<InputFieldEditProps> = ({
           {enumMode !== 'none' && (
             <div>
               <Checkbox checked={enumLoose} onChange={(e) => setEnumLoose(e.target.checked)} disabled={disabled}>
-                <span className='text-xs'>Allow custom values</span>
+                <span className='text-xs'>{t('dt.field.allowCustomValues')}</span>
               </Checkbox>
             </div>
           )}

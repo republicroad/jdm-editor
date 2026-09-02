@@ -251,7 +251,7 @@ export const DecisionTableCommandBar: React.FC = () => {
         </Stack>
         {traceIndexOptions && (
           <Stack horizontal verticalAlign='center' horizontalAlign='end'>
-            <Typography.Text style={{ fontSize: 12 }}>Simulation index:</Typography.Text>
+            <Typography.Text style={{ fontSize: 12 }}>{t('dt.toolbar.simulationIndex')}</Typography.Text>
             <Select
               size='small'
               style={{ fontSize: 12, minWidth: 60 }}
