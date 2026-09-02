@@ -68,6 +68,16 @@ schema 示例(`use-request-example-persistence`)。节点执行轨迹列表位�
 与 **Schema**(原始 JSON Schema 编辑器,支持格式化与 JSON→Schema 转换)。配套助手位于
 `helpers/request-schema/*`(规范化、示例/定义合并、冲突检测)与 `helpers/json-path-extractor.ts`。
 
+### 1.4b 自定义函数表格(`custom-function-table/`、`graph/tab-custom-function-table.tsx`)
+
+基于 `createJdmNode` 构建自定义节点的宿主可提供 `renderTab` 并使用 `CustomFunctionTable`
+界面:电子表格风格的表达式编辑器,支持逐行拖拽排序(@dnd-kit)、键/表达式两列、
+三种表达式模式(表达式 / 函数——配合 `customFunctions` 签名选择 / JSON 代码模式)、
+旧版 `;;` 字符串到字符串数组的迁移、仿真 trace 同步与逐行结果浮层,以及 diff 感知的行着色。
+配套:`helpers/custom-function-schema.ts`(作用域函数契约)与 `helpers/utility.ts` 中的
+操作符表达式工具。`DecisionGraph` 新增 `userResolver` 与 `customFunctions` 属性;
+`setDecisionGraph` 会对传入的自定义节点表达式做规范化。
+
 ### 1.5 Diff 支持(`diff/`)
 
 对比当前与历史 JDM 文档(`comparison.ts`、`utility.ts`);各节点规格提供 `getDiffContent` 以投影可比内容;

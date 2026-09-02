@@ -74,6 +74,17 @@ definition descriptions, and a field summary comparing data vs definitions), and
 `helpers/request-schema/*` (normalization, example/definition merge, conflict detection) and
 `helpers/json-path-extractor.ts`.
 
+### 1.4b Custom function table (`custom-function-table/`, `graph/tab-custom-function-table.tsx`)
+
+Hosts building custom nodes over `createJdmNode` can supply `renderTab` and receive the
+`CustomFunctionTable` surface: a spreadsheet-style expression editor with per-row drag reorder
+(@dnd-kit), key/expression columns, three expression modes (expression / function with
+`customFunctions` signature picker / JSON code mode), legacy `;;` string migration to string
+arrays, simulation trace sync with per-row result overlays, and diff-aware row tinting.
+Helpers: `helpers/custom-function-schema.ts` (scoped function contracts) and the operator
+expression utilities in `helpers/utility.ts`. `DecisionGraph` accepts `userResolver` and
+`customFunctions` props; `setDecisionGraph` normalizes incoming custom node expressions.
+
 ### 1.5 Diff support (`diff/`)
 
 Compares current vs previous JDM documents (`comparison.ts`, `utility.ts`); specifications provide
