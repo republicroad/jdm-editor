@@ -157,6 +157,14 @@ export const en = {
   'request.toggleFieldDescriptionsTooltip': 'Toggle field description hints',
   'request.uploadJsonTooltip': 'Upload JSON for the current data',
 
+  // ── custom function ──
+  'cf.key': 'Key',
+  'cf.expression': 'Expression',
+  'cf.function': 'Function',
+  'cf.code': 'Code',
+  'cf.legacy': 'Legacy',
+  'cf.addRow': 'Add Row',
+
   // ── simulator ──
   'simulator.boundRequestNodeNotFound': 'Bound request node not found',
   'simulator.requestMustBeObjectToSave': 'The current request must be a JSON object to save',

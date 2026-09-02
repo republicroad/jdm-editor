@@ -50,6 +50,7 @@ export { addStrikethrough, buildDiffString, compareAndUnifyLists, compareStringF
 export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOptions } from './diff/utility';
 
 export { TabRequest, type TabRequestProps } from './graph/tab-request';
+export { CustomFunctionTable, type TabCustomFunctionProps } from './graph/tab-custom-function-table';
 
 export {
   type DecisionEdge,

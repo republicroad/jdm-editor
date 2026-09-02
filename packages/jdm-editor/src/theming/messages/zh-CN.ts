@@ -144,6 +144,14 @@ export const zhCN: Record<string, string> = {
   'request.uploadJsonTooltip': '上传用例数据 JSON',
 
   // ── simulator ──
+  // ── custom function ──
+  'cf.key': '键',
+  'cf.expression': '表达式',
+  'cf.function': '函数',
+  'cf.code': '代码',
+  'cf.legacy': '旧版',
+  'cf.addRow': '添加行',
+
   // ── simulator ──
   'simulator.boundRequestNodeNotFound': '未找到已绑定的请求节点',
   'simulator.requestMustBeObjectToSave': '当前请求内容必须是 JSON 对象才能保存',

@@ -22,6 +22,7 @@
 /* source(none): opt out of automatic content detection (monorepo checkout);
    explicit sources are declared below. */
 @import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import './custom-function.css' layer(components);
 
 /* Dark variant, island-boundary isolated (Batch S2): a `.grl-root` island
    declaring light EXEMPTS its subtree from a host page's own dark scope, and
