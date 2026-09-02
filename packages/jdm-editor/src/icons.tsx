@@ -40,7 +40,6 @@ export {
   EllipsisVertical as MoreOutlined,
   CirclePlus as PlusCircleOutlined,
   Copy as CopyOutlined,
-  Link as LinkOutlined,
   Plus as PlusOutlined,
   SquarePlus as PlusSquareOutlined,
   ChevronRight as RightOutlined,

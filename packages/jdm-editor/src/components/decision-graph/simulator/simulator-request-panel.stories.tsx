@@ -18,7 +18,30 @@ type Story = StoryObj<typeof SimulatorRequestPanel>;
 
 const buildGraph = (withInput: boolean): DecisionGraphType => ({
   nodes: [
-    ...(withInput ? [{ id: 'input-1', type: 'inputNode' as const, position: { x: 70, y: 250 }, name: 'Request' }] : []),
+    ...(withInput
+      ? [
+          {
+            id: 'input-1',
+            type: 'inputNode' as const,
+            position: { x: 70, y: 250 },
+            name: 'Request',
+            content: {
+              schema: JSON.stringify({
+                'type': 'object',
+                'properties': { customer: { type: 'object' }, cart: { type: 'object' } },
+                'examples': [
+                  { customer: { country: 'US' }, cart: { weight: 50 } },
+                  { customer: { country: 'DE' }, cart: { weight: 120 } },
+                ],
+                'x-examples-meta': [{ name: 'US Light' }, { name: 'DE Heavy' }],
+              }),
+              expressions: [],
+              inputField: null,
+              outputPath: null,
+            },
+          },
+        ]
+      : []),
     {
       id: 'dt-1',
       type: 'decisionTableNode',

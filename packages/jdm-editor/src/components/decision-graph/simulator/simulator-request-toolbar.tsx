@@ -1,5 +1,6 @@
-import { CopyOutlined, FormatPainterOutlined, LinkOutlined, PlayCircleOutlined } from '@/icons';
+import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined } from '@/icons';
 import InformationIcon from '@/reui/icons/animated/outline/information';
+import LinkIcon from '@/reui/icons/animated/outline/link';
 import React from 'react';
 
 import type { TranslationKey } from '../../../theming/i18n';
@@ -48,7 +49,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
       {shouldShowSimulatorSourceSelect && (
         <Tooltip title={t('simulator.currentBinding')}>
           <div className='flex min-w-0 items-center gap-1'>
-            <LinkOutlined className='size-3 shrink-0 text-[var(--muted-foreground)]' />
+            <LinkIcon className='size-3 shrink-0 text-[var(--muted-foreground)]' />
             <Select
               size='small'
               value={boundRequestSourceIndex}
@@ -62,7 +63,7 @@ export const SimulatorRequestToolbar: React.FC<SimulatorRequestToolbarProps> = (
       {bindingName && !shouldShowSimulatorSourceSelect && (
         <Typography.Text type='secondary' className='flex min-w-0 items-center gap-1 text-xs'>
           <Tooltip title={t('simulator.currentBinding')}>
-            <LinkOutlined className='size-3 shrink-0 text-[var(--muted-foreground)]' />
+            <LinkIcon className='size-3 shrink-0 text-[var(--muted-foreground)]' />
           </Tooltip>
           <span className='truncate'>{bindingName}</span>
         </Typography.Text>
