@@ -1,6 +1,8 @@
 {
   "name": "@gorules/jdm-monorepo",
+  "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
     "lerna": "lerna",
     "build": "lerna run build",
@@ -47,7 +49,6 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.3"
   },
-  "version": "0.1.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
