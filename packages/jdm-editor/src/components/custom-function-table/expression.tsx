@@ -1,4 +1,12 @@
-import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import {
+  DndContext,
+  KeyboardSensor,
+  MeasuringStrategy,
+  PointerSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect } from 'react';
@@ -48,6 +56,9 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
   return (
     <DndContext
       sensors={sensors}
+      // rows reorder mid-drag, so droppable rects must be re-measured
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      collisionDetection={closestCorners}
       onDragEnd={({ active, over }) => {
         if (!over) {
           return;

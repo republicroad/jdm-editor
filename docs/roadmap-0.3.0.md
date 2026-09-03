@@ -53,10 +53,15 @@
 
 ### 3.2 Keyboard support for row drag (custom function table)
 
-- Drag reorder is pointer-only (dnd-kit `PointerSensor`). Adding
-  `KeyboardSensor` needs a roving tabindex in the expression list and an
-  accessible "pick up / drop" idiom; defer until the list lands in a
-  first-party surface.
+- **Status: partially done.** KeyboardSensor is wired (pickup via Space/
+  Enter, cancel via Esc, drop completes without errors) and guarded by the
+  `cf-drag-keyboard` probe (6 checks). `MeasuringStrategy.Always` +
+  `closestCorners` were added for droppable accuracy.
+- **Open:** arrow-move collision tuning — a keyboard drop does not yet
+  reliably land on the intended row (probe asserts the lifecycle, not the
+  landing order). Likely needs a sortable-style layout (dnd-kit
+  `@dnd-kit/sortable` with `sortableKeyboardCoordinates`) rather than raw
+  core droppables; defer until the list is a first-party surface.
 
 ### 3.3 Simulator story determinism
 
