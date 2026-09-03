@@ -55,6 +55,20 @@ export default defineConfig([
     },
 
     rules: {
+      // Kernel imports use node subpath imports (#...) — see docs/architecture.md §8.1.
+      // The legacy '@/' path alias was removed (commit 246a0586); block regressions.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/*', '@/'],
+              message:
+                'Kernel imports use node subpath imports (#icons, #components/ui/*, #lib/*, #reui/icons/*) — see docs/architecture.md §8.1.',
+            },
+          ],
+        },
+      ],
       '@typescript-eslint/camelcase': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',

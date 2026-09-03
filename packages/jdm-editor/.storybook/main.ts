@@ -4,7 +4,11 @@ import tailwindcss from '@tailwindcss/vite';
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
   addons: ['@storybook/addon-links', 'storybook-dark-mode', '@storybook/addon-docs', '@storybook/addon-mcp'],
-  staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: '/zen-engine-wasm' }],
+  // Relative mount target: works under the Pages project sub-path (an
+  // absolute '/zen-engine-wasm' 404s there). Expression evaluation degrades
+  // gracefully when the wasm is unreachable, but serving it keeps the
+  // variable-type inference working in the static site too.
+  staticDirs: [{ from: '../node_modules/@gorules/zen-engine-wasm/dist', to: 'zen-engine-wasm' }],
   framework: {
     name: '@storybook/react-vite',
     options: {

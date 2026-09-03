@@ -179,3 +179,22 @@ GitHub 工作流(`.github/workflows/`):
 - 运行时:基于 React 19 开发与验证;Peer 依赖保持 `react >= 18`、`react-dom >= 18`(由消费者冒烟脚本在 React 18/19 双版本下验证)。
 - 宿主接入约定:消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Radix Dialog/Alert/Toaster 等逃逸出 `.grl-root` 作用域的元素)。
 - 消费方接入说明(Monaco worker 自托管)见根 README。
+
+### 8.1 导入契约(方案 D)
+
+内核内部导入统一使用 **Node subpath imports**(`#` 前缀),声明于包的 `imports` 字段,类型经由 tsconfig `paths`(`#* -> ./src/*`)映射:
+
+| 导入 | 指向 |
+| --- | --- |
+| `#icons` | `src/icons.tsx`(lucide 别名 + ReUI motion 图标)|
+| `#components/ui/*` | `src/components/ui/*`(shadcn 原语)|
+| `#lib/*` | `src/lib/*` |
+| `#reui/icons/*` | `src/reui/icons/*`(动效图标)|
+
+规则:
+
+1. **内核内部导入一律用 `#`** —— 不会出现在公开面(宿主按设计无法解析 subpath imports)。
+2. **公开 API 仅限 `exports` 暴露的内容**(`.`、`./dist/schema`、`./dist/style.css`)。
+3. 旧 `@/*` 路径别名已**移除**(`@/` 导入被 lint 阻断);vite/storybook 原生解析 `#`(vite ≥ 5.1),vitest 经 alias 块解析。
+
+迁移于 `246a0586`(81 文件)。

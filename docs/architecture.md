@@ -183,7 +183,30 @@ runs lint, build, tests, typecheck, a bundle-size budget check and the dual-reac
 ## 8. Public distribution model
 
 - Compiled package: `main/module/types → dist/`, exports `.` , `./dist/schema`, `./dist/style.css`.
-- Peer deps: `react >= 18`, `react-dom >= 18`.
+- Peer deps: `react >= 18`, `react-dom >= 18`, `monaco-editor ^0.52.2` (hosts install it explicitly).
+
+### 8.1 Import contract (scheme D)
+
+Kernel imports use **Node subpath imports** (`#` prefix), declared in the package's
+`imports` field and typed via tsconfig `paths` (`#* -> ./src/*`):
+
+| Import | Resolves to |
+| --- | --- |
+| `#icons` | `src/icons.tsx` (lucide aliases + ReUI motion icons) |
+| `#components/ui/*` | `src/components/ui/*` (shadcn primitives) |
+| `#lib/*` | `src/lib/*` |
+| `#reui/icons/*` | `src/reui/icons/*` (animated motion icons) |
+
+Rules:
+
+1. **Kernel-internal imports always use `#`** — they never appear in the public
+   surface (subpath imports are unresolvable by hosts by design).
+2. **The public API is only what `exports` exposes** (`.`, `./dist/schema`,
+   `./dist/style.css`).
+3. The legacy `@/*` path alias is **removed** (`@/` imports are lint-blocked);
+   vite/storybook resolve `#` natively (vite >= 5.1), vitest via the alias block.
+
+Migrated in `246a0586` (81 files).
 - Host integration: consumers wrap their app in an element with class `grl-root` to opt in to the
   scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
   `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it
