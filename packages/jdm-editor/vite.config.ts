@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import * as path from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import wasm from 'vite-plugin-wasm';
@@ -8,7 +9,24 @@ import wasm from 'vite-plugin-wasm';
 import packageJson from './package.json';
 
 export default defineConfig({
-  plugins: [react(), wasm(), dts({ include: ['src/**/*.ts', 'src/**/*.tsx'], bundleTypes: true }), tailwindcss()],
+  plugins: [
+    react(),
+    wasm(),
+    dts({ include: ['src/**/*.ts', 'src/**/*.tsx'], bundleTypes: true }),
+    tailwindcss(),
+    // Bundle composition report for docs/bundle-analysis.md; written outside
+    // dist/ so it never reaches the tarball. Opt in via BUILD_ANALYZE=1.
+    ...(process.env.BUILD_ANALYZE
+      ? [
+          visualizer({
+            filename: path.resolve(__dirname, '../../docs/bundle-stats.json'),
+            template: 'raw-data',
+            gzipSize: true,
+            brotliSize: false,
+          }),
+        ]
+      : []),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
