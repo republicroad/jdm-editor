@@ -28,7 +28,16 @@ export default defineConfig({
       cssFileName: 'style',
     },
     rollupOptions: {
-      external: ['react/jsx-runtime', 'react', 'react-dom', ...Object.keys(packageJson.dependencies)],
+      // Dependencies AND peerDependencies stay external: hosts provide them.
+      // (peerDependencies alone proved insufficient — moving monaco-editor
+      // out of dependencies silently inlined the whole monaco bundle.)
+      external: [
+        'react/jsx-runtime',
+        'react',
+        'react-dom',
+        ...Object.keys(packageJson.dependencies),
+        ...Object.keys(packageJson.peerDependencies ?? {}),
+      ],
       output: {
         globals: {
           'react-dom': 'ReactDOM',

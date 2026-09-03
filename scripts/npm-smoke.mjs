@@ -50,10 +50,19 @@ try {
   const sizeKb = Math.round(statSync(tarball).size / 1024);
   check('tarball packed', existsSync(tarball), `${tarballName} ${sizeKb}kB`);
 
-  // 2. install it into the scratch dir
+  // 2. install it into the scratch dir (monaco-editor is a peerDependency —
+  // hosts install it explicitly, so the smoke mirrors that contract)
   const install = spawnSync(
     'npm',
-    ['install', tarball, '--no-audit', '--no-fund', '--ignore-scripts', '--registry=https://registry.npmjs.org'],
+    [
+      'install',
+      tarball,
+      'monaco-editor@^0.52.2',
+      '--no-audit',
+      '--no-fund',
+      '--ignore-scripts',
+      '--registry=https://registry.npmjs.org',
+    ],
     {
       cwd: scratch,
       encoding: 'utf8',
@@ -72,6 +81,11 @@ try {
   // 3. published contract assertions
   check('name matches @republicroad/jdm-editor', installedPkg.name === '@republicroad/jdm-editor', installedPkg.name);
   check('publishConfig.access is public', installedPkg.publishConfig?.access === 'public');
+  check(
+    'monaco-editor declared as peer',
+    Boolean(installedPkg.peerDependencies?.['monaco-editor']),
+    installedPkg.peerDependencies?.['monaco-editor'] ?? 'absent',
+  );
 
   for (const file of ['dist/index.js', 'dist/index.d.ts', 'dist/style.css', 'dist/schema.js', 'LICENSE', 'README.md']) {
     check(`artifact present: ${file}`, existsSync(path.join(installedDir, file)));
