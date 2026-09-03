@@ -1,0 +1,51 @@
+name: Deploy Storybook to Pages
+
+on:
+  push:
+    branches:
+      - reui
+    paths:
+      - 'packages/jdm-editor/src/**'
+      - 'packages/jdm-editor/.storybook/**'
+      - 'packages/jdm-editor/vite.config.ts'
+      - 'packages/jdm-editor/package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-docs.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Storybook
+        run: pnpm --filter @republicroad/jdm-editor build:storybook
+      - name: Disable Jekyll (allow underscored asset dirs)
+        run: touch packages/jdm-editor/docs/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/jdm-editor/docs
+      - id: deployment
+        uses: actions/deploy-pages@v4

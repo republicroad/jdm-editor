@@ -22,6 +22,9 @@ const config: StorybookConfig = {
     };
     config.optimizeDeps ??= {};
     config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
+    // GitHub Pages serves the static build from a project sub-path — asset
+    // URLs must be relative or they 404.
+    config.base = './';
     return config;
   },
 };
