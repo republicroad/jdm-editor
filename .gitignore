@@ -14,3 +14,5 @@ packages/jdm-editor/docs
 # secrets
 .env.local
 .env*.local
+
+docs/bundle-stats.json
