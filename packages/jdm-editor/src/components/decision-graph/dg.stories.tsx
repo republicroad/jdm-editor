@@ -353,22 +353,11 @@ const DecisionGraphWithSimulator: React.FC = () => {
               null,
               2,
             )}
-            onRun={async ({ graph, context }) => {
-              try {
-                const response = await fetch('https://editor.gorules.io/api/simulate', {
-                  method: 'POST',
-                  body: JSON.stringify({ content: graph, context }),
-                  headers: { 'content-type': 'application/json' },
-                });
-
-                const responseJson = await response.json();
-                setSimulate({ result: { ...responseJson, snapshot: graph } });
-              } catch {
-                // Offline/demo fallback: no reachable engine — derive a minimal
-                // trace from the graph so the simulator surface stays demonstrable.
-                console.warn('[stories] remote simulate unavailable, using offline demo trace');
-                setSimulate(buildOfflineSimulation(graph, context));
-              }
+            // Offline by design: real hosts wire their own engine here
+            // (remote API, server, or wasm when available). The local demo
+            // trace keeps the simulator demonstrable without any network.
+            onRun={({ graph, context }) => {
+              setSimulate(buildOfflineSimulation(graph, context));
             }}
             onClear={() => {}}
           />
