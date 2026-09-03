@@ -71,6 +71,15 @@
   remote `/api/simulate` remains the engine).
 - Shadow-DOM scoped injection (Batch S3 archive — monaco blocker).
 
+## 5. Dependency audit note (2026-09)
+
+`pnpm audit --prod` reports 1 high: minimatch ReDoS. `pnpm why minimatch`
+traces every chain to **dev/engine tooling only** (lerna, @lerna/*, npm
+cli libs, eslint-plugin-storybook → typescript-estree) — none of these ship
+in the published tarball (files: `dist/` only) or execute in host apps.
+Disposition: **accepted dev-chain risk**; an override would fight lerna's
+pinned range for zero runtime gain. Revisit when lerna bumps minimatch.
+
 ## Appendix A — A2 flag removal inventory (trigger 2.1)
 
 `localStorage.gru-hl-view` touch points when the trigger fires:
