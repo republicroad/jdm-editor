@@ -46,6 +46,18 @@ the absolute gzip cost today (169 kB) is moderate for an editor SDK, and the
 split's bookkeeping is not free. Re-evaluate if index.js crosses ~250 kB gzip
 or a single-surface host use-case materializes.
 
+### Experiment result (measured 2026-09)
+
+A `manualChunks` surface split was attempted (`chunk-graph-side` /
+`chunk-table-side` / `chunk-editor` by module path). **Vite lib mode ignores
+`manualChunks`** — the build emitted a single index.js as before. The only
+viable split path is **multiple lib entries** (`entry: { index, graph, table }`)
+plus an exports-map review and host guidance; cross-surface imports (graph
+embedding table nodes) will pull both chunks for mixed hosts regardless.
+
+Decision: recorded as the concrete implementation path for a future major if
+single-surface demand materializes; not scheduled for 0.3.0.
+
 ## Cheap wins (no split needed)
 
 - `dayjs`: only the date-picker needs it — if the picker moves to a native
