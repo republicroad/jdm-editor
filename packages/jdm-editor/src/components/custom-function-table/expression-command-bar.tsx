@@ -4,12 +4,12 @@ import { P, match } from 'ts-pattern';
 import { useT } from '../../theming/i18n';
 import { Select, Typography } from '../primitives';
 import { Stack } from '../stack';
-import { useExpressionStoreRaw } from './context/expression-store.context';
+import { useExpressionStore, useExpressionStoreRaw } from './context/expression-store.context';
 
 export const ExpressionCommandBar: React.FC = () => {
   const t = useT();
   const expressionStore = useExpressionStoreRaw();
-  const { debugIndex, traceCount } = expressionStore(({ debug, debugIndex }) => ({
+  const { debugIndex, traceCount } = useExpressionStore(({ debug, debugIndex }) => ({
     debugIndex,
     traceCount: match(debug?.trace?.traceData)
       .with(P.array(), (some) => some.length)

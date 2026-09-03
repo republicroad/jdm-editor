@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 
 import type { FunctionScope } from '../../helpers/custom-function-schema';
 import { isWasmAvailable } from '../../helpers/wasm';
-import type { ExpressionStore } from './context/expression-store.context';
+import type { ExpressionEntry, ExpressionStore } from './context/expression-store.context';
 import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
 import type { ExpressionControllerProps } from './expression-controller';
@@ -13,13 +13,22 @@ import { ExpressionController } from './expression-controller';
 import { ExpressionList } from './expression-list';
 
 export type CustomFunctionProps = {
-  inputVariableType?: VariableType;
-  debug?: ExpressionStore['debug'];
+  value?: ExpressionEntry[];
+  onChange?: (value: ExpressionEntry[]) => void;
+  defaultValue?: ExpressionEntry[];
+  disabled?: boolean;
+  permission?: 'edit:full' | 'edit:values' | 'view';
+  /**
+   * Deliberately opaque in public props: wasm/zod-typed shapes crash
+   * Storybook docgen (SB_DOCS-TOOLS_0001). The component re-narrows them
+   * internally before use.
+   */
+  inputVariableType?: unknown;
+  debug?: unknown;
   hideCommandBar?: boolean;
   customFunctions?: any;
-  functionScope?: FunctionScope;
-} & ExpressionControllerProps;
-
+  functionScope?: unknown;
+};
 export const CustomFunction: React.FC<CustomFunctionProps> = ({
   customFunctions,
   debug,
@@ -49,9 +58,12 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
       }}
     >
       <ExpressionStoreProvider>
-        <ExpressionController {...props} functionScope={functionScope} />
+        <ExpressionController
+          {...(props as ExpressionControllerProps)}
+          functionScope={functionScope as FunctionScope | undefined}
+        />
         {!hideCommandBar && <ExpressionCommandBar />}
-        <ExpressionList customFunctions={customFunctions} functionScope={functionScope} />
+        <ExpressionList customFunctions={customFunctions} functionScope={functionScope as FunctionScope | undefined} />
         <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
       </ExpressionStoreProvider>
     </DndContext>
@@ -59,13 +71,14 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
 };
 
 const SimulateDataSync: React.FC<Pick<CustomFunctionProps, 'debug' | 'inputVariableType'>> = ({
-  debug,
+  debug: debugUnknown,
   inputVariableType,
 }) => {
+  const debug = debugUnknown as ExpressionStore['debug'];
   const expressionStoreRaw = useExpressionStoreRaw();
 
   useEffect(() => {
-    expressionStoreRaw.setState({ inputVariableType });
+    expressionStoreRaw.setState({ inputVariableType: inputVariableType as VariableType | undefined });
   }, [inputVariableType]);
 
   useEffect(() => {
