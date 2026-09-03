@@ -1,4 +1,4 @@
-import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, RightOutlined } from '@/icons';
+import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, RightOutlined } from '#icons';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import json5 from 'json5';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

@@ -1,4 +1,4 @@
-import CrossIcon from '@/reui/icons/animated/outline/cross';
+import CrossIcon from '#reui/icons/animated/outline/cross';
 import json5 from 'json5';
 import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';

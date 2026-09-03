@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, DownOutlined } from '@/icons';
+import { ArrowRightOutlined, DownOutlined } from '#icons';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';

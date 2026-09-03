@@ -1,4 +1,4 @@
-import { BookOutlined } from '@/icons';
+import { BookOutlined } from '#icons';
 import type { HandleProps } from '@xyflow/react';
 import { Handle, Position } from '@xyflow/react';
 import clsx from 'clsx';

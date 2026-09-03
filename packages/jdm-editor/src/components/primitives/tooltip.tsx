@@ -3,7 +3,7 @@ import {
   TooltipProvider as UiTooltipProvider,
   Tooltip as UiTooltipRoot,
   TooltipTrigger as UiTooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '#components/ui/tooltip';
 import * as React from 'react';
 
 const placementSideMap: Record<string, 'top' | 'right' | 'bottom' | 'left'> = {

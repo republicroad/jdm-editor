@@ -5,7 +5,7 @@ import {
   DeleteOutlined,
   ExportOutlined,
   ImportOutlined,
-} from '@/icons';
+} from '#icons';
 import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { P, match } from 'ts-pattern';

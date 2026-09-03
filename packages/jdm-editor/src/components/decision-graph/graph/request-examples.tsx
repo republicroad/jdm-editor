@@ -1,4 +1,4 @@
-import { CommentOutlined, DeleteOutlined, FormatPainterOutlined, PlusOutlined } from '@/icons';
+import { CommentOutlined, DeleteOutlined, FormatPainterOutlined, PlusOutlined } from '#icons';
 import { Editor } from '@monaco-editor/react';
 import type * as monacoModule from 'monaco-editor';
 import type { editor } from 'monaco-editor';

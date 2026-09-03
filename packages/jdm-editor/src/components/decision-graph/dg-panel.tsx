@@ -1,4 +1,4 @@
-import { CloseOutlined } from '@/icons';
+import { CloseOutlined } from '#icons';
 import { Resizable } from 're-resizable';
 import React, { useMemo } from 'react';
 

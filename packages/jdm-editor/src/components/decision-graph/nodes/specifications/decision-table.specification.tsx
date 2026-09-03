@@ -1,4 +1,4 @@
-import { ArrowRightOutlined, SyncOutlined } from '@/icons';
+import { ArrowRightOutlined, SyncOutlined } from '#icons';
 import { VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';

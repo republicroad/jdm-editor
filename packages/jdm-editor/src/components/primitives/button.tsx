@@ -1,5 +1,5 @@
-import { Button as UiButton } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button as UiButton } from '#components/ui/button';
+import { cn } from '#lib/utils';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
 

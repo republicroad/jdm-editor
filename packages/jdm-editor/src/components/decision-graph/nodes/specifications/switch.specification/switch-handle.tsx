@@ -1,4 +1,4 @@
-import { DeleteOutlined } from '@/icons';
+import { DeleteOutlined } from '#icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import { Handle, Position } from '@xyflow/react';
 import clsx from 'clsx';

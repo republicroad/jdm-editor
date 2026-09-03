@@ -1,8 +1,8 @@
-import { Tabs as UiTabs } from '@/components/ui/tabs';
-import { TabsContent as UiTabsContent } from '@/components/ui/tabs';
-import { TabsList as UiTabsList } from '@/components/ui/tabs';
-import { TabsTrigger as UiTabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { Tabs as UiTabs } from '#components/ui/tabs';
+import { TabsContent as UiTabsContent } from '#components/ui/tabs';
+import { TabsList as UiTabsList } from '#components/ui/tabs';
+import { TabsTrigger as UiTabsTrigger } from '#components/ui/tabs';
+import { cn } from '#lib/utils';
 import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link TabsItemType} instead. */

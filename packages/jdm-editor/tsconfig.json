@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["./src/*"],
+      "#*": ["./src/*"],
       "monaco-editor": ["./node_modules/monaco-editor/esm/vs/editor/editor.api.d.ts"]
     }
   },

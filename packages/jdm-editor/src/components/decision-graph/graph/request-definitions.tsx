@@ -1,4 +1,4 @@
-import { DeleteOutlined, DownOutlined, PlusCircleOutlined, PlusOutlined, RightOutlined } from '@/icons';
+import { DeleteOutlined, DownOutlined, PlusCircleOutlined, PlusOutlined, RightOutlined } from '#icons';
 import React from 'react';
 
 import type { RequestDefinition, RequestDefinitionType } from '../../../helpers/request-schema';

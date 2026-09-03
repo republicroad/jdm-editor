@@ -1,4 +1,4 @@
-import { DragOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@/icons';
+import { DragOutlined, MinusSquareOutlined, PlusSquareOutlined } from '#icons';
 import React from 'react';
 import { match } from 'ts-pattern';
 

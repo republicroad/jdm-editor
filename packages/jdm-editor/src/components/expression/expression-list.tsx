@@ -1,4 +1,4 @@
-import { PlusCircleOutlined } from '@/icons';
+import { PlusCircleOutlined } from '#icons';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';

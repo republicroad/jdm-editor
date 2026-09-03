@@ -1,6 +1,6 @@
-import { Button as UiButton } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { Button as UiButton } from '#components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '#components/ui/dialog';
+import { cn } from '#lib/utils';
 import * as React from 'react';
 
 export const Modal: React.FC<{

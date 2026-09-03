@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '#components/ui/button';
+import { cn } from '#lib/utils';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import * as React from 'react';
 

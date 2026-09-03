@@ -1,4 +1,4 @@
-import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '@/icons';
+import { CloseOutlined, DeploymentUnitOutlined, UnorderedListOutlined } from '#icons';
 import clsx from 'clsx';
 import React, { useMemo } from 'react';
 

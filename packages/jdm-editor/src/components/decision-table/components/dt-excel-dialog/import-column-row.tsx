@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined } from '@/icons';
+import { DeleteOutlined, EditOutlined, HolderOutlined, LeftOutlined } from '#icons';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import React from 'react';
 

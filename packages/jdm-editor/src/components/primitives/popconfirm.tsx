@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '#components/ui/alert-dialog';
 import * as React from 'react';
 
 export const Popconfirm: React.FC<

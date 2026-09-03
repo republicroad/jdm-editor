@@ -1,4 +1,4 @@
-import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '@/icons';
+import { CompressOutlined, LeftOutlined, RightOutlined, WarningOutlined } from '#icons';
 import type { Connection, Edge, Node, ProOptions, ReactFlowInstance, Viewport } from '@xyflow/react';
 import {
   Background,

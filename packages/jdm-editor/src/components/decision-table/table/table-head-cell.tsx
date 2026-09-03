@@ -1,4 +1,4 @@
-import { PlusOutlined, SwapOutlined } from '@/icons';
+import { PlusOutlined, SwapOutlined } from '#icons';
 import clsx from 'clsx';
 import React from 'react';
 

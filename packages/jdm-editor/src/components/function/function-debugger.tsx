@@ -1,4 +1,4 @@
-import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '@/icons';
+import { ExportOutlined, FormatPainterOutlined, PlusOutlined } from '#icons';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';

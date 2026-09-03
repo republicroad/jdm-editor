@@ -4,8 +4,8 @@ import {
   Select as SelectPrimitiveRoot,
   SelectTrigger as SelectPrimitiveTrigger,
   SelectValue as SelectPrimitiveValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+} from '#components/ui/select';
+import { cn } from '#lib/utils';
 import * as React from 'react';
 
 import { borderlessInputClass } from './shared';

@@ -1,5 +1,5 @@
-import { Input as UiInput } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Input as UiInput } from '#components/ui/input';
+import { cn } from '#lib/utils';
 import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link InputProps} instead. */

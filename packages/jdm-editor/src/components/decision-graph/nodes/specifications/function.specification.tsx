@@ -1,4 +1,4 @@
-import { WarningFilled } from '@/icons';
+import { WarningFilled } from '#icons';
 import _ from 'lodash';
 import React from 'react';
 import { P, match } from 'ts-pattern';

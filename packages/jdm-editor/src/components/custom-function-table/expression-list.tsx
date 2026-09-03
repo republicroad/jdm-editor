@@ -1,4 +1,4 @@
-import { PlusCircleOutlined } from '@/icons';
+import { PlusCircleOutlined } from '#icons';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import clsx from 'clsx';

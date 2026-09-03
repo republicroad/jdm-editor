@@ -1,6 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
-import { fileURLToPath } from 'node:url';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
@@ -20,10 +19,8 @@ const config: StorybookConfig = {
     config.plugins = config.plugins.filter((p) => !(p as { name?: string }).name?.includes('dts'));
     config.plugins.push(tailwindcss());
     config.resolve ??= {};
-    config.resolve.alias = {
-      ...(config.resolve.alias && !Array.isArray(config.resolve.alias) ? config.resolve.alias : {}),
-      '@': fileURLToPath(new URL('../src', import.meta.url)),
-    };
+    // `#` subpath imports resolve natively via package.json imports (vite 5.1+);
+    // no `@` alias — the kernel migrated to `#` (scheme D).
     config.optimizeDeps ??= {};
     config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude ?? []), '@gorules/zen-engine-wasm'];
     // GitHub Pages serves the static build from a project sub-path — asset

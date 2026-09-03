@@ -5,8 +5,8 @@ import {
   ImportOutlined,
   PlayCircleOutlined,
   PlusOutlined,
-} from '@/icons';
-import InformationIcon from '@/reui/icons/animated/outline/information';
+} from '#icons';
+import InformationIcon from '#reui/icons/animated/outline/information';
 import type { DragDropManager } from 'dnd-core';
 import type { editor } from 'monaco-editor';
 import React, { useMemo, useRef, useState } from 'react';

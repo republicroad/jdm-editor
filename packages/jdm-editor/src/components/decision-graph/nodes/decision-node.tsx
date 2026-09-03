@@ -1,4 +1,4 @@
-import { CloseOutlined, MoreOutlined } from '@/icons';
+import { CloseOutlined, MoreOutlined } from '#icons';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { match } from 'ts-pattern';

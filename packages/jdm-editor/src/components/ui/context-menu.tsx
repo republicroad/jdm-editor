@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '#lib/utils';
 import { ContextMenu as ContextMenuPrimitive } from 'radix-ui';
 import * as React from 'react';
 

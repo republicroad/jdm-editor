@@ -7,6 +7,12 @@
   "license": "MIT",
   "keywords": [],
   "type": "module",
+  "imports": {
+    "#icons": "./src/icons.tsx",
+    "#components/ui/*": "./src/components/ui/*.tsx",
+    "#lib/*": "./src/lib/*.ts",
+    "#reui/icons/*": "./src/reui/icons/*.tsx"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

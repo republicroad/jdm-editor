@@ -1,4 +1,4 @@
-import { CloseOutlined, SearchOutlined } from '@/icons';
+import { CloseOutlined, SearchOutlined } from '#icons';
 import clsx from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { match } from 'ts-pattern';

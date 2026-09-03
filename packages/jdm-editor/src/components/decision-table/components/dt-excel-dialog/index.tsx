@@ -1,4 +1,4 @@
-import { LeftOutlined, PlusOutlined } from '@/icons';
+import { LeftOutlined, PlusOutlined } from '#icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';

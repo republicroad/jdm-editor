@@ -1,4 +1,4 @@
-import { BookOutlined, DeleteOutlined } from '@/icons';
+import { BookOutlined, DeleteOutlined } from '#icons';
 import { produce } from 'immer';
 import _ from 'lodash';
 import { ArrowRightToLineIcon } from 'lucide-react';

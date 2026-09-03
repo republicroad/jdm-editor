@@ -7,7 +7,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+} from '#components/ui/context-menu';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '#components/ui/dropdown-menu';
 import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link MenuItemType} instead. */

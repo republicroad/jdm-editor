@@ -1,4 +1,4 @@
-import { CheckOutlined, CloseOutlined } from '@/icons';
+import { CheckOutlined, CloseOutlined } from '#icons';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Button, Input, Space, Tooltip } from '../../primitives';

@@ -1,5 +1,5 @@
-import { FormatPainterOutlined, ImportOutlined } from '@/icons';
-import InformationIcon from '@/reui/icons/animated/outline/information';
+import { FormatPainterOutlined, ImportOutlined } from '#icons';
+import InformationIcon from '#reui/icons/animated/outline/information';
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { type editor } from 'monaco-editor';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

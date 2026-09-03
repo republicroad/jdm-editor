@@ -7,8 +7,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { cn } from '@/lib/utils';
+} from '#components/ui/alert-dialog';
+import { cn } from '#lib/utils';
 import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link ConfirmOptions} instead. */

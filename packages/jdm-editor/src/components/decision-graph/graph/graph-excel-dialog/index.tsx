@@ -1,5 +1,5 @@
-import { PlusOutlined, SwapOutlined } from '@/icons';
-import InformationIcon from '@/reui/icons/animated/outline/information';
+import { PlusOutlined, SwapOutlined } from '#icons';
+import InformationIcon from '#reui/icons/animated/outline/information';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 

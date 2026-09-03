@@ -1,4 +1,4 @@
-import { DownOutlined } from '@/icons';
+import { DownOutlined } from '#icons';
 import { type VariableType } from '@gorules/zen-engine-wasm';
 import type { XYPosition } from '@xyflow/react';
 import React, { useState } from 'react';

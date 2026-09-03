@@ -1,4 +1,4 @@
-import { CloudDownloadOutlined, CloudUploadOutlined } from '@/icons';
+import { CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 

@@ -2,7 +2,7 @@ import {
   Popover as UiPopover,
   PopoverContent as UiPopoverContent,
   PopoverTrigger as UiPopoverTrigger,
-} from '@/components/ui/popover';
+} from '#components/ui/popover';
 import * as React from 'react';
 
 /** @deprecated antd-migration compat alias — use {@link PopoverProps} instead. */

@@ -1,6 +1,6 @@
-import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined } from '@/icons';
-import InformationIcon from '@/reui/icons/animated/outline/information';
-import LinkIcon from '@/reui/icons/animated/outline/link';
+import { CopyOutlined, FormatPainterOutlined, PlayCircleOutlined } from '#icons';
+import InformationIcon from '#reui/icons/animated/outline/information';
+import LinkIcon from '#reui/icons/animated/outline/link';
 import React from 'react';
 
 import type { TranslationKey } from '../../../theming/i18n';
