@@ -413,3 +413,115 @@ introduced (see also Appendix A of `shadcn-theming-roadmap.zh-CN.md`):
 | --- | --- | --- |
 | Other portaled primitives relying on implicit border-box | `ui/dialog.tsx`, `ui/alert-dialog.tsx`, `ui/popover.tsx`, `ui/select.tsx`, `ui/tooltip.tsx` | open — batch under roadmap §P1/P3 |
 | Portal targeting scope (multi-island theming) | roadmap §P3 | planned |
+
+## 6. consumer-smoke host build fails: code-split chunk deleted by the cleanup script
+
+**Date:** 2026-08 · **Fix location:** `scripts/clean-dist.mjs` · Not registered as GRL-STYLE-HACK (build issue)
+
+### Symptom
+
+`pnpm test:consumer` — Vite building the host app — died with a Rolldown
+`UNRESOLVED_IMPORT`: `Could not resolve './index-DNumq_39.js'`, referencing a
+dynamic-import chunk that `dist/index.js` still points at.
+
+### Investigation
+
+1. Re-ran consumer-smoke with its `--keep` flag and reproduced `vite build`
+   directly inside the scratch host project.
+2. Rolldown's error located the dynamic import at `dist/index.js:13253`.
+3. `packages/jdm-editor/dist/` held exactly 8 files — no chunks at all.
+
+### Root cause
+
+`scripts/clean-dist.mjs` cleaned `dist/` with a **hard-coded 9-file whitelist**.
+Vite lib mode code-splits the `React.lazy` story wrapper and emits a hashed
+pointed chunk (`index-DNumq_39.js`); the whitelist deleted it while
+`dist/index.js` kept referencing it, so the consumer host failed at build time
+with UNRESOLVED_IMPORT.
+
+### Fix
+
+`clean-dist.mjs` now cleans by **pattern match**: it keeps everything matching
+the known artifact set (`.js`/`.css`/`.map` and vite-plugin-dts output) and
+removes only non-artifact `.d.ts` files. Hashed pointed chunks survive.
+
+### Verification
+
+- `pnpm test:consumer` — React 18 + React 19 hosts PASS
+- `pnpm --filter @republicroad/jdm-editor build` — dist keeps the chunk files
+- All other gates green
+
+### Lessons / checklist
+
+- **Never clean build output with a hard-coded file whitelist.** Bundlers
+  (Vite/Rollup) may code-split (React.lazy, dynamic import) and emit hashed
+  chunks; clean by artifact pattern instead.
+- **Anything reachable via `import()` must be part of the release surface.**
+- **`pnpm size` only checks listed files** — it cannot detect a missing chunk;
+  consumer-smoke is the guard that covers this.
+
+## 7. Consumer host build fails: `Invalid qualified rule` from lightningcss on dist/style.css
+
+**Date:** 2026-09 · **Fix location:** `src/styles/custom-function.css` · Not a GRL-STYLE-HACK (build/tooling issue)
+
+### Symptom
+
+`pnpm test:consumer` (and CI Validate's consumer-smoke step) failed while
+building the HOST app — the library's own `pnpm build` passed. Vite 8
+(rolldown + lightningcss) reported:
+
+```
+[plugin vite:css-post]
+SyntaxError: [lightningcss minify] Invalid qualified rule
+...op:50%;right:3px;...}--inline__resultOverlay:is(.expression-list .expressio...
+```
+
+### Investigation
+
+1. The failure surfaced only in the **host** build, during `vite:css-post`
+   minification of the library's `dist/style.css` — the library build itself
+   was green, so the usual library gates never saw it.
+2. Inspected `dist/style.css` around the offset: invalid selectors like
+   `__value:is(.expression-list .expression-list-item)`,
+   `--inline__resultOverlay:is(...)` — bare `__value` / `__resultOverlay`
+   fragments emitted as **element names**.
+3. Traced them to the freshly ported `styles/custom-function.css`, which
+   preserved Sass compound suffixes (`&__value`, `&__resultOverlay--inline`)
+   inside a plain-CSS `@layer components` block.
+
+### Root cause
+
+**Sass nesting is not plain-CSS nesting.** In SCSS, `&__value` concatenates
+into `.expression-list-item__value`. In plain CSS nesting (what lightningcss
+implements), `&__value` parses as the parent reference followed by an
+**element selector** named `__value` — producing unmatchable, invalid
+qualified rules once flattened. The corrupted selectors then failed the
+host's lightningcss minifier.
+
+### Fix
+
+Rewrote `custom-function.css` with **fully explicit class names** and
+descendant-only nesting (`.expression-list-item__value { ... }` instead of
+`&__value { ... }`); also deduplicated a `resultOverlayTooltip` rule that the
+port had emitted twice.
+
+### Verification
+
+- `grep` on rebuilt `dist/style.css`: orphan `__value:is` gone;
+  `expression-list-item__value .cm-content` present.
+- `pnpm test:consumer` — React 18 + React 19 hosts PASS.
+- Gates: 321 unit tests, eslint, compiler lint, style-debt 12/18, bundle
+  budgets green.
+
+### Lessons / checklist
+
+- **Never carry Sass `&__suffix` compound selectors into plain CSS.** When
+  porting SCSS to a CSS-nesting stylesheet, write every BEM compound name out
+  in full; reserve `&` for pseudo-classes/elements and true descendant
+  composition.
+- **The library build is not the CSS gate — the host minifier is.** A style
+  sheet can compile cleanly in the library pipeline and still be rejected by
+  the host's lightningcss. consumer-smoke (which minifies through the host
+  toolchain) is the detection point; keep it in CI.
+- **Fast triage:** `grep '__\|__:is' dist/style.css` (or search for selectors
+  starting with `_`/`-`) catches this class of corruption before shipping.

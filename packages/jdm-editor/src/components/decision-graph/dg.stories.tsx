@@ -2,7 +2,6 @@ import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, Right
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import json5 from 'json5';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { P, match } from 'ts-pattern';
 
 import type { DictionaryMap } from '../../theme';
 import type { JdmUiMode } from '../decision-table/context/dt-store.context';
@@ -315,44 +314,23 @@ export const Diff: Story = {
   } as any,
 };
 
-const safeParse = (val?: string) => {
-  try {
-    return JSON.parse(val ?? '');
-  } catch {
-    return val;
-  }
+const buildOfflineSimulation = (graph: DecisionGraphType, context: unknown): Simulation => {
+  const trace: Record<string, any> = {};
+  (graph?.nodes ?? []).forEach((node, index) => {
+    trace[node.id] = {
+      id: node.id,
+      name: node.name,
+      type: node.type,
+      order: index,
+      performance: '—',
+      input: context ?? null,
+      output: null,
+      traceData: null,
+    };
+  });
+
+  return { result: { performance: 'offline', result: {}, snapshot: graph, trace } };
 };
-
-const mapSimulateError = (graph: DecisionGraphType, error: unknown) =>
-  match(error)
-    .with(
-      {
-        data: {
-          type: P.optional(P.string),
-          source: P.optional(P.string),
-          nodeId: P.optional(P.string),
-          trace: P.optional(P._),
-        },
-      },
-      ({ data }) => {
-        const error = {
-          title: data.type,
-          message: safeParse(data.source),
-          data: { nodeId: data.nodeId },
-        };
-
-        return {
-          error,
-          result: {
-            trace: data.trace as any,
-            result: { error },
-            performance: '',
-            snapshot: graph,
-          },
-        } satisfies Simulation;
-      },
-    )
-    .otherwise(() => undefined);
 
 const DecisionGraphWithSimulator: React.FC = () => {
   const [value, setValue] = useState<any>(defaultGraph);
@@ -385,8 +363,11 @@ const DecisionGraphWithSimulator: React.FC = () => {
 
                 const responseJson = await response.json();
                 setSimulate({ result: { ...responseJson, snapshot: graph } });
-              } catch (err) {
-                setSimulate(mapSimulateError(graph, err));
+              } catch {
+                // Offline/demo fallback: no reachable engine — derive a minimal
+                // trace from the graph so the simulator surface stays demonstrable.
+                console.warn('[stories] remote simulate unavailable, using offline demo trace');
+                setSimulate(buildOfflineSimulation(graph, context));
               }
             }}
             onClear={() => {}}

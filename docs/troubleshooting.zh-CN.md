@@ -405,3 +405,56 @@ expression 列(CodeMirror)不受影响。
 - **库的 dist 必须自包含**：任何被 `import()` 引用的文件都必须出现在发布产物中。
 - **`pnpm size` 只检查入口文件大小**，不会检测缺失的 chunk——需用 consumer-smoke
   端到端验证。
+
+## 7. 宿主构建失败：lightningcss 报 `Invalid qualified rule`(dist/style.css)
+
+**日期:** 2026-09 · **修复位置:** `src/styles/custom-function.css` · 非 GRL-STYLE-HACK(构建/工具链问题)
+
+### 症状
+
+`pnpm test:consumer`(以及 CI Validate 的 consumer-smoke 步骤)在构建**宿主应用**时失败——
+库自身的 `pnpm build` 通过。Vite 8(rolldown + lightningcss)报错:
+
+```
+[plugin vite:css-post]
+SyntaxError: [lightningcss minify] Invalid qualified rule
+...op:50%;right:3px;...}--inline__resultOverlay:is(.expression-list .expressio...
+```
+
+### 排查
+
+1. 失败只出现在**宿主**构建、对库产物 `dist/style.css` 做 `vite:css-post` 压缩时——
+   库构建本身全绿,常规库侧门禁完全看不到。
+2. 检查 `dist/style.css` 对应偏移:出现非法选择器
+   `__value:is(.expression-list .expression-list-item)`、`--inline__resultOverlay:is(...)`
+   ——裸的 `__value` / `__resultOverlay` 片段被当成了**元素名**。
+3. 溯源到刚移植的 `styles/custom-function.css`:在纯 CSS 的
+   `@layer components` 块里保留了 Sass 复合后缀写法(`&__value`、`&__resultOverlay--inline`)。
+
+### 根因
+
+**Sass 嵌套 ≠ 纯 CSS 嵌套。** SCSS 中 `&__value` 拼接为 `.expression-list-item__value`;
+而在 lightningcss 实现的纯 CSS 嵌套里,`&__value` 解析为父引用 + 一个名为 `__value` 的
+**元素选择器**——展平后产生无法匹配的非法规则,再被宿主的 lightningcss 压缩器拒绝。
+
+### 修复
+
+将 `custom-function.css` 重写为**全显式类名 + 仅后代嵌套**
+(`.expression-list-item__value { ... }` 取代 `&__value { ... }`);
+同时去掉了移植时重复生成的一份 `resultOverlayTooltip` 规则。
+
+### 验证
+
+- 重建后 `grep` `dist/style.css`:孤儿 `__value:is` 消失,
+  `expression-list-item__value .cm-content` 存在。
+- `pnpm test:consumer`——React 18 + React 19 双宿主 PASS。
+- 门禁:321 单测、eslint、compiler lint、style-debt 12/18、体积预算全绿。
+
+### 教训 / 检查清单
+
+- **Sass 的 `&__suffix` 复合选择器绝不能带进纯 CSS。** SCSS 迁移到 CSS 嵌套样式表时,
+  所有 BEM 复合名必须写全;`&` 只用于伪类/伪元素与真正的后代组合。
+- **库构建不是 CSS 的关卡——宿主压缩器才是。** 样式表可能在库管线里编译干净,
+  却被宿主的 lightningcss 拒绝。consumer-smoke(经宿主工具链压缩)才是检测点,必须留在 CI。
+- **快速分诊:** 对 `dist/style.css` 执行 `grep '__\|__:is'`(或搜索以 `_`/`-` 开头的选择器)
+  可在发版前捕获这类损坏。
