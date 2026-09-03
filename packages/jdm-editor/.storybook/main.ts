@@ -14,6 +14,10 @@ const config: StorybookConfig = {
   },
   async viteFinal(config) {
     config.plugins ??= [];
+    // Storybook does not need declaration bundling; the project's
+    // vite-plugin-dts instance depends on an api-extractor temp config whose
+    // lifecycle is build-local and races in CI.
+    config.plugins = config.plugins.filter((p) => !(p as { name?: string }).name?.includes('dts'));
     config.plugins.push(tailwindcss());
     config.resolve ??= {};
     config.resolve.alias = {
