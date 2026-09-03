@@ -55,6 +55,8 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
 |---|---|
 | 全量本地门禁 | `pnpm verify` |
 | 样式债务预算 | `pnpm lint:debt` |
+| Playwright 探针(UI 冒烟) | `pnpm test:probes` |
+| npm 安装冒烟 | `pnpm test:npm-smoke` |
 | Storybook 交互套件 | `pnpm --filter @republicroad/jdm-editor test:storybook` |
 | 双宿主冒烟 (React 18+19) | `pnpm test:consumer` |
 | Bundle 尺寸检查 | `pnpm size` |
