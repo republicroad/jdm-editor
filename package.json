@@ -20,7 +20,8 @@
     "format:fix": "run-s lint:fix prettier:fix",
     "size": "node scripts/bundle-size.mjs",
     "test:consumer": "node scripts/consumer-smoke.mjs",
-    "test:npm-smoke": "node scripts/npm-smoke.mjs"
+    "test:npm-smoke": "node scripts/npm-smoke.mjs",
+    "test:probes": "node scripts/run-probes.mjs"
   },
   "engines": {
     "pnpm": "~10"
