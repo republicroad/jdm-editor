@@ -48,9 +48,13 @@
 
 ### 3.2 行拖拽的键盘支持(custom function 表格)
 
-- 拖拽排序仅支持指针(dnd-kit `PointerSensor`)。加 `KeyboardSensor`
-  需要表达式列表的 roving tabindex 与可访问的"拾起/放下"交互;待该列表
-  进入一等界面后再做。
+- **状态:部分完成。** KeyboardSensor 已接线(Space/Enter 拾起、Esc 取消、
+  放下流程完整),由 `cf-drag-keyboard` 探针守护(6 项断言);并已加入
+  `MeasuringStrategy.Always` + `closestCorners` 保证 droppable 测量精度。
+- **待办:** 箭头位移的碰撞调优——键盘放下尚不能稳定落在目标行(探针只
+  断言生命周期,不断言落点顺序)。大概率需要 `@dnd-kit/sortable` +
+  `sortableKeyboardCoordinates` 的可排序布局,而非裸 core droppable;待该
+  列表成为一等界面后实施。
 
 ### 3.3 模拟器 story 确定性
 
