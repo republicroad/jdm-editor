@@ -135,11 +135,20 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
           {sources.map((source, index) => (
             <div
               key={source.id}
+              role='button'
+              tabIndex={disabled ? -1 : 0}
+              aria-pressed={index === activeSourceIndex}
               className={`flex items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
                 index === activeSourceIndex ? 'border-primary/40 bg-primary/10' : 'border-transparent hover:bg-muted/60'
               }`}
               onClick={() => {
                 onSourceSelect(index);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSourceSelect(index);
+                }
               }}
             >
               <div
