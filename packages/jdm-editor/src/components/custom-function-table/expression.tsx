@@ -1,4 +1,4 @@
-import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect } from 'react';
@@ -38,7 +38,12 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
   ...props
 }) => {
   const expressionStoreRaw = useExpressionStoreRaw();
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    // Keyboard reorder: focus the row handle, Space/Enter to pick up, arrows to
+    // move, Space/Enter to drop, Escape to cancel (dnd-kit defaults).
+    useSensor(KeyboardSensor),
+  );
 
   return (
     <DndContext

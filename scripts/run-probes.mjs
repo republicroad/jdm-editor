@@ -59,6 +59,7 @@ const allProbes = [
   ['request-node', 'request-node.mjs'],
   ['dt-highlight', 'dt-highlight.mjs'],
   ['a11y', 'icons-a11y.mjs'],
+  ['cf-drag-keyboard', 'cf-drag-keyboard.mjs'],
 ];
 
 const selected = filterArgs.length ? allProbes.filter(([name]) => filterArgs.some((f) => name.includes(f))) : allProbes;
