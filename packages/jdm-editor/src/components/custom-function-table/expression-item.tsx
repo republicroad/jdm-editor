@@ -1,4 +1,4 @@
-import { useDndContext, useDraggable, useDroppable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
 import type { VariableType } from '@gorules/zen-engine-wasm';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
@@ -14,7 +14,6 @@ import {
   normalizeCustomFunctions,
   normalizeFunctionReturns,
 } from '../../helpers/custom-function-schema';
-import { getDropDirection } from '../../helpers/dnd';
 import { getTrace } from '../../helpers/trace';
 import { parseOperatorExprInput, smartSplit, toOperatorExprArray, toOperatorExprDisplay } from '../../helpers/utility';
 import { useT } from '../../theming/i18n';
@@ -310,33 +309,25 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
     removeRow(index);
   };
 
-  const dndContext = useDndContext();
   const {
     attributes: dragAttributes,
     listeners: dragListeners,
     setNodeRef: setDragNodeRef,
     setActivatorNodeRef,
     isDragging,
-  } = useDraggable({
+    isSorting: _isSorting,
+    over,
+  } = useSortable({
     id: expression.id,
     data: { index },
     disabled: !(permission === 'edit:full' && !disabled),
   });
 
-  const { setNodeRef: setDropNodeRef, isOver: isDropping } = useDroppable({
-    id: `expression-row-drop-${expression.id}`,
-    data: { index },
-  });
+  const isDropping = Boolean(over) && over?.id !== expression.id;
+  const overIndex = over?.data.current?.index;
+  const direction = isDropping && typeof overIndex === 'number' && overIndex > index ? 'down' : 'up';
 
-  const direction = isDropping
-    ? getDropDirection(dndContext.active?.rect.current.translated, expressionRef.current?.getBoundingClientRect())
-    : 'up';
-
-  const setExpressionRefs = composeRefs(
-    expressionRef,
-    setDropNodeRef as React.Ref<HTMLDivElement>,
-    setDragNodeRef as React.Ref<HTMLDivElement>,
-  );
+  const setExpressionRefs = composeRefs(expressionRef, setDragNodeRef as React.Ref<HTMLDivElement>);
 
   const functionOptions = availableFunctions.map((func: any) => ({
     value: func.name,

@@ -7,6 +7,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect } from 'react';
@@ -49,8 +50,9 @@ export const CustomFunction: React.FC<CustomFunctionProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     // Keyboard reorder: focus the row handle, Space/Enter to pick up, arrows to
-    // move, Space/Enter to drop, Escape to cancel (dnd-kit defaults).
-    useSensor(KeyboardSensor),
+    // move, Space/Enter to drop, Escape to cancel; the sortable coordinate
+    // getter snaps arrow-moves to the neighbouring row.
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   return (
