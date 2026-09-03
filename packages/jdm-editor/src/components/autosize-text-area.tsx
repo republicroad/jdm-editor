@@ -12,10 +12,12 @@ export type AutosizeTextAreaProps = {
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
+  /** Stable hook for tests — emitted as data-testid on the editable node. */
+  testId?: string;
 } & Omit<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>, 'onChange' | 'placeholder'>;
 
 export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAreaProps>(
-  ({ maxRows, className, value, onChange, placeholder, disabled, readOnly, style, noStyle, ...props }, ref) => {
+  ({ maxRows, className, value, onChange, placeholder, disabled, readOnly, style, noStyle, testId, ...props }, ref) => {
     const divRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -42,6 +44,7 @@ export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAre
         onInput={handleInput}
         data-placeholder={placeholder}
         aria-disabled={disabled}
+        data-testid={testId}
         style={{ '--textarea-max-rows': maxRows, ...style } as React.CSSProperties}
         {...props}
       />

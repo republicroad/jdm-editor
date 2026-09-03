@@ -366,6 +366,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
           <DiffAutosizeTextArea
             noStyle
             placeholder={t('cf.key')}
+            testId={`cf-key-${expression.id}`}
             maxRows={10}
             readOnly={permission !== 'edit:full' || disabled}
             displayDiff={expression?._diff?.fields?.key?.status === 'modified'}

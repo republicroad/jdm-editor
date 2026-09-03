@@ -16,8 +16,7 @@ const entry = (id: string, key: string, value = '1'): ExpressionEntry => ({
   type: undefined,
 });
 
-const keyCellText = (index: number) =>
-  document.querySelectorAll('.expression-list-item__key [contenteditable="true"]')[index]?.textContent ?? null;
+const keyByFixtureId = (id: string) => document.querySelector(`[data-testid="cf-key-${id}"]`)?.textContent ?? null;
 
 describe('CustomFunction (component)', () => {
   beforeEach(() => {
@@ -33,8 +32,8 @@ describe('CustomFunction (component)', () => {
 
   it('renders provided rows with their keys', async () => {
     render(<CustomFunction defaultValue={[entry('e1', 'weight'), entry('e2', 'country')]} />);
-    await vi.waitFor(() => expect(keyCellText(1)).toBe('country'));
-    expect(keyCellText(0)).toBe('weight');
+    await vi.waitFor(() => expect(keyByFixtureId('e2')).toBe('country'));
+    expect(keyByFixtureId('e1')).toBe('weight');
   });
 
   it('add-row dispatches a new entry through onChange', async () => {
@@ -49,7 +48,7 @@ describe('CustomFunction (component)', () => {
 
   it('legacy ;; values load without crashing and render the value editor', async () => {
     render(<CustomFunction defaultValue={[entry('e1', 'mode', 'a;;b')]} />);
-    await vi.waitFor(() => expect(keyCellText(0)).toBe('mode'));
+    await vi.waitFor(() => expect(keyByFixtureId('e1')).toBe('mode'));
     // migrated array value renders through the value cell editor
     await vi.waitFor(() => {
       expect(document.querySelector('.expression-list-item__value')).not.toBeNull();
