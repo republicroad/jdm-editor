@@ -8,6 +8,8 @@ end-to-end with shadcn/ReUI + Tailwind.
 > Fork of [`@gorules/jdm-editor`](https://github.com/gorules/jdm-editor) with
 > significant divergence (ReactFlow 12, shadcn/ReUI stack, seed-derived
 > theming, i18n, pooled editors). Will not track upstream merges.
+>
+> **Live storybook:** https://republicroad.github.io/jdm-editor/
 
 ## Installation
 
