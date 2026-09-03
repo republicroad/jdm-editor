@@ -53,3 +53,69 @@ migration checklist.
 All `Antd*` exported types (e.g. `AntdButtonProps`) carry `@deprecated` JSDoc
 pointing to neutral names (e.g. `ButtonProps`). They still work but will be
 removed in a future major.
+
+## What's New in 0.2.x
+
+### New public exports
+
+```ts
+import {
+  // Request (input) node tab surface
+  TabRequest, type TabRequestProps,
+  // request-schema helpers (definitions, example sources, normalization)
+  getRequestDefinitions, getRequestExampleSources, getRequestSchemaSourceValue,
+  stringifyRequestSchemaValue, resolveRequestSchemaValue,
+  buildRequestSchemaFromDefinitions, buildRequestExampleTemplateFromDefinitions,
+  updateRequestSchemaExamples, normalizeRequestDefinitionOrders,
+  normalizeRequestFieldKey, normalizeRequestJsonKeys,
+  type RequestDefinition, type RequestDefinitionType, type RequestExampleSource,
+  // simulator auto-sync
+  useSimulatorAutoSync, AUTO_SYNC_DEBOUNCE_MS, type UseSimulatorAutoSyncParams,
+  // custom function surface
+  CustomFunctionTable, type TabCustomFunctionProps,
+  // json schema helper
+  jsonSchemaToVariableType,
+} from '@republicroad/jdm-editor';
+```
+
+### New `DecisionGraph` props
+
+```tsx
+<DecisionGraph
+  value={graph}
+  // resolve the current user for user-aware custom node tabs
+  userResolver={async () => ({ user: currentUser.id })}
+  // function signatures available to custom nodes' "function" expression mode
+  customFunctions={myFunctionSignatures}
+/>
+```
+
+- `userResolver`: `() => Promise<{ user?: string } | null>` — resolved once per
+  mount; failures fall back to `''` (warned in console).
+- `customFunctions`: signature list consumed by `CustomFunctionTable`'s
+  function mode and forwarded to custom node `renderTab` calls.
+
+### Custom node authoring
+
+`createJdmNode` specifications may now provide `renderTab` receiving
+`{ id, user?, customFunctions? }`, and custom nodes carrying
+`content.kind` route their tab through the matching `customNodes` spec.
+
+### Request (input) node tab
+
+The input node opens a three-view tab: **Definitions / Data / Schema**
+(`TabRequest`). Node content now carries `{ schema, expressions[], inputField,
+outputPath }`; graphs loaded with legacy `;;`-joined values keep working.
+
+### i18n increments
+
+New namespaces since 0.1: `request.*`, `simulator.*`, `cf.*`, plus the
+existing `dt.*`/`dg.*`/`expression.*`/`func.*`. See
+[`i18n.md`](./i18n.md) for the fallback chain and `theming/messages/en.ts`
+for the full catalog.
+
+### Upcoming in 0.3.0 (heads-up)
+
+- `monaco-editor` moves to `peerDependencies` — hosts add it explicitly
+  (`npm i monaco-editor`), installs slim down by ~5 MB.
+- See [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) for the draft plan.
