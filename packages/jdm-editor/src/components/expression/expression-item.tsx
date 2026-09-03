@@ -26,7 +26,7 @@ export type ExpressionItemProps = {
 export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, index, variableType }) => {
   const [isFocused, setIsFocused] = useState(false);
   const t = useT();
-  const expressionRef = useRef<HTMLDivElement>(null);
+  const expressionRef = useRef<HTMLDivElement | null>(null);
   const { updateRow, removeRow, disabled, permission } = useExpressionStore(
     ({ updateRow, removeRow, disabled, permission }) => ({
       updateRow,
