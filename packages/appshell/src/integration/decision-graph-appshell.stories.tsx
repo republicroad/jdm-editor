@@ -1,4 +1,4 @@
-import { DecisionGraph } from '@republicroad/jdm-editor';
+import { DecisionGraph, type DecisionGraphType } from '@republicroad/jdm-editor';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState } from 'react';
 
