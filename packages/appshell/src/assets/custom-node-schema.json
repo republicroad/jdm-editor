@@ -1,0 +1,266 @@
+[
+  {
+    "type": "namespace",
+    "title": "crypto",
+    "name": "crypto",
+    "description": "",
+    "tools": [
+      {
+        "name": "crypto",
+        "title": "crypto",
+        "type": "function",
+        "description": "计算字符串摘要或 HMAC 签名，返回摘要字符串. algorithm 支持 md5/sha1/sha256/sha512(非法值回退 sha256)，secret 非空时启用 HMAC 模式，encoding 支持 hex/base64/base64url(非法值回退 hex)，upper 仅对 hex 生效(大写输出).",
+        "parameters": {
+          "properties": {
+            "input": { "type": "string", "title": "Input", "description": "待摘要内容" },
+            "algorithm": {
+              "type": "string",
+              "title": "Algorithm",
+              "description": "摘要算法(md5/sha1/sha256/sha512)，默认 sha256，非法值回退 sha256",
+              "default": "sha256"
+            },
+            "secret": {
+              "type": "string",
+              "title": "Secret",
+              "description": "HMAC 密钥，非空启用 HMAC 模式，留空则为普通摘要",
+              "default": ""
+            },
+            "encoding": {
+              "type": "string",
+              "title": "Encoding",
+              "description": "输出编码(hex/base64/base64url)，默认 hex，非法值回退 hex",
+              "default": "hex"
+            },
+            "upper": {
+              "type": "boolean",
+              "title": "Upper",
+              "description": "hex 输出转大写(仅 encoding=hex 时生效)，默认 false",
+              "default": false
+            }
+          },
+          "required": ["input"],
+          "title": "crypto",
+          "type": "object"
+        },
+        "returns": { "type": "string", "title": "crypto 函数返回", "properties": {} },
+        "namespace": "crypto",
+        "kind": "crypto"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "debug",
+    "name": "debug",
+    "description": "",
+    "tools": [
+      {
+        "name": "inout",
+        "title": "inout",
+        "type": "function",
+        "description": "Docstring for inout\n自定义函数测试, 返回值返回入参, 用于调试.",
+        "parameters": {
+          "properties": {
+            "b": { "description": "参数 b", "title": "B", "type": "integer" },
+            "a": { "anyOf": [{ "type": "string" }, { "type": "integer" }], "description": "参数 a", "title": "A" },
+            "c": { "description": "参数 c", "title": "C", "type": "null" }
+          },
+          "required": ["b", "a", "c"],
+          "title": "inout",
+          "type": "object"
+        },
+        "returns": { "type": "string", "title": "inout 函数返回", "properties": {} },
+        "namespace": "debug",
+        "kind": "debug"
+      },
+      {
+        "name": "func_without_args",
+        "title": "func_without_args",
+        "type": "function",
+        "description": "Docstring for func_without_args\n无参数函数, 用于自定义函数测试",
+        "parameters": { "properties": {}, "title": "func_without_args", "type": "object" },
+        "returns": { "type": "string", "title": "func_without_args 函数返回", "properties": {} },
+        "namespace": "debug",
+        "kind": "debug"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "debugui",
+    "name": "debugui",
+    "description": "",
+    "tools": [
+      {
+        "name": "current_date",
+        "title": "current_date",
+        "type": "function",
+        "description": "返回服务器当前日期(本地时区，YYYY-MM-DD 格式)，无参数.",
+        "parameters": { "properties": {}, "title": "current_date", "type": "object" },
+        "returns": { "type": "string", "title": "current_date 函数返回", "properties": {} },
+        "namespace": "debugui",
+        "kind": "debugui"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "json_path",
+    "name": "json_path",
+    "description": "",
+    "tools": [
+      {
+        "name": "json_path",
+        "title": "json_path",
+        "type": "function",
+        "description": "按 JSONPath 表达式从数据中提取值(标准语法，支持通配符/下标/过滤)，单个命中返回该值，多个命中返回数组；无命中或表达式非法时返回 default. input 为对象，字符串会先尝试 JSON 解析.",
+        "parameters": {
+          "properties": {
+            "input": { "type": "any", "title": "Input", "description": "待提取的数据对象(字符串将尝试 JSON 解析)" },
+            "path": { "type": "string", "title": "Path", "description": "JSONPath 表达式，如 $.cart.items[*].price" },
+            "default": {
+              "type": "any",
+              "title": "Default",
+              "description": "无命中或解析失败时的回退值，默认 null",
+              "default": null
+            }
+          },
+          "required": ["input", "path"],
+          "title": "json_path",
+          "type": "object"
+        },
+        "returns": { "type": "object", "title": "json_path 函数返回", "properties": {} },
+        "namespace": "json_path",
+        "kind": "json_path"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "template",
+    "name": "template",
+    "description": "",
+    "tools": [
+      {
+        "name": "template",
+        "title": "template",
+        "type": "function",
+        "description": "渲染模板字符串：${path} 形式插值 vars 对象(支持点路径与 [n] 数组下标)，缺失变量替换为空串；非字符串值按 String() 序列化.",
+        "parameters": {
+          "properties": {
+            "template": {
+              "type": "string",
+              "title": "Template",
+              "description": "模板字符串，如 \"您好 ${user.name}\""
+            },
+            "vars": {
+              "type": "object",
+              "title": "Vars",
+              "description": "插值变量键值对对象，默认空对象",
+              "default": {}
+            }
+          },
+          "required": ["template"],
+          "title": "template",
+          "type": "object"
+        },
+        "returns": { "type": "string", "title": "template 函数返回", "properties": {} },
+        "namespace": "template",
+        "kind": "template"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "http",
+    "name": "http",
+    "description": "",
+    "tools": [
+      {
+        "name": "http_request",
+        "title": "http_request",
+        "type": "function",
+        "description": "发起 HTTP 请求, 返回响应结果 { status, headers, body }. 支持 params 查询参数合并、timeout 单次超时(默认 10s, 上限 60s)、retry 重试(仅网络异常/超时/5xx/429, 指数退避)与 auth 认证({ type: \"basic\", username, password } 或 { type: \"bearer\", token }, headers 显式 Authorization 优先). 失败返回结构化错误 { status: 0, error }, 不抛出异常.",
+        "parameters": {
+          "properties": {
+            "url": { "type": "string", "title": "URL", "description": "请求地址" },
+            "method": {
+              "type": "string",
+              "title": "Method",
+              "description": "HTTP 方法(GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS)，默认 GET",
+              "default": "GET"
+            },
+            "headers": {
+              "type": "object",
+              "title": "Headers",
+              "description": "请求头键值对对象，默认无",
+              "default": null
+            },
+            "body": {
+              "type": "object",
+              "title": "Body",
+              "description": "请求体对象(自动 JSON 序列化并补充 content-type: application/json)，GET/HEAD 忽略，空对象视为无请求体",
+              "default": null
+            },
+            "params": {
+              "type": "object",
+              "title": "Params",
+              "description": "查询参数键值对对象，合并到 URL 查询串(URL 已有同名参数时覆盖)，默认无",
+              "default": null
+            },
+            "timeout": {
+              "type": "integer",
+              "title": "Timeout",
+              "description": "单次请求超时毫秒数(100–60000)，默认 10000",
+              "default": 10000
+            },
+            "retry": {
+              "type": "integer",
+              "title": "Retry",
+              "description": "失败重试次数(0–5)，仅网络异常/超时/5xx/429 触发，指数退避，默认 0",
+              "default": 0
+            },
+            "auth": {
+              "type": "object",
+              "title": "Auth",
+              "description": "认证配置。Basic: { type: 'basic', username, password }；Bearer: { type: 'bearer', token }。headers 显式 Authorization 优先，默认无",
+              "default": null
+            }
+          },
+          "required": ["url"],
+          "title": "http_request",
+          "type": "object"
+        },
+        "returns": { "type": "object", "title": "http_request 函数返回", "properties": {} },
+        "namespace": "http",
+        "kind": "http"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "roster",
+    "name": "roster",
+    "description": "",
+    "tools": [
+      {
+        "name": "roster",
+        "title": "roster",
+        "type": "function",
+        "description": "查询名单：在服务端指定名单中查询某个值是否存在，返回命中结果.",
+        "parameters": {
+          "properties": {
+            "roster": { "type": "string", "title": "名单", "description": "服务端名单名称(从名单下拉中动态选择)" },
+            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+          },
+          "required": ["roster", "value"],
+          "title": "roster",
+          "type": "object"
+        },
+        "returns": { "type": "object", "title": "roster 函数返回", "properties": {} },
+        "namespace": "roster",
+        "kind": "roster"
+      }
+    ]
+  }
+]

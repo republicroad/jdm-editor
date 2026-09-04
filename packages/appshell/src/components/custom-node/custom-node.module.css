@@ -1,0 +1,236 @@
+.nodeIcon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  color: inherit;
+}
+
+.nodeIcon svg {
+  width: 1em;
+  height: 1em;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.callPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.callPreview :global(.ant-typography) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.kind {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rowKey {
+  flex: none;
+  opacity: 0.6;
+}
+
+.rowValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.returns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--grl-color-border, rgba(0, 0, 0, 0.08));
+}
+
+.traceValue {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.tabSplit {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+}
+
+.tabList {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 232px;
+  min-height: 0;
+  border-right: 1px solid var(--grl-color-border, rgba(0, 0, 0, 0.08));
+}
+
+.listRows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.listRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.listRow:hover {
+  background-color: var(--grl-color-fill-tertiary, rgba(0, 0, 0, 0.04));
+}
+
+.listRowSelected {
+  box-shadow: inset 0 0 0 1px var(--grl-color-primary, rgba(22, 119, 255, 0.5));
+}
+
+.listRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.listRowActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rosterRowValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.listAdd {
+  flex: none;
+  padding: 8px;
+  border-top: 1px solid var(--grl-color-border, rgba(0, 0, 0, 0.08));
+}
+
+.tabDetail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.httpSplit {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+}
+
+.httpRequestPane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.httpResponsePane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+  width: 340px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  border-left: 1px solid var(--grl-color-border, rgba(0, 0, 0, 0.08));
+}
+
+.httpHeaderLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.httpKeyValueRow {
+  display: grid;
+  grid-template-columns: minmax(110px, 2fr) 3fr auto;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.httpKeyValueRow :global(.cm-editor) {
+  height: 100%;
+}
+
+.httpKeyValueRow > :global(.ant-btn) {
+  align-self: center;
+}
+
+.httpMono {
+  margin: 0;
+  padding: 8px;
+  max-height: 240px;
+  overflow: auto;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
