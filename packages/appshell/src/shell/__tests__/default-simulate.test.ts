@@ -1,47 +1,51 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { type Server, createServer } from 'node:http';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 const { createDefaultSimulate } = await import('../default-simulate');
 
 describe('createDefaultSimulate', () => {
-  let server: ReturnType<typeof Bun.serve>;
+  let server: Server;
   let baseUrl: string;
 
-  beforeAll(() => {
-    server = Bun.serve({
-      port: 0,
-      fetch: async (request) => {
-        const cors = {
-          'access-control-allow-origin': '*',
-          'access-control-allow-headers': 'content-type',
-          'access-control-allow-methods': 'POST, OPTIONS',
-        };
-        if (request.method === 'OPTIONS') {
-          return new Response(null, { status: 204, headers: cors });
+  beforeAll(async () => {
+    server = createServer(async (request, response) => {
+      const cors = {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': 'content-type',
+        'access-control-allow-methods': 'POST, OPTIONS',
+      };
+      if (request.method === 'OPTIONS') {
+        response.writeHead(204, cors);
+        response.end();
+        return;
+      }
+      const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+      if (url.pathname === '/api/simulate') {
+        if (url.searchParams.get('mode') === 'boom') {
+          response.writeHead(500, { ...cors, 'content-type': 'application/json' });
+          response.end(JSON.stringify({ source: 'engine exploded', trace: { nodes: [] } }));
+          return;
         }
-        const url = new URL(request.url);
-        if (url.pathname === '/api/simulate') {
-          if (url.searchParams.get('mode') === 'boom') {
-            return new Response(JSON.stringify({ source: 'engine exploded', trace: { nodes: [] } }), {
-              status: 500,
-              headers: { ...cors, 'content-type': 'application/json' },
-            });
-          }
-          const body = (await request.json()) as { content?: unknown; context?: unknown };
-          return new Response(JSON.stringify({ result: body.context ?? null, performance: '1ms' }), {
-            headers: { ...cors, 'content-type': 'application/json' },
-          });
-        }
-        return new Response('not found', { status: 404, headers: cors });
-      },
+        let body = '';
+        for await (const chunk of request) body += chunk;
+        const parsed = JSON.parse(body || '{}') as { context?: unknown };
+        response.writeHead(200, { ...cors, 'content-type': 'application/json' });
+        response.end(JSON.stringify({ result: parsed.context ?? null, performance: '1ms' }));
+        return;
+      }
+      response.writeHead(404, cors);
+      response.end('not found');
     });
-    baseUrl = `http://127.0.0.1:${server.port}`;
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address();
+    baseUrl = `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}`;
   });
 
   afterAll(() => {
-    server.stop(true);
+    server.close();
   });
 
-  test('成功路径：透传响应并以 graph 作为 snapshot', async () => {
+  test('成功路径透传响应体，graph 作为 snapshot', async () => {
     const runSimulate = createDefaultSimulate(`${baseUrl}/api/simulate`);
     const graph = { nodes: [{ id: 'in' }], edges: [] };
     const { simulation, errorMessage } = await runSimulate(graph as never, { age: 21 });
@@ -52,7 +56,7 @@ describe('createDefaultSimulate', () => {
     expect(simulation.error).toBeUndefined();
   });
 
-  test('失败路径：不抛出，返回错误信封与 errorMessage', async () => {
+  test('失败路径把异常信息放入 errorMessage', async () => {
     const runSimulate = createDefaultSimulate(`${baseUrl}/api/simulate?mode=boom`);
     const graph = { nodes: [], edges: [] };
     const { simulation, errorMessage } = await runSimulate(graph as never, {});
@@ -63,7 +67,7 @@ describe('createDefaultSimulate', () => {
     expect(simulation.error?.message).toBe('engine exploded');
   });
 
-  test('网络不可达时降级为错误信封(不抛出)', async () => {
+  test('网络不可达时表现为软错误（不抛出）', async () => {
     const runSimulate = createDefaultSimulate('http://127.0.0.1:1/unreachable');
     const { errorMessage, simulation } = await runSimulate({ nodes: [], edges: [] } as never, {});
 

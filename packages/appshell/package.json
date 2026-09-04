@@ -23,7 +23,8 @@
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test:npm-smoke": "node scripts/npm-smoke.mjs"
+    "test:npm-smoke": "node scripts/npm-smoke.mjs",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "@republicroad/jdm-editor": ">=0.3.0",
@@ -63,7 +64,8 @@
     "@types/react": "^18.3.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-dts": "^5.0.3"
+    "vite-plugin-dts": "^5.0.3",
+    "vitest": "^3.2.4"
   },
   "publishConfig": {
     "access": "public"

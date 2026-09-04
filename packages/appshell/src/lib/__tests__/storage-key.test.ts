@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 // bun test 无 DOM 全局（原 preload 随 zrule 内核的 setupBunDom 移除）——本套件自备最小 Storage 桩
 const store = new Map<string, string>();
