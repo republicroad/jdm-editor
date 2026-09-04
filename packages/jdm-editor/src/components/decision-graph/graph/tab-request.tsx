@@ -22,6 +22,7 @@ import { RequestSchemaEditor } from './request-schema-editor';
 import { useRequestDefinitionsEditing } from './use-request-definitions-editing';
 import { useRequestExamplesEditing } from './use-request-examples-editing';
 import { useRequestSchemaEditing } from './use-request-schema-editing';
+import { useRequestSessionDraftSerializer } from './request-session-draft';
 
 export type TabRequestProps = {
   id: string;
@@ -147,6 +148,26 @@ export const TabRequest: React.FC<TabRequestProps> = ({ id, type }) => {
     updateNodeSchema,
     definitionDrafts,
   });
+
+  // UI 会话草稿快照：捕获 700ms 防抖窗口内的在途编辑（schema/示例/描述/页签），
+  // 随 {graph, tabs} 快照入库——保存/重开零丢失
+  useRequestSessionDraftSerializer(
+    id,
+    {
+      activeTab,
+      schemaDraft,
+      activeSourceIndex,
+      activeExampleJsonDraft,
+      activeDescriptionDraft,
+    },
+    {
+      setActiveTab: (tab) => setActiveTab(tab as RequestTabKey),
+      setSchemaDraft: handleSchemaDraftChange,
+      setActiveExampleJsonDraft: handleExampleJsonChange,
+      setActiveDescriptionDraft: handleDescriptionChange,
+      setActiveSourceIndex: setActiveSourceIndex,
+    },
+  );
 
   const renderTabBarExtraContent = () => {
     if (activeTab === RequestTabKey.Examples) {
