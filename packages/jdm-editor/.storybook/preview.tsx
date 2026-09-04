@@ -7,7 +7,12 @@ import { JdmConfigProvider } from '../src';
 
 // The wasm binary is served from a static dir registered in main.ts; an explicit
 // module_or_path keeps loading deterministic across dev server and static builds.
-await ZenEngineWasm.default({ module_or_path: '/zen-engine-wasm/zen_engine_wasm_bg.wasm' });
+// Resolved against document.baseURI so it works on the root dev server AND the
+// GitHub Pages project sub-path (an absolute /zen-engine-wasm path 404s there,
+// and this top-level await would block EVERY story — the "always pending" bug).
+await ZenEngineWasm.default({
+  module_or_path: new URL('zen-engine-wasm/zen_engine_wasm_bg.wasm', document.baseURI).href,
+});
 
 (window as any).VariableType = ZenEngineWasm.VariableType;
 (window as any).Variable = ZenEngineWasm.Variable;
