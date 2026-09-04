@@ -1,3 +1,5 @@
+import type { CustomNodeSpec } from '../lib/custom-node-registry';
+
 // 内核 barrel 未导出 ThemeSeeds（声明在 theming/derive）——按公开 API 形状本地镜像
 export type SkinSeeds = {
   primary?: string;
@@ -8,8 +10,6 @@ export type SkinSeeds = {
   fieldInput?: string;
   fieldOutput?: string;
 };
-
-import type { CustomNodeSpec } from '../lib/custom-node-registry';
 
 /** 节点 UI 槽位覆写：按 kind 劫持画布卡 / Tab 渲染，未指定的槽位回落原实现 */
 export type NodeUiOverride = {

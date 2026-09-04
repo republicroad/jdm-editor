@@ -1,11 +1,10 @@
-import React, { createContext, useContext, useMemo } from 'react';
 import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
+import React, { createContext, useContext, useMemo } from 'react';
 
 import { useCustomNodes } from '../hooks/useCustomNodes';
 import { createAnonymousAdapter } from '../lib/auth/adapter';
-import { createUserResolver, type UserResolver } from '../lib/user-resolver';
 import type { CustomNodeNamespace } from '../lib/custom-node-types';
-
+import { type UserResolver, createUserResolver } from '../lib/user-resolver';
 import { createDefaultSimulate } from './default-simulate';
 import type { GraphPersistenceAdapter } from './persistence';
 import type { EditorShellOptions, SimulateHandler } from './types';

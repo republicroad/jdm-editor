@@ -1,9 +1,9 @@
-import { createJdmNode, type CustomNodeSpecification } from '@republicroad/jdm-editor';
+import { type CustomNodeSpecification, createJdmNode } from '@republicroad/jdm-editor';
 
 import css from '../components/custom-node/custom-node.module.css';
 import CodeIcon from '../components/icons/code';
 import FlashCircleIcon from '../components/icons/flash-circle';
-import { legacyUdfPlan, schemaToNodePlans, type CustomNodePlan } from './custom-node-plans';
+import { type CustomNodePlan, legacyUdfPlan, schemaToNodePlans } from './custom-node-plans';
 import type { CustomNodeNamespace } from './custom-node-types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 与 jdm-editor 内部 customNodes 类型约定一致
@@ -25,7 +25,7 @@ export const createSpecNode = (options: CreateSpecNodeOptions): CustomNodeSpec =
 };
 
 const nodeIcon = (icon: React.ReactNode) => (
-  <span className={css.nodeIcon} aria-hidden="true">
+  <span className={css.nodeIcon} aria-hidden='true'>
     {icon}
   </span>
 );

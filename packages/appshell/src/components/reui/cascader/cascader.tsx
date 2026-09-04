@@ -1,5 +1,10 @@
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+import { ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
-import { useCascaderLoader, useCascaderLoadState } from '../../../components/reui/cascader/cascader-async';
+
+import { useCascaderLoadState, useCascaderLoader } from '../../../components/reui/cascader/cascader-async';
 import type {
   CascaderGetChildren,
   CascaderOnSearch,
@@ -27,13 +32,13 @@ import type {
 } from '../../../components/reui/cascader/cascader-context';
 import { resolveCascaderLabels } from '../../../components/reui/cascader/cascader-i18n';
 import {
-  applyCascadeSelection,
-  buildCascaderIndex,
   CASCADER_LIST_HEIGHT_CLASS,
   CASCADER_LIST_PAD_CLASS,
   CASCADER_ROOT_KEY,
   CASCADER_ROWS_CLASS,
   CASCADER_SCROLL_CLASS,
+  applyCascadeSelection,
+  buildCascaderIndex,
   collapseCascaderPath,
   createCascaderMoreNode,
   filterCascaderLevel,
@@ -70,13 +75,8 @@ import type {
   CascaderSearchScope,
   CascaderSelectable,
 } from '../../../components/reui/cascader/cascader-types';
-import { Combobox as ComboboxPrimitive } from '@base-ui/react';
-import { mergeProps } from '@base-ui/react/merge-props';
-import { useRender } from '@base-ui/react/use-render';
-
-import { cn } from '../../../lib/utils';
 import { ScrollArea } from '../../../components/ui/scroll-area';
-import { ChevronDownIcon, XIcon } from 'lucide-react';
+import { cn } from '../../../lib/utils';
 
 /** Stable `filteredItems` for a level swap; a fixed identity cannot loop. */
 const EMPTY: CascaderNode<never>[] = [];
@@ -203,7 +203,8 @@ function useShallowStable<V>(value: V, equal: (a: V & object, b: V & object) => 
 
 /** The pre-split shape, merged, so `useCascader()` returns what it always did. */
 export interface CascaderContextValue<T = unknown>
-  extends CascaderActionsContextValue<T>, CascaderStateContextValue<T> {}
+  extends CascaderActionsContextValue<T>,
+    CascaderStateContextValue<T> {}
 
 /**
  * The cascader's internals, typed for the caller's own item payload.
@@ -2007,7 +2008,8 @@ function Cascader<T>({
  * shadcn combobox wrapper also does: a form library needs a ref here, and
  * `onBlur`, the "touched" signal, lands here too. */
 export interface CascaderTriggerProps
-  extends ComboboxPrimitive.Trigger.Props, Pick<React.ComponentPropsWithRef<'button'>, 'ref'> {
+  extends ComboboxPrimitive.Trigger.Props,
+    Pick<React.ComponentPropsWithRef<'button'>, 'ref'> {
   /** Hides the trailing chevron, for a trigger that supplies its own. */
   showIcon?: boolean;
 }
@@ -2048,7 +2050,7 @@ function CascaderTrigger({ className, children, showIcon = true, ref, ...props }
   return (
     <ComboboxPrimitive.Trigger
       ref={setTrigger}
-      data-slot="cascader-trigger"
+      data-slot='cascader-trigger'
       /* Conditional spread: an explicit `undefined` would DELETE whatever a
          `Field` wrapper had already put here. */
       {...(invalid ? { 'aria-invalid': true, 'data-invalid': '' } : null)}
@@ -2104,7 +2106,8 @@ export function useCascaderAnchor() {
 }
 
 export interface CascaderChipsProps
-  extends Omit<ComboboxPrimitive.Chips.Props, 'children'>, Pick<React.ComponentPropsWithRef<'div'>, 'ref'> {
+  extends Omit<ComboboxPrimitive.Chips.Props, 'children'>,
+    Pick<React.ComponentPropsWithRef<'div'>, 'ref'> {
   /** Shown in place of the chips when nothing is selected. */
   placeholder?: React.ReactNode;
   /**
@@ -2167,7 +2170,7 @@ function CascaderChips({ className, children, placeholder, strategy = 'all', ...
 
   return (
     <ComboboxPrimitive.Chips
-      data-slot="cascader-chips"
+      data-slot='cascader-chips'
       /* An unnamed `role="toolbar"` announces as just "toolbar". */
       aria-label={labels.chipsLabel}
       /* Conditional spread: the error treatment is keyed on
@@ -2178,7 +2181,7 @@ function CascaderChips({ className, children, placeholder, strategy = 'all', ...
     >
       {content ??
         (nodes.length === 0 ? (
-          <span data-slot="cascader-chips-placeholder" className="text-muted-foreground truncate">
+          <span data-slot='cascader-chips-placeholder' className='text-muted-foreground truncate'>
             {placeholder}
           </span>
         ) : (
@@ -2245,7 +2248,7 @@ function CascaderChip({
 
   return (
     <ComboboxPrimitive.Chip
-      data-slot="cascader-chip"
+      data-slot='cascader-chip'
       /* Keyboard half of `onRemove`: Base UI's chip removes ITSELF by position
          on Backspace/Delete, the arithmetic a condensed chip must not use. The
          veto runs first, so the closure removal replaces it. */
@@ -2265,10 +2268,10 @@ function CascaderChip({
       )}
       {...props}
     >
-      {children ?? <span className="truncate">{label}</span>}
+      {children ?? <span className='truncate'>{label}</span>}
       {showRemove ? (
         <ComboboxPrimitive.ChipRemove
-          data-slot="cascader-chip-remove"
+          data-slot='cascader-chip-remove'
           /* Named after what the chip DISPLAYS, not the bare node label, or
              two disambiguated chips both announce "Remove Created at". */
           aria-label={labels.removeChip(label)}
@@ -2283,7 +2286,7 @@ function CascaderChip({
             : null)}
           className={CHIP_REMOVE_CLASS}
         >
-          <XIcon className="pointer-events-none" />
+          <XIcon className='pointer-events-none' />
         </ComboboxPrimitive.ChipRemove>
       ) : null}
     </ComboboxPrimitive.Chip>
@@ -2295,8 +2298,7 @@ function CascaderChip({
 /* -------------------------------------------------------------------------- */
 
 export interface CascaderContentProps
-  extends
-    ComboboxPrimitive.Popup.Props,
+  extends ComboboxPrimitive.Popup.Props,
     /** Positioner surface forwarded as-is, so an unusual anchor does not force
      * a rebuild of the content stack. No `trackAnchor`: Base UI 1.5.0 has
      * none. */
@@ -2380,14 +2382,14 @@ function CascaderContent({
         {...(collisionPadding !== undefined ? { collisionPadding } : null)}
         {...(sticky !== undefined ? { sticky } : null)}
         {...(positionMethod !== undefined ? { positionMethod } : null)}
-        className="isolate z-50"
+        className='isolate z-50'
       >
         <ComboboxPrimitive.Popup
           ref={setPopup}
-          data-slot="cascader-content"
+          data-slot='cascader-content'
           /* Marks a menu surface for the docs design-system picker. An
              attribute, not a class, so the panel's look stays self-contained. */
-          data-menu-target=""
+          data-menu-target=''
           /* The input inside makes this a `role="dialog"`, unnamed by default. */
           aria-label={labels.panelLabel}
           initialFocus={initialFocus}
@@ -2445,8 +2447,8 @@ function CascaderPanel({ className, ...props }: CascaderPanelProps) {
     'data-mode': mode,
     // In `defaultProps`, not around `props.onKeyDown`: `mergeProps` chains
     // right to left, so a consumer's handler runs FIRST and can drop this one.
-    onKeyDown: handleKeyDown,
-    className: cn('flex max-h-full min-h-0 w-full flex-col', className),
+    'onKeyDown': handleKeyDown,
+    'className': cn('flex max-h-full min-h-0 w-full flex-col', className),
   };
 
   return useRender({
@@ -2485,7 +2487,7 @@ function CascaderList({ className, style, maxHeight: maxHeightProp, ...props }: 
 
   return (
     <div
-      data-slot="cascader-list-shell"
+      data-slot='cascader-list-shell'
       style={
         resolved != null
           ? ({
@@ -2497,12 +2499,12 @@ function CascaderList({ className, style, maxHeight: maxHeightProp, ...props }: 
       className={cn('relative flex max-h-full min-h-0', CASCADER_LIST_PAD_CLASS)}
     >
       <div
-        data-slot="cascader-list-bounds"
+        data-slot='cascader-list-bounds'
         className={cn('flex w-full min-w-0 flex-col overscroll-contain', CASCADER_LIST_HEIGHT_CLASS)}
       >
         <ScrollArea className={CASCADER_SCROLL_CLASS}>
           <ComboboxPrimitive.List
-            data-slot="cascader-list"
+            data-slot='cascader-list'
             /* Base UI names the list nothing, so every mode shipped an unnamed
                listbox. The level's parent is the name; the root borrows one. */
             aria-label={currentParent?.label ?? labels.rootLevel}
@@ -2563,15 +2565,15 @@ function CascaderEmpty({
 
   if (state?.error) {
     body = (
-      <span data-slot="cascader-error" className="flex flex-col items-center gap-1.5">
+      <span data-slot='cascader-error' className='flex flex-col items-center gap-1.5'>
         <span>{labels.error}</span>
         <button
-          type="button"
-          data-slot="cascader-retry"
+          type='button'
+          data-slot='cascader-retry'
           /* A real button because this lives OUTSIDE the listbox; a focusable
              element inside a `role="option"` is `nested-interactive`. */
           onClick={() => retryLevel(levelKey)}
-          className="text-foreground hover:bg-accent focus-visible:ring-ring/50 rounded-md px-2 py-0.5 font-medium outline-hidden transition-colors focus-visible:ring-2"
+          className='text-foreground hover:bg-accent focus-visible:ring-ring/50 rounded-md px-2 py-0.5 font-medium outline-hidden transition-colors focus-visible:ring-2'
         >
           {labels.retry}
         </button>
@@ -2579,7 +2581,7 @@ function CascaderEmpty({
     );
   } else if (state?.loading) {
     body = (
-      <span data-slot="cascader-loading" className="flex w-full items-center justify-center">
+      <span data-slot='cascader-loading' className='flex w-full items-center justify-center'>
         {labels.loading}
       </span>
     );
@@ -2587,7 +2589,7 @@ function CascaderEmpty({
 
   return (
     <ComboboxPrimitive.Empty
-      data-slot="cascader-empty"
+      data-slot='cascader-empty'
       data-state={state?.error ? 'error' : state?.loading ? 'loading' : 'empty'}
       className={cn(EMPTY_CLASS, className)}
       /* The ONE place an explicit `undefined` is right: it DELETES Base UI's
@@ -2616,7 +2618,7 @@ function CascaderStatus({ className, children, ...props }: CascaderStatusProps) 
   const { announcement } = useCascaderState();
 
   return (
-    <ComboboxPrimitive.Status data-slot="cascader-status" className={cn('sr-only', className)} {...props}>
+    <ComboboxPrimitive.Status data-slot='cascader-status' className={cn('sr-only', className)} {...props}>
       {children ?? announcement}
     </ComboboxPrimitive.Status>
   );

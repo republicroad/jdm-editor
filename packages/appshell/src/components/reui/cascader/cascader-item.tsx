@@ -1,6 +1,11 @@
 'use client';
 
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+import { CheckIcon, ChevronRightIcon, LoaderCircleIcon, MinusIcon, RotateCwIcon } from 'lucide-react';
 import * as React from 'react';
+
 import {
   useCascaderActions,
   useCascaderRender,
@@ -13,13 +18,8 @@ import {
   isCascaderMoreNode,
 } from '../../../components/reui/cascader/cascader-lib';
 import type { CascaderLoadState, CascaderNode } from '../../../components/reui/cascader/cascader-types';
-import { Combobox as ComboboxPrimitive } from '@base-ui/react';
-import { mergeProps } from '@base-ui/react/merge-props';
-import { useRender } from '@base-ui/react/use-render';
-
-import { cn } from '../../../lib/utils';
 import { Spinner } from '../../../components/ui/spinner';
-import { LoaderCircleIcon, MinusIcon, CheckIcon, RotateCwIcon, ChevronRightIcon } from 'lucide-react';
+import { cn } from '../../../lib/utils';
 
 // Base UI extends its synthetic events with a handler-veto escape hatch.
 type VetoableEvent = { preventBaseUIHandler?: () => void };
@@ -104,10 +104,8 @@ const INDICATOR_MARK_CLASS = 'text-foreground! **:text-foreground!';
 // column on its way elsewhere opens nothing, short enough to read as immediate.
 const CASCADER_HOVER_EXPAND_DELAY = 150;
 
-export interface CascaderItemProps extends Omit<
-  ComboboxPrimitive.Item.Props,
-  'value' | 'children' | 'className' | 'style' | 'onClick' | 'onMouseUp'
-> {
+export interface CascaderItemProps
+  extends Omit<ComboboxPrimitive.Item.Props, 'value' | 'children' | 'className' | 'style' | 'onClick' | 'onMouseUp'> {
   /** No state callback: the row merges `className` and `style` itself. */
   className?: string;
   style?: React.CSSProperties;
@@ -382,8 +380,8 @@ const CascaderItem = React.memo(function CascaderItem({
       'data-more': '',
       'data-state': error ? 'error' : loading ? 'loading' : 'idle',
       'data-depth': nodeDepth,
-      style: moreStyle,
-      className: cn(
+      'style': moreStyle,
+      'className': cn(
         ROW_SHELL_CLASS,
         ROW_FLUSH_CLASS,
         'text-muted-foreground justify-center gap-1.5 text-xs',
@@ -395,11 +393,11 @@ const CascaderItem = React.memo(function CascaderItem({
 
     const moreBody = children ?? (
       <>
-        {loading ? <LoaderCircleIcon className="size-3.5 animate-spin" aria-hidden /> : null}
+        {loading ? <LoaderCircleIcon className='size-3.5 animate-spin' aria-hidden /> : null}
         <span>{text}</span>
         {/* TEXT, not a button: a focusable element inside a `role="option"`
             row is a `nested-interactive` violation. */}
-        {error ? <span className="text-foreground font-medium">{labels.retry}</span> : null}
+        {error ? <span className='text-foreground font-medium'>{labels.retry}</span> : null}
       </>
     );
 
@@ -410,7 +408,7 @@ const CascaderItem = React.memo(function CascaderItem({
       delete buttonProps['aria-level'];
 
       return (
-        <button type="button" {...moreShared} tabIndex={-1} onClick={handleMoreClick} {...buttonProps}>
+        <button type='button' {...moreShared} tabIndex={-1} onClick={handleMoreClick} {...buttonProps}>
           {moreBody}
         </button>
       );
@@ -421,7 +419,7 @@ const CascaderItem = React.memo(function CascaderItem({
         {...moreShared}
         value={node}
         {...(virtualized && index != null ? { index } : null)}
-        {...(mode === 'tree' ? { role: 'treeitem' as const, 'aria-level': nodeDepth + 1 } : null)}
+        {...(mode === 'tree' ? { 'role': 'treeitem' as const, 'aria-level': nodeDepth + 1 } : null)}
         onClick={handleMoreClick}
         onMouseUp={veto}
         {...props}
@@ -462,15 +460,15 @@ const CascaderItem = React.memo(function CascaderItem({
   // reads `data-selected` off the ROW, so it also works on the trail rows.
   const checkbox = (
     <span
-      data-slot="cascader-item-checkbox"
-      className="border-input in-data-[selected]:bg-primary in-data-[selected]:border-primary in-data-[selected]:text-primary-foreground in-data-[indeterminate]:bg-primary in-data-[indeterminate]:border-primary in-data-[indeterminate]:text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors"
+      data-slot='cascader-item-checkbox'
+      className='border-input in-data-[selected]:bg-primary in-data-[selected]:border-primary in-data-[selected]:text-primary-foreground in-data-[indeterminate]:bg-primary in-data-[indeterminate]:border-primary in-data-[indeterminate]:text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors'
     >
       {/* Colour declared ON THE ICON with `!`; see `CHECKBOX_MARK_CLASS`. */}
       {indeterminate ? (
-        <MinusIcon data-slot="cascader-item-dash" className={cn(CHECKBOX_MARK_CLASS, 'size-3')} />
+        <MinusIcon data-slot='cascader-item-dash' className={cn(CHECKBOX_MARK_CLASS, 'size-3')} />
       ) : (
         <CheckIcon
-          data-slot="cascader-item-tick"
+          data-slot='cascader-item-tick'
           className={cn(CHECKBOX_MARK_CLASS, 'size-3 opacity-0 in-data-[selected]:opacity-100')}
         />
       )}
@@ -482,7 +480,7 @@ const CascaderItem = React.memo(function CascaderItem({
       {multiple ? (
         checkbox
       ) : (
-        <CheckIcon data-slot="cascader-item-check" className={cn('pointer-events-none', INDICATOR_MARK_CLASS)} />
+        <CheckIcon data-slot='cascader-item-check' className={cn('pointer-events-none', INDICATOR_MARK_CLASS)} />
       )}
     </>
   );
@@ -492,9 +490,9 @@ const CascaderItem = React.memo(function CascaderItem({
       {/* Tree mode expands in place, so the branch marker leads the row. */}
       {mode === 'tree' && branch ? (
         <span
-          data-slot="cascader-item-expander"
+          data-slot='cascader-item-expander'
           /* Pure affordance: the row itself carries `aria-expanded`. */
-          aria-hidden="true"
+          aria-hidden='true'
           data-state={childrenError ? 'error' : childrenLoading ? 'loading' : 'idle'}
           onClick={handleExpanderClick}
           onMouseUp={handleExpanderMouseUp}
@@ -507,9 +505,9 @@ const CascaderItem = React.memo(function CascaderItem({
           )}
         >
           {childrenLoading ? (
-            <Spinner aria-hidden="true" className="size-4" />
+            <Spinner aria-hidden='true' className='size-4' />
           ) : childrenError ? (
-            <RotateCwIcon className="size-4" />
+            <RotateCwIcon className='size-4' />
           ) : (
             <ChevronRightIcon
               className={cn(
@@ -528,8 +526,8 @@ const CascaderItem = React.memo(function CascaderItem({
         // A LEAF's expander slot, reserved and empty: without it a leaf's label
         // started 28px off its sibling branches' and read as one level up.
         <span
-          data-slot="cascader-item-expander-spacer"
-          aria-hidden="true"
+          data-slot='cascader-item-expander-spacer'
+          aria-hidden='true'
           className={cn('-ms-0.5', AFFORDANCE_BOX_CLASS)}
         />
       ) : null}
@@ -540,14 +538,14 @@ const CascaderItem = React.memo(function CascaderItem({
         selectable ? (
           checkbox
         ) : (
-          <span data-slot="cascader-item-checkbox-spacer" aria-hidden="true" className="size-4 shrink-0" />
+          <span data-slot='cascader-item-checkbox-spacer' aria-hidden='true' className='size-4 shrink-0' />
         )
       ) : null}
 
       {node.icon ? (
         <span
-          data-slot="cascader-item-icon"
-          className="text-muted-foreground flex shrink-0 items-center justify-center"
+          data-slot='cascader-item-icon'
+          className='text-muted-foreground flex shrink-0 items-center justify-center'
         >
           {node.icon}
         </span>
@@ -555,14 +553,14 @@ const CascaderItem = React.memo(function CascaderItem({
 
       {/* The row box is sized for pieces side by side; this one stacks, so it
           restates the gap: 8px reads as a paragraph break, not a subtitle. */}
-      <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+      <span className='flex min-w-0 flex-1 flex-col items-start gap-0.5'>
         {customLabel ?? (
           <>
-            <span className="w-full truncate text-start">{node.label}</span>
+            <span className='w-full truncate text-start'>{node.label}</span>
             {node.description ? (
               <span
-                data-slot="cascader-item-description"
-                className="text-muted-foreground w-full truncate text-start text-xs"
+                data-slot='cascader-item-description'
+                className='text-muted-foreground w-full truncate text-start text-xs'
               >
                 {node.description}
               </span>
@@ -574,7 +572,7 @@ const CascaderItem = React.memo(function CascaderItem({
 
       {/* The count is a bare number, and nothing else says a branch opens. */}
       {srDetails ? (
-        <span data-slot="cascader-item-details" className="sr-only">
+        <span data-slot='cascader-item-details' className='sr-only'>
           {srDetails}
         </span>
       ) : null}
@@ -582,13 +580,13 @@ const CascaderItem = React.memo(function CascaderItem({
       {/* Tree mode expands in place, so it has no drill-in chevron. */}
       {branch && mode !== 'tree' ? (
         <span
-          data-slot="cascader-item-trailing"
-          aria-hidden="true"
-          className="text-muted-foreground ms-auto flex shrink-0 items-center gap-1 text-xs tabular-nums"
+          data-slot='cascader-item-trailing'
+          aria-hidden='true'
+          className='text-muted-foreground ms-auto flex shrink-0 items-center gap-1 text-xs tabular-nums'
         >
           {showCount ? (
             <span
-              data-slot="cascader-item-count"
+              data-slot='cascader-item-count'
               /* The marker a consumer (and a test) reads to tell the two
                  numbers apart without matching on a colour class. */
               {...(showsSelectedCount ? { 'data-selected-count': '' } : null)}
@@ -600,7 +598,7 @@ const CascaderItem = React.memo(function CascaderItem({
           {/* ONLY the chevron is the drill target: sharing a hit area with
               the count made a number pressable. */}
           <span
-            data-slot="cascader-item-chevron"
+            data-slot='cascader-item-chevron'
             data-state={childrenError ? 'error' : childrenLoading ? 'loading' : 'idle'}
             onClick={selectable ? handleChevronClick : undefined}
             onMouseUp={selectable ? handleChevronMouseUp : undefined}
@@ -615,11 +613,11 @@ const CascaderItem = React.memo(function CascaderItem({
             )}
           >
             {childrenLoading ? (
-              <Spinner aria-hidden="true" className="size-4" />
+              <Spinner aria-hidden='true' className='size-4' />
             ) : childrenError ? (
-              <RotateCwIcon className="size-4" />
+              <RotateCwIcon className='size-4' />
             ) : (
-              <ChevronRightIcon className="size-4 rtl:-scale-x-100" />
+              <ChevronRightIcon className='size-4 rtl:-scale-x-100' />
             )}
           </span>
         </span>
@@ -627,10 +625,10 @@ const CascaderItem = React.memo(function CascaderItem({
 
       {branch && mode === 'tree' && showCount ? (
         <span
-          data-slot="cascader-item-count"
+          data-slot='cascader-item-count'
           {...(showsSelectedCount ? { 'data-selected-count': '' } : null)}
           /* The count is spoken by the sr-only details span instead. */
-          aria-hidden="true"
+          aria-hidden='true'
           className={cn(
             'text-muted-foreground ms-auto shrink-0 text-xs tabular-nums',
             showsSelectedCount && 'text-primary!',
@@ -646,7 +644,7 @@ const CascaderItem = React.memo(function CascaderItem({
         as === 'button' ? (
           // No ItemIndicator outside Base UI: `data-selected` drives it.
           (multiple || selected) && (
-            <span data-slot="cascader-item-indicator" className={INDICATOR_CLASS}>
+            <span data-slot='cascader-item-indicator' className={INDICATOR_CLASS}>
               {indicator}
             </span>
           )
@@ -655,7 +653,7 @@ const CascaderItem = React.memo(function CascaderItem({
             /* Kept mounted for a partial selection too: the row is not
                selected, so Base UI would unmount the box the dash lives in. */
             keepMounted={multiple || indeterminate}
-            render={<span data-slot="cascader-item-indicator" className={INDICATOR_CLASS} />}
+            render={<span data-slot='cascader-item-indicator' className={INDICATOR_CLASS} />}
           >
             {indicator}
           </ComboboxPrimitive.ItemIndicator>
@@ -683,8 +681,8 @@ const CascaderItem = React.memo(function CascaderItem({
     // `aria-checked`, `aria-posinset` and `aria-setsize`, and a `role="button"`
     // trail row allows none of the four. Only tree mode has a role that takes a
     // level, and it adds one below.
-    style: rowStyle,
-    className: cn(
+    'style': rowStyle,
+    'className': cn(
       ROW_CLASS,
       /* Three separate reasons to hand the check gutter back. A multi-select
          tree's box leads the row, so the gutter would be 24px of dead space;
@@ -712,7 +710,7 @@ const CascaderItem = React.memo(function CascaderItem({
 
     return (
       <button
-        type="button"
+        type='button'
         {...shared}
         /* Focus stays in the search input; the trail uses ArrowLeft. */
         tabIndex={-1}
@@ -740,7 +738,7 @@ const CascaderItem = React.memo(function CascaderItem({
          iterates own keys, so `undefined` would delete `role="option"`. */
       {...(mode === 'tree'
         ? {
-            role: 'treeitem' as const,
+            'role': 'treeitem' as const,
             'aria-level': nodeDepth + 1,
             ...(branch ? { 'aria-expanded': !!expanded } : null),
           }
@@ -773,13 +771,13 @@ function CascaderItemPath({ node }: { node: CascaderNode }) {
 
   return (
     <span
-      data-slot="cascader-item-path"
-      className="text-muted-foreground flex w-full items-center gap-0.5 truncate text-start text-xs"
+      data-slot='cascader-item-path'
+      className='text-muted-foreground flex w-full items-center gap-0.5 truncate text-start text-xs'
     >
       {ancestors.map((ancestor, i) => (
         <React.Fragment key={ancestor.value}>
-          {i > 0 ? <span aria-hidden="true">{labels.pathSeparator}</span> : null}
-          <span className="truncate">{ancestor.label}</span>
+          {i > 0 ? <span aria-hidden='true'>{labels.pathSeparator}</span> : null}
+          <span className='truncate'>{ancestor.label}</span>
         </React.Fragment>
       ))}
     </span>
@@ -912,7 +910,7 @@ export interface CascaderGroupProps extends Omit<ComboboxPrimitive.Group.Props, 
 function CascaderGroup({ className, ...props }: CascaderGroupProps) {
   return (
     <CascaderGroupContext.Provider value={true}>
-      <ComboboxPrimitive.Group data-slot="cascader-group" className={cn('flex flex-col', className)} {...props} />
+      <ComboboxPrimitive.Group data-slot='cascader-group' className={cn('flex flex-col', className)} {...props} />
     </CascaderGroupContext.Provider>
   );
 }
@@ -927,7 +925,7 @@ export interface CascaderLabelProps extends Omit<ComboboxPrimitive.GroupLabel.Pr
 function CascaderGroupLabel({ className, ...props }: CascaderLabelProps) {
   return (
     <ComboboxPrimitive.GroupLabel
-      data-slot="cascader-label"
+      data-slot='cascader-label'
       className={cn(CASCADER_LABEL_CLASS, className)}
       {...props}
     />
@@ -939,7 +937,7 @@ function CascaderGroupLabel({ className, ...props }: CascaderLabelProps) {
 function CascaderPlainLabel({ className, ...props }: CascaderLabelProps) {
   const defaultProps = {
     'data-slot': 'cascader-label',
-    className: cn(CASCADER_LABEL_CLASS, className),
+    'className': cn(CASCADER_LABEL_CLASS, className),
   };
 
   return useRender({
@@ -967,9 +965,9 @@ export interface CascaderSeparatorProps extends Omit<ComboboxPrimitive.Separator
 function CascaderSeparator({ className, ...props }: CascaderSeparatorProps) {
   return (
     <ComboboxPrimitive.Separator
-      data-slot="cascader-separator"
-      role="presentation"
-      aria-hidden="true"
+      data-slot='cascader-separator'
+      role='presentation'
+      aria-hidden='true'
       className={cn(CASCADER_SEPARATOR_CLASS, className)}
       {...props}
     />

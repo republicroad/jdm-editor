@@ -1,6 +1,10 @@
 'use client';
 
+import { Popover as PopoverPrimitive } from '@base-ui/react';
+import { useDirection } from '@base-ui/react/direction-provider';
+import { ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
+
 import { useCascaderActions } from '../../../components/reui/cascader/cascader-context';
 import { CASCADER_ACTION_CLASS, CascaderGroup, CascaderLabel } from '../../../components/reui/cascader/cascader-item';
 import {
@@ -9,11 +13,7 @@ import {
   isCascaderRtl,
 } from '../../../components/reui/cascader/cascader-lib';
 import type { CascaderActionItem } from '../../../components/reui/cascader/cascader-types';
-import { Popover as PopoverPrimitive } from '@base-ui/react';
-import { useDirection } from '@base-ui/react/direction-provider';
-
 import { cn } from '../../../lib/utils';
-import { ChevronRightIcon } from 'lucide-react';
 
 /**
  * The pinned footer, and the side-anchored flyout a footer row can open. These
@@ -87,10 +87,10 @@ function CascaderFooter({ className, children, onKeyDown, ...props }: CascaderFo
 
   return (
     <div
-      data-slot="cascader-footer"
+      data-slot='cascader-footer'
       /* Named, not a bare div: without it a screen reader reaches the actions
          with nothing to say they are not more options. */
-      role="group"
+      role='group'
       aria-label={labels.actionsLabel}
       onKeyDown={handleKeyDown}
       className={cn(
@@ -184,7 +184,7 @@ function CascaderActionList({ items }: { items: CascaderActionItem[] }) {
     <>
       {runs.map((run, runIndex) =>
         run.group ? (
-          <CascaderGroup key={`${run.group}-${runIndex}`} className="gap-0.5">
+          <CascaderGroup key={`${run.group}-${runIndex}`} className='gap-0.5'>
             <CascaderLabel>{run.group}</CascaderLabel>
             {run.items.map(renderAction)}
           </CascaderGroup>
@@ -267,8 +267,8 @@ function CascaderAction({
 
   return (
     <button
-      type="button"
-      data-slot="cascader-action"
+      type='button'
+      data-slot='cascader-action'
       /* Conditional spread: `false` would publish `aria-disabled="false"`. */
       {...(disabled ? { 'aria-disabled': true, 'data-disabled': '' } : null)}
       onClick={handleClick}
@@ -280,13 +280,13 @@ function CascaderAction({
     >
       {icon ? (
         <span
-          data-slot="cascader-action-icon"
-          className="text-muted-foreground flex shrink-0 items-center justify-center"
+          data-slot='cascader-action-icon'
+          className='text-muted-foreground flex shrink-0 items-center justify-center'
         >
           {icon}
         </span>
       ) : null}
-      <span className="min-w-0 flex-1 truncate text-start">{children}</span>
+      <span className='min-w-0 flex-1 truncate text-start'>{children}</span>
     </button>
   );
 }
@@ -476,8 +476,8 @@ function CascaderSubmenuTrigger({
     <PopoverPrimitive.Trigger
       ref={submenuTriggerRef}
       id={triggerId}
-      data-slot="cascader-submenu-trigger"
-      aria-haspopup="menu"
+      data-slot='cascader-submenu-trigger'
+      aria-haspopup='menu'
       /* NOT `disabled={disabled}`: Base UI writes the native attribute. */
       {...(disabled ? { 'aria-disabled': true, 'data-disabled': '' } : null)}
       onClick={handleClick}
@@ -494,23 +494,22 @@ function CascaderSubmenuTrigger({
     >
       {icon ? (
         <span
-          data-slot="cascader-action-icon"
-          className="text-muted-foreground flex shrink-0 items-center justify-center"
+          data-slot='cascader-action-icon'
+          className='text-muted-foreground flex shrink-0 items-center justify-center'
         >
           {icon}
         </span>
       ) : null}
-      <span className="min-w-0 flex-1 truncate text-start">{children}</span>
+      <span className='min-w-0 flex-1 truncate text-start'>{children}</span>
       {/* Nothing else says the row opens a MENU, not another tree level. */}
-      <span className="sr-only">, {labels.submenuAffordance}</span>
-      <ChevronRightIcon aria-hidden="true" className="text-muted-foreground -me-0.5 size-4 shrink-0 rtl:-scale-x-100" />
+      <span className='sr-only'>, {labels.submenuAffordance}</span>
+      <ChevronRightIcon aria-hidden='true' className='text-muted-foreground -me-0.5 size-4 shrink-0 rtl:-scale-x-100' />
     </PopoverPrimitive.Trigger>
   );
 }
 
 export interface CascaderSubmenuContentProps
-  extends
-    PopoverPrimitive.Popup.Props,
+  extends PopoverPrimitive.Popup.Props,
     Pick<PopoverPrimitive.Positioner.Props, 'side' | 'align' | 'sideOffset' | 'alignOffset'> {}
 
 /** Carries Base UI's handler-veto hook, so a plain React event will not do. */
@@ -627,22 +626,22 @@ function CascaderSubmenuContent({
         align={align}
         sideOffset={sideOffset}
         alignOffset={alignOffset}
-        className="isolate z-50"
+        className='isolate z-50'
       >
         <PopoverPrimitive.Popup
           ref={popupRef}
           initialFocus={initialFocus}
-          data-slot="cascader-submenu-content"
+          data-slot='cascader-submenu-content'
           /* Roving focus, named by the row that opens it. `tabIndex={-1}` lets
              a pointer open park focus here without adding a Tab stop. */
-          role="menu"
-          aria-orientation="vertical"
+          role='menu'
+          aria-orientation='vertical'
           aria-labelledby={triggerId}
           tabIndex={-1}
           onKeyDown={handleKeyDown}
           /* Marks a menu surface for the docs design-system picker, which
              repaints menus by walking the DOM. An attribute, not a class. */
-          data-menu-target=""
+          data-menu-target=''
           className={cn(
             FLYOUT_SURFACE_CLASS,
             'flex max-w-(--available-width) min-w-48 flex-col gap-0.5 outline-hidden',

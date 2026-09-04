@@ -1,6 +1,8 @@
 'use client';
 
+import { type Range, type Virtualizer, defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
 import * as React from 'react';
+
 import { CascaderColumnPanel } from '../../../components/reui/cascader/cascader-columns';
 import {
   useCascaderActions,
@@ -9,7 +11,6 @@ import {
 } from '../../../components/reui/cascader/cascader-context';
 import type { CascaderColumn } from '../../../components/reui/cascader/cascader-context';
 import { CascaderItem, CascaderItems, getCascaderMoreProps } from '../../../components/reui/cascader/cascader-item';
-import { defaultRangeExtractor, useVirtualizer, type Range, type Virtualizer } from '@tanstack/react-virtual';
 
 /**
  * Windowing for the cascader, in its own file so the primitive's own install
@@ -73,7 +74,6 @@ export function useCascaderVirtualizer({
   const measureEstimate = React.useCallback(() => estimateSize, [estimateSize]);
 
   // React Compiler bails on `useVirtualizer`; harmless, rows memoise one by one.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer<HTMLElement, HTMLElement>({
     count,
     getScrollElement,
@@ -160,8 +160,8 @@ function CascaderVirtualSpacer({
   return (
     <div
       ref={(node) => onContentElement(node?.parentElement ?? null)}
-      role="presentation"
-      data-slot="cascader-virtual-spacer"
+      role='presentation'
+      data-slot='cascader-virtual-spacer'
       style={{ height }}
     />
   );
@@ -370,7 +370,7 @@ function CascaderVirtualColumnRows({
                A trail row is a `role="button"`, which allows neither. */
             {...(column.active
               ? {
-                  index: row.index,
+                  'index': row.index,
                   'aria-setsize': items.length,
                   'aria-posinset': row.index + 1,
                 }

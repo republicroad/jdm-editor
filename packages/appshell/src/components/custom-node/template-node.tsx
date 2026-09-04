@@ -1,26 +1,26 @@
 import {
   CodeEditor,
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import { ReplaceIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { Badge } from '../../components/ui/badge';
+import { createSpecNode } from '../../lib/custom-node-registry';
 import { uid } from '../../lib/custom-node-registry';
-import { parseOperatorArgs, quote, unquote } from '../../lib/http-request-protocol';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
+import { parseOperatorArgs, quote, unquote } from '../../lib/http-request-protocol';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { KeyValueEditor } from './key-value-editor';
 import css from './custom-node.module.css';
-import { Badge } from '../../components/ui/badge';
+import { KeyValueEditor } from './key-value-editor';
 import { LockedCornerBadge } from './locked-corner-badge';
 
 const KIND = 'template';
@@ -78,18 +78,18 @@ const TemplateInstanceEditor: React.FC<TemplateInstanceEditorProps> = ({ expr, o
 
   return (
     <div className={css.form}>
-      <div className="flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30">
-        <span className="h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground">
+      <div className='flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30'>
+        <span className='h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground'>
           输出键
         </span>
         <Input
-          className="h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0"
-          placeholder="result"
+          className='h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0'
+          placeholder='result'
           value={expr.key}
           onChange={(event) => onChange({ ...expr, key: event.target.value })}
         />
       </div>
-      <span className="text-xs text-muted-foreground">模板内容（{'${path}'} 插值，缺失变量替换为空串）</span>
+      <span className='text-xs text-muted-foreground'>模板内容（{'${path}'} 插值，缺失变量替换为空串）</span>
       <CodeEditor
         value={fields.templateExpr}
         onChange={(value) => persistFields({ templateExpr: value })}
@@ -97,11 +97,11 @@ const TemplateInstanceEditor: React.FC<TemplateInstanceEditorProps> = ({ expr, o
         maxRows={4}
       />
       <KeyValueEditor
-        label="插值变量"
-        addLabel="添加变量"
-        deleteLabel="删除变量"
-        valuePlaceholder="表达式，如 input.user"
-        rawPlaceholder="{ name: input.user.name }"
+        label='插值变量'
+        addLabel='添加变量'
+        deleteLabel='删除变量'
+        valuePlaceholder='表达式，如 input.user'
+        rawPlaceholder='{ name: input.user.name }'
         value={fields.varsExpr}
         onChange={(next) => persistFields({ varsExpr: next })}
       />
@@ -127,14 +127,14 @@ const TemplateRow: React.FC<TemplateRowProps> = ({ index, expr, selected, onSele
       onClick={onSelect}
     >
       <div className={css.listRowHeader}>
-        <span className="text-xs font-medium">模板 {index + 1}</span>
+        <span className='text-xs font-medium'>模板 {index + 1}</span>
         <div className={css.listRowActions}>
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            aria-label="删除模板"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
+            aria-label='删除模板'
             onClick={(event) => {
               event.stopPropagation();
               onRemove();
@@ -208,10 +208,10 @@ export const TemplateTab: React.FC<{ id: string }> = ({ id }) => {
         </div>
         <div className={css.listAdd}>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 w-full border-dashed text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 w-full border-dashed text-xs'
             onClick={addTemplate}
           >
             <PlusCircleIcon />
@@ -222,7 +222,7 @@ export const TemplateTab: React.FC<{ id: string }> = ({ id }) => {
       <div className={css.tabDetail}>
         {selected ? (
           <div className={css.form}>
-            <span className="text-xs text-muted-foreground">
+            <span className='text-xs text-muted-foreground'>
               模板 {selectedIndex + 1} · 输出键：{selected.key}
             </span>
             <TemplateInstanceEditor
@@ -236,7 +236,7 @@ export const TemplateTab: React.FC<{ id: string }> = ({ id }) => {
             />
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">尚未配置模板，点击左侧「添加模板」。</span>
+          <span className='text-xs text-muted-foreground'>尚未配置模板，点击左侧「添加模板」。</span>
         )}
       </div>
     </div>
@@ -264,14 +264,14 @@ const TemplateNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
       name={data.name}
       isSelected={selected}
       noBodyPadding
-      className="relative"
+      className='relative'
       actions={[
         <Button
-          key="edit-template"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-template'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -280,7 +280,7 @@ const TemplateNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
     >
       {config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           {KIND}
         </Badge>
         <div className={css.rows}>
@@ -301,8 +301,8 @@ const TemplateNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
           })}
         </div>
         <div className={css.returns}>
-          <span className="text-xs text-muted-foreground">模板数量</span>
-          <span className="text-xs">{expressions.length}</span>
+          <span className='text-xs text-muted-foreground'>模板数量</span>
+          <span className='text-xs'>{expressions.length}</span>
         </div>
       </div>
     </GraphNode>
@@ -314,7 +314,7 @@ export const templateNode = createSpecNode({
   displayName: '模板渲染',
   group: 'template',
   shortDescription: '渲染 ${var} 插值模板字符串，支持多个并行模板实例',
-  icon: <ReplaceIcon className="size-4" />,
+  icon: <ReplaceIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `${KIND}${index}`,
     config: {

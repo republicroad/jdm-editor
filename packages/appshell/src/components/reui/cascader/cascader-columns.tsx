@@ -1,4 +1,7 @@
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
+import { LoaderCircleIcon } from 'lucide-react';
 import * as React from 'react';
+
 import { useCascaderActions, useCascaderState } from '../../../components/reui/cascader/cascader-context';
 import type { CascaderColumn } from '../../../components/reui/cascader/cascader-context';
 import { CascaderItem, getCascaderMoreProps } from '../../../components/reui/cascader/cascader-item';
@@ -10,11 +13,8 @@ import {
   CASCADER_SCROLL_CLASS,
   warnCascaderOnce,
 } from '../../../components/reui/cascader/cascader-lib';
-import { Combobox as ComboboxPrimitive } from '@base-ui/react';
-
-import { cn } from '../../../lib/utils';
 import { ScrollArea } from '../../../components/ui/scroll-area';
-import { LoaderCircleIcon } from 'lucide-react';
+import { cn } from '../../../lib/utils';
 
 export interface CascaderColumnsProps extends Omit<React.ComponentProps<'div'>, 'children'> {
   /** Width of each column. */
@@ -58,8 +58,8 @@ function CascaderColumns({
 
   return (
     <div
-      data-slot="cascader-columns"
-      role="group"
+      data-slot='cascader-columns'
+      role='group'
       aria-label={labels.columnsLabel}
       style={
         {
@@ -121,10 +121,10 @@ function CascaderColumnPanel({ column, children, virtualized }: CascaderColumnPa
       <>
         {labels.error}{' '}
         <button
-          type="button"
-          data-slot="cascader-retry"
+          type='button'
+          data-slot='cascader-retry'
           onClick={() => retryLevel(columnKey)}
-          className="text-foreground hover:bg-accent focus-visible:ring-ring/50 rounded-md px-1 font-medium outline-hidden transition-colors focus-visible:ring-2"
+          className='text-foreground hover:bg-accent focus-visible:ring-ring/50 rounded-md px-1 font-medium outline-hidden transition-colors focus-visible:ring-2'
         >
           {labels.retry}
         </button>
@@ -132,8 +132,8 @@ function CascaderColumnPanel({ column, children, virtualized }: CascaderColumnPa
     );
   } else if (loadState?.loading) {
     emptyBody = (
-      <span className="flex items-center gap-1.5">
-        <LoaderCircleIcon className="size-3.5 animate-spin" aria-hidden />
+      <span className='flex items-center gap-1.5'>
+        <LoaderCircleIcon className='size-3.5 animate-spin' aria-hidden />
         {labels.loading}
       </span>
     );
@@ -142,9 +142,9 @@ function CascaderColumnPanel({ column, children, virtualized }: CascaderColumnPa
   const rows =
     column.items.length === 0 ? (
       <p
-        data-slot="cascader-column-empty"
+        data-slot='cascader-column-empty'
         data-state={loadState?.error ? 'error' : loadState?.loading ? 'loading' : 'empty'}
-        className="text-muted-foreground px-2 py-1.5 text-sm"
+        className='text-muted-foreground px-2 py-1.5 text-sm'
       >
         {emptyBody}
       </p>
@@ -191,7 +191,7 @@ function CascaderColumnPanel({ column, children, virtualized }: CascaderColumnPa
     'data-depth': column.depth,
     // Addressable so the opening trail row can point `aria-controls` here, and
     // named even at the root, which has no parent label to borrow.
-    id: `${baseId}-column-${column.depth}`,
+    'id': `${baseId}-column-${column.depth}`,
     'aria-label': column.parent?.label ?? labels.rootLevel,
     // Conditional spread, never an explicit `undefined`: the active column is a
     // Base UI element, and its `mergeProps` iterates own keys.
@@ -211,14 +211,14 @@ function CascaderColumnPanel({ column, children, virtualized }: CascaderColumnPa
     </ComboboxPrimitive.List>
   ) : (
     // A named `group`, not a second listbox competing with the active column.
-    <div {...shared} role="group" className={rowsClass}>
+    <div {...shared} role='group' className={rowsClass}>
       {rows}
     </div>
   );
 
   return (
     <div
-      data-slot="cascader-column-bounds"
+      data-slot='cascader-column-bounds'
       /* Repeated from `shared`: this box, not the semantic element, owns the
          width, the divider and the height, so style hooks must reach it, and
          `:first-child` on the semantic element no longer means "first column"

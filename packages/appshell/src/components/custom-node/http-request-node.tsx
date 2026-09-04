@@ -1,29 +1,29 @@
 import {
   CodeEditor,
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import { GlobeIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { createSpecNode } from '../../lib/custom-node-registry';
 import { uid } from '../../lib/custom-node-registry';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
 import {
+  type AuthMode,
+  type AuthState,
   HTTP_METHODS,
+  type HttpMethod,
+  type HttpRequestFields,
   parseAuthState,
   parseHttpRequest,
   serializeAuthExpr,
   toHttpRequestValue,
   unquote,
-  type AuthMode,
-  type AuthState,
-  type HttpRequestFields,
-  type HttpMethod,
 } from '../../lib/http-request-protocol';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
@@ -33,8 +33,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Hint, KeyValueEditor } from './key-value-editor';
 import css from './custom-node.module.css';
+import { Hint, KeyValueEditor } from './key-value-editor';
 import { LockedCornerBadge } from './locked-corner-badge';
 
 const KIND = 'http_request';
@@ -89,7 +89,7 @@ const StatusBadge: React.FC<{ result?: RequestResult }> = ({ result }) => {
     return (
       <Hint label={error}>
         <span tabIndex={0}>
-          <Badge variant="destructive" size="xs" radius="full">
+          <Badge variant='destructive' size='xs' radius='full'>
             ERR
           </Badge>
         </span>
@@ -98,7 +98,7 @@ const StatusBadge: React.FC<{ result?: RequestResult }> = ({ result }) => {
   }
   const variant = status >= 500 ? 'destructive' : status >= 400 ? 'warning' : status >= 300 ? 'info' : 'success';
   return (
-    <Badge variant={variant} size="xs" radius="full">
+    <Badge variant={variant} size='xs' radius='full'>
       {status}
     </Badge>
   );
@@ -121,14 +121,14 @@ const HttpInstanceRow: React.FC<HttpInstanceRowProps> = ({ index, expr, selected
   return (
     <div className={`${css.listRow}${selected ? ` ${css.listRowSelected} bg-primary/10` : ''}`} onClick={onSelect}>
       <div className={css.listRowHeader}>
-        <span className="text-xs font-medium">请求 {index + 1}</span>
+        <span className='text-xs font-medium'>请求 {index + 1}</span>
         <div className={css.listRowActions}>
           <StatusBadge result={result} />
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
             aria-label={`删除请求 ${index + 1}`}
             onClick={(event) => {
               event.stopPropagation();
@@ -163,14 +163,14 @@ const HttpRequestNode: React.FC<MinimalNodeProps & { specification: MinimalNodeS
       name={data.name}
       isSelected={selected}
       noBodyPadding
-      className="relative"
+      className='relative'
       actions={[
         <Button
-          key="edit-http-request"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-http-request'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -179,7 +179,7 @@ const HttpRequestNode: React.FC<MinimalNodeProps & { specification: MinimalNodeS
     >
       {config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           {KIND}
         </Badge>
         <div className={css.rows}>
@@ -195,7 +195,7 @@ const HttpRequestNode: React.FC<MinimalNodeProps & { specification: MinimalNodeS
             const itemResult = output?.[item.key] as RequestResult | undefined;
             return (
               <div className={css.row} key={item.id}>
-                <Badge variant={METHOD_BADGES[itemFields.method]} size="sm">
+                <Badge variant={METHOD_BADGES[itemFields.method]} size='sm'>
                   {itemFields.method}
                 </Badge>
                 <span className={css.rowValue} title={displayUrl}>
@@ -207,8 +207,8 @@ const HttpRequestNode: React.FC<MinimalNodeProps & { specification: MinimalNodeS
           })}
         </div>
         <div className={css.returns}>
-          <span className="text-xs text-muted-foreground">请求次数</span>
-          <span className="text-xs">{expressions.length}</span>
+          <span className='text-xs text-muted-foreground'>请求次数</span>
+          <span className='text-xs'>{expressions.length}</span>
         </div>
       </div>
     </GraphNode>
@@ -318,7 +318,7 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
           ))}
         </div>
         <div className={css.listAdd}>
-          <Button type="button" variant="outline" className="h-8 w-full border-dashed text-xs" onClick={addRequest}>
+          <Button type='button' variant='outline' className='h-8 w-full border-dashed text-xs' onClick={addRequest}>
             <PlusCircleIcon />
             添加请求
           </Button>
@@ -329,27 +329,27 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
           <div className={css.httpSplit}>
             <div className={css.httpRequestPane}>
               <div className={`${css.form} max-w-[720px]`}>
-                <span className="text-xs font-semibold">HTTP 请求 {selectedIndex + 1}</span>
-                <div className="flex items-center gap-2">
-                  <span className="flex-none text-xs text-muted-foreground">输出键</span>
+                <span className='text-xs font-semibold'>HTTP 请求 {selectedIndex + 1}</span>
+                <div className='flex items-center gap-2'>
+                  <span className='flex-none text-xs text-muted-foreground'>输出键</span>
                   <Input
-                    className="h-8 text-xs"
-                    placeholder="result"
+                    className='h-8 text-xs'
+                    placeholder='result'
                     value={selected.key}
                     onChange={(event) => persistKey(event.target.value)}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                   <Select
                     value={fields.method}
                     onValueChange={(value) => persistFields({ method: value as HttpMethod })}
                   >
-                    <SelectTrigger aria-label="HTTP 方法" className="h-8 w-[110px] flex-none text-xs">
+                    <SelectTrigger aria-label='HTTP 方法' className='h-8 w-[110px] flex-none text-xs'>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {(HTTP_METHODS as readonly string[]).map((method) => (
-                        <SelectItem key={method} value={method} className="text-xs">
+                        <SelectItem key={method} value={method} className='text-xs'>
                           {method}
                         </SelectItem>
                       ))}
@@ -363,38 +363,38 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                   />
                 </div>
 
-                <Tabs defaultValue="headers" className="gap-2">
-                  <TabsList className="h-7 w-fit bg-muted/50 p-0.5">
-                    <TabsTrigger value="headers" className="h-6 px-2.5 text-xs">
+                <Tabs defaultValue='headers' className='gap-2'>
+                  <TabsList className='h-7 w-fit bg-muted/50 p-0.5'>
+                    <TabsTrigger value='headers' className='h-6 px-2.5 text-xs'>
                       Headers
                     </TabsTrigger>
-                    <TabsTrigger value="body" className="h-6 px-2.5 text-xs">
+                    <TabsTrigger value='body' className='h-6 px-2.5 text-xs'>
                       {`Body${bodyIgnored ? '(忽略)' : ''}`}
                     </TabsTrigger>
-                    <TabsTrigger value="params" className="h-6 px-2.5 text-xs">
+                    <TabsTrigger value='params' className='h-6 px-2.5 text-xs'>
                       Params
                     </TabsTrigger>
-                    <TabsTrigger value="advanced" className="h-6 px-2.5 text-xs">
+                    <TabsTrigger value='advanced' className='h-6 px-2.5 text-xs'>
                       高级
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="headers">
+                  <TabsContent value='headers'>
                     <KeyValueEditor
                       key={`headers-${selected.id}`}
-                      label="Headers(键值对)"
-                      addLabel="添加 Header"
-                      deleteLabel="删除 Header"
-                      valuePlaceholder="值(Zen 表达式)"
+                      label='Headers(键值对)'
+                      addLabel='添加 Header'
+                      deleteLabel='删除 Header'
+                      valuePlaceholder='值(Zen 表达式)'
                       rawPlaceholder={'{"Authorization": "Bearer " + input.token} 或 input.headers'}
                       value={fields.headersExpr}
                       onChange={(value) => persistFields({ headersExpr: value })}
                     />
                   </TabsContent>
 
-                  <TabsContent value="body" className="flex flex-col gap-2">
+                  <TabsContent value='body' className='flex flex-col gap-2'>
                     {bodyIgnored ? (
-                      <Alert variant="info">
+                      <Alert variant='info'>
                         <GlobeIcon />
                         <AlertDescription>{`${fields.method} 请求不发送请求体`}</AlertDescription>
                       </Alert>
@@ -408,79 +408,79 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                     )}
                   </TabsContent>
 
-                  <TabsContent value="params">
+                  <TabsContent value='params'>
                     <KeyValueEditor
                       key={`params-${selected.id}`}
-                      label="Params(查询参数)"
-                      addLabel="添加参数"
-                      deleteLabel="删除参数"
-                      valuePlaceholder="值(Zen 表达式)"
+                      label='Params(查询参数)'
+                      addLabel='添加参数'
+                      deleteLabel='删除参数'
+                      valuePlaceholder='值(Zen 表达式)'
                       rawPlaceholder={'{ page: input.page, size: 20 }'}
                       value={fields.paramsExpr}
                       onChange={(value) => persistFields({ paramsExpr: value })}
                     />
                   </TabsContent>
 
-                  <TabsContent value="advanced" className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex-none text-xs text-muted-foreground">超时(ms)</span>
+                  <TabsContent value='advanced' className='flex flex-col gap-3'>
+                    <div className='flex items-center gap-2'>
+                      <span className='flex-none text-xs text-muted-foreground'>超时(ms)</span>
                       <Input
-                        className="h-8 w-28 text-xs"
-                        inputMode="numeric"
-                        placeholder="10000"
+                        className='h-8 w-28 text-xs'
+                        inputMode='numeric'
+                        placeholder='10000'
                         value={fields.timeoutExpr}
                         onChange={(event) => persistFields({ timeoutExpr: event.target.value.replace(/[^\d]/g, '') })}
                       />
-                      <span className="flex-none text-xs text-muted-foreground">重试(次)</span>
+                      <span className='flex-none text-xs text-muted-foreground'>重试(次)</span>
                       <Input
-                        className="h-8 w-20 text-xs"
-                        inputMode="numeric"
-                        placeholder="0"
+                        className='h-8 w-20 text-xs'
+                        inputMode='numeric'
+                        placeholder='0'
                         value={fields.retryExpr}
                         onChange={(event) => persistFields({ retryExpr: event.target.value.replace(/[^\d]/g, '') })}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className='text-xs text-muted-foreground'>
                       超时范围 100–60000ms，默认 10000；重试上限 5 次，仅网络异常/超时/5xx/429 触发并指数退避。
                     </p>
                     {authState ? (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="flex-none text-xs text-muted-foreground">认证</span>
+                      <div className='flex flex-col gap-2'>
+                        <div className='flex items-center gap-2'>
+                          <span className='flex-none text-xs text-muted-foreground'>认证</span>
                           <Select
                             value={authState.mode}
                             onValueChange={(value) =>
                               persistFields({ authExpr: serializeAuthExpr({ ...authState, mode: value as AuthMode }) })
                             }
                           >
-                            <SelectTrigger aria-label="认证类型" className="h-8 w-28 flex-none text-xs">
+                            <SelectTrigger aria-label='认证类型' className='h-8 w-28 flex-none text-xs'>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none" className="text-xs">
+                              <SelectItem value='none' className='text-xs'>
                                 无认证
                               </SelectItem>
-                              <SelectItem value="basic" className="text-xs">
+                              <SelectItem value='basic' className='text-xs'>
                                 Basic
                               </SelectItem>
-                              <SelectItem value="bearer" className="text-xs">
+                              <SelectItem value='bearer' className='text-xs'>
                                 Bearer
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                          <span className="text-xs text-muted-foreground">headers 显式 Authorization 时优先生效</span>
+                          <span className='text-xs text-muted-foreground'>headers 显式 Authorization 时优先生效</span>
                         </div>
                         {authState.mode === 'basic' && (
-                          <div className="flex items-center gap-2">
-                            <span className="flex-none w-10 text-xs text-muted-foreground">用户名</span>
+                          <div className='flex items-center gap-2'>
+                            <span className='flex-none w-10 text-xs text-muted-foreground'>用户名</span>
                             <Input
-                              className="h-8 min-w-0 flex-1 text-xs"
-                              placeholder="username"
+                              className='h-8 min-w-0 flex-1 text-xs'
+                              placeholder='username'
                               value={authState.username}
                               onChange={(event) => persistAuth({ username: event.target.value })}
                             />
-                            <span className="flex-none text-xs text-muted-foreground">密码</span>
-                            <div className="min-w-0 flex-1">
+                            <span className='flex-none text-xs text-muted-foreground'>密码</span>
+                            <div className='min-w-0 flex-1'>
                               <CodeEditor
                                 value={authState.passwordExpr}
                                 onChange={(value) => persistAuth({ passwordExpr: value })}
@@ -491,9 +491,9 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                           </div>
                         )}
                         {authState.mode === 'bearer' && (
-                          <div className="flex items-center gap-2">
-                            <span className="flex-none text-xs text-muted-foreground">Token</span>
-                            <div className="min-w-0 flex-1">
+                          <div className='flex items-center gap-2'>
+                            <span className='flex-none text-xs text-muted-foreground'>Token</span>
+                            <div className='min-w-0 flex-1'>
                               <CodeEditor
                                 value={authState.tokenExpr}
                                 onChange={(value) => persistAuth({ tokenExpr: value })}
@@ -505,7 +505,7 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
                         )}
                       </div>
                     ) : (
-                      <Alert variant="info">
+                      <Alert variant='info'>
                         <GlobeIcon />
                         <AlertDescription>认证配置为自定义表达式，已按原样保留，结构化编辑不可用</AlertDescription>
                       </Alert>
@@ -517,29 +517,29 @@ export const HttpRequestTab: React.FC<{ id: string }> = ({ id }) => {
 
             <div className={css.httpResponsePane}>
               <div className={css.httpHeaderLine}>
-                <span className="text-xs font-semibold">模拟响应</span>
+                <span className='text-xs font-semibold'>模拟响应</span>
                 <StatusBadge result={result} />
               </div>
               {!result ? (
-                <p className="text-xs text-muted-foreground">运行模拟后在此显示响应</p>
+                <p className='text-xs text-muted-foreground'>运行模拟后在此显示响应</p>
               ) : typeof result.error === 'string' ? (
-                <Alert variant="destructive">
+                <Alert variant='destructive'>
                   <AlertDescription>{result.error}</AlertDescription>
                 </Alert>
               ) : (
                 <>
                   <details>
-                    <summary className="cursor-pointer text-xs">响应头</summary>
+                    <summary className='cursor-pointer text-xs'>响应头</summary>
                     <pre className={css.httpMono}>{JSON.stringify(result.headers ?? {}, null, 2)}</pre>
                   </details>
-                  <span className="text-xs text-muted-foreground">Body</span>
+                  <span className='text-xs text-muted-foreground'>Body</span>
                   <pre className={css.httpMono}>{JSON.stringify(result.body ?? null, null, 2)}</pre>
                 </>
               )}
             </div>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">尚未配置请求，点击左侧「添加请求」。</p>
+          <p className='text-xs text-muted-foreground'>尚未配置请求，点击左侧「添加请求」。</p>
         )}
       </div>
     </div>
@@ -551,7 +551,7 @@ export const httpRequestNode = createSpecNode({
   displayName: 'HTTP 请求',
   group: 'http',
   shortDescription: '发起 HTTP 请求并返回响应(status / headers / body)，支持多个并行请求实例',
-  icon: <GlobeIcon className="size-4" />,
+  icon: <GlobeIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `${KIND}${index}`,
     config: {

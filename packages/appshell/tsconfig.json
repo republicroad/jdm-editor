@@ -12,9 +12,21 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "bun"],
     "paths": {
-      "@republicroad/jdm-editor": ["../jdm-editor/src/index.ts"]
+      "@republicroad/jdm-editor": ["../jdm-editor/src/index.ts"],
+      "react": [
+        "./node_modules/@types/react",
+        "../../node_modules/@types/react",
+        "../jdm-editor/node_modules/@types/react"
+      ],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime", "../../node_modules/@types/react/jsx-runtime"],
+      "@lezer/common": [
+        "./node_modules/@lezer/common",
+        "../../node_modules/@lezer/common",
+        "../jdm-editor/node_modules/@lezer/common"
+      ],
+      "@lezer/lr": ["./node_modules/@lezer/lr", "../../node_modules/@lezer/lr", "../jdm-editor/node_modules/@lezer/lr"]
     }
   },
   "include": ["src", "../jdm-editor/src/**/*.d.ts"]

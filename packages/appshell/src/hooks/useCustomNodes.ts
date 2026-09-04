@@ -2,17 +2,17 @@ import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
 import { useEffect, useMemo, useState } from 'react';
 
 import { cryptoNode } from '../components/custom-node/crypto-node';
+import { currentDateNode } from '../components/custom-node/current-date-node';
 import { httpRequestNode } from '../components/custom-node/http-request-node';
 import { jsonPathNode } from '../components/custom-node/json-path-node';
 import { queryListNode } from '../components/custom-node/query-list-node';
 import { templateNode } from '../components/custom-node/template-node';
-import { currentDateNode } from '../components/custom-node/current-date-node';
 import { useTheme } from '../context/theme.provider';
 import {
+  type CustomNodeSchemaSource,
   createLegacyUdfNode,
   fetchCustomNodeSchema,
   schemaToCustomNodes,
-  type CustomNodeSchemaSource,
 } from '../lib/custom-node-registry';
 import type { CustomNodeNamespace } from '../lib/custom-node-types';
 import { applyNodeOverrides } from '../skin/apply';

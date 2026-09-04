@@ -1,5 +1,4 @@
 import fallbackSchema from '../assets/custom-node-schema.json';
-
 import type { CustomNodeNamespace } from './custom-node-types';
 
 // 自定义节点 schema 来源：同源/自定义 URL 字符串，或宿主注入的加载函数(库复用时不假设后端存在)

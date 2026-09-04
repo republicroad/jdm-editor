@@ -1,16 +1,16 @@
+import type { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete';
 import {
+  CodeEditor,
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
-  CodeEditor,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import React, { useEffect, useState } from 'react';
 
-import { Autocomplete as AutocompletePrimitive } from '@base-ui/react/autocomplete';
+import { createSpecNode } from '../../lib/custom-node-registry';
 import { parseOperatorArgs, uid } from '../../lib/custom-node-registry';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
@@ -144,11 +144,11 @@ const QueryInstanceEditor: React.FC<QueryInstanceEditorProps> = ({ expr, onChang
         openOnInputClick
       >
         <AutocompleteInput
-          size="sm"
-          placeholder="搜索并选择名单"
+          size='sm'
+          placeholder='搜索并选择名单'
           showClear
           showTrigger
-          className="[&[data-slot=autocomplete-input]]:border-transparent [&[data-slot=autocomplete-input]]:bg-transparent [&[data-slot=autocomplete-input]]:px-2"
+          className='[&[data-slot=autocomplete-input]]:border-transparent [&[data-slot=autocomplete-input]]:bg-transparent [&[data-slot=autocomplete-input]]:px-2'
         />
         <AutocompleteContent>
           <AutocompleteStatus>
@@ -156,9 +156,9 @@ const QueryInstanceEditor: React.FC<QueryInstanceEditorProps> = ({ expr, onChang
           </AutocompleteStatus>
           <AutocompleteList>
             {(option: RosterOption) => (
-              <AutocompleteItem key={option.name} value={option} className="rounded-lg">
+              <AutocompleteItem key={option.name} value={option} className='rounded-lg'>
                 <span>{option.name}</span>
-                <Badge variant="secondary" size="sm" radius="full">
+                <Badge variant='secondary' size='sm' radius='full'>
                   {option.size}
                 </Badge>
               </AutocompleteItem>
@@ -169,22 +169,22 @@ const QueryInstanceEditor: React.FC<QueryInstanceEditorProps> = ({ expr, onChang
       <CodeEditor
         value={valueExpr}
         onChange={(value) => onChange({ ...expr, value: toExprValue(roster, value) })}
-        placeholder="Zen 表达式，如 input.phone"
+        placeholder='Zen 表达式，如 input.phone'
         maxRows={3}
       />
-      <div className="flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30">
-        <span className="h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground">
+      <div className='flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30'>
+        <span className='h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground'>
           输出键
         </span>
         <Input
-          className="h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0"
-          placeholder="result"
+          className='h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0'
+          placeholder='result'
           value={expr.key}
           onChange={(event) => onChange({ ...expr, key: event.target.value })}
         />
       </div>
       {roster && RosterOption && (
-        <Alert variant="info">
+        <Alert variant='info'>
           <ShieldSearchIcon />
           <AlertTitle>{`命中名单 ${roster}(${RosterOption.size} 条)`}</AlertTitle>
           <AlertDescription>执行时以服务端名单为准。</AlertDescription>
@@ -212,19 +212,19 @@ const QueryListRow: React.FC<QueryListRowProps> = ({ index, expr, selected, hit,
       onClick={onSelect}
     >
       <div className={css.listRowHeader}>
-        <span className="text-xs font-medium">查询 {index + 1}</span>
+        <span className='text-xs font-medium'>查询 {index + 1}</span>
         <div className={css.listRowActions}>
           {hit !== undefined && (
-            <Badge variant={hit ? 'success' : 'secondary'} size="xs" radius="full">
+            <Badge variant={hit ? 'success' : 'secondary'} size='xs' radius='full'>
               {hit ? '命中' : '未命中'}
             </Badge>
           )}
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            aria-label="删除查询"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
+            aria-label='删除查询'
             onClick={(event) => {
               event.stopPropagation();
               onRemove();
@@ -293,10 +293,10 @@ export const QueryListTab: React.FC<{ id: string }> = ({ id }) => {
         </div>
         <div className={css.listAdd}>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 w-full border-dashed text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 w-full border-dashed text-xs'
             onClick={addQuery}
           >
             <PlusCircleIcon />
@@ -307,7 +307,7 @@ export const QueryListTab: React.FC<{ id: string }> = ({ id }) => {
       <div className={css.tabDetail}>
         {selected ? (
           <div className={css.form}>
-            <span className="text-xs text-muted-foreground">
+            <span className='text-xs text-muted-foreground'>
               查询 {selectedIndex + 1} · 输出键：{selected.key}
             </span>
             <QueryInstanceEditor
@@ -321,7 +321,7 @@ export const QueryListTab: React.FC<{ id: string }> = ({ id }) => {
             />
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">尚未配置查询，点击左侧「添加查询」。</span>
+          <span className='text-xs text-muted-foreground'>尚未配置查询，点击左侧「添加查询」。</span>
         )}
       </div>
     </div>
@@ -353,14 +353,14 @@ const QueryListNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpe
       name={data.name}
       isSelected={selected}
       noBodyPadding
-      className="relative"
+      className='relative'
       actions={[
         <Button
-          key="edit-query-list"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-query-list'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -369,7 +369,7 @@ const QueryListNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpe
     >
       {config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           roster
         </Badge>
         <div className={css.rows}>
@@ -386,7 +386,7 @@ const QueryListNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpe
                 <span className={css.rowKey}>查询 {index + 1}</span>
                 <span className={css.rowValue}>{roster || '未选择'}</span>
                 {hit !== undefined ? (
-                  <Badge variant={hit ? 'success' : 'secondary'} size="xs" radius="full">
+                  <Badge variant={hit ? 'success' : 'secondary'} size='xs' radius='full'>
                     {hit ? '命中' : '未命中'}
                   </Badge>
                 ) : null}
@@ -395,8 +395,8 @@ const QueryListNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpe
           })}
         </div>
         <div className={css.returns}>
-          <span className="text-xs text-muted-foreground">查询次数</span>
-          <span className="text-xs">{expressions.length}</span>
+          <span className='text-xs text-muted-foreground'>查询次数</span>
+          <span className='text-xs'>{expressions.length}</span>
         </div>
       </div>
     </GraphNode>
@@ -408,7 +408,7 @@ export const queryListNode = createSpecNode({
   displayName: '查询名单',
   group: '风险名单',
   shortDescription: '在服务端名单中查询某个值(支持多个查询实例)',
-  icon: <ShieldSearchIcon className="size-4" />,
+  icon: <ShieldSearchIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `roster${index}`,
     config: {

@@ -1,25 +1,25 @@
 import {
   CodeEditor,
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import { ListTreeIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { Badge } from '../../components/ui/badge';
+import { createSpecNode } from '../../lib/custom-node-registry';
 import { uid } from '../../lib/custom-node-registry';
-import { parseJsonPath, toJsonPathValue, type JsonPathFields } from '../../lib/json-path-protocol';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
+import { type JsonPathFields, parseJsonPath, toJsonPathValue } from '../../lib/json-path-protocol';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import css from './custom-node.module.css';
-import { Badge } from '../../components/ui/badge';
 import { LockedCornerBadge } from './locked-corner-badge';
 
 const KIND = 'json_path';
@@ -53,32 +53,32 @@ const JsonPathInstanceEditor: React.FC<JsonPathInstanceEditorProps> = ({ expr, o
 
   return (
     <div className={css.form}>
-      <div className="flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30">
-        <span className="h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground">
+      <div className='flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30'>
+        <span className='h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground'>
           输出键
         </span>
         <Input
-          className="h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0"
-          placeholder="result"
+          className='h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0'
+          placeholder='result'
           value={expr.key}
           onChange={(event) => onChange({ ...expr, key: event.target.value })}
         />
       </div>
-      <span className="text-xs text-muted-foreground">数据源</span>
+      <span className='text-xs text-muted-foreground'>数据源</span>
       <CodeEditor
         value={fields.inputExpr}
         onChange={(value) => persistFields({ inputExpr: value })}
         placeholder={'如 input.payload 或 { "a": 1 }'}
         maxRows={3}
       />
-      <span className="text-xs text-muted-foreground">JSONPath 表达式（缺 $ 前缀自动补全）</span>
+      <span className='text-xs text-muted-foreground'>JSONPath 表达式（缺 $ 前缀自动补全）</span>
       <Input
-        className="h-8 text-xs"
+        className='h-8 text-xs'
         placeholder={'$.cart.items[*].price'}
         value={fields.pathExpr}
         onChange={(event) => persistFields({ pathExpr: event.target.value })}
       />
-      <span className="text-xs text-muted-foreground">默认值（无命中时回退，可选）</span>
+      <span className='text-xs text-muted-foreground'>默认值（无命中时回退，可选）</span>
       <CodeEditor
         value={fields.defaultExpr}
         onChange={(value) => persistFields({ defaultExpr: value })}
@@ -106,14 +106,14 @@ const JsonPathRow: React.FC<JsonPathRowProps> = ({ index, expr, selected, onSele
       onClick={onSelect}
     >
       <div className={css.listRowHeader}>
-        <span className="text-xs font-medium">提取 {index + 1}</span>
+        <span className='text-xs font-medium'>提取 {index + 1}</span>
         <div className={css.listRowActions}>
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            aria-label="删除提取"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
+            aria-label='删除提取'
             onClick={(event) => {
               event.stopPropagation();
               onRemove();
@@ -187,10 +187,10 @@ export const JsonPathTab: React.FC<{ id: string }> = ({ id }) => {
         </div>
         <div className={css.listAdd}>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 w-full border-dashed text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 w-full border-dashed text-xs'
             onClick={addExtract}
           >
             <PlusCircleIcon />
@@ -201,7 +201,7 @@ export const JsonPathTab: React.FC<{ id: string }> = ({ id }) => {
       <div className={css.tabDetail}>
         {selected ? (
           <div className={css.form}>
-            <span className="text-xs text-muted-foreground">
+            <span className='text-xs text-muted-foreground'>
               提取 {selectedIndex + 1} · 输出键：{selected.key}
             </span>
             <JsonPathInstanceEditor
@@ -215,7 +215,7 @@ export const JsonPathTab: React.FC<{ id: string }> = ({ id }) => {
             />
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">尚未配置提取，点击左侧「添加提取」。</span>
+          <span className='text-xs text-muted-foreground'>尚未配置提取，点击左侧「添加提取」。</span>
         )}
       </div>
     </div>
@@ -243,14 +243,14 @@ const JsonPathNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
       name={data.name}
       isSelected={selected}
       noBodyPadding
-      className="relative"
+      className='relative'
       actions={[
         <Button
-          key="edit-json-path"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-json-path'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -259,7 +259,7 @@ const JsonPathNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
     >
       {config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           {KIND}
         </Badge>
         <div className={css.rows}>
@@ -279,8 +279,8 @@ const JsonPathNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpec
           })}
         </div>
         <div className={css.returns}>
-          <span className="text-xs text-muted-foreground">提取数量</span>
-          <span className="text-xs">{expressions.length}</span>
+          <span className='text-xs text-muted-foreground'>提取数量</span>
+          <span className='text-xs'>{expressions.length}</span>
         </div>
       </div>
     </GraphNode>
@@ -292,7 +292,7 @@ export const jsonPathNode = createSpecNode({
   displayName: 'JSON 提取',
   group: 'json_path',
   shortDescription: '按 JSONPath 从数据中提取值，支持多个并行提取实例',
-  icon: <ListTreeIcon className="size-4" />,
+  icon: <ListTreeIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `${KIND}${index}`,
     config: {

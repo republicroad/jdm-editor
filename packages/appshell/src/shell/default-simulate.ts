@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { match, P } from 'ts-pattern';
+import { P, match } from 'ts-pattern';
 
 import type { ShellSimulateResult, SimulateHandler } from './types';
 

@@ -1,6 +1,6 @@
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { type VariantProps, cva } from 'class-variance-authority';
 
 import { cn } from '../../lib/utils';
 
@@ -13,15 +13,15 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground',
-        outline: 'border-border bg-transparent dark:bg-input/32',
-        secondary: 'bg-secondary text-secondary-foreground',
-        info: 'bg-info text-white',
-        success: 'bg-success text-white',
-        warning: 'bg-warning text-white',
-        destructive: 'bg-destructive text-white',
-        focus: 'bg-focus text-focus-foreground',
-        invert: 'bg-invert text-invert-foreground',
+        'default': 'bg-primary text-primary-foreground',
+        'outline': 'border-border bg-transparent dark:bg-input/32',
+        'secondary': 'bg-secondary text-secondary-foreground',
+        'info': 'bg-info text-white',
+        'success': 'bg-success text-white',
+        'warning': 'bg-warning text-white',
+        'destructive': 'bg-destructive text-white',
+        'focus': 'bg-focus text-focus-foreground',
+        'invert': 'bg-invert text-invert-foreground',
         'primary-light':
           'border-primary/10 bg-primary/10 text-primary dark:border-primary/25 dark:bg-primary/15 dark:text-primary',
         'warning-light':
@@ -74,7 +74,7 @@ interface BadgeProps extends useRender.ComponentProps<'span'> {
 function Badge({ className, variant, size, radius, render, ...props }: BadgeProps) {
   const defaultProps = {
     'data-slot': 'badge',
-    className: cn(badgeVariants({ variant, size, radius, className })),
+    'className': cn(badgeVariants({ variant, size, radius, className })),
   };
 
   return useRender({

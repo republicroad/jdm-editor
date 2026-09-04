@@ -1,4 +1,10 @@
+import { Combobox as ComboboxPrimitive } from '@base-ui/react';
+import { useDirection } from '@base-ui/react/direction-provider';
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
+
 import { useCascaderActions, useCascaderState } from '../../../components/reui/cascader/cascader-context';
 import { resolveCascaderSearchLabel } from '../../../components/reui/cascader/cascader-i18n';
 import {
@@ -12,20 +18,14 @@ import type {
   CascaderNode,
   CascaderValueDisplay,
 } from '../../../components/reui/cascader/cascader-types';
-import { Combobox as ComboboxPrimitive } from '@base-ui/react';
-import { useDirection } from '@base-ui/react/direction-provider';
-import { mergeProps } from '@base-ui/react/merge-props';
-import { useRender } from '@base-ui/react/use-render';
-
 import { cn } from '../../../lib/utils';
-import { ChevronRightIcon, ChevronLeftIcon } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
 /*                                  Separator                                 */
 /* -------------------------------------------------------------------------- */
 
 function PathChevron() {
-  return <ChevronRightIcon className="size-3 shrink-0 opacity-50 rtl:-scale-x-100" />;
+  return <ChevronRightIcon className='size-3 shrink-0 opacity-50 rtl:-scale-x-100' />;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -41,7 +41,7 @@ export type CascaderNavProps = useRender.ComponentProps<'div'>;
 function CascaderNav({ className, ...props }: CascaderNavProps) {
   const defaultProps = {
     'data-slot': 'cascader-nav',
-    className: cn(
+    'className': cn(
       // `py-1`, not `py-1.5`: the row inside sets its own per-style height, so
       // even padding read too tall. 6px beside the field, 4px above and below.
       'border-border/60 flex shrink-0 flex-col gap-1 border-b px-1.5 py-1',
@@ -75,16 +75,16 @@ function CascaderBack({ className, children, ...props }: CascaderBackProps) {
 
   const defaultProps = {
     'data-slot': 'cascader-back',
-    type: 'button' as const,
+    'type': 'button' as const,
     'aria-label': labels.back,
-    onClick: () => popLevel(),
-    className: cn(
+    'onClick': () => popLevel(),
+    'className': cn(
       'text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring/50 flex shrink-0 items-center justify-center rounded-md outline-hidden transition-colors focus-visible:ring-2',
       // A notch under the row height: an affordance, not a second field.
       'size-6',
       className,
     ),
-    children: children ?? <ChevronLeftIcon className="size-4 rtl:-scale-x-100" />,
+    'children': children ?? <ChevronLeftIcon className='size-4 rtl:-scale-x-100' />,
   };
 
   const element = useRender({
@@ -146,7 +146,7 @@ function CascaderBreadcrumb({
   const defaultProps = {
     'data-slot': 'cascader-breadcrumb',
     'aria-label': labels.breadcrumbLabel,
-    className: cn(
+    'className': cn(
       'text-muted-foreground flex min-w-0 shrink-0 items-center gap-0.5 pt-1.5 pb-0.5 text-xs',
       // Lines up with the ROWS, not the header: each style's list padding plus
       // its row inset. vega/mira/rhea `p-1`+`pl-2`, nova `p-1`+`pl-1.5`, maia
@@ -154,29 +154,29 @@ function CascaderBreadcrumb({
       'px-2.5',
       className,
     ),
-    children: segments.map((segment, i) => (
+    'children': segments.map((segment, i) => (
       <React.Fragment key={segment.type === 'node' ? segment.node.value : `gap-${i}`}>
         {i > 0 ? <PathChevron /> : null}
         {segment.type === 'ellipsis' ? (
           <span
-            data-slot="cascader-breadcrumb-ellipsis"
+            data-slot='cascader-breadcrumb-ellipsis'
             title={segment.hidden.map((n) => n.label).join(` ${labels.pathSeparator} `)}
-            className="shrink-0"
+            className='shrink-0'
           >
             &hellip;
           </span>
         ) : interactive && segment.node.value !== currentValue ? (
           <button
-            type="button"
-            data-slot="cascader-breadcrumb-item"
+            type='button'
+            data-slot='cascader-breadcrumb-item'
             onClick={() => goTo(segment.node)}
-            className="hover:text-foreground focus-visible:ring-ring/50 max-w-32 truncate rounded-sm outline-hidden transition-colors focus-visible:ring-2"
+            className='hover:text-foreground focus-visible:ring-ring/50 max-w-32 truncate rounded-sm outline-hidden transition-colors focus-visible:ring-2'
           >
             {segment.node.label}
           </button>
         ) : (
           <span
-            data-slot="cascader-breadcrumb-item"
+            data-slot='cascader-breadcrumb-item'
             /* The level on screen: a span because it goes nowhere, plus
                `aria-current="page"` so it is not read as one of a flat list. */
             {...(segment.node.value === currentValue ? { 'aria-current': 'page' as const } : null)}
@@ -399,7 +399,7 @@ function CascaderInput({
 
   return (
     <div
-      data-slot="cascader-input-row"
+      data-slot='cascader-input-row'
       className={cn(
         'flex shrink-0 items-center gap-1',
         /* Each style sizes a combobox search field only as a DIRECT child of
@@ -410,7 +410,7 @@ function CascaderInput({
     >
       {showBack ? <CascaderBack /> : null}
       <ComboboxPrimitive.Input
-        data-slot="cascader-input"
+        data-slot='cascader-input'
         placeholder={resolvedPlaceholder}
         onKeyDown={handleKeyDown}
         /* Nothing on screen says the level keys exist. */
@@ -429,7 +429,7 @@ function CascaderInput({
         )}
         {...props}
       />
-      <span id={hintId} ref={hintRef} className="sr-only">
+      <span id={hintId} ref={hintRef} className='sr-only'>
         {/* `hintDir`, not `direction`: the context alone misses an RTL app that
             uses a `dir` attribute instead of `DirectionProvider`. */}
         {labels.keyboardHint(mode, hintDir)}
@@ -486,7 +486,7 @@ function CascaderValue({
   if (children) {
     content = children(selected, path);
   } else if (selectedValues.length === 0) {
-    content = <span className="text-muted-foreground truncate">{placeholder}</span>;
+    content = <span className='text-muted-foreground truncate'>{placeholder}</span>;
   } else if (display === 'count' || (multiple && selectedValues.length > 1)) {
     content = labels.selectedCount(selectedValues.length);
   } else {
@@ -499,7 +499,7 @@ function CascaderValue({
     content = (
       <>
         {showIcon && leaf?.icon ? (
-          <span data-slot="cascader-value-icon" className="text-muted-foreground flex shrink-0 items-center">
+          <span data-slot='cascader-value-icon' className='text-muted-foreground flex shrink-0 items-center'>
             {leaf.icon}
           </span>
         ) : null}
@@ -508,9 +508,9 @@ function CascaderValue({
             {i > 0 ? (separator ?? <PathChevron />) : null}
             {segment.type === 'ellipsis' ? (
               <span
-                data-slot="cascader-value-ellipsis"
+                data-slot='cascader-value-ellipsis'
                 title={segment.hidden.map((n) => n.label).join(` ${labels.pathSeparator} `)}
-                className="text-muted-foreground shrink-0"
+                className='text-muted-foreground shrink-0'
               >
                 &hellip;
               </span>
@@ -527,8 +527,8 @@ function CascaderValue({
 
   const defaultProps = {
     'data-slot': 'cascader-value',
-    className: cn('flex min-w-0 items-center gap-1 truncate', className),
-    children: content,
+    'className': cn('flex min-w-0 items-center gap-1 truncate', className),
+    'children': content,
   };
 
   return useRender({

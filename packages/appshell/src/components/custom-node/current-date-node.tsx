@@ -1,17 +1,17 @@
 import {
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import { CalendarDaysIcon } from 'lucide-react';
 import React from 'react';
 
-import type { CustomNodeConfig } from '../../lib/custom-node-types';
+import { createSpecNode } from '../../lib/custom-node-registry';
 import { uid } from '../../lib/custom-node-registry';
+import type { CustomNodeConfig } from '../../lib/custom-node-types';
 import { Badge } from '../reui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -51,15 +51,15 @@ export const CurrentDateTab: React.FC<CurrentDateTabProps> = ({ id }) => {
   const value = output?.[key];
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="text-xs leading-5 text-muted-foreground">
+    <div className='flex flex-col gap-4 p-4'>
+      <div className='text-xs leading-5 text-muted-foreground'>
         返回服务器当前日期（本地时区，YYYY-MM-DD 格式）。函数无参数，输出写入下方 key。
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="w-16 shrink-0 text-xs text-muted-foreground">输出 key</span>
+      <div className='flex items-center gap-2'>
+        <span className='w-16 shrink-0 text-xs text-muted-foreground'>输出 key</span>
         <Input
-          className="h-8 w-56 font-mono text-xs"
+          className='h-8 w-56 font-mono text-xs'
           defaultValue={key}
           onBlur={(event) => commitKey(event.target.value.trim())}
           onKeyDown={(event) => {
@@ -71,14 +71,14 @@ export const CurrentDateTab: React.FC<CurrentDateTabProps> = ({ id }) => {
       </div>
 
       {output !== undefined && output !== null ? (
-        <div className="rounded-lg border bg-muted/40 p-4">
-          <div className="text-xs text-muted-foreground">仿真输出</div>
-          <div className="mt-1 font-mono text-2xl font-semibold">
+        <div className='rounded-lg border bg-muted/40 p-4'>
+          <div className='text-xs text-muted-foreground'>仿真输出</div>
+          <div className='mt-1 font-mono text-2xl font-semibold'>
             {value !== undefined && value !== null ? String(value) : '—'}
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">运行仿真查看结果</div>
+        <div className='rounded-lg border border-dashed p-4 text-sm text-muted-foreground'>运行仿真查看结果</div>
       )}
     </div>
   );
@@ -99,18 +99,18 @@ const CurrentDateNode: React.FC<CurrentDateNodeProps> = ({ id, data, selected, s
   return (
     <GraphNode
       id={id}
-      className="relative"
+      className='relative'
       specification={specification}
       name={data.name}
       isSelected={selected}
       noBodyPadding
       actions={[
         <Button
-          key="edit-current-date"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-current-date'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -119,7 +119,7 @@ const CurrentDateNode: React.FC<CurrentDateNodeProps> = ({ id, data, selected, s
     >
       {config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           {KIND}
         </Badge>
         <div className={css.row}>
@@ -136,7 +136,7 @@ export const currentDateNode = createSpecNode({
   displayName: '当前日期',
   group: 'debugui',
   shortDescription: '返回服务器当前日期（本地时区，YYYY-MM-DD）',
-  icon: <CalendarDaysIcon className="size-4" />,
+  icon: <CalendarDaysIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `${KIND}${index}`,
     config: {

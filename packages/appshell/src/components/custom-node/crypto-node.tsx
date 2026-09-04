@@ -1,33 +1,33 @@
 import {
   CodeEditor,
   GraphNode,
-  jsonSchemaToVariableType,
   type MinimalNodeProps,
   type MinimalNodeSpecification,
+  jsonSchemaToVariableType,
   useDecisionGraphActions,
   useDecisionGraphState,
 } from '@republicroad/jdm-editor';
-import { createSpecNode } from '../../lib/custom-node-registry';
 import { FingerprintIcon } from 'lucide-react';
 import React, { useState } from 'react';
-import { LockedCornerBadge } from './locked-corner-badge';
 
-import { uid } from '../../lib/custom-node-registry';
 import {
   CRYPTO_ALGORITHMS,
   CRYPTO_ENCODINGS,
-  applyCryptoMode,
-  deriveCryptoMode,
-  parseCrypto,
-  toCryptoValue,
   type CryptoAlgorithm,
   type CryptoEncoding,
   type CryptoFields,
   type CryptoMode,
+  applyCryptoMode,
+  deriveCryptoMode,
+  parseCrypto,
+  toCryptoValue,
 } from '../../lib/crypto-protocol';
+import { createSpecNode } from '../../lib/custom-node-registry';
+import { uid } from '../../lib/custom-node-registry';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
+import { Badge } from '../reui/badge';
 import {
   Cascader,
   CascaderContent,
@@ -37,16 +37,16 @@ import {
   CascaderStatus,
   CascaderTrigger,
 } from '../reui/cascader/cascader';
-import { CascaderBreadcrumb, CascaderInput, CascaderNav, CascaderValue } from '../reui/cascader/cascader-nav';
 import { CascaderItems } from '../reui/cascader/cascader-item';
+import { CascaderBreadcrumb, CascaderInput, CascaderNav, CascaderValue } from '../reui/cascader/cascader-nav';
 import type { CascaderNode } from '../reui/cascader/cascader-types';
-import { Badge } from '../reui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { Switch } from '../ui/switch';
-import { Hint } from './key-value-editor';
+import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import css from './custom-node.module.css';
+import { Hint } from './key-value-editor';
+import { LockedCornerBadge } from './locked-corner-badge';
 
 const KIND = 'crypto';
 
@@ -134,19 +134,19 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
 
   return (
     <div className={css.form}>
-      <div className="flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30">
-        <span className="h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground">
+      <div className='flex h-8 items-center overflow-hidden rounded-md border border-input bg-transparent dark:bg-input/30'>
+        <span className='h-full shrink-0 border-r border-input bg-muted/50 px-2 leading-8 text-xs text-muted-foreground'>
           输出键
         </span>
         <Input
-          className="h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0"
-          placeholder="result"
+          className='h-8 rounded-none border-0 bg-transparent text-xs shadow-none focus-visible:border-0 focus-visible:ring-0'
+          placeholder='result'
           value={expr.key}
           onChange={(event) => onChange({ ...expr, key: event.target.value })}
         />
       </div>
-      <span className="text-xs text-muted-foreground">摘要方式</span>
-      <div className="flex gap-2">
+      <span className='text-xs text-muted-foreground'>摘要方式</span>
+      <div className='flex gap-2'>
         <Cascader
           items={CASCAADER_ITEMS}
           value={leafValue(mode, fields.algorithm)}
@@ -154,19 +154,19 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
           revealSelected={false}
         >
           <CascaderTrigger
-            aria-label="摘要类型与算法"
+            aria-label='摘要类型与算法'
             render={
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 w-[170px] flex-none justify-between px-2.5 text-xs font-normal"
+                type='button'
+                variant='outline'
+                size='sm'
+                className='h-8 w-[170px] flex-none justify-between px-2.5 text-xs font-normal'
               />
             }
           >
-            <CascaderValue placeholder="选择摘要" />
+            <CascaderValue placeholder='选择摘要' />
           </CascaderTrigger>
-          <CascaderContent className="w-60">
+          <CascaderContent className='w-60'>
             <CascaderPanel>
               <CascaderNav>
                 <CascaderInput />
@@ -189,7 +189,7 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
       </div>
       {mode === 'hmac' && (
         <div className={css.form}>
-          <span className="text-xs text-muted-foreground">HMAC 密钥（必填）</span>
+          <span className='text-xs text-muted-foreground'>HMAC 密钥（必填）</span>
           <CodeEditor
             value={fields.secretExpr}
             onChange={(value) => persistFields({ secretExpr: value })}
@@ -198,18 +198,18 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
             aria-invalid={secretMissing || undefined}
           />
           {secretMissing && (
-            <span className="text-xs text-destructive">密钥为空时将按普通摘要执行，请填写密钥表达式。</span>
+            <span className='text-xs text-destructive'>密钥为空时将按普通摘要执行，请填写密钥表达式。</span>
           )}
         </div>
       )}
-      <div className="flex items-center justify-between gap-2">
+      <div className='flex items-center justify-between gap-2'>
         <ToggleGroup
-          type="single"
-          variant="outline"
-          size="sm"
+          type='single'
+          variant='outline'
+          size='sm'
           value={fields.encoding}
-          aria-label="输出编码"
-          className="justify-start gap-0"
+          aria-label='输出编码'
+          className='justify-start gap-0'
           onValueChange={(value) => {
             if (value) {
               persistFields({ encoding: value as CryptoEncoding });
@@ -217,17 +217,17 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
           }}
         >
           {(CRYPTO_ENCODINGS as readonly CryptoEncoding[]).map((encoding) => (
-            <ToggleGroupItem key={encoding} value={encoding} className="h-8 px-2.5 text-xs">
+            <ToggleGroupItem key={encoding} value={encoding} className='h-8 px-2.5 text-xs'>
               {ENCODING_LABELS[encoding]}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <label className="flex flex-1 items-center justify-end gap-2 text-xs text-muted-foreground">
+        <label className='flex flex-1 items-center justify-end gap-2 text-xs text-muted-foreground'>
           HEX 大写
           <Switch
             checked={fields.upperExpr.trim() === 'true'}
             onCheckedChange={(checked) => persistFields({ upperExpr: checked ? 'true' : '' })}
-            aria-label="HEX 大写输出"
+            aria-label='HEX 大写输出'
           />
         </label>
       </div>
@@ -254,24 +254,24 @@ const CryptoRow: React.FC<CryptoRowProps> = ({ index, expr, selected, result, on
       onClick={onSelect}
     >
       <div className={css.listRowHeader}>
-        <span className="text-xs font-medium">摘要 {index + 1}</span>
+        <span className='text-xs font-medium'>摘要 {index + 1}</span>
         <div className={css.listRowActions}>
           {result && (
             <Hint label={result}>
-              <Badge variant="success" size="xs" radius="full" className="max-w-20 truncate font-mono">
+              <Badge variant='success' size='xs' radius='full' className='max-w-20 truncate font-mono'>
                 {result.length > 8 ? `${result.slice(0, 8)}…` : result}
               </Badge>
             </Hint>
           )}
-          <Badge variant={mode === 'hmac' ? 'info' : 'secondary'} size="xs" radius="full">
+          <Badge variant={mode === 'hmac' ? 'info' : 'secondary'} size='xs' radius='full'>
             {MODE_LABELS[mode]}
           </Badge>
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            aria-label="删除摘要"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
+            aria-label='删除摘要'
             onClick={(event) => {
               event.stopPropagation();
               onRemove();
@@ -354,10 +354,10 @@ export const CryptoTab: React.FC<{ id: string }> = ({ id }) => {
         </div>
         <div className={css.listAdd}>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 w-full border-dashed text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 w-full border-dashed text-xs'
             onClick={addDigest}
           >
             <PlusCircleIcon />
@@ -368,7 +368,7 @@ export const CryptoTab: React.FC<{ id: string }> = ({ id }) => {
       <div className={css.tabDetail}>
         {selected ? (
           <div className={css.form}>
-            <span className="text-xs text-muted-foreground">
+            <span className='text-xs text-muted-foreground'>
               摘要 {selectedIndex + 1} · 输出键：{selected.key}
             </span>
             <CryptoInstanceEditor
@@ -382,7 +382,7 @@ export const CryptoTab: React.FC<{ id: string }> = ({ id }) => {
             />
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">尚未配置摘要，点击左侧「添加摘要」。</span>
+          <span className='text-xs text-muted-foreground'>尚未配置摘要，点击左侧「添加摘要」。</span>
         )}
       </div>
     </div>
@@ -416,14 +416,14 @@ const CryptoNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecif
       name={data.name}
       isSelected={selected}
       noBodyPadding
-      className="relative"
+      className='relative'
       actions={[
         <Button
-          key="edit-crypto"
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2.5 text-xs"
+          key='edit-crypto'
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2.5 text-xs'
           onClick={() => graphActions.openTab(id)}
         >
           编辑
@@ -432,7 +432,7 @@ const CryptoNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecif
     >
       {config?.config?.locked && <LockedCornerBadge />}
       <div className={css.summary}>
-        <Badge variant="outline" className="font-mono text-[11px] opacity-75">
+        <Badge variant='outline' className='font-mono text-[11px] opacity-75'>
           {KIND}
         </Badge>
         <div className={css.rows}>
@@ -450,11 +450,11 @@ const CryptoNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecif
                 <span className={css.rowKey}>摘要 {index + 1}</span>
                 <span className={css.rowValue}>{ALGORITHM_LABELS[algorithm]}</span>
                 {typeof result === 'string' && (
-                  <Badge variant="success" size="xs" radius="full" className="max-w-16 truncate font-mono">
+                  <Badge variant='success' size='xs' radius='full' className='max-w-16 truncate font-mono'>
                     {result.length > 6 ? `${result.slice(0, 6)}…` : result}
                   </Badge>
                 )}
-                <Badge variant={mode === 'hmac' ? 'info' : 'secondary'} size="xs" radius="full">
+                <Badge variant={mode === 'hmac' ? 'info' : 'secondary'} size='xs' radius='full'>
                   {MODE_LABELS[mode]}
                 </Badge>
               </div>
@@ -462,8 +462,8 @@ const CryptoNode: React.FC<MinimalNodeProps & { specification: MinimalNodeSpecif
           })}
         </div>
         <div className={css.returns}>
-          <span className="text-xs text-muted-foreground">摘要数量</span>
-          <span className="text-xs">{expressions.length}</span>
+          <span className='text-xs text-muted-foreground'>摘要数量</span>
+          <span className='text-xs'>{expressions.length}</span>
         </div>
       </div>
     </GraphNode>
@@ -475,7 +475,7 @@ export const cryptoNode = createSpecNode({
   displayName: '摘要签名',
   group: 'crypto',
   shortDescription: '计算字符串 MD5/SHA 摘要或 HMAC 签名，支持多个并行摘要实例',
-  icon: <FingerprintIcon className="size-4" />,
+  icon: <FingerprintIcon className='size-4' />,
   generateNode: ({ index }) => ({
     name: `${KIND}${index}`,
     config: {

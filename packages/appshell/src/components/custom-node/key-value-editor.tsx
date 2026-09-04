@@ -2,19 +2,19 @@ import { CodeEditor } from '@republicroad/jdm-editor';
 import { CodeIcon, Rows3Icon } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { parseObjectLiteralRows, serializeObjectLiteralRows, type KeyValueRow } from '../../lib/http-request-protocol';
+import { type KeyValueRow, parseObjectLiteralRows, serializeObjectLiteralRows } from '../../lib/http-request-protocol';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import css from './custom-node.module.css';
 
 export const Hint: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => (
   <TooltipProvider delayDuration={200}>
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent className="max-w-72 break-all text-xs">{label}</TooltipContent>
+      <TooltipContent className='max-w-72 break-all text-xs'>{label}</TooltipContent>
     </Tooltip>
   </TooltipProvider>
 );
@@ -88,13 +88,13 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
   return (
     <div className={css.form}>
       <div className={css.httpHeaderLine}>
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className='text-xs text-muted-foreground'>{label}</span>
         <Hint label={mode === 'structured' ? '原始表达式模式' : '结构化模式'}>
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-6 w-6 p-0'
             aria-label={mode === 'structured' ? '原始表达式模式' : '结构化模式'}
             onClick={toggleMode}
           >
@@ -108,8 +108,8 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
             {rows.map((row, index) => (
               <div className={css.httpKeyValueRow} key={index}>
                 <Input
-                  className="h-7 px-2 text-xs"
-                  placeholder="名称"
+                  className='h-7 px-2 text-xs'
+                  placeholder='名称'
                   value={row.key}
                   onChange={(event) => {
                     const next = [...rows];
@@ -128,10 +128,10 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
                   maxRows={1}
                 />
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  className='h-6 w-6 p-0'
                   aria-label={deleteLabel}
                   onClick={() => writeRows(rows.filter((_, rowIndex) => rowIndex !== index))}
                 >
@@ -141,10 +141,10 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
             ))}
           </div>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 border-dashed text-xs"
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-7 border-dashed text-xs'
             onClick={() => writeRows([...rows, { key: '', valueExpr: '' }])}
           >
             <PlusCircleIcon />
@@ -162,7 +162,7 @@ export const KeyValueEditor: React.FC<KeyValueEditorProps> = ({
           maxRows={3}
         />
       )}
-      {hint && <p className="text-xs text-destructive">{hint}</p>}
+      {hint && <p className='text-xs text-destructive'>{hint}</p>}
     </div>
   );
 };

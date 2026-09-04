@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { GraphPersistenceError, type GraphPersistenceAdapter, type GraphRecordMeta } from './persistence';
+import { type GraphPersistenceAdapter, GraphPersistenceError, type GraphRecordMeta } from './persistence';
 
 interface HttpGraphMeta {
   id: string;

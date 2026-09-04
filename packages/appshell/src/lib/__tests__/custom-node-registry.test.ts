@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 
 import fallbackSchema from '../../assets/custom-node-schema.json';
+import { EMPTY_EXPRESSIONS_CONFIG, LEGACY_UDF_KIND, legacyUdfPlan, schemaToNodePlans } from '../custom-node-plans';
 import { fetchCustomNodeSchema, parseCustomNodeSchemaPayload } from '../custom-node-schema-source';
 import type { CustomNodeNamespace } from '../custom-node-types';
-import { EMPTY_EXPRESSIONS_CONFIG, LEGACY_UDF_KIND, legacyUdfPlan, schemaToNodePlans } from '../custom-node-plans';
 
 const FALLBACK_SCHEMA = fallbackSchema as CustomNodeNamespace[];
 
