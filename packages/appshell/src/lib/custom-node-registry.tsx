@@ -6,7 +6,6 @@ import FlashCircleIcon from '../components/icons/flash-circle';
 import { type CustomNodePlan, legacyUdfPlan, schemaToNodePlans } from './custom-node-plans';
 import type { CustomNodeNamespace } from './custom-node-types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- 与 jdm-editor 内部 customNodes 类型约定一致
 export type CustomNodeSpec = CustomNodeSpecification<object, any>;
 
 type SpecExtras = Pick<CustomNodeSpec, 'renderTab' | 'calculateDiff' | 'inferTypes'>;

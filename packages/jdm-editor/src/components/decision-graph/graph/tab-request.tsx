@@ -19,10 +19,10 @@ import { useDecisionGraphActions, useDecisionGraphState } from '../context/dg-st
 import { RequestDefinitions } from './request-definitions';
 import { RequestExamples } from './request-examples';
 import { RequestSchemaEditor } from './request-schema-editor';
+import { useRequestSessionDraftSerializer } from './request-session-draft';
 import { useRequestDefinitionsEditing } from './use-request-definitions-editing';
 import { useRequestExamplesEditing } from './use-request-examples-editing';
 import { useRequestSchemaEditing } from './use-request-schema-editing';
-import { useRequestSessionDraftSerializer } from './request-session-draft';
 
 export type TabRequestProps = {
   id: string;

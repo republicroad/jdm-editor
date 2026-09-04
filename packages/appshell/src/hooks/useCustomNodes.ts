@@ -17,7 +17,6 @@ import {
 import type { CustomNodeNamespace } from '../lib/custom-node-types';
 import { applyNodeOverrides } from '../skin/apply';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- 与 jdm-editor 内部 customNodes 类型约定一致
 type CustomNodeSpec = CustomNodeSpecification<object, any>;
 
 // 宿主以专用节点接管的函数名（函数名全局唯一）：从 schema 驱动结果中排除，避免侧边栏重复

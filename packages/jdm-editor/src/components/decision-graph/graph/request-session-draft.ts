@@ -20,9 +20,7 @@ export type RequestSessionSnapshotInput = {
   activeDescriptionDraft?: string;
 };
 
-export function buildRequestSessionDraft(
-  input: RequestSessionSnapshotInput,
-): RequestSessionDraft {
+export function buildRequestSessionDraft(input: RequestSessionSnapshotInput): RequestSessionDraft {
   const draft: RequestSessionDraft = { activeTab: input.activeTab };
   if (input.schemaDraft !== undefined) draft.schemaDraft = input.schemaDraft;
   if (input.activeSourceIndex !== undefined) draft.activeSourceIndex = input.activeSourceIndex;
@@ -61,12 +59,8 @@ export function useRequestSessionDraftSerializer(
   snapshot: RequestSessionSnapshotInput,
   appliers: RequestSessionDraftAppliers,
 ): void {
-  useTabSerializer<RequestSessionDraft>(
-    tabId,
-    'request',
-    {
-      serialize: () => buildRequestSessionDraft(snapshot),
-      restore: (draft) => applyRequestSessionDraft(draft, appliers),
-    },
-  );
+  useTabSerializer<RequestSessionDraft>(tabId, 'request', {
+    serialize: () => buildRequestSessionDraft(snapshot),
+    restore: (draft) => applyRequestSessionDraft(draft, appliers),
+  });
 }

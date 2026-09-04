@@ -31,7 +31,6 @@ type ThemeContextState = {
   activeSkin?: SkinDefinition;
 };
 
-// eslint-disable-next-line
 export const ThemeContext = createContext<ThemeContextState>({} as any);
 
 export const ThemeContextProvider: React.FC<{ children: React.ReactNode; options?: ThemeProviderOptions }> = ({

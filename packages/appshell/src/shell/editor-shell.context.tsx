@@ -9,7 +9,6 @@ import { createDefaultSimulate } from './default-simulate';
 import type { GraphPersistenceAdapter } from './persistence';
 import type { EditorShellOptions, SimulateHandler } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- 与 jdm-editor 内部 customNodes 类型约定一致
 type CustomNodeSpec = CustomNodeSpecification<object, any>;
 
 export interface EditorShellContextValue {
