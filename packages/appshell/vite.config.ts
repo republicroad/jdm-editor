@@ -8,7 +8,10 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       outDir: 'dist',
-      include: ['src'],
+      // kernel 的 ambient 模块声明（@gorules/lezer-zen 等）必须进 dts 程序，
+      // 否则跨包解析 kernel src 时 TS7016（appshell tsconfig 的 include 被
+      // 此处覆盖）。
+      include: ['src', '../jdm-editor/src/types/*.d.ts'],
       // 多文件声明（镜像 src 结构）。不用 bundleTypes/api-extractor：
       // 它会分析 import 闭包（含内核源码），对复杂 TS 构造有崩溃史且受
       // api-extractor 内置 TS 版本拖累——发布契约由 npm-smoke 聚合断言守护。
