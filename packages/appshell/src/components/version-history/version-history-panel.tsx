@@ -2,13 +2,7 @@ import * as React from 'react';
 
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '../ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
 
 export type VersionHistoryEntry = {
   revision: string;
@@ -40,7 +34,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
 }) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-4 sm:max-w-md">
+      <SheetContent side='right' className='flex w-full flex-col gap-4 sm:max-w-md'>
         <SheetHeader>
           <SheetTitle>Version history</SheetTitle>
           <SheetDescription>
@@ -49,39 +43,39 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               : 'No versions yet. Each save creates one.'}
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="-mx-2 min-h-0 flex-1 px-2">
+        <ScrollArea className='-mx-2 min-h-0 flex-1 px-2'>
           {loading ? (
-            <div className="px-2 py-6 text-center text-sm text-muted-foreground">Loading…</div>
+            <div className='px-2 py-6 text-center text-sm text-muted-foreground'>Loading…</div>
           ) : versions.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            <div className='rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground'>
               Save this graph to create its first version.
             </div>
           ) : (
-            <ul className="flex flex-col gap-2 py-1">
+            <ul className='flex flex-col gap-2 py-1'>
               {versions.map((entry) => {
                 const isCurrent = currentRevision === entry.revision;
                 return (
                   <li
                     key={entry.revision}
-                    className="flex items-center justify-between gap-3 rounded-lg border bg-card/50 px-3 py-2.5"
+                    className='flex items-center justify-between gap-3 rounded-lg border bg-card/50 px-3 py-2.5'
                   >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-medium">{entry.revision}</span>
+                    <div className='min-w-0'>
+                      <div className='flex items-center gap-2'>
+                        <span className='font-mono text-sm font-medium'>{entry.revision}</span>
                         {isCurrent && (
-                          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+                          <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
                             current
                           </span>
                         )}
                       </div>
                       {entry.updatedAt && (
-                        <div className="truncate text-xs text-muted-foreground">{entry.updatedAt}</div>
+                        <div className='truncate text-xs text-muted-foreground'>{entry.updatedAt}</div>
                       )}
                     </div>
                     <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
+                      type='button'
+                      variant='outline'
+                      size='sm'
                       disabled={isCurrent}
                       onClick={() => onRestore(entry.revision)}
                     >
