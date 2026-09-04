@@ -30,3 +30,8 @@ export { TemplateTab, templateNode } from './components/custom-node/template-nod
 export { CurrentDateTab, currentDateNode } from './components/custom-node/current-date-node';
 export { KeyValueEditor } from './components/custom-node/key-value-editor';
 export { LockedCornerBadge } from './components/custom-node/locked-corner-badge';
+export {
+  VersionHistoryPanel,
+  type VersionHistoryPanelProps,
+  type VersionHistoryEntry,
+} from './components/version-history/version-history-panel';

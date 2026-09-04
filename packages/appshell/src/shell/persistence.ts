@@ -1,3 +1,5 @@
+import type { TabSnapshot } from '@republicroad/jdm-editor';
+
 export interface GraphRecordMeta {
   /** 宿主侧唯一标识(UUID/slug，由宿主生成) */
   id: string;
@@ -17,6 +19,11 @@ export interface GraphRecordMeta {
 export interface GraphRecord extends GraphRecordMeta {
   /** DecisionGraphType(nodes/edges/meta)，由消费方解包 */
   content: unknown;
+  /**
+   * UI 会话现场（GraphRef.serialize() 的快照：viewport/打开页签/各页签 slice）。
+   * 与 content 兄弟存储——历史条目=完整现场快照（1a+4b）；缺省=旧记录降级（跳过 restore）。
+   */
+  session?: TabSnapshot;
 }
 
 export type PersistenceErrorCode = 'NOT_FOUND' | 'CONFLICT' | 'FORBIDDEN';
