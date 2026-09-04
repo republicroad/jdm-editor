@@ -1,12 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import {
-  applyRequestSessionDraft,
-  buildRequestSessionDraft,
-  type RequestSessionDraft,
-} from '../request-session-draft';
-
-const committed = { activeTab: 'definitions', schemaDraft: undefined };
+import { type RequestSessionDraft, applyRequestSessionDraft, buildRequestSessionDraft } from '../request-session-draft';
 
 describe('request-session-draft', () => {
   test('build 只携带已定义字段（undefined 字段不进快照）', () => {
