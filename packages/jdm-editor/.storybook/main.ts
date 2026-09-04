@@ -1,9 +1,20 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
 
+// addon-mcp talks to a local MCP server (127.0.0.1:<ephemeral>) — dev-only:
+// bundling it into the static Pages site made every visitor's browser probe
+// their own localhost and blocked story readiness. NODE_ENV is unreliable at
+// config-eval time, so detect the build command from argv instead.
+const isStorybookBuild = process.argv.includes('build') || process.env.NODE_ENV === 'production';
+
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
-  addons: ['@storybook/addon-links', 'storybook-dark-mode', '@storybook/addon-docs', '@storybook/addon-mcp'],
+  addons: [
+    '@storybook/addon-links',
+    'storybook-dark-mode',
+    '@storybook/addon-docs',
+    ...(isStorybookBuild ? [] : ['@storybook/addon-mcp']),
+  ],
   // Relative mount target: works under the Pages project sub-path (an
   // absolute '/zen-engine-wasm' 404s there). Expression evaluation degrades
   // gracefully when the wasm is unreachable, but serving it keeps the

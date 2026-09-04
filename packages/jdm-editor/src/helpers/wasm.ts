@@ -26,7 +26,13 @@ export const ensureWasmLoaded = (): Promise<void> => {
   }
 
   if (!wasmInitPromise) {
-    wasmInitPromise = initWasm()
+    // Explicit relative URL: resolves against document.baseURI so it works in
+    // the dev server (root) and the Pages project sub-path. The glue's
+    // import.meta.url default resolves to a build-asset URL that 404s on the
+    // static site, and the staticDirs convention uses an absolute path that
+    // 404s under https://republicroad.github.io/jdm-editor/.
+    const wasmUrl = new URL('zen-engine-wasm/zen_engine_wasm_bg.wasm', document.baseURI).href;
+    wasmInitPromise = initWasm({ module_or_path: wasmUrl })
       .then(() => {
         wasmAvailable = true;
         wasmListeners.forEach((fn) => fn());
