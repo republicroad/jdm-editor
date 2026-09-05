@@ -62,5 +62,5 @@ export interface GraphPersistenceAdapter {
   delete?(id: string): Promise<boolean>;
 
   /** 列出指定图的所有历史版本(可选；未实现则 shell 不展示版本历史面板) */
-  listVersions?(id: string): Promise<Array<{ revision: string; updatedAt?: string; auto?: boolean }>>;
+  listVersions?(id: string): Promise<Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>>;
 }

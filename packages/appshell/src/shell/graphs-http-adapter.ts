@@ -91,7 +91,7 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
     },
 
     async listVersions(id) {
-      const { data } = await axios.get<Array<{ revision: string; updatedAt?: string; auto?: boolean }>>(
+      const { data } = await axios.get<Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>>(
         `${baseUrl}/${encodeURIComponent(id)}/versions`,
       );
       return data;

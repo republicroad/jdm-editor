@@ -18,7 +18,7 @@ const newId = (): string => `g-${++seq}`;
 describe('createIndexedDbAdapter', () => {
   test('新建保存：head v1，无归档', async () => {
     const id = newId();
-    const saved = await adapter.save({ id, name: 'n', content: graph('n'), auto: true });
+    const saved = await adapter.save({ id, name: 'n', content: graph('n'), auto: true, revision: '' });
     expect(saved).toEqual({ id, revision: 'v1' });
 
     const loaded = await adapter.load(id);
@@ -29,8 +29,8 @@ describe('createIndexedDbAdapter', () => {
 
   test('更新保存：head 递增 + 旧 head 转版本归档', async () => {
     const id = newId();
-    await adapter.save({ id, name: 'n', content: graph('a') });
-    const second = await adapter.save({ id, name: 'n2', content: graph('b') });
+    await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
+    const second = await adapter.save({ id, name: 'n2', content: graph('b'), revision: '' });
     expect(second.revision).toBe('v2');
 
     const head = await adapter.load(id);
@@ -48,13 +48,13 @@ describe('createIndexedDbAdapter', () => {
 
   test('load 指定不存在的 revision 返回 null', async () => {
     const id = newId();
-    await adapter.save({ id, name: 'n', content: graph('x') });
+    await adapter.save({ id, name: 'n', content: graph('x'), revision: '' });
     expect(await adapter.load(id, { revision: 'v99' })).toBeNull();
   });
 
   test('保留策略：auto 超过 20 条删最旧，manual 全保留', async () => {
     const id = newId();
-    await adapter.save({ id, name: 'manual-seed', content: graph('seed') }); // v1 manual
+    await adapter.save({ id, name: 'manual-seed', content: graph('seed'), revision: '' }); // v1 manual
     for (let i = 2; i <= 23; i++) {
       await adapter.save({ id, name: `a${i}`, content: graph(`a${i}`), auto: true }); // v2..v23 auto
     }
@@ -71,7 +71,7 @@ describe('createIndexedDbAdapter', () => {
 
   test('delete 删除 head 与全部版本归档', async () => {
     const id = newId();
-    await adapter.save({ id, name: 'n', content: graph('x') });
+    await adapter.save({ id, name: 'n', content: graph('x'), revision: '' });
     await adapter.save({ id, name: 'n2', content: graph('y') });
     expect(await adapter.delete(id)).toBe(true);
     expect(await adapter.load(id)).toBeNull();
@@ -82,8 +82,8 @@ describe('createIndexedDbAdapter', () => {
   test('list 列出全部 head 元数据（按 updatedAt 倒序）', async () => {
     const a = newId();
     const b = newId();
-    await adapter.save({ id: a, name: 'a', content: graph('a') });
-    await adapter.save({ id: b, name: 'b', content: graph('b') });
+    await adapter.save({ id: a, name: 'a', content: graph('a'), revision: '' });
+    await adapter.save({ id: b, name: 'b', content: graph('b'), revision: '' });
     const list = await adapter.list();
     expect(list.map((g) => g.id)).toContain(a);
     expect(list.map((g) => g.id)).toContain(b);
