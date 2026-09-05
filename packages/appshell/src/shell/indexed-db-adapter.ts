@@ -1,4 +1,4 @@
-import type { GraphPersistenceAdapter, GraphRecord } from './persistence';
+import type { GraphPersistenceAdapter } from './persistence';
 
 /**
  * 本地图多版本持久化适配器（IndexedDB）。
@@ -94,18 +94,6 @@ async function listByPrefix(prefix: string): Promise<Array<{ key: string; entry:
 }
 
 const bump = (revision: string): string => `v${Number(revision.slice(1)) + 1}`;
-
-/** 保留策略：全部 manual 保留 + 最近 AUTO_VERSIONS_KEEP 条 auto，超限删最旧 */
-async function pruneAutoVersions(id: string): Promise<void> {
-  const archives = await listByPrefix(`${VER_PREFIX}${id}::`);
-  const autos = archives
-    .filter((a) => a.entry.meta.auto)
-    .sort((a, b) => Number(a.entry.meta.revision.slice(1)) - Number(b.entry.meta.revision.slice(1)));
-  const excess = autos.length - AUTO_VERSIONS_KEEP;
-  for (let i = 0; i < excess; i++) {
-    await deleteKey(autos[i].key);
-  }
-}
 
 /** 本地图多版本持久化适配器（IndexedDB）——无后端宿主的完整版本能力 */
 export function createIndexedDbAdapter(): GraphPersistenceAdapter {

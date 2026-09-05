@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import { createIndexedDbAdapter } from '../indexed-db-adapter';
 
@@ -24,7 +24,7 @@ describe('createIndexedDbAdapter', () => {
     const loaded = await adapter.load(id);
     expect(loaded?.revision).toBe('v1');
     expect(loaded?.content).toEqual(graph('n'));
-    expect(await adapter.listVersions(id)).toEqual([]);
+    expect(await adapter.listVersions!(id)).toEqual([]);
   });
 
   test('更新保存：head 递增 + 旧 head 转版本归档', async () => {
@@ -36,7 +36,7 @@ describe('createIndexedDbAdapter', () => {
     const head = await adapter.load(id);
     expect(head?.content).toEqual(graph('b'));
 
-    const versions = await adapter.listVersions(id);
+    const versions = await adapter.listVersions!(id);
     expect(versions.map((v) => v.revision)).toEqual(['v1']);
     const old = await adapter.load(id, { revision: 'v1' });
     expect(old?.content).toEqual(graph('a'));
@@ -56,15 +56,15 @@ describe('createIndexedDbAdapter', () => {
     const id = newId();
     await adapter.save({ id, name: 'manual-seed', content: graph('seed'), revision: '' }); // v1 manual
     for (let i = 2; i <= 23; i++) {
-      await adapter.save({ id, name: `a${i}`, content: graph(`a${i}`), auto: true }); // v2..v23 auto
+      await adapter.save({ id, name: `a${i}`, content: graph(`a${i}`), auto: true, revision: '' }); // v2..v23 auto
     }
 
-    const versions = await adapter.listVersions(id);
+    const versions = await adapter.listVersions!(id);
     const autos = versions.filter((v) => v.auto);
     expect(autos).toHaveLength(20); // 保留最近 20 条 auto
     expect(autos.some((v) => v.revision === 'v2')).toBe(false); // 最旧 auto 被治理
     expect(autos.some((v) => v.revision === 'v3')).toBe(true);
-    expect(autos.some((v) => v.revision === 'v23')).toBe(true);
+    expect(autos.some((v) => v.revision === 'v22')).toBe(true);
     const manual = versions.filter((v) => !v.auto);
     expect(manual.map((v) => v.revision)).toEqual(['v1']); // manual 保留
   });
@@ -72,11 +72,11 @@ describe('createIndexedDbAdapter', () => {
   test('delete 删除 head 与全部版本归档', async () => {
     const id = newId();
     await adapter.save({ id, name: 'n', content: graph('x'), revision: '' });
-    await adapter.save({ id, name: 'n2', content: graph('y') });
-    expect(await adapter.delete(id)).toBe(true);
+    await adapter.save({ id, name: 'n2', content: graph('y'), revision: '' });
+    expect(await adapter.delete!(id)).toBe(true);
     expect(await adapter.load(id)).toBeNull();
-    expect(await adapter.listVersions(id)).toEqual([]);
-    expect(await adapter.delete(id)).toBe(false);
+    expect(await adapter.listVersions!(id)).toEqual([]);
+    expect(await adapter.delete!(id)).toBe(false);
   });
 
   test('list 列出全部 head 元数据（按 updatedAt 倒序）', async () => {
@@ -84,7 +84,7 @@ describe('createIndexedDbAdapter', () => {
     const b = newId();
     await adapter.save({ id: a, name: 'a', content: graph('a'), revision: '' });
     await adapter.save({ id: b, name: 'b', content: graph('b'), revision: '' });
-    const list = await adapter.list();
+    const list = await adapter.list!();
     expect(list.map((g) => g.id)).toContain(a);
     expect(list.map((g) => g.id)).toContain(b);
   });
