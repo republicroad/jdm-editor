@@ -20,7 +20,9 @@
     "size": "node scripts/bundle-size.mjs",
     "test:consumer": "node scripts/consumer-smoke.mjs",
     "test:npm-smoke": "node scripts/npm-smoke.mjs",
-    "test:probes": "node scripts/run-probes.mjs"
+    "test:probes": "node scripts/run-probes.mjs",
+    "docs:dev": "rspress dev docs",
+    "docs:build": "rspress build docs"
   },
   "engines": {
     "pnpm": "~10"
@@ -48,7 +50,9 @@
     "npm-run-all": "^4.1.5",
     "playwright": "1.62.1",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@rspress/core": "^2.0.21",
+    "@republicroad/jdm-editor": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

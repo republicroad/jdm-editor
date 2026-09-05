@@ -1,4 +1,4 @@
-name: Deploy Storybook to Pages
+name: Deploy Storybook + Docs to Pages
 
 on:
   push:
@@ -9,6 +9,9 @@ on:
       - 'packages/jdm-editor/.storybook/**'
       - 'packages/jdm-editor/vite.config.ts'
       - 'packages/jdm-editor/package.json'
+      - 'packages/appshell/src/**'
+      - 'docs/**'
+      - '.rspress/config.ts'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-docs.yaml'
   workflow_dispatch:
@@ -39,15 +42,25 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build kernel dist
+        run: pnpm --filter @republicroad/jdm-editor build
       - name: Build Storybook
         run: pnpm --filter @republicroad/jdm-editor build:storybook
-      - name: Disable Jekyll (allow underscored asset dirs)
-        run: touch packages/jdm-editor/docs/.nojekyll
+      - name: Build Rspress docs
+        run: pnpm exec rspress build
+      - name: Merge artifacts (Storybook root + Rspress docs/)
+        run: |
+          SITE=$(mktemp -d)
+          cp -r packages/jdm-editor/docs/* "$SITE/"
+          mkdir -p "$SITE/docs"
+          cp -r doc-out/* "$SITE/docs/"
+          touch "$SITE/.nojekyll"
+          echo "SITE=$SITE" >> "$GITHUB_ENV"
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: packages/jdm-editor/docs
+          path: ${{ env.SITE }}
       - id: deployment
         uses: actions/deploy-pages@v4

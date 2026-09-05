@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 const isStorybookBuild = process.argv.includes('build') || process.env.NODE_ENV === 'production';
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.stories.tsx'],
+  stories: ['../src/**/*.stories.tsx', '../../appshell/src/**/*.stories.tsx'],
   addons: [
     '@storybook/addon-links',
     'storybook-dark-mode',

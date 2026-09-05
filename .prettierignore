@@ -8,3 +8,4 @@ pnpm-lock.yaml
 # Lezer auto generated packages
 packages/lezer-zen/src
 packages/lezer-zen-template/src
+doc-out/

@@ -23,6 +23,7 @@ export default defineConfig([
     '**/dist/',
     '**/node_modules/',
     '**/docs/',
+    '**/doc-out/',
     'packages/jdm-editor/src/components/function/helpers/**.{d.ts,js}',
     '.prettierrc.cjs',
   ]),

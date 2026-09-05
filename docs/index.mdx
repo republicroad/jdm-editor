@@ -1,0 +1,38 @@
+---
+title: JDM Editor
+---
+
+import { createElement, lazy, Suspense } from 'react';
+import { BrowserOnly } from '@rspress/core/runtime';
+
+# JDM Editor — @republicroad/jdm-editor
+
+React components for authoring JDM (JSON Decision Model) documents:
+decision graph, decision tables, expressions, functions and a simulator —
+themed end-to-end with shadcn/ReUI + Tailwind.
+
+## Live demo
+
+The real editor, embedded in this documentation page:
+
+<BrowserOnly>
+  {() =>
+    createElement(
+      Suspense,
+      { fallback: createElement('div', { style: { padding: 24 } }, 'loading editor…') },
+      createElement(lazy(() => import('../docs-components/live-demo'))),
+    )
+  }
+</BrowserOnly>
+
+> The graph above is fully interactive — drag nodes, open the Request node,
+> edit tables. Your host app embeds it exactly the same way.
+
+## Documentation map
+
+- Architecture — repo & package internals
+- Theming — seeds, dark mode, islands
+- i18n — EN / zh-CN catalogs
+- Migration — upstream → fork records
+
+Full docs source: `docs/` in the repository.

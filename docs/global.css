@@ -1,0 +1,3 @@
+/* Global styles for the docs site: pulls in the kernel's theme CSS so live
+   embedded components (DecisionGraph, …) render with the full design system. */
+@import '../packages/jdm-editor/dist/style.css';

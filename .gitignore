@@ -16,3 +16,9 @@ packages/jdm-editor/docs
 .env*.local
 
 docs/bundle-stats.json
+
+doc-out/
+
+docs-site-debug.png
+
+dev-docs-debug.png
