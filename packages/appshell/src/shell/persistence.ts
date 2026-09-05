@@ -12,6 +12,8 @@ export interface GraphRecordMeta {
   extensions?: Record<string, unknown>;
   /** 当前 head 版本号(宿主生成，单调递增) */
   revision: string;
+  /** 自动保存条目（与手动保存区分显示/治理策略），缺省 = 手动 */
+  auto?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -60,5 +62,5 @@ export interface GraphPersistenceAdapter {
   delete?(id: string): Promise<boolean>;
 
   /** 列出指定图的所有历史版本(可选；未实现则 shell 不展示版本历史面板) */
-  listVersions?(id: string): Promise<Array<{ revision: string; updatedAt?: string }>>;
+  listVersions?(id: string): Promise<Array<{ revision: string; updatedAt?: string; auto?: boolean }>>;
 }

@@ -10,6 +10,7 @@ interface HttpGraphMeta {
   tags?: string[];
   extensions?: Record<string, unknown>;
   revision: string;
+  auto?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -32,6 +33,7 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
     tags: m.tags,
     extensions: m.extensions,
     revision: m.revision,
+    auto: m.auto,
     createdAt: m.createdAt,
     updatedAt: m.updatedAt,
   });
@@ -89,7 +91,7 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
     },
 
     async listVersions(id) {
-      const { data } = await axios.get<Array<{ revision: string; updatedAt?: string }>>(
+      const { data } = await axios.get<Array<{ revision: string; updatedAt?: string; auto?: boolean }>>(
         `${baseUrl}/${encodeURIComponent(id)}/versions`,
       );
       return data;

@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 export type VersionHistoryEntry = {
   revision: string;
   updatedAt?: string;
+  auto?: boolean;
 };
 
 export interface VersionHistoryPanelProps {
@@ -62,6 +63,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                     <div className='min-w-0'>
                       <div className='flex items-center gap-2'>
                         <span className='font-mono text-sm font-medium'>{entry.revision}</span>
+                        {entry.auto && (
+                          <span className='rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                            auto
+                          </span>
+                        )}
                         {isCurrent && (
                           <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
                             current
