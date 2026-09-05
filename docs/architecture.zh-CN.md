@@ -2,7 +2,7 @@
 
 > 中文对照版,英文原版:[`architecture.md`](./architecture.md)。
 >
-> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入,本仓库仅保留 `packages/jdm-editor`。
+> 本文档描述分叉调整后的仓库形态:支撑包改为从 npm 引入,本仓库仅保留 本仓库包含两个 workspace 包:`packages/jdm-editor`(kernel)与`packages/appshell`(shell)。(见 docs/appshell.zh-CN.md)
 
 ## 1. 总览
 
@@ -198,3 +198,9 @@ GitHub 工作流(`.github/workflows/`):
 3. 旧 `@/*` 路径别名已**移除**(`@/` 导入被 lint 阻断);vite/storybook 原生解析 `#`(vite ≥ 5.1),vitest 经 alias 块解析。
 
 迁移于 `246a0586`(81 文件)。
+
+方案 D 的消费者已实化为第二个 workspace 包:
+[`@republicroad/jdm-appshell`](../packages/appshell/README.md) —— 自定义节点
+托管(六节点 + 组合 Hook)、皮肤覆盖、`GraphPersistenceAdapter` 持久化契约
+及其 HTTP 实现,以及壳侧 UI 套件。完整职责域与宿主接线见
+[`docs/appshell.zh-CN.md`](./appshell.zh-CN.md)。

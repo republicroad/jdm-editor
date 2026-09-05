@@ -68,6 +68,10 @@ schema 示例(`use-request-example-persistence`)。节点执行轨迹列表位�
 与 **Schema**(原始 JSON Schema 编辑器,支持格式化与 JSON→Schema 转换)。配套助手位于
 `helpers/request-schema/*`(规范化、示例/定义合并、冲突检测)与 `helpers/json-path-extractor.ts`。
 
+自定义节点生态本体以独立 workspace 包交付:
+[`@republicroad/jdm-appshell`](../packages/appshell/README.md) —— 方案 D 的参考
+消费者壳(节点托管、皮肤覆盖、持久化契约、用户解析)。
+
 ### 1.4b 自定义函数表格(`custom-function-table/`、`graph/tab-custom-function-table.tsx`)
 
 基于 `createJdmNode` 构建自定义节点的宿主可提供 `renderTab` 并使用 `CustomFunctionTable`

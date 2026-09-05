@@ -43,6 +43,8 @@
 | [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
 | [`host-migration-guide.md`](./host-migration-guide.md) | EN | Host migration guide: @gorules → @republicroad quick switch, breaking changes, --grl-* contract, 0.2.x additions (new exports, DecisionGraph props, custom node authoring, i18n increments), 0.3.0 heads-up |
 | [`host-migration-guide.zh-CN.md`](./host-migration-guide.zh-CN.md) | 中文 | 宿主迁移指南(中文对照):快速切换、破坏性变更、--grl-* 契约、0.2.x 新增(导出、DecisionGraph 属性、自定义节点开发、i18n 增量)、0.3.0 预告 |
+| [`appshell.md`](./appshell.md) | EN | @republicroad/jdm-appshell — the scheme D reference consumer shell: custom node hosting (six nodes), registry and protocols, skin system, GraphPersistenceAdapter persistence contract, host wiring |
+| [`appshell.zh-CN.md`](./appshell.zh-CN.md) | 中文 | appshell 参考消费者壳(中文对照):自定义节点托管(六节点)、registry 与协议、皮肤系统、持久化契约、宿主接线 |
 | [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) | EN | 0.3.0 draft roadmap: monaco peer move (staged), trigger-gated majors (pooled flag, L2 sweep, --grl-* deprecation), new candidates (code splitting, drag keyboard support) |
 | [`roadmap-0.3.0.zh-CN.md`](./roadmap-0.3.0.zh-CN.md) | 中文 | 0.3.0 路线草案(中文对照):monaco peer 化(已就位)、触发门控 major 项(池化开关、L2 清扫、--grl-* 废弃)、新候选(代码分割、拖拽键盘支持) |
 

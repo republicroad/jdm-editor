@@ -3,7 +3,8 @@
 > English is canonical. Chinese version: [`architecture.zh-CN.md`](./architecture.zh-CN.md).
 >
 > This document describes the repository **after** the fork adjustments: support packages are consumed from npm
-> and only `packages/jdm-editor` lives in this repo.
+
+> The repo hosts two workspace packages: `packages/jdm-editor` (kernel) and `packages/appshell` (shell — see `docs/appshell.md`).
 
 ## 1. Overview
 
@@ -207,6 +208,13 @@ Rules:
    vite/storybook resolve `#` natively (vite >= 5.1), vitest via the alias block.
 
 Migrated in `246a0586` (81 files).
+
+The scheme D consumer is realized as a second workspace package:
+[`@republicroad/jdm-appshell`](../packages/appshell/README.md) — custom node
+hosting (six nodes + composition hook), skin overrides, the
+`GraphPersistenceAdapter` persistence contract and its HTTP implementation,
+and the shell UI kit. See [`docs/appshell.md`](./appshell.md) for the full
+responsibility map and host wiring.
 - Host integration: consumers wrap their app in an element with class `grl-root` to opt in to the
   scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
   `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it

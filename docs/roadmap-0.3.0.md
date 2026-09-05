@@ -5,6 +5,12 @@
 
 ## 1. Items ready to ship (code staged, awaiting the release)
 
+> **Landed note (post-0.3.1):** the scheme D kernel/shell split is now
+> realized — the custom node ecosystem (six nodes, registry, protocols,
+> skins, persistence contract, version history) ships as the separate
+> @republicroad/jdm-appshell workspace package (fifth batch + host wiring
+> in the editor repo).
+
 ### 1.1 `monaco-editor` → `peerDependencies`
 
 **Status:** landed on `reui` (`29366e78`) — activates with the 0.3.0 release.
