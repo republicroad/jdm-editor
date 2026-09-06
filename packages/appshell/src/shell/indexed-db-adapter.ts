@@ -162,8 +162,9 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
       // auto 版本保留策略
       const autos = (await listByPrefix(`${VER_PREFIX}${record.id}::`)).filter((a) => a.entry.meta.auto);
       const excess = autos.length - AUTO_VERSIONS_KEEP;
-      const sorted = autos
-        .sort((a, b) => Number(a.entry.meta.revision.slice(1)) - Number(b.entry.meta.revision.slice(1)));
+      const sorted = autos.sort(
+        (a, b) => Number(a.entry.meta.revision.slice(1)) - Number(b.entry.meta.revision.slice(1)),
+      );
       for (let i = 0; i < excess; i++) {
         await deleteKey(sorted[i].key);
       }
