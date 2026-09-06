@@ -24,7 +24,27 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Publish
-        run: pnpm lerna publish from-package --yes
+      # lerna/npm publish leaves pnpm `catalog:` specifiers unrewritten in the
+      # published manifest (0.3.2/0.1.0 shipped with unresolvable deps).
+      # pnpm publish replaces them with the real versions from
+      # pnpm-workspace.yaml. The guard replicates lerna's from-package
+      # semantics: skip versions already present in the registry.
+      - name: Publish unpublished packages
+        shell: bash
+        run: |
+          for pkg in packages/*; do
+            name=$(node -p "require('./$pkg/package.json').name")
+            ver=$(node -p "require('./$pkg/package.json').version")
+            if npm view "$name@$ver" version > /dev/null 2>&1; then
+              echo "[publish] $name@$ver already in registry — skip"
+            else
+              pnpm --filter "$name" publish --access public --no-git-checks
+            fi
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Registry smoke (published artifact shape)
+        run: pnpm test:npm-smoke "$(node -p "require('./packages/jdm-editor/package.json').version")"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
