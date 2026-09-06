@@ -54,6 +54,9 @@ jobs:
           cp -r packages/jdm-editor/docs/* "$SITE/"
           mkdir -p "$SITE/docs"
           cp -r doc-out/* "$SITE/docs/"
+          # wasm for expression evaluation in the docs-site live demo
+          mkdir -p "$SITE/docs/zen-engine-wasm"
+          cp packages/jdm-editor/node_modules/@gorules/zen-engine-wasm/dist/zen_engine_wasm_bg.wasm "$SITE/docs/zen-engine-wasm/"
           touch "$SITE/.nojekyll"
           echo "SITE=$SITE" >> "$GITHUB_ENV"
       - uses: actions/configure-pages@v5

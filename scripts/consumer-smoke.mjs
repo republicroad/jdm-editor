@@ -2,7 +2,7 @@
  * Dual-host consumer smoke for @republicroad/jdm-editor.
  *
  * Proves the published artifact works when consumed the way real hosts do:
- *   pnpm add file:<this repo>/packages/jdm-editor   (+ its dependencies & peers)
+ *   pnpm add <tarball>   (+ its dependencies & peers)
  * built with Vite and rendered under BOTH supported React majors (18 / 19),
  * per the library's peer contract `react >= 18`.
  *
@@ -120,6 +120,14 @@ const workspace = mkdtempSync(path.join(os.tmpdir(), 'jdm-consumer-smoke-'));
 try {
   const browser = await chromium.launch();
 
+  // Pack the kernel into a tarball so `catalog:` specifiers are substituted with
+  // real versions before the consumer sees them (file: + catalog: won't resolve
+  // outside the workspace).
+  const kernelTarball = (() => {
+    const out = run(pnpmInvocation.cmd, [...pnpmInvocation.prefix, 'pack', '--json'], LIB_DIR).toString();
+    return path.join(LIB_DIR, JSON.parse(out)[0].filename);
+  })();
+
   for (const host of HOSTS) {
     const dir = path.join(workspace, host.label);
     mkdirSync(dir, { recursive: true });
@@ -131,7 +139,7 @@ try {
     console.log(`[smoke] ${host.label}: installing react ${host.react} + library…`);
     runPnpm(['add', `react@${host.react}`, `react-dom@${host.react}`], dir);
     runPnpm(['add', '-D', 'vite'], dir);
-    runPnpm(['add', `file:${LIB_DIR}`], dir);
+    runPnpm(['add', kernelTarball], dir);
 
     console.log(`[smoke] ${host.label}: building host app…`);
     runPnpm(['exec', 'vite', 'build'], dir);
