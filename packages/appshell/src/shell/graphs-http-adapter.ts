@@ -1,3 +1,4 @@
+import type { TabSnapshot } from '@republicroad/jdm-editor';
 import axios from 'axios';
 
 import { type GraphPersistenceAdapter, GraphPersistenceError, type GraphRecordMeta } from './persistence';
@@ -17,6 +18,7 @@ interface HttpGraphMeta {
 
 interface HttpGraph extends HttpGraphMeta {
   content: Record<string, unknown>;
+  session?: TabSnapshot;
 }
 
 /**
@@ -49,7 +51,9 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
         const { data } = await axios.get<HttpGraph>(`${baseUrl}/${encodeURIComponent(id)}`, {
           params: opts?.revision ? { revision: opts.revision } : undefined,
         });
-        return { ...toMeta(data), content: data.content };
+        const record = { ...toMeta(data), content: data.content };
+        // 旧记录无 session —— 契约降级语义（宿主跳过 restore）
+        return data.session === undefined ? record : { ...record, session: data.session };
       } catch (e) {
         if (axios.isAxiosError(e) && e.response?.status === 404) return null;
         throw e;

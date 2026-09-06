@@ -83,9 +83,80 @@ describe('createIndexedDbAdapter', () => {
     const a = newId();
     const b = newId();
     await adapter.save({ id: a, name: 'a', content: graph('a'), revision: '' });
+    await new Promise((r) => setTimeout(r, 5)); // 保证 updatedAt 时间戳可比较
     await adapter.save({ id: b, name: 'b', content: graph('b'), revision: '' });
     const list = await adapter.list!();
     expect(list.map((g) => g.id)).toContain(a);
     expect(list.map((g) => g.id)).toContain(b);
+    expect(list.findIndex((g) => g.id === b)).toBeLessThan(list.findIndex((g) => g.id === a));
+  });
+
+  test('meta 字段（description/tags/extensions）经 save→list/load 往返', async () => {
+    const id = newId();
+    await adapter.save({
+      id,
+      name: 'n',
+      description: 'desc',
+      tags: ['prod', 'rules'],
+      extensions: { schedule: '0 9 * * *' },
+      content: graph('n'),
+      revision: '',
+    });
+
+    const meta = await adapter.load(id);
+    expect(meta).toMatchObject({ description: 'desc', tags: ['prod', 'rules'], extensions: { schedule: '0 9 * * *' } });
+    const listed = (await adapter.list!()).find((g) => g.id === id);
+    expect(listed).toMatchObject({ description: 'desc', tags: ['prod', 'rules'] });
+  });
+
+  test('session 快照随 head 保存并随 load 返回', async () => {
+    const id = newId();
+    const session = { viewport: { x: 10, y: 20, zoom: 1 }, tabs: { 'tab-1': { activeTab: 'schema' } } };
+    await adapter.save({ id, name: 'n', content: graph('n'), session, revision: '' });
+
+    expect(await adapter.load(id)).toMatchObject({ session });
+  });
+
+  test('session 快照随版本归档（恢复历史 = 恢复完整现场）', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), session: { tabs: { t: 'old' } }, revision: '' });
+    await adapter.save({ id, name: 'n', content: graph('b'), session: { tabs: { t: 'new' } }, revision: '' });
+
+    const restored = await adapter.load(id, { revision: 'v1' });
+    expect(restored).toMatchObject({ session: { tabs: { t: 'old' } } });
+  });
+
+  test('旧记录（无 session）load 不携带 session 键', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('n'), revision: '' });
+    expect(await adapter.load(id)).not.toHaveProperty('session');
+  });
+
+  test('load(revision) 返回归档条目自身的 revision 元数据', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), auto: true, revision: '' });
+    await adapter.save({ id, name: 'n2', content: graph('b'), revision: '' });
+
+    const old = await adapter.load(id, { revision: 'v1' });
+    expect(old?.revision).toBe('v1');
+    expect(old?.auto).toBe(true);
+  });
+
+  test('内容未变化仍递增 revision', async () => {
+    const id = newId();
+    const same = graph('stable');
+    await adapter.save({ id, name: 'n', content: same, revision: '' });
+    const second = await adapter.save({ id, name: 'n', content: same, revision: '' });
+    expect(second.revision).toBe('v2');
+  });
+
+  test('delete 后重建：revision 从 v1 重新计数', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
+    await adapter.delete!(id);
+
+    const recreated = await adapter.save({ id, name: 'n', content: graph('b'), revision: '' });
+    expect(recreated.revision).toBe('v1');
+    expect(await adapter.listVersions!(id)).toEqual([]);
   });
 });

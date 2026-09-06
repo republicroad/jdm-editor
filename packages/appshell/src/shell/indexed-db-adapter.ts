@@ -1,3 +1,5 @@
+import type { TabSnapshot } from '@republicroad/jdm-editor';
+
 import type { GraphPersistenceAdapter } from './persistence';
 
 /**
@@ -33,7 +35,7 @@ type StoredMeta = {
   updatedAt: string;
 };
 
-type StoredEntry = { meta: StoredMeta; content: unknown };
+type StoredEntry = { meta: StoredMeta; content: unknown; session?: TabSnapshot };
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -119,7 +121,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
       const key = opts?.revision ? versionKey(id, opts.revision) : headKey(id);
       const entry = await getEntry(key);
       if (!entry) return null;
-      const { meta, content } = entry;
+      const { meta, content, session } = entry;
       return {
         id: meta.id,
         name: meta.name,
@@ -131,6 +133,8 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
         content,
+        // 旧记录无 session —— 契约降级语义（宿主跳过 restore）
+        ...(session !== undefined ? { session } : {}),
       };
     },
 
@@ -157,7 +161,11 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         createdAt,
         updatedAt: now,
       };
-      await putEntry(key, { meta, content: record.content });
+      await putEntry(key, {
+        meta,
+        content: record.content,
+        ...(record.session !== undefined ? { session: record.session } : {}),
+      });
 
       // auto 版本保留策略
       const autos = (await listByPrefix(`${VER_PREFIX}${record.id}::`)).filter((a) => a.entry.meta.auto);
