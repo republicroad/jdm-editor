@@ -48,6 +48,7 @@ const pnpmInvocation = (() => {
 const run = (cmd, args, cwd) =>
   execFileSync(cmd, args, {
     cwd,
+    encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     // shell only needed for PATH-resolved shims; direct node.exe invocations must not
     // go through a shell or unquoted "Program Files" paths break.
@@ -121,12 +122,10 @@ try {
   const browser = await chromium.launch();
 
   // Pack the kernel into a tarball so `catalog:` specifiers are substituted with
-  // real versions before the consumer sees them (file: + catalog: won't resolve
-  // outside the workspace).
-  const kernelTarball = (() => {
-    const out = run(pnpmInvocation.cmd, [...pnpmInvocation.prefix, 'pack', '--json'], LIB_DIR).toString();
-    return path.join(LIB_DIR, JSON.parse(out)[0].filename);
-  })();
+  // real versions before the consumer sees them.
+  const kernelPkg = JSON.parse(readFileSync(path.join(LIB_DIR, 'package.json'), 'utf8'));
+  runPnpm(['pack'], LIB_DIR);
+  const kernelTarball = path.join(LIB_DIR, `republicroad-jdm-editor-${kernelPkg.version}.tgz`);
 
   for (const host of HOSTS) {
     const dir = path.join(workspace, host.label);
