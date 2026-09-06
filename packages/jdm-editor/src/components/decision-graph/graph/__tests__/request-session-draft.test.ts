@@ -43,4 +43,79 @@ describe('request-session-draft', () => {
     expect(applied.schemaDraft).toBe('{"type":"object","properties":{"a":{"type":"string"}}}');
     expect(applied.activeTab).toBe('schema');
   });
+
+  test('build 全字段齐带（五个会话维度一个不落）', () => {
+    const draft = buildRequestSessionDraft({
+      activeTab: 'examples',
+      schemaDraft: 'S',
+      activeSourceIndex: 2,
+      activeExampleJsonDraft: '{"a":1}',
+      activeDescriptionDraft: 'note',
+    });
+    expect(draft).toEqual({
+      activeTab: 'examples',
+      schemaDraft: 'S',
+      activeSourceIndex: 2,
+      activeExampleJsonDraft: '{"a":1}',
+      activeDescriptionDraft: 'note',
+    });
+  });
+
+  test('apply：applier 缺省时对应字段静默跳过（宿主未接全 setter 不崩）', () => {
+    const calls: string[] = [];
+    applyRequestSessionDraft(
+      buildRequestSessionDraft({
+        activeTab: 'schema',
+        schemaDraft: 'S',
+        activeSourceIndex: 1,
+        activeExampleJsonDraft: 'E',
+        activeDescriptionDraft: 'D',
+      }),
+      {
+        setActiveTab: (tab) => calls.push(`tab:${tab}`),
+        // setSchemaDraft / setActiveSourceIndex 未提供
+        setActiveDescriptionDraft: (v) => calls.push(`desc:${v}`),
+      },
+    );
+    expect(calls).toEqual(['tab:schema', 'desc:D']);
+  });
+
+  test('apply：全字段按 tab → schema → sourceIndex → example → description 顺序回填', () => {
+    const calls: string[] = [];
+    applyRequestSessionDraft(
+      buildRequestSessionDraft({
+        activeTab: 'examples',
+        schemaDraft: 'S',
+        activeSourceIndex: 3,
+        activeExampleJsonDraft: 'E',
+        activeDescriptionDraft: 'D',
+      }),
+      {
+        setActiveTab: (t) => calls.push(`tab:${t}`),
+        setSchemaDraft: (v) => calls.push(`schema:${v}`),
+        setActiveSourceIndex: (i) => calls.push(`src:${i}`),
+        setActiveExampleJsonDraft: (v) => calls.push(`example:${v}`),
+        setActiveDescriptionDraft: (v) => calls.push(`desc:${v}`),
+      },
+    );
+    expect(calls).toEqual(['tab:examples', 'schema:S', 'src:3', 'example:E', 'desc:D']);
+  });
+
+  test('JSON 往返：快照可安全序列化，undefined 字段不复活、不覆盖宿主态', () => {
+    const snapshot = JSON.parse(
+      JSON.stringify(buildRequestSessionDraft({ activeTab: 'schema', activeSourceIndex: 0 })),
+    ) as RequestSessionDraft;
+
+    expect(Object.keys(snapshot).sort()).toEqual(['activeSourceIndex', 'activeTab']);
+
+    const calls: string[] = [];
+    applyRequestSessionDraft(snapshot, {
+      setActiveTab: (t) => calls.push(`tab:${t}`),
+      setSchemaDraft: (v) => calls.push(`schema:${v}`),
+      setActiveSourceIndex: (i) => calls.push(`src:${i}`),
+      setActiveExampleJsonDraft: (v) => calls.push(`example:${v}`),
+      setActiveDescriptionDraft: (v) => calls.push(`desc:${v}`),
+    });
+    expect(calls).toEqual(['tab:schema', 'src:0']);
+  });
 });
