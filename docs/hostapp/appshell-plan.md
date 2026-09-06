@@ -31,7 +31,11 @@
 
 ---
 
-## 3. 规划：IndexedDB 本地适配器（未实现）
+## 3. 规划：IndexedDB 本地适配器（✅ 第五十二批后已落地）
+
+> 状态更新（第 13 轮规划时核实）：`shell/indexed-db-adapter.ts` 已实现并通过
+> 14 例测试（保留/CUD/归档/session 往返/meta 往返/排序语义）；`versionName`
+> 归档仍随「命名版本」批次落地。
 
 ### 3.1 动机
 
