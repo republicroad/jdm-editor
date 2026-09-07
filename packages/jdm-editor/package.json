@@ -7,6 +7,9 @@
   "license": "MIT",
   "keywords": [],
   "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "imports": {
     "#icons": "./src/icons.tsx",
     "#components/ui/*": "./src/components/ui/*.tsx",

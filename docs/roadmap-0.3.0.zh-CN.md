@@ -45,6 +45,18 @@
 - **候选:** 拆分 `DecisionTable` / `DecisionGraph` 入口,只用单一界面的
   宿主不必为另一面付费。需要 exports map 评审(`./dist/table`、
   `./dist/graph`?)与宿主指引;跑一次 `rollup-plugin-visualizer` 后定量。
+- **评估结论(2026-09-07,数据落盘 `docs/bundle-stats.json`):**
+  `BUILD_ANALYZE=1` 实测 index.js 组成 **100% 为第一方源码**——所有
+  dependencies/peerDependencies 均已 external(exceljs、CodeMirror、monaco、
+  zen-engine-wasm 都不打进产物)。因此「懒加载重依赖」类手段已无收益;
+  宿主实际付费由其打包器的**树摇效果**决定:
+  - 两包已声明 `sideEffects`(`jdm-editor`: 仅 `**/*.css`;
+    `jdm-appshell`: `false`)——源码中唯一的模块级副作用就是 CSS 导入
+    (grep 取证),声明后宿主树摇可以确定性地跳过未用模块,单面板宿主
+    不再为另一面买单。
+  - 下一步(下一周期候选):以 consumer-smoke 增加一个「仅引
+    DecisionTable」的树摇测量宿主,量化单面板实际负载;若仍不达标,
+    再上 `./dist/table`/`./dist/graph` 子路径入口拆分。
 
 ### 3.2 行拖拽的键盘支持(custom function 表格)
 

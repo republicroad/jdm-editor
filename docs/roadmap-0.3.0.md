@@ -56,6 +56,21 @@
   using one surface don't pay for the other. Requires an exports-map review
   (`./dist/table`, `./dist/graph`?) and consumer guidance. Estimate after a
   `rollup-plugin-visualizer` run.
+- **Evaluation result (2026-09-07, data in `docs/bundle-stats.json`):**
+  a `BUILD_ANALYZE=1` run shows index.js is **100% first-party source** —
+  every dependency and peerDependency is already external (exceljs,
+  CodeMirror, monaco and zen-engine-wasm never reach the artifact). Lazy-
+  loading heavy deps is therefore a dead end here; what a host actually
+  ships is decided by its bundler's **tree shaking**:
+  - Both packages now declare `sideEffects` (`jdm-editor`: only `**/*.css`;
+    `jdm-appshell`: `false`) — CSS imports are the only module-level side
+    effects in the source (grep-verified), so the declaration lets host
+    bundlers deterministically drop unused modules and single-surface hosts
+    stop paying for the other one.
+  - Next step (next-cycle candidate): add a "DecisionTable-only" measuring
+    host to consumer-smoke to quantify the per-surface payload; escalate to
+    `./dist/table`/`./dist/graph` subpath entries only if that still misses
+    the mark.
 
 ### 3.2 Keyboard support for row drag (custom function table)
 
