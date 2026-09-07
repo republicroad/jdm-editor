@@ -3,7 +3,7 @@ name: Deploy Storybook + Docs to Pages
 on:
   push:
     branches:
-      - reui
+      - main
     paths:
       - 'packages/jdm-editor/src/**'
       - 'packages/jdm-editor/.storybook/**'

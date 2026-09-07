@@ -75,11 +75,11 @@ script in the root `package.json` activates husky on `pnpm install`.
 
 ## CI Workflows
 
-CI is defined in `.github/workflows/`. All workflows run on the `reui` branch.
+CI is defined in `.github/workflows/`. All workflows run on the `main` branch.
 
 ### Validate (`validate.yaml`)
 
-Triggers on **every push** and **pull request** to `reui`/`master`. Runs the
+Triggers on **every push** and **pull request** to `main`. Runs the
 full battery:
 
 | Step                        | What it does                                                                                                    |

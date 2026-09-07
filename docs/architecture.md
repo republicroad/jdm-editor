@@ -179,7 +179,7 @@ GitHub workflows (`.github/workflows/`):
 Known gaps recorded for this fork: publishing pipeline assumes npm credentials that an
 internal fork may not need (candidate for removal/adaptation). The CI `validate.yaml` workflow
 runs lint, build, tests, typecheck, a bundle-size budget check and the dual-react consumer smoke
-(React 18 & 19) on every push to `master`/`reui` and on PRs.
+(React 18 & 19) on every push to `main` and on PRs.
 
 ## 8. Public distribution model
 
