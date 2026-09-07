@@ -1,6 +1,7 @@
 # Graph Diff 立项规格（版本对比）
 
-> 状态：**立项待实现**（由 editor 宿主会话移交，2026-09-05）。
+> 状态：**P1 已实现**（computeGraphDiff 纯函数 + VersionHistoryPanel diffs 摘要，
+> 2026-09-07）；P2 画布高亮仍待实现。
 > 消费方：VersionHistoryPanel（packages/appshell）的版本对比入口 + editor 宿主（republicroad/editor）。
 > 本规格含算法选型/API 形态/渲染分期/验收标准；**文件清单由实现者按仓内布局自定**。
 

@@ -1,4 +1,5 @@
-import { PencilIcon } from 'lucide-react';
+import type { GraphDiff } from '@republicroad/jdm-editor';
+import { ChevronDownIcon, ChevronRightIcon, PencilIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '../ui/button';
@@ -24,11 +25,94 @@ export interface VersionHistoryPanelProps {
   onRestore: (revision: string) => void;
   /** 重命名/清除版本命名(宿主实现：adapter.renameVersion)；未提供则隐藏重命名入口 */
   onRename?: (revision: string, versionName: string | null) => void;
+  /**
+   * 版本差异摘要（可选，宿主计算：以各版本的前一版本为基线跑 computeGraphDiff，
+   * 键 = 版本 revision）。提供后条目显示 +/−/~ 摘要，点击展开变更明细。
+   */
+  diffs?: Record<string, GraphDiff>;
 }
+
+/** 版本差异摘要行：+新增 / −删除 / ~修改（节点与边合并计数），点击展开变更明细 */
+const DiffSummary: React.FC<{ diff: GraphDiff; expanded: boolean; onToggle: () => void }> = ({
+  diff,
+  expanded,
+  onToggle,
+}) => {
+  if (diff.unchanged) {
+    return <div className='text-xs text-muted-foreground'>No changes</div>;
+  }
+
+  const counts = [
+    { label: 'added', value: diff.addedNodes.length + diff.addedEdges.length },
+    { label: 'removed', value: diff.removedNodes.length + diff.removedEdges.length },
+    { label: 'modified', value: diff.modifiedNodes.length + diff.modifiedEdges.length },
+  ];
+  const groups = [
+    { changes: [...diff.addedNodes, ...diff.addedEdges], sign: '+' },
+    { changes: [...diff.removedNodes, ...diff.removedEdges], sign: '−' },
+    { changes: [...diff.modifiedNodes, ...diff.modifiedEdges], sign: '~' },
+  ];
+
+  return (
+    <div className='min-w-0'>
+      <button
+        type='button'
+        className='flex cursor-pointer items-center gap-1.5 rounded px-0.5 py-0.5 text-xs hover:bg-accent'
+        onClick={onToggle}
+        aria-expanded={expanded}
+      >
+        {expanded ? <ChevronDownIcon className='h-3 w-3' /> : <ChevronRightIcon className='h-3 w-3' />}
+        {counts.map(
+          ({ label, value }) =>
+            value > 0 && (
+              <span
+                key={label}
+                className={
+                  label === 'added'
+                    ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                    : label === 'removed'
+                      ? 'font-medium text-red-600 dark:text-red-400'
+                      : 'font-medium text-amber-600 dark:text-amber-400'
+                }
+              >
+                {label === 'added' ? `+${value}` : label === 'removed' ? `−${value}` : `~${value}`}
+              </span>
+            ),
+        )}
+        <span className='text-muted-foreground'>changes</span>
+      </button>
+      {expanded && (
+        <ul className='mt-1 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground'>
+          {groups.map(({ changes, sign }, group) =>
+            changes.map((change) => (
+              <li key={`${group}-${change.id}`}>
+                <span
+                  className={
+                    sign === '+'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : sign === '−'
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-amber-600 dark:text-amber-400'
+                  }
+                >
+                  {sign}
+                </span>{' '}
+                {change.name ?? change.id}
+                {change.name && change.name !== change.id && (
+                  <span className='ml-1 font-mono opacity-70'>{change.id}</span>
+                )}
+              </li>
+            )),
+          )}
+        </ul>
+      )}
+    </div>
+  );
+};
 
 /**
  * 版本历史侧滑面板：列出某图的全部历史版本，支持恢复到任一版本、按名称/版本号
- * 过滤，以及命名版本的重命名（受控，宿主喂 adapter 数据与回调）。
+ * 过滤、命名版本的重命名，以及可选的版本差异摘要（受控，宿主喂 adapter 数据与回调）。
  */
 export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   open,
@@ -38,14 +122,17 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   loading = false,
   onRestore,
   onRename,
+  diffs,
 }) => {
   const [query, setQuery] = React.useState('');
   const [editing, setEditing] = React.useState<{ revision: string; draft: string } | null>(null);
+  const [expandedDiff, setExpandedDiff] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!open) {
       setQuery('');
       setEditing(null);
+      setExpandedDiff(null);
     }
   }, [open]);
 
@@ -101,12 +188,13 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                   {filtered.map((entry) => {
                     const isCurrent = currentRevision === entry.revision;
                     const isEditing = editing?.revision === entry.revision;
+                    const diff = diffs?.[entry.revision];
                     return (
                       <li
                         key={entry.revision}
                         className='flex items-center justify-between gap-3 rounded-lg border bg-card/50 px-3 py-2.5'
                       >
-                        <div className='min-w-0'>
+                        <div className='min-w-0 flex-1'>
                           <div className='flex items-center gap-2'>
                             {isEditing ? (
                               <Input
@@ -146,6 +234,17 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                               </>
                             )}
                           </div>
+                          {diff && !isEditing && (
+                            <div className='mt-0.5'>
+                              <DiffSummary
+                                diff={diff}
+                                expanded={expandedDiff === entry.revision}
+                                onToggle={() =>
+                                  setExpandedDiff(expandedDiff === entry.revision ? null : entry.revision)
+                                }
+                              />
+                            </div>
+                          )}
                           {entry.updatedAt && !isEditing && (
                             <div className='truncate text-xs text-muted-foreground'>{entry.updatedAt}</div>
                           )}

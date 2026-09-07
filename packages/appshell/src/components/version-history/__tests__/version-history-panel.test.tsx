@@ -144,4 +144,47 @@ describe('VersionHistoryPanel', () => {
     fireEvent.change(filter, { target: { value: 'nope' } });
     expect(screen.getByText(/No versions match/i)).toBeInTheDocument();
   });
+
+  test('diffs：条目显示 +/−/~ 摘要，点击展开变更明细', () => {
+    const diffs = {
+      v2: {
+        addedNodes: [{ id: 'n3', name: 'New node' }],
+        removedNodes: [{ id: 'n1' }],
+        modifiedNodes: [{ id: 'n2', name: 'Table', fields: ['content'] }],
+        addedEdges: [],
+        removedEdges: [],
+        modifiedEdges: [],
+        unchanged: false,
+      },
+    };
+    renderPanel({ diffs });
+
+    expect(screen.getByText('+1')).toBeInTheDocument();
+    expect(screen.getByText('−1')).toBeInTheDocument();
+    expect(screen.getByText('~1')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(screen.getByText('New node')).toBeInTheDocument();
+    expect(screen.getByText('n1')).toBeInTheDocument();
+    expect(screen.getByText('Table')).toBeInTheDocument();
+  });
+
+  test('diffs：无变化版本显示 No changes，且不可展开', () => {
+    renderPanel({
+      diffs: {
+        v1: {
+          addedNodes: [],
+          removedNodes: [],
+          modifiedNodes: [],
+          addedEdges: [],
+          removedEdges: [],
+          modifiedEdges: [],
+          unchanged: true,
+        },
+      },
+    });
+
+    expect(screen.getByText('No changes')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { expanded: false })).not.toBeInTheDocument();
+  });
 });
