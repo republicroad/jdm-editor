@@ -44,8 +44,8 @@ jdm-editor/                  # gorules/jdm-editor 的内部分叉
 
 ## 3. 包内结构(`packages/jdm-editor`)
 
-构建:Vite 6 + SWC(`vite.config.ts`),类型由 `vite-plugin-dts` 生成,样式编译为单一
-`dist/style.css`。Storybook 8 提供组件演示环境(`*.stories.tsx`)。
+构建:Vite 8 (Rolldown) + SWC(`vite.config.ts`),类型由 `vite-plugin-dts` 生成,样式编译为单一
+`dist/style.css`。Storybook 10 提供组件演示环境(`*.stories.tsx`)。
 
 ```
 src/

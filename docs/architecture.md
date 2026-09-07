@@ -48,8 +48,8 @@ Versions were identical to the upstream sources at fork time, so behavior is unc
 
 ## 3. Package internals (`packages/jdm-editor`)
 
-Build: Vite 6 + SWC (`vite.config.ts`), types via `vite-plugin-dts`, styles compiled to a single
-`dist/style.css`. Storybook 8 provides component playgrounds (`*.stories.tsx`).
+Build: Vite 8 (Rolldown) + SWC (`vite.config.ts`), types via `vite-plugin-dts`, styles compiled to a single
+`dist/style.css`. Storybook 10 provides component playgrounds (`*.stories.tsx`).
 
 ```
 src/

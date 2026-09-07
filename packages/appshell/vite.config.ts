@@ -23,7 +23,7 @@ export default defineConfig({
       formats: ['es'],
       fileName: () => 'index.js',
     },
-    rollupOptions: {
+    rolldownOptions: {
       // 宿主/内核均为外部：appshell 不打包 react 与内核
       external: ['react', 'react-dom', 'react/jsx-runtime', /^@republicroad\/jdm-editor(\/.*)?$/],
       output: {

@@ -6,7 +6,7 @@ import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import wasm from 'vite-plugin-wasm';
 
-import packageJson from './package.json';
+import packageJson from './package.json' with { type: 'json' };
 
 export default defineConfig({
   plugins: [
@@ -19,7 +19,7 @@ export default defineConfig({
     ...(process.env.BUILD_ANALYZE
       ? [
           visualizer({
-            filename: path.resolve(__dirname, '../../docs/bundle-stats.json'),
+            filename: path.resolve(import.meta.dirname, '../../docs/bundle-stats.json'),
             template: 'raw-data',
             gzipSize: true,
             brotliSize: false,
@@ -29,7 +29,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(import.meta.dirname, 'src'),
     },
     dedupe: ['@lezer/common', '@lezer/lr', '@lezer/highlight'],
   },
@@ -38,21 +38,26 @@ export default defineConfig({
     sourcemap: true,
     lib: {
       entry: {
-        index: path.resolve(__dirname, 'src', 'index.ts'),
-        schema: path.resolve(__dirname, 'src', 'helpers', 'schema.ts'),
+        index: path.resolve(import.meta.dirname, 'src', 'index.ts'),
+        schema: path.resolve(import.meta.dirname, 'src', 'helpers', 'schema.ts'),
       },
       name: 'JDM Editor',
       formats: ['es'],
       cssFileName: 'style',
     },
-    rollupOptions: {
+    rolldownOptions: {
       // Dependencies AND peerDependencies stay external: hosts provide them.
       // (peerDependencies alone proved insufficient — moving monaco-editor
       // out of dependencies silently inlined the whole monaco bundle.)
+      // use-sync-external-store (CJS, reached via zustand/traditional's
+      // subpath import) must stay external too: bundled, its require('react')
+      // survives rolldown's CJS interop and crashes in the browser. The
+      // regex covers subpaths.
       external: [
         'react/jsx-runtime',
         'react',
         'react-dom',
+        /^use-sync-external-store(\/.*)?$/,
         ...Object.keys(packageJson.dependencies),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ],
