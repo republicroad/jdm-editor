@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`standard grammar parsing against the real wasm runtime > locks the structured shape of output-cell expressions 1`] = `
+{
+  "kind": "expression",
+}
+`;
+
+exports[`standard grammar parsing against the real wasm runtime > locks the structured shape of output-cell expressions 2`] = `
+{
+  "kind": "string",
+  "value": "VIP_DISCOUNT",
+}
+`;

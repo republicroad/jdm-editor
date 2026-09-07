@@ -284,7 +284,7 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0
       '@gorules/zen-engine-wasm':
-        specifier: ^0.23.1
+        specifier: 0.23.1
         version: 0.23.1
       '@hookform/resolvers':
         specifier: ^5.9.1
