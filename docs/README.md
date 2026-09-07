@@ -18,6 +18,8 @@
 | [`architecture.zh-CN.md`](./architecture.zh-CN.md) | 中文 | 架构文档(中文对照):仓库结构、包依赖、状态流、编辑器基础设施、主题系统、CI |
 | [`features.md`](./features.md) | EN | Feature reference: Decision Graph, Decision Table, editors, simulator, public API surface |
 | [`features.zh-CN.md`](./features.zh-CN.md) | 中文 | 功能文档(中文对照):决策图、决策表、编辑器、模拟器、公共 API |
+| [`nl-expression-builder.md`](./nl-expression-builder.md) | EN | Natural-language business view: fieldType schemas, dictionaries, operator→expression canonical forms, WASM runtime contract |
+| [`nl-expression-builder.zh-CN.md`](./nl-expression-builder.zh-CN.md) | 中文 | 自然语言业务视图(中文对照):fieldType schema、字典、操作符→表达式规范形态、WASM 运行时契约 |
 | [`migration/01-reactflow-v12.md`](./migration/01-reactflow-v12.md) | EN | ReactFlow 11 → `@xyflow/react` 12 migration plan (executed on this branch) |
 | [`migration/01-reactflow-v12.zh-CN.md`](./migration/01-reactflow-v12.zh-CN.md) | 中文 | ReactFlow 12 迁移方案(中文对照,已在本分支实施) |
 | [`migration/02-ui-stack-shadcn-reui.md`](./migration/02-ui-stack-shadcn-reui.md) | EN | Migration record: antd → Tailwind + shadcn/ui + ReUI (completed) |
