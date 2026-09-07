@@ -12,6 +12,7 @@ interface HttpGraphMeta {
   extensions?: Record<string, unknown>;
   revision: string;
   auto?: boolean;
+  versionName?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -36,6 +37,7 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
     extensions: m.extensions,
     revision: m.revision,
     auto: m.auto,
+    versionName: m.versionName,
     createdAt: m.createdAt,
     updatedAt: m.updatedAt,
   });
@@ -99,6 +101,14 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
         Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>
       >(`${baseUrl}/${encodeURIComponent(id)}/versions`);
       return data;
+    },
+
+    // 契约：PATCH /graphs/{id}/versions/{revision}，body { versionName }。
+    // 参考后端未实现时宿主不应暴露重命名入口（方法存在性即 UI 特性检测）。
+    async renameVersion(id, revision, versionName) {
+      await axios.patch(`${baseUrl}/${encodeURIComponent(id)}/versions/${encodeURIComponent(revision)}`, {
+        versionName,
+      });
     },
   };
 };

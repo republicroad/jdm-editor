@@ -159,4 +159,52 @@ describe('createIndexedDbAdapter', () => {
     expect(recreated.revision).toBe('v1');
     expect(await adapter.listVersions!(id)).toEqual([]);
   });
+
+  test('versionName：保存时命名 → 归档保留并在 listVersions/load 中返回', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), versionName: 'baseline', revision: '' });
+    await adapter.save({ id, name: 'n', content: graph('b'), revision: '' });
+
+    const versions = await adapter.listVersions!(id);
+    expect(versions).toEqual([expect.objectContaining({ revision: 'v1', versionName: 'baseline', auto: undefined })]);
+    const restored = await adapter.load(id, { revision: 'v1' });
+    expect(restored).toMatchObject({ revision: 'v1', versionName: 'baseline' });
+  });
+
+  test('versionName：命名的 auto 版本不受保留策略治理', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'seed', content: graph('seed'), revision: '' }); // v1 manual
+    await adapter.save({ id, name: 'keep', content: graph('keep'), auto: true, versionName: 'keep-me', revision: '' }); // v2 auto + named
+    for (let i = 3; i <= 24; i++) {
+      await adapter.save({ id, name: `a${i}`, content: graph(`a${i}`), auto: true, revision: '' }); // v3..v24 auto
+    }
+
+    const versions = await adapter.listVersions!(id);
+    const named = versions.find((v) => v.revision === 'v2');
+    expect(named?.versionName).toBe('keep-me');
+    // 每次保存后维持「最近 20 条未命名 auto」：最后一步只淘汰最旧的 v3，
+    // v2 命名版豁免，v4 起未命名 auto 全部保留
+    expect(versions.some((v) => v.revision === 'v3')).toBe(false);
+    expect(versions.some((v) => v.revision === 'v4')).toBe(true);
+    expect(versions.some((v) => v.revision === 'v2')).toBe(true);
+  });
+
+  test('renameVersion：设置与清除命名', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
+    await adapter.save({ id, name: 'n', content: graph('b'), revision: '' });
+
+    await adapter.renameVersion!(id, 'v1', 'before-refactor');
+    expect((await adapter.listVersions!(id)).find((v) => v.revision === 'v1')?.versionName).toBe('before-refactor');
+
+    await adapter.renameVersion!(id, 'v1', null);
+    const cleared = await adapter.load(id, { revision: 'v1' });
+    expect(cleared?.versionName).toBeUndefined();
+  });
+
+  test('renameVersion：不存在的版本抛 NOT_FOUND', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
+    await expect(adapter.renameVersion!(id, 'v99', 'x')).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
 });

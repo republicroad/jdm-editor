@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { type VersionHistoryEntry, VersionHistoryPanel } from '../version-history-panel';
+
+// vitest globals 关闭时 RTL 不会自动清理，跨测试的 portal 残留会让查询多实例命中
+afterEach(cleanup);
 
 const entry = (revision: string, extra: Partial<VersionHistoryEntry> = {}): VersionHistoryEntry => ({
   revision,
@@ -73,5 +76,72 @@ describe('VersionHistoryPanel', () => {
   test('updatedAt 时间戳展示在条目内', () => {
     renderPanel({ versions: [entry('v1', { updatedAt: '2026-09-06T12:00:00.000Z' })] });
     expect(screen.getByText('2026-09-06T12:00:00.000Z')).toBeInTheDocument();
+  });
+
+  test('命名版本展示名称徽标', () => {
+    renderPanel({ versions: [entry('v1', { versionName: 'baseline' }), entry('v2')] });
+    expect(screen.getByText('baseline')).toBeInTheDocument();
+  });
+
+  test('未提供 onRename 时不渲染命名/重命名入口', () => {
+    renderPanel({ versions: [entry('v1', { versionName: 'baseline' })] });
+    expect(screen.queryByRole('button', { name: /name version v1/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /rename version v1/i })).not.toBeInTheDocument();
+  });
+
+  test('未命名版本：Name → 输入 + Enter 触发 onRename', () => {
+    const onRename = vi.fn();
+    renderPanel({ versions: [entry('v1')], onRename });
+    fireEvent.click(screen.getByRole('button', { name: 'Name version v1' }));
+
+    const input = screen.getByLabelText('Rename version v1');
+    fireEvent.change(input, { target: { value: 'release-1' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onRename).toHaveBeenCalledExactlyOnceWith('v1', 'release-1');
+  });
+
+  test('已命名版本：铅笔进入编辑（预填原名），清空 + Enter 触发清除（null）', () => {
+    const onRename = vi.fn();
+    renderPanel({ versions: [entry('v1', { versionName: 'baseline' })], onRename });
+    fireEvent.click(screen.getByRole('button', { name: 'Rename version v1' }));
+
+    const input = screen.getByLabelText('Rename version v1') as HTMLInputElement;
+    expect(input.value).toBe('baseline');
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onRename).toHaveBeenCalledExactlyOnceWith('v1', null);
+  });
+
+  test('Escape 取消编辑不触发 onRename', () => {
+    const onRename = vi.fn();
+    renderPanel({ versions: [entry('v1')], onRename });
+    fireEvent.click(screen.getByRole('button', { name: 'Name version v1' }));
+
+    const input = screen.getByLabelText('Rename version v1');
+    fireEvent.change(input, { target: { value: 'draft' } });
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByText('v1')).toBeInTheDocument();
+  });
+
+  test('过滤框按名称或版本号子串过滤', () => {
+    renderPanel({
+      versions: [entry('v1', { versionName: 'baseline' }), entry('v2'), entry('v3', { versionName: 'Hotfix' })],
+    });
+
+    const filter = screen.getByLabelText('Filter versions');
+    fireEvent.change(filter, { target: { value: 'base' } });
+    expect(screen.getByText('v1')).toBeInTheDocument();
+    expect(screen.queryByText('v2')).not.toBeInTheDocument();
+
+    fireEvent.change(filter, { target: { value: 'V3' } });
+    expect(screen.getByText('v3')).toBeInTheDocument();
+    expect(screen.queryByText('v1')).not.toBeInTheDocument();
+
+    fireEvent.change(filter, { target: { value: 'nope' } });
+    expect(screen.getByText(/No versions match/i)).toBeInTheDocument();
   });
 });

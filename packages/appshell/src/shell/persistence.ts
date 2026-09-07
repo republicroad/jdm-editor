@@ -14,6 +14,11 @@ export interface GraphRecordMeta {
   revision: string;
   /** 自动保存条目（与手动保存区分显示/治理策略），缺省 = 手动 */
   auto?: boolean;
+  /**
+   * 版本命名（"named version"）。保存时携带 → 该版本归档后按名显示；
+   * 命名版本不受 auto 保留策略治理（见各适配器实现）。
+   */
+  versionName?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -65,4 +70,10 @@ export interface GraphPersistenceAdapter {
   listVersions?(
     id: string,
   ): Promise<Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>>;
+
+  /**
+   * 重命名（或清除，传 null）某个历史版本的命名(可选；未实现则 shell 隐藏重命名入口)。
+   * @throws GraphPersistenceError('NOT_FOUND') 版本不存在时（本地适配器语义）
+   */
+  renameVersion?(id: string, revision: string, versionName: string | null): Promise<void>;
 }

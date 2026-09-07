@@ -17,6 +17,7 @@ const http = vi.hoisted(() => {
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
     axiosError,
     isAxiosError: (e: unknown): boolean =>
@@ -188,5 +189,28 @@ describe('createGraphsHttpAdapter', () => {
 
     expect(await adapter.listVersions!('g1')).toEqual(versions);
     expect(http.get).toHaveBeenCalledWith('/api/graphs/g1/versions');
+  });
+
+  test('save：versionName 随保存 body 透传', async () => {
+    http.put.mockResolvedValueOnce({ data: { id: 'g1', revision: 'v8' } });
+    const adapter = createGraphsHttpAdapter('/api/graphs');
+
+    await adapter.save({ ...meta, content: {}, revision: 'v7', versionName: 'release-candidate' });
+
+    expect(http.put).toHaveBeenCalledWith(
+      '/api/graphs/g1',
+      expect.objectContaining({ versionName: 'release-candidate' }),
+    );
+  });
+
+  test('renameVersion：PATCH versions 端点携带新命名，null 表示清除', async () => {
+    http.patch.mockResolvedValue({ data: {} });
+    const adapter = createGraphsHttpAdapter('/api/graphs');
+
+    await adapter.renameVersion!('g1', 'v3', 'hotfix');
+    expect(http.patch).toHaveBeenCalledWith('/api/graphs/g1/versions/v3', { versionName: 'hotfix' });
+
+    await adapter.renameVersion!('g1', 'v3', null);
+    expect(http.patch).toHaveBeenLastCalledWith('/api/graphs/g1/versions/v3', { versionName: null });
   });
 });

@@ -1,6 +1,6 @@
 import type { TabSnapshot } from '@republicroad/jdm-editor';
 
-import type { GraphPersistenceAdapter } from './persistence';
+import { type GraphPersistenceAdapter, GraphPersistenceError } from './persistence';
 
 /**
  * 本地图多版本持久化适配器（IndexedDB）。
@@ -31,6 +31,7 @@ type StoredMeta = {
   extensions?: Record<string, unknown>;
   revision: string;
   auto?: boolean;
+  versionName?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -111,6 +112,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
           extensions: entry.meta.extensions,
           revision: entry.meta.revision,
           auto: entry.meta.auto,
+          versionName: entry.meta.versionName,
           createdAt: entry.meta.createdAt,
           updatedAt: entry.meta.updatedAt,
         }))
@@ -130,6 +132,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         extensions: meta.extensions,
         revision: meta.revision,
         auto: meta.auto,
+        versionName: meta.versionName,
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
         content,
@@ -158,6 +161,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         extensions: record.extensions,
         revision,
         auto: record.auto,
+        versionName: record.versionName,
         createdAt,
         updatedAt: now,
       };
@@ -167,8 +171,10 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         ...(record.session !== undefined ? { session: record.session } : {}),
       });
 
-      // auto 版本保留策略
-      const autos = (await listByPrefix(`${VER_PREFIX}${record.id}::`)).filter((a) => a.entry.meta.auto);
+      // auto 版本保留策略——命名版本视为受保护，不计入治理
+      const autos = (await listByPrefix(`${VER_PREFIX}${record.id}::`)).filter(
+        (a) => a.entry.meta.auto && !a.entry.meta.versionName,
+      );
       const excess = autos.length - AUTO_VERSIONS_KEEP;
       const sorted = autos.sort(
         (a, b) => Number(a.entry.meta.revision.slice(1)) - Number(b.entry.meta.revision.slice(1)),
@@ -194,10 +200,24 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
       return archives
         .map(({ entry }) => ({
           revision: entry.meta.revision,
+          versionName: entry.meta.versionName,
           updatedAt: entry.meta.updatedAt,
           auto: entry.meta.auto,
         }))
         .sort((a, b) => a.revision.localeCompare(b.revision));
+    },
+
+    async renameVersion(id, revision, versionName) {
+      const key = versionKey(id, revision);
+      const entry = await getEntry(key);
+      if (!entry) {
+        throw new GraphPersistenceError('NOT_FOUND', `version ${revision} of graph ${id} does not exist`);
+      }
+      const { versionName: _dropped, ...restMeta } = entry.meta;
+      await putEntry(key, {
+        ...entry,
+        meta: versionName === null ? restMeta : { ...restMeta, versionName },
+      });
     },
   };
 }

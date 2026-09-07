@@ -119,3 +119,27 @@ for the full catalog.
 - `monaco-editor` moves to `peerDependencies` — hosts add it explicitly
   (`npm i monaco-editor`), installs slim down by ~5 MB.
 - See [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) for the draft plan.
+
+## Named versions (appshell 0.2.0)
+
+`@republicroad/jdm-appshell` persistence adapters now carry **named versions**:
+
+- `GraphRecordMeta.versionName?: string` — pass it on `save()` to name the
+  version created by that save. The archive entry keeps its name;
+  `load(id, { revision })` and `list()` return it, and `listVersions()`
+  includes it per entry.
+- **Retention exemption** — the local IndexedDB adapter prunes only *unnamed*
+  `auto` archives (manual entries were already always kept). A named version
+  can never be auto-pruned.
+- **Renaming** — optional `adapter.renameVersion(id, revision, versionName | null)`
+  (`null` clears). IndexedDB implements it natively (`NOT_FOUND` on a missing
+  revision); the HTTP adapter issues `PATCH /graphs/{id}/versions/{revision}`
+  with `{ versionName }` — implement that route on fork backends to enable it.
+- **Panel** — `VersionHistoryPanel` accepts entries with `versionName`, renders
+  a name badge, provides a client-side filter (name or revision substring),
+  and an inline rename flow when the host passes `onRename(revision, name|null)`
+  (feature-detect: pass it only when the adapter implements `renameVersion`).
+
+See [`hostapp/appshell-plan.md`](./hostapp/appshell-plan.md) for the storage
+model and [`hostapp/graph-diff-spec.md`](./hostapp/graph-diff-spec.md) for the
+planned version-diff layer on top of it.

@@ -114,3 +114,23 @@ import {
 - `monaco-editor` 移入 `peerDependencies` —— 宿主需显式安装
   (`npm i monaco-editor`),安装体积减少约 5 MB。
 - 草案见 [`roadmap-0.3.0.md`](./roadmap-0.3.0.md)。
+
+## 命名版本(appshell 0.2.0)
+
+`@republicroad/jdm-appshell` 的持久化适配器现在支持**命名版本**:
+
+- `GraphRecordMeta.versionName?: string` —— `save()` 时携带即为该次保存产生的
+  版本命名。归档条目保留名称;`load(id, { revision })` 与 `list()` 会返回,
+  `listVersions()` 逐条携带。
+- **保留策略豁免** —— 本地 IndexedDB 适配器只清理*未命名*的 `auto` 归档
+  (manual 条目本就全保留)。命名版本永不会被自动清理。
+- **重命名** —— 可选方法 `adapter.renameVersion(id, revision, versionName | null)`
+  (`null` 清除)。IndexedDB 原生实现(revision 不存在抛 `NOT_FOUND`);
+  HTTP 适配器以 `PATCH /graphs/{id}/versions/{revision}` + `{ versionName }`
+  调用——后端实现该路由后重命名才可用。
+- **面板** —— `VersionHistoryPanel` 条目支持 `versionName`,渲染名称徽标,
+  提供客户端过滤(按名称或版本号子串),宿主传入 `onRename(revision, name|null)`
+  时展示行内重命名入口(特性检测:仅当适配器实现 `renameVersion` 时传入)。
+
+存储模型见 [`hostapp/appshell-plan.md`](./hostapp/appshell-plan.md);
+其上的版本对比能力规划见 [`hostapp/graph-diff-spec.md`](./hostapp/graph-diff-spec.md)。
