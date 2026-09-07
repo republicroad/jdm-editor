@@ -44,6 +44,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # The registry CDN can lag the write by a minute — poll until the new
+      # kernel version is visible before smoking it (0.3.3 failed here).
+      - name: Wait for registry propagation
+        run: |
+          ver="$(node -p "require('./packages/jdm-editor/package.json').version")"
+          for i in $(seq 1 30); do
+            if npm view "@republicroad/jdm-editor@$ver" version > /dev/null 2>&1; then
+              echo "registry visible: $ver (attempt $i)"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "version $ver not visible after 5min"
+          exit 1
+
       - name: Registry smoke (published artifact shape)
         run: pnpm test:npm-smoke "$(node -p "require('./packages/jdm-editor/package.json').version")"
         env:
