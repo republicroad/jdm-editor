@@ -289,7 +289,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
 
   return (
     <Fragment>
-      <div className={'flex h-full min-h-0 bg-[var(--grl-color-bg-container)]'}>
+      <div className={'[grid-area:sidebar] flex h-full min-h-0 bg-[var(--grl-color-bg-container)]'}>
         <input
           hidden
           accept='application/json'

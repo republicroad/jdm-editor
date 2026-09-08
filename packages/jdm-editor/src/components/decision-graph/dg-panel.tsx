@@ -29,7 +29,10 @@ export const GraphPanel: React.FC = () => {
   return (
     <Resizable
       className={
-        'relative flex h-full w-full flex-col border-t border-t-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'
+        // grid-area:bottom — full-width row under the canvas (template lives
+        // in styles/tailwind.css; without the placement auto-positioning
+        // drops this panel into the narrow right column).
+        '[grid-area:bottom] relative flex h-full w-full flex-col border-t border-t-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'
       }
       defaultSize={{ height: defaultHeight }}
       handleStyles={{
