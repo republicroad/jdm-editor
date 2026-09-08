@@ -12,6 +12,7 @@ import {
   useDecisionGraphState,
 } from './context/dg-store.context';
 import { type DecisionGraphType } from './dg-types';
+import { calculateDiffGraph } from './diff/utility';
 
 export type DecisionGraphEmptyType = {
   id?: string;
@@ -19,6 +20,13 @@ export type DecisionGraphEmptyType = {
   value?: DecisionGraphType;
 
   disabled?: boolean;
+
+  /**
+   * 画布 diff 对比模式（P2）：提供基线图后，画布叠加差异标记（新增/删除/修改
+   * 节点与边按 _diff 元数据染色，见 decision-node）。建议配合 `disabled` 使用
+   * （只读对比）；diff 标注仅存在于渲染投影，切回正常模式即消失。
+   */
+  diffBaseline?: DecisionGraphType;
 
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
@@ -53,6 +61,7 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   value,
   name,
   disabled = false,
+  diffBaseline,
   onChange,
   components,
   customNodes,
@@ -132,14 +141,22 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   }, [innerChange]);
 
   useEffect(() => {
-    if (mountedRef.current && value !== undefined && !equal(value, decisionGraph)) {
+    // diff 对比模式下由下方「diffBaseline 重算」effect 接管渲染投影，此处跳过
+    if (value === undefined || diffBaseline) {
+      return;
+    }
+    if (mountedRef.current && !equal(value, decisionGraph)) {
       graphActions.setDecisionGraph(value);
     }
-  }, [value]);
+  }, [value, diffBaseline]);
 
   useEffect(() => {
     if (value !== undefined) {
-      graphActions.setDecisionGraph(value);
+      graphActions.setDecisionGraph(
+        diffBaseline
+          ? calculateDiffGraph(value, diffBaseline, { customNodes: customNodes ?? [], components: components ?? [] })
+          : value,
+      );
     } else if (defaultValue !== undefined) {
       graphActions.setDecisionGraph(defaultValue);
     }
@@ -150,6 +167,20 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     });
     mountedRef.current = true;
   }, []);
+
+  // diffBaseline 变化（切换对比版本 / 移除对比）→ 重算渲染投影或恢复裸图
+  useEffect(() => {
+    if (value === undefined) {
+      return;
+    }
+    if (diffBaseline) {
+      graphActions.setDecisionGraph(
+        calculateDiffGraph(value, diffBaseline, { customNodes: customNodes ?? [], components: components ?? [] }),
+      );
+    } else if (mountedRef.current) {
+      graphActions.setDecisionGraph(value);
+    }
+  }, [diffBaseline]);
 
   return null;
 };
