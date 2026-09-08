@@ -634,3 +634,43 @@ each masked by the fix for the previous one:
   upstream.** `master` (upstream lineage) did not contain the missing
   code — `zrule` did. Knowing which branch holds the "last known good"
   state halves the investigation.
+
+### Exhibit: the dual-dist forensics (2026-09-09 disk capture)
+
+Link configuration that produced the bug — the same kernel, resolved at
+two different physical locations:
+
+```
+packages/appshell/node_modules/@republicroad/jdm-editor
+    │ symlink (created by pnpm install, Sep 4 22:45)
+    ▼
+node_modules/.pnpm/@republicroad+jdm-editor@0._d992fc37…/
+    └── node_modules/@republicroad/jdm-editor/     ← PHYSICAL CLONE
+        ├── package.json    (Sep 4 22:40)
+        ├── dist/           (Sep 4 22:45)  ← frozen old build
+        └── node_modules/   (own deps, own monaco resolution)
+
+packages/playground/node_modules/@republicroad/jdm-editor
+    │ symlink (recreated Sep 9 06:58 when playground was added)
+    ▼
+packages/jdm-editor/                               ← live workspace, always fresh
+```
+
+Measured divergence (Sep 9 capture):
+
+| | A: workspace dist | B: .pnpm instance dist |
+|---|---|---|
+| inode | 6755399441228114 (links=1) | 844424931592024 (links=4, → pnpm store) |
+| mtime | Sep 8 16:34 (all fixes) | **Sep 4 22:40 (frozen)** |
+| size / md5 | 655 KB / `00a8…` | 731 KB / `dc93…` |
+| `编辑表达式` (i18n value) | ✅ | ❌ — the empty-button culprit |
+| chunk name | `schema-BmbNWz7t.js` | `schema-DlPTgdGg.js` (old) |
+
+The instance copy is a **published-package-style clone** (dist + metadata +
+nested node_modules, no `src/`) — rebuilding the workspace never propagates
+into it because `vite build`'s outDir rewrite creates fresh inodes,
+permanently decoupling the clone from the workspace dist. Not a config
+mistake: pnpm peer-variant materialization + build outDir rewrite. All
+in-repo consumers now bypass it via the source passthrough aliases
+(storybook `viteFinal`, appshell vitest, playground vite); a `pnpm
+install` re-materializes the link but it re-freezes on the next build.

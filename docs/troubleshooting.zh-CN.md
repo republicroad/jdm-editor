@@ -550,3 +550,40 @@ SyntaxError: [lightningcss minify] Invalid qualified rule
 - **fork 深度分叉时,对照 fork 分支而非上游。** `master`(上游谱系)里
   根本没有丢失的代码——在 `zrule` 里。先弄清"最后已知完好状态"在哪个
   分支,排查时间直接减半。
+
+### 附录：双副本磁盘取证（2026-09-09 实测）
+
+产生该 bug 的链接配置——同一个 kernel，被解析到两个不同物理位置：
+
+```
+packages/appshell/node_modules/@republicroad/jdm-editor
+    │ symlink（pnpm install 创建于 09-04 22:45）
+    ▼
+node_modules/.pnpm/@republicroad+jdm-editor@0._d992fc37…/
+    └── node_modules/@republicroad/jdm-editor/     ← 【物理克隆目录，非回链】
+        ├── package.json    (09-04 22:40)
+        ├── dist/           (09-04 22:45)  ← 冻结的旧构建
+        └── node_modules/   (自带依赖，含自己的 monaco 解析)
+
+packages/playground/node_modules/@republicroad/jdm-editor
+    │ symlink（playground 建包时 09-09 06:58 重建）
+    ▼
+packages/jdm-editor/                               ← 直连 workspace，永远最新
+```
+
+实测分歧（09-09 采集）：
+
+| | A：workspace dist | B：.pnpm 实例 dist |
+|---|---|---|
+| inode | 6755399441228114（links=1） | 844424931592024（links=4，连 pnpm store） |
+| mtime | 09-08 16:34（含全部修复） | **09-04 22:40（冻结）** |
+| 大小 / md5 | 655 KB / `00a8…` | 731 KB / `dc93…` |
+| `编辑表达式`（i18n 值） | ✅ | ❌——空按钮的元凶副本 |
+| chunk 名 | `schema-BmbNWz7t.js` | `schema-DlPTgdGg.js`（旧） |
+
+实例副本是**发布包风格克隆**（dist + 元数据 + 嵌套 node_modules，无
+`src/`）——workspace 重建永不传播进它：`vite build` 的 outDir 重写产生全新
+inode，克隆与 workspace dist 永久脱钩。这不是配置错误，而是 pnpm
+peer-variant 物理克隆 + 构建重写的固有行为。仓内所有消费者现以源码直通
+别名（storybook `viteFinal`、appshell vitest、playground vite）绕开；
+`pnpm install` 可重物化链接，但下次构建后仍会再次冻结。
