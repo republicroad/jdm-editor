@@ -126,7 +126,7 @@
     "storybook-dark-mode": "5.0.0",
     "tailwindcss": "^4.3.3",
     "vite": "catalog:",
-    "vite-plugin-dts": "catalog:",
+    "unplugin-dts": "catalog:",
     "vite-plugin-wasm": "^3.6.0",
     "vitest": "catalog:",
     "wait-on": "^9.1.0"

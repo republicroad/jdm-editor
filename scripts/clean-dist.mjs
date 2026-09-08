@@ -1,5 +1,6 @@
 /**
- * Removes declaration side-products that vite-plugin-dts@5 (unplugin-dts) emits
+ * Removes declaration side-products that unplugin-dts (the vite-plugin-dts@5
+ * engine) emits
  * alongside the rolled-up entry files. Keeps all JS/CSS output (including
  * code-split chunks) so the published dist is self-contained.
  *

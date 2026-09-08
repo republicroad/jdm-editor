@@ -70,7 +70,7 @@
     "jsdom": "^30.0.1",
     "typescript": "^5.9.3",
     "vite": "catalog:",
-    "vite-plugin-dts": "catalog:",
+    "unplugin-dts": "catalog:",
     "vitest": "catalog:"
   },
   "publishConfig": {

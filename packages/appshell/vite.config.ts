@@ -1,5 +1,5 @@
+import dts from 'unplugin-dts/vite';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 // lib 构建（发布形态）。monorepo 内部消费走源码直通（main → src/index.ts），
 // 外部消费方走 publishConfig 声明的 dist 入口。

@@ -2,8 +2,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import * as path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import dts from 'unplugin-dts/vite';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 import wasm from 'vite-plugin-wasm';
 
 import packageJson from './package.json' with { type: 'json' };
