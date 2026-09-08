@@ -49,11 +49,15 @@
   `BUILD_ANALYZE=1` 实测 index.js 组成 **100% 为第一方源码**——所有
   dependencies/peerDependencies 均已 external(exceljs、CodeMirror、monaco、
   zen-engine-wasm 都不打进产物)。因此「懒加载重依赖」类手段已无收益;
-  宿主实际付费由其打包器的**树摇效果**决定:
-  - 两包已声明 `sideEffects`(`jdm-editor`: 仅 `**/*.css`;
-    `jdm-appshell`: `false`)——源码中唯一的模块级副作用就是 CSS 导入
-    (grep 取证),声明后宿主树摇可以确定性地跳过未用模块,单面板宿主
-    不再为另一面买单。
+  宿主实际付费由其打包器的**树摇效果**决定。
+  - **已回撤(2026-09-08):** 2026-09-07 加入的两包 `sideEffects` 声明再次
+    移除。Vite 8 / Rolldown 下数组 glob 形态(`"**/messages/*.ts"`)没有豁免
+    任何模块——Rolldown 把未显式列出的模块一律按无副作用处理,**把整个
+    i18n 文案目录摇出了 dist**(key 以 `t()` 参数幸存,全部译文消失;因
+    「编辑表达式」按钮渲染为空按钮而暴露)。布尔 `false` 与 glob 数组在该
+    Rolldown 版本下都不安全。待验证 Rolldown 对 `package.json#sideEffects`
+    数组语义的支持后,并在 size/probe 门禁加上目录快照(`Upload JSON`、
+    `编辑表达式`)再重新启用。
   - 下一步(下一周期候选):以 consumer-smoke 增加一个「仅引
     DecisionTable」的树摇测量宿主,量化单面板实际负载;若仍不达标,
     再上 `./dist/table`/`./dist/graph` 子路径入口拆分。

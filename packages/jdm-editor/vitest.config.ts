@@ -18,5 +18,7 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.js'],
     css: false,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // wasm-roundtrip 用 initSync 加载真实 wasm，多文件并行时 OOM——串行跑文件
+    fileParallelism: false,
   },
 });

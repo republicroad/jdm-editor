@@ -53,6 +53,9 @@ let single-surface hosts skip roughly a third of the payload, at the cost of:
 the absolute gzip cost today (118 kB) is moderate for an editor SDK, and the
 split's bookkeeping is not free. Re-evaluate if index.js crosses ~180 kB gzip
 or a single-surface host use-case materializes. Host-side tree shaking is the
+main lever, but note the `sideEffects` experiment was REVERSED (2026-09-08):
+under Rolldown the array-glob declaration shook the i18n catalogs out of the
+dist — see roadmap §3.1 for the full post-mortem. Host-side tree shaking is the
 primary lever (`sideEffects` is declared; see roadmap §3.1).
 
 ### Experiment result (measured 2026-09, Vite 7)

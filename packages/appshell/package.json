@@ -4,7 +4,6 @@
   "description": "Application shell for @republicroad/jdm-editor — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",
-  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

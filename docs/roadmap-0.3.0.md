@@ -61,12 +61,18 @@
   every dependency and peerDependency is already external (exceljs,
   CodeMirror, monaco and zen-engine-wasm never reach the artifact). Lazy-
   loading heavy deps is therefore a dead end here; what a host actually
-  ships is decided by its bundler's **tree shaking**:
-  - Both packages now declare `sideEffects` (`jdm-editor`: only `**/*.css`;
-    `jdm-appshell`: `false`) — CSS imports are the only module-level side
-    effects in the source (grep-verified), so the declaration lets host
-    bundlers deterministically drop unused modules and single-surface hosts
-    stop paying for the other one.
+  ships is decided by its bundler's **tree shaking**.
+  - **REVERSED (2026-09-08):** the `sideEffects` declarations added on
+    2026-09-07 were removed again. Under Vite 8 / Rolldown the array-glob
+    form (`"**/messages/*.ts"`) did not exempt anything — Rolldown treated
+    every module not explicitly listed as side-effect-free and **shook the
+    entire i18n message catalogs out of the dist** (keys survived as `t()`
+    arguments, every translated string vanished; caught because the
+    edit-expression button rendered empty). Neither a pure `false` nor the
+    glob arrays are safe with this Rolldown version. Re-introduce only after
+    verifying Rolldown's `package.json#sideEffects` array semantics, with a
+    snapshot on the catalogs (`Upload JSON`, `编辑表达式`) in the size/probe
+    gate.
   - Next step (next-cycle candidate): add a "DecisionTable-only" measuring
     host to consumer-smoke to quantify the per-surface payload; escalate to
     `./dist/table`/`./dist/graph` subpath entries only if that still misses
