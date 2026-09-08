@@ -1,6 +1,6 @@
 import { createVariableType } from '@gorules/zen-engine-wasm';
 import { DiffEditor, Editor, type Monaco, useMonaco } from '@monaco-editor/react';
-import { MarkerSeverity, type editor } from 'monaco-editor';
+import type { editor } from 'monaco-editor';
 import React, { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
@@ -14,6 +14,11 @@ import { SafeBoundary } from '../safe-boundary';
 import { FunctionDebugger } from './function-debugger';
 import { variableTypeToTypescript } from './helpers/determine-type';
 import { type FunctionLibrary, functionDefinitions, functionLibraries } from './helpers/libs';
+
+// monaco 的 MarkerSeverity 是固定数值枚举（editor.api.d.ts）；以本地字面量
+// 引用使 monaco 在内核内保持纯类型依赖——消费方打包器即使错误地把 tsconfig
+// paths 应用于运行时解析，也不会有任何 monaco 值导入入口（S008 加固）。
+const MarkerSeverity = { Hint: 1, Info: 2, Warning: 4, Error: 8 } as const;
 
 export type FunctionPermission = 'edit:full';
 
