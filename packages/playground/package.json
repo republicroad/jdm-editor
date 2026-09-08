@@ -1,0 +1,26 @@
+{
+  "name": "@republicroad/playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@republicroad/jdm-appshell": "workspace:*",
+    "@republicroad/jdm-editor": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react-swc": "^4.3.3",
+    "monaco-editor": "^0.52.2",
+    "tailwindcss": "^4.3.3",
+    "vite": "catalog:"
+  }
+}

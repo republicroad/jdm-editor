@@ -1,0 +1,64 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+.pg-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pg-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.pg-header nav {
+  display: flex;
+  gap: 4px;
+}
+
+.pg-header button {
+  cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.pg-header button.pg-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.pg-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-status {
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 120px;
+}
+
+.pg-main {
+  flex: 1;
+  min-height: 0;
+}

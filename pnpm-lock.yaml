@@ -489,6 +489,43 @@ importers:
         specifier: ^9.1.0
         version: 9.1.0
 
+  packages/playground:
+    dependencies:
+      '@republicroad/jdm-appshell':
+        specifier: workspace:*
+        version: link:../appshell
+      '@republicroad/jdm-editor':
+        specifier: workspace:*
+        version: link:../jdm-editor
+      react:
+        specifier: ^19.0.0
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.2.2(@types/node@22.14.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.86.3)(yaml@2.9.0))
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.1.2(@types/react@19.2.18)
+      '@vitejs/plugin-react-swc':
+        specifier: ^4.3.3
+        version: 4.3.3(@swc/helpers@0.5.23)(vite@8.2.2(@types/node@22.14.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.86.3)(yaml@2.9.0))
+      monaco-editor:
+        specifier: ^0.52.2
+        version: 0.52.2
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.2.2(@types/node@22.14.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.86.3)(yaml@2.9.0)
+
 packages:
 
   '@adobe/css-tools@4.4.2':
