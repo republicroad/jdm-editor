@@ -37,6 +37,31 @@ third-party code is `dayjs`/`fast-deep-equal`/`zustand` **subpath** files
 bundling it under Rolldown keeps its `require('react')` and crashes hosts
 (see `vite.config.ts`).
 
+## Monaco dependency model (master vs current)
+
+Master (upstream) declared `monaco-editor ^0.52.2` as a plain
+**dependency** — consumers installed it automatically while the lib build
+kept it external. The fork moved it to **peerDependencies** (roadmap 0.3.0
+§1.1, ~5 MB install slim-down) and, per S008, made the kernel source
+**type-only** toward monaco: the single former value import
+(`MarkerSeverity` in `function.tsx`) is now a local literal (`Error = 8`,
+monaco's fixed persisted-data contract), and the runtime instance arrives
+via the `useMonaco()` / `loader.config({ monaco })` bridge
+(`helpers/monaco.ts`, byte-identical to master) with worker wiring
+documented as the host's responsibility (`MonacoEnvironment.getWorker`).
+
+Rationale — monaco's three library-hostile properties: **global
+singleton** (two copies silently break markers/themes/languages), **worker
+wiring** (host bundler/deployment specific), **5 MB size**. Therefore the
+library must not statically value-import monaco, must not bundle it, and
+must keep the single-instance guarantee by letting the host own the
+dependency. Restoring the static import would buy nothing (the literal
+passes the identical value) while re-creating the S008 poisoning (any
+consumer applying tsconfig paths to runtime resolution pulls
+`editor.api.d.ts` in as JS). CodeMirror 6 libraries can bundle their
+editor precisely because CM6 lacks all three properties — the patterns are
+not transferable.
+
 ## Split decision (roadmap §3.1)
 
 `decision-graph` + `decision-table` account for **44%** of the rendered
