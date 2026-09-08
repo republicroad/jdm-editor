@@ -103,6 +103,31 @@ complex/custom 表达式处理。
 - 测试：`src/helpers/wasm-roundtrip.test.ts` 用 `initSync` 直接加载 node_modules 里
   的真实二进制，断言 parse→serialize 收敛、序列化幂等、规范形态恒等、校验器一致。
 
+### 长期任务存档：表达式链路自持化（2026-09-08 搁置）
+
+**决策：** 作为长期任务存档，暂不启动。链路继续运行在锁版本的
+`@gorules/zen-engine-wasm@0.23.1` 上，round-trip 快照护栏作为漂移围栏保持有效。
+
+**目标：** 用本组织的 `zen` 仓库（Rust）构建编辑器专用 wasm，替换上游预编译
+产物，使操作符/日期函数/类型系统可自主演进，不必等上游发版。
+
+**工作项（均未启动）：**
+1. `zen-expression` 的 AST→字符串序列化器——唯一缺失件（AST 现只有编译/求值
+   出口，无 unparse）。输出须与 `src/helpers/wasm-roundtrip.test.ts` 锁定的
+   规范形态逐字符一致，含特例展开
+   （`timeGt` → `d($).hour() * 60 + d($).minute() > 9 * 60 + 30`）。
+2. 结构化 JSON 契约层（`toJson`/`fromJson` 形状与上游一致），
+   `use-expression-state.ts` 零改动。
+3. wasm-bindgen 绑定 + wasm32 构建管线（zen 现只有 napi/pyo3/uniffi/c 绑定）。
+4. 对拍验收：扩语料（zen `test-data`、`credit-analysis.json` 等）双产物
+   diff 为零后方可切换。
+
+**预估：** 单人约 2–4 周。**解档触发：** 上游 wasm 出现不兼容变更或停更；
+需要自定义操作符/类型系统；TS7/rolldown 工具链波及 wasm 链路。
+
+**替代方案记录：** 路径 B——用 `nlTokenizeBatch` token 流重建芯片视图
+（重写 UI 层，Rust 零改动；见 zen 仓库 `TODO.md`）。
+
 ## 七、引擎兼容性提醒
 
 `fieldType`/`outputFieldType` 是**编辑器层**的富类型；引擎端 JDM 表列仍是纯字符串

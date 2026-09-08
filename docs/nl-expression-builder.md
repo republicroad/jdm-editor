@@ -108,6 +108,38 @@ canonical and will be treated as a complex/custom expression.
   `initSync` and asserts parse→serialize convergence, idempotent serialization,
   canonical-form identity, and validator agreement.
 
+### Long-term task archive: expression-chain self-hosting (shelved 2026-09-08)
+
+**Decision:** archived as a long-term task; do not start now. The chain keeps
+running on the pinned upstream `@gorules/zen-engine-wasm@0.23.1` with the
+round-trip snapshot guard as the drift fence.
+
+**Goal:** build the editor-facing wasm from this org's `zen` repo (Rust) and
+replace the upstream prebuilt artifact, so operators / date-functions / the
+type system can evolve without waiting for upstream releases.
+
+**Work items (none started):**
+1. AST→string serializer in `zen-expression` — the only missing piece (the AST
+   currently has compile/evaluate exits, no unparse). Output must match the
+   canonical forms locked in `src/helpers/wasm-roundtrip.test.ts`
+   character-for-character, including special expansions
+   (`timeGt` → `d($).hour() * 60 + d($).minute() > 9 * 60 + 30`).
+2. Structured-JSON contract layer (`toJson` / `fromJson` shapes identical to
+   upstream) so `use-expression-state.ts` stays untouched.
+3. wasm-bindgen binding + wasm32 build pipeline (zen currently ships
+   napi/pyo3/uniffi/c bindings only).
+4. Parity acceptance: both artifacts over an extended corpus (zen `test-data`,
+   `credit-analysis.json`, …); switch only at zero diff.
+
+**Estimate:** ~2–4 weeks, single developer. **Un-archive triggers:** the
+upstream wasm breaks or stands still while we need changes; custom operators
+or type-system work becomes necessary; the TS7/rolldown tooling wave reaches
+the wasm chain.
+
+**Alternative on record:** "path B" — rebuild the chip view on
+`nlTokenizeBatch` token streams (UI-layer rewrite, zero Rust changes; see the
+zen repo `TODO.md`).
+
 ## 7. Engine compatibility caveat
 
 `fieldType`/`outputFieldType` are **editor-layer** rich types. The engine-side JDM table
