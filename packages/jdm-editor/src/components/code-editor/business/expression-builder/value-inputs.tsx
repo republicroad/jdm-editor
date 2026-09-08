@@ -60,7 +60,7 @@ const StrInput: React.FC<SimpleInputProps> = ({ value, onChange, disabled }) => 
   const commit = () => onChange({ type: 'string', value: text });
   return (
     <AutosizeTextArea
-      className='flex-1 min-w-[40px] [font-family:inherit] text-[13px]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
+      className='flex-1 min-w-[40px] border-0! shadow-none! [font-family:inherit] text-[13px]! leading-[var(--b-line-height)]! px-[var(--b-h-padding)]! py-[var(--b-v-padding)]! h-auto! min-h-[var(--b-height)] focus:shadow-none!'
       value={text}
       maxRows={3}
       onChange={(e) => setText(e.target.value)}

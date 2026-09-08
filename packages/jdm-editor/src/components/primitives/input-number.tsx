@@ -18,7 +18,7 @@ export const InputNumber: React.FC<{
   className?: string;
   style?: React.CSSProperties;
   onChange?: (value: number | null) => void;
-}> = ({ value, min, max, step, disabled, size, placeholder, className, style, onChange }) => (
+}> = ({ value, min, max, step, disabled, size, controls, placeholder, className, style, onChange }) => (
   <input
     type='number'
     value={value === undefined || value === null ? '' : value}
@@ -32,6 +32,9 @@ export const InputNumber: React.FC<{
       borderlessInputClass,
       size === 'large' ? 'h-10 text-base' : undefined,
       'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
+      // antd semantics: controls={false} hides the native spin buttons.
+      controls === false &&
+        '[appearance:textfield] [&::-webkit-inner-spin-button]:[-webkit-appearance:none] [&::-webkit-outer-spin-button]:[-webkit-appearance:none]',
       className,
     )}
     style={style}

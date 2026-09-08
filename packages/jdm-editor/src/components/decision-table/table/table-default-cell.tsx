@@ -201,7 +201,9 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
 
   if (mode === 'business' && isInputColumn) {
     return (
-      <div ref={containerRef} className='relative w-full [--b-font-size:14px]'>
+      // py/px mirror the pre-refactor cell padding (7px/8px): 23.5px builder
+      // + 14px padding = 37.5px, exactly the dev-mode CodeMirror cell height.
+      <div ref={containerRef} className='relative w-full py-[7px] px-2 [--b-font-size:14px]'>
         <TableInputCellStatus index={index} columnId={column.id} />
         <ExpressionBuilder
           ref={builderRef}
@@ -216,7 +218,7 @@ const TableInputCell: React.FC<TableCellProps> = ({ column, value, onChange, dis
 
   if (mode === 'business' && isOutputColumn) {
     return (
-      <div ref={containerRef} className='relative w-full [--b-font-size:14px]'>
+      <div ref={containerRef} className='relative w-full py-[7px] px-2 [--b-font-size:14px]'>
         <StandardExpressionBuilder
           ref={builderRef}
           value={value ?? ''}

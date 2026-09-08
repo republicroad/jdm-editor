@@ -72,7 +72,7 @@ export const Select: React.FC<AntdSelectProps> = ({
   loading,
   mode,
   tokenSeparators: _tokenSeparators,
-  suffixIcon: _suffixIcon,
+  suffixIcon,
   popupMatchSelectWidth: _popupMatchSelectWidth,
   variant: _variant,
   showSearch: _showSearch,
@@ -136,6 +136,8 @@ export const Select: React.FC<AntdSelectProps> = ({
             'w-full justify-between',
             size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
             allowClear && !!current && '[&>svg:last-child]:hidden',
+            // antd semantics: suffixIcon={null} means no trailing icon.
+            suffixIcon === null && '[&>svg:last-child]:hidden',
             className,
           )}
           style={style}
