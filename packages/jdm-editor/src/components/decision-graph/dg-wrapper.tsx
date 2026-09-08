@@ -13,6 +13,7 @@ import { GraphNodes } from './graph/graph-nodes';
 import { GraphSideToolbar } from './graph/graph-side-toolbar';
 import type { GraphTabsProps } from './graph/graph-tabs';
 import { GraphTabs } from './graph/graph-tabs';
+import { CustomFunctionTable } from './graph/tab-custom-function-table';
 import { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
 import { expressionSpecification } from './nodes/specifications/expression.specification';
 import { functionSpecification } from './nodes/specifications/function.specification';
@@ -147,6 +148,9 @@ const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFun
                 if (customSpec?.renderTab) {
                   return customSpec.renderTab({ id: node.id, user, customFunctions });
                 }
+                // 无自定义 renderTab 的 kind 节点（容器/旧版 UDF）回退到
+                // 自定义函数表格——与 zrule 行为一致
+                return <CustomFunctionTable id={node.id} user={user} customFunctions={customFunctions} />;
               }
 
               return null;

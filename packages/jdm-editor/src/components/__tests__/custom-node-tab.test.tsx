@@ -42,8 +42,9 @@ describe('custom node renderTab', () => {
       <DecisionGraph value={graph as never} customNodes={[debugSpec as never]} onChange={vi.fn()} />,
     );
 
-    // canvas node renders through the custom spec
+    // canvas node renders through the custom spec (default renderNode)
     await waitFor(() => expect(container.querySelector('.react-flow__node')).toBeInTheDocument());
+    expect(screen.getByText('Edit Expression')).toBeInTheDocument();
 
     // the node's edit-expression button is the tab entry: click it to open
     // the tab, which should render renderTab content
