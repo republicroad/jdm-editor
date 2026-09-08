@@ -525,3 +525,112 @@ port had emitted twice.
   toolchain) is the detection point; keep it in CI.
 - **Fast triage:** `grep '__\|__:is' dist/style.css` (or search for selectors
   starting with `_`/`-`) catches this class of corruption before shipping.
+
+## 8. Custom-node "Edit Expression" button vanished: three stacked root causes
+
+**Date:** 2026-09-08 · **Fixed in:** `bf47b6c4` + `588e6101` + `f47af5c6`
+
+### Symptom
+
+Dragging a **debug** node (or 自定义函数(旧版) / legacy UDF) from the palette
+onto the decision graph: the **Edit Expression** footer button at the
+node's bottom-left was gone, and the node's tab (once opened) showed
+**blank content** instead of the custom-function table. Built-in nodes
+(Expression / Function / Decision table) were unaffected.
+
+### Investigation timeline (the weird part)
+
+The bug looked like one regression. It was **three stacked root causes**,
+each masked by the fix for the previous one:
+
+1. **The button code was never in this lineage.** Comparing against the
+   `zrule` branch (the fork's pre-refactor product state) showed the button
+   lived in `createJdmNode`'s default `renderNode` (`openTab` +
+   `t('editExpression')`) plus a `CustomFunctionTable` fallback in
+   `TabContents`. The ReUI rebuild was assembled from the upstream lineage,
+   so these fork additions — and the old `editExpression` i18n key — were
+   silently dropped. Restored them (`bf47b6c4`); jsdom tests went green.
+2. **User re-test: still "missing".** Browser DOM inspection showed the
+   footer button DID render — with **empty text**. Probing
+   `dist/index.js`: every i18n key survived as a `t()` argument, but not a
+   single translated value did (`Upload JSON` gone, `编辑表达式` gone). The
+   **entire message catalogs had been tree-shaken out of dist** — a
+   regression from the Vite 8 upgrade, where the newly added
+   `"sideEffects": [...]` array declaration made Rolldown treat the
+   pure-data `theming/messages/*.ts` modules as removable (the array-glob
+   exemption did not match anything). Removing the declarations brought the
+   catalogs back (`588e6101`).
+3. **But the running app still executed the OLD renderNode.** Reading the
+   function body at runtime via the React fiber
+   (`spec.renderNode.toString()`) showed the pre-fix source — no
+   `openTab`, no marker. The served dist file was fresh (fetched and
+   grepped it from the dev server), yet the module executed was old.
+   Cause: appshell's `@republicroad/jdm-editor` link resolves through a
+   **pnpm peer-variant instance** (`.pnpm/@republicroad+jdm-editor@0._…`),
+   whose `dist` is a **hardlink copy from Sep 4**. `vite build` writes new
+   files (breaking the hardlinks), so the instance kept serving a
+   days-old artifact while the vitest suite — which aliases the kernel to
+   **source** — stayed green. Fixed by aliasing
+   `@republicroad/jdm-editor` to the kernel **source** in
+   `.storybook/main.ts` `viteFinal` (`f47af5c6`), matching the monorepo's
+   internal-consumption semantics.
+
+### Root causes (three, stacked)
+
+1. **Fork loss during the ReUI rebuild** — button, fallback, and i18n key
+   were zrule-only additions the rebuild never carried.
+2. **`sideEffects` array-glob + Rolldown** — pure-data i18n catalog modules
+   were shaken out of dist; keys survived, all values vanished. (The
+   declarations were removed again; see roadmap §3.1 for re-introduction
+   conditions.)
+3. **Stale pnpm hardlink dist** — storybook resolved the kernel through
+   appshell's peer-variant link and executed a days-old artifact, while
+   every test gate (source-resolved) passed.
+
+### Fixes
+
+- `bf47b6c4` — restore the edit-expression action in the default
+  `renderNode` and the unregistered-kind fallback, with the new
+  `dg.node.editExpression` catalog key (en/zh-CN).
+- `588e6101` — remove the `sideEffects` declarations; vitest
+  `fileParallelism: false` (the wasm-roundtrip suite OOM'd under parallel
+  workers); size budgets re-based; roadmap/bundle-analysis post-mortem.
+- `f47af5c6` — storybook viteFinal aliases the kernel to source; restore
+  the `CustomFunctionTable` tab fallback for kind-only custom nodes;
+  regression suites for both packages.
+
+### Verification
+
+- In-browser (clean storybook instance, integration story): dragged a
+  debug node → footer shows **Edit Expression** → click opens the
+  `debug1` tab → the **CustomFunctionTable** renders (Key/Expression
+  grid + Add Row). Screenshots captured at each step.
+- Regression suites: `custom-node-tab.test.tsx` (kernel: button →
+  openTab → renderTab marker) and `custom-node-button.test.tsx`
+  (appshell: legacy-UDF footer button), both against real kernel code.
+- Full gates: `pnpm verify` green; Validate + Pages workflows green.
+
+### Lessons / checklist
+
+- **jsdom green ≠ browser green when the two resolve different module
+  copies.** Vitest aliased the kernel to source; storybook resolved it to
+  a stale dist. When tests pass but the browser misbehaves, diff the
+  *served artifact* content first — fetch the module URL from the page and
+  grep for a recent string.
+- **`sideEffects` array-globs are not safe under Rolldown** (as of this
+  Rolldown version): pure-data modules (i18n catalogs!) matched by nothing
+  get shaken even when the glob should exempt them. A one-line canary in
+  the size/probe gate (`Upload JSON` must exist in dist) catches this.
+- **React fiber inspection is the fastest "which code is actually
+  running" probe**: walk `__reactFiber$` to the component, read
+  `memoizedProps.specification.renderNode.toString()`, and grep it for a
+  recent source marker — no rebuild/debugger needed.
+- **pnpm peer-variant instances break hardlinks on rebuild.** A workspace
+  package consumed through another package's `node_modules` link keeps a
+  stale dist copy after `vite build` rewrites the output. Prefer
+  source-aliasing for in-repo consumers (storybook, tests) or re-run
+  `pnpm install` after builds.
+- **When a fork diverges hard, diff against the fork branch, not
+  upstream.** `master` (upstream lineage) did not contain the missing
+  code — `zrule` did. Knowing which branch holds the "last known good"
+  state halves the investigation.

@@ -458,3 +458,95 @@ SyntaxError: [lightningcss minify] Invalid qualified rule
   却被宿主的 lightningcss 拒绝。consumer-smoke(经宿主工具链压缩)才是检测点,必须留在 CI。
 - **快速分诊:** 对 `dist/style.css` 执行 `grep '__\|__:is'`(或搜索以 `_`/`-` 开头的选择器)
   可在发版前捕获这类损坏。
+
+## 8. 自定义节点「编辑表达式」按钮消失:三层根因叠加
+
+**日期:** 2026-09-08 · **修复提交:** `bf47b6c4` + `588e6101` + `f47af5c6`
+
+### 症状
+
+从组件面板把 **debug** 节点(或 自定义函数(旧版)/legacy UDF)拖进决策图:
+节点左下方的 **Edit Expression** footer 按钮不见了;节点 tab 打开后内容
+**空白**,没有自定义函数表格。内置节点(Expression / Function / 决策表)
+不受影响。
+
+### 排查时间线(离奇之处)
+
+这个 bug 看起来是一个回归,实际是**三层根因叠加**,每一层都被前一层的
+修复所掩盖:
+
+1. **按钮代码根本不在这个谱系里。** 对比 `zrule` 分支(fork 重构前的产品
+   态)发现:按钮在 `createJdmNode` 默认 `renderNode` 里(`openTab` +
+   `t('editExpression')`),配套还有 `TabContents` 的 `CustomFunctionTable`
+   fallback。ReUI 重建是从上游谱系组装的,这些 fork 增补——连同旧的
+   `editExpression` i18n key——被静默丢弃。恢复之后(`bf47b6c4`),
+   jsdom 测试转绿。
+2. **用户复测:仍然"没有"。** 浏览器 DOM 检查显示 footer 按钮**渲染了,
+   但文本为空**。探测 `dist/index.js`:所有 i18n key 都以 `t()` 参数形式
+   幸存,但**没有任何一个译文值**(`Upload JSON` 没了、`编辑表达式`
+   没了)——**整个文案目录被 tree-shake 摇出了 dist**。这是 Vite 8 升级
+   引入的回归:新加的 `"sideEffects": [...]` 数组声明让 Rolldown 把纯数据
+   的 `theming/messages/*.ts` 模块当作可删除模块(数组 glob 没有豁免到
+   任何东西)。移除声明后目录回归(`588e6101`)。
+3. **但运行中的应用执行的还是旧 renderNode。** 通过 React fiber 在运行时
+   读函数体(`spec.renderNode.toString()`):是修复前的源码——没有
+   `openTab`、没有 marker。dev server 服务的 dist 文件是新的(fetch 下来
+   grep 过),但页面执行的模块是旧的。原因:appshell 的
+   `@republicroad/jdm-editor` 链接经 **pnpm peer 变体实例**
+   (`.pnpm/@republicroad+jdm-editor@0._…`)解析,其 `dist` 是 **9 月 4 日
+   的硬链接副本**——`vite build` 写新文件(断开硬链接)后,该实例一直
+   供应几天前的旧产物;而 vitest 套件把 kernel 别名到**源码**,始终是
+   绿的。修复:`.storybook/main.ts` 的 `viteFinal` 把 kernel 别名到
+   **源码直通**(`f47af5c6`),与 monorepo 内部消费语义对齐。
+
+### 根因(三层叠加)
+
+1. **ReUI 重建丢失 fork 增补**——按钮、fallback、i18n key 都是仅存于
+   zrule 的增补,重建从未携带。
+2. **`sideEffects` 数组 glob + Rolldown**——纯数据 i18n 目录模块被摇出
+   dist;key 幸存,全部译文消失。(声明已再次移除;重新启用条件见
+   roadmap §3.1。)
+3. **pnpm 硬链接 dist 陈旧**——storybook 经 appshell 的 peer 变体链接
+   解析 kernel,执行的是几天前的旧产物;所有测试门禁(源码解析)全绿,
+   形成完美掩护。
+
+### 修复
+
+- `bf47b6c4` — 默认 `renderNode` 与未注册类型 fallback 恢复
+  edit-expression 按钮,新增 `dg.node.editExpression` 目录 key(en/zh-CN)。
+- `588e6101` — 移除 `sideEffects` 声明;vitest `fileParallelism: false`
+  (wasm-roundtrip 套件在并行 worker 下 OOM);size 预算重定;
+  roadmap/bundle-analysis 复盘。
+- `f47af5c6` — storybook viteFinal 把 kernel 别名到源码;恢复 kind-only
+  自定义节点的 `CustomFunctionTable` tab fallback;两包回归测试。
+
+### 验证
+
+- 浏览器实测(干净 storybook 实例,integration story):拖入 debug 节点 →
+  footer 显示 **Edit Expression** → 点击打开 `debug1` tab →
+  **CustomFunctionTable** 渲染(Key/Expression 表格 + Add Row),每步截图。
+- 回归套件:`custom-node-tab.test.tsx`(kernel:按钮 → openTab →
+  renderTab marker)与 `custom-node-button.test.tsx`(appshell:legacy
+  UDF footer 按钮),均针对真实 kernel 代码。
+- 全量门禁:`pnpm verify` 绿;Validate + Pages workflow 绿。
+
+### 经验 / 检查单
+
+- **当两套环境解析出不同的模块副本时,jsdom 全绿 ≠ 浏览器正常。**
+  vitest 把 kernel 别名到源码,storybook 解析到陈旧 dist。测试通过但
+  浏览器异常时,第一步对比**被服务的产物内容**——从页面 fetch 模块
+  URL 并 grep 一个近期字符串。
+- **`sideEffects` 数组 glob 在 Rolldown 下不安全**(截至当前 Rolldown
+  版本):谁都没匹配到的纯数据模块(i18n 目录!)照样被摇。在
+  size/probe 门禁加一行金丝雀(dist 必须含 `Upload JSON`)即可捕获。
+- **React fiber 反查是"实际执行的是哪版代码"的最快探测**:沿
+  `__reactFiber$` 走到组件,读
+  `memoizedProps.specification.renderNode.toString()`,grep 近期源码
+  marker——无需重建、无需调试器。
+- **pnpm peer 变体实例的硬链接会在重建后断开。** 经其他包的
+  `node_modules` 链接消费的 workspace 包,`vite build` 重写产物后该链接
+  保留旧 dist 副本。仓内消费者(storybook、测试)优先用源码别名,或
+  构建后重跑 `pnpm install`。
+- **fork 深度分叉时,对照 fork 分支而非上游。** `master`(上游谱系)里
+  根本没有丢失的代码——在 `zrule` 里。先弄清"最后已知完好状态"在哪个
+  分支,排查时间直接减半。
