@@ -61,12 +61,15 @@ export function createIndexedDbAdapter(dbName = 'jdm-appshell-graphs'): GraphPer
 
 ---
 
-## 4. 规划：恢复即前进 + 命名版本
+## 4. 恢复即前进 + 命名版本（✅ 2026-09-08 已落地）
 
-- **恢复即前进**（业界"restore is forward"）：恢复历史版本后，后续保存创建
-  **新版本**（不覆盖其后版本，历史不可破坏）
-- **命名版本**：保存时可命名（`versionName` 全链），面板按名显示；命名版本不受
-  auto 治理影响
+- **命名版本** ✅：`versionName` 契约全链（save/load/list/listVersions）、命名豁免
+  auto 治理、`renameVersion`（IndexedDB 原生 / HTTP PATCH）、面板命名/过滤/重命名
+  ——随 appshell 0.2.0 发布。
+- **恢复即前进** ✅：适配器 `save` 恒定「bump head + 归档旧 head」（历史不可变，
+  有测试守护）；库内标准入口 `shell/restore.ts#restoreVersion(adapter, id,
+  revision, { versionName? })`——head revision 兜底、NOT_FOUND 语义、命名透传，
+  宿主 `onRestore` 直接调用。
 
 ---
 
