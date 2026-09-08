@@ -15,6 +15,7 @@ import clsx from 'clsx';
 import equal from 'fast-deep-equal';
 import React, { type MutableRefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
+import { useT } from '../../../theming/i18n';
 import { App, Button, Typography } from '../../primitives';
 import {
   type DecisionGraphStoreType,
@@ -114,6 +115,8 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   const customNodeRenderer = useMemo(() => {
     return React.memo(
       (props: MinimalNodeProps) => {
+        const t = useT();
+        const { openTab } = useDecisionGraphActions();
         const node = customNodes.find((node) => node.kind === props?.data?.kind) as CustomNodeSpecification<
           object,
           string
@@ -135,6 +138,11 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               noBodyPadding
               handleLeft={true}
               handleRight={true}
+              actions={[
+                <Button key='edit-expression' type='text' onClick={() => openTab(props.id)}>
+                  {t('dg.node.editExpression')}
+                </Button>,
+              ]}
             />
           );
         }

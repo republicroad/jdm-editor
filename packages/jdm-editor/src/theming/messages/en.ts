@@ -59,6 +59,7 @@ export const en = {
   'dg.node.decisionTables': 'Decision Tables',
   'dg.node.expressions': 'Expressions',
   'dg.node.functions': 'Functions',
+  'dg.node.editExpression': 'Edit Expression',
   'dg.toolbar.uploadJson': 'Upload JSON',
   'dg.toolbar.uploadExcel': 'Upload Excel',
   'dg.toolbar.downloadJson': 'Download JSON',

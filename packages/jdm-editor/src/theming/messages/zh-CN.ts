@@ -50,6 +50,7 @@ export const zhCN: Record<string, string> = {
   'dg.node.decisionTables': '决策表',
   'dg.node.expressions': '表达式',
   'dg.node.functions': '函数',
+  'dg.node.editExpression': '编辑表达式',
   'dg.toolbar.uploadJson': '上传 JSON',
   'dg.toolbar.uploadExcel': '上传 Excel',
   'dg.toolbar.downloadJson': '下载 JSON',

@@ -4,6 +4,7 @@ import type { XYPosition } from '@xyflow/react';
 import React, { useState } from 'react';
 import { match } from 'ts-pattern';
 
+import { useT } from '../../../../theming/i18n';
 import { CodeEditor } from '../../../code-editor';
 import { Button, Checkbox, Form, Typography } from '../../../primitives';
 import { useDecisionGraphActions, useDecisionGraphState } from '../../context/dg-store.context';
@@ -127,7 +128,8 @@ export const createJdmNode = <
       ? n.renderNode
       : ({ id, specification, data, selected }) => {
           const [open, setOpen] = useState(false);
-          const { updateNode } = useDecisionGraphActions();
+          const t = useT();
+          const { updateNode, openTab } = useDecisionGraphActions();
           const node = useDecisionGraphState((state) => (state.decisionGraph?.nodes || []).find((n) => n.id === id));
           const nodeData = node?.content?.config;
           return (
@@ -139,8 +141,11 @@ export const createJdmNode = <
               noBodyPadding
               handleLeft={n.handleLeft}
               handleRight={n.handleRight}
-              actions={
-                n?.inputs
+              actions={[
+                <Button key='edit-expression' type='text' onClick={() => openTab(id)}>
+                  {t('dg.node.editExpression')}
+                </Button>,
+                ...(n?.inputs
                   ? [
                       <Button
                         key='edit-table'
@@ -151,8 +156,8 @@ export const createJdmNode = <
                         <DownOutlined />
                       </Button>,
                     ]
-                  : undefined
-              }
+                  : []),
+              ]}
             >
               {open && n?.inputs && (
                 <Form
