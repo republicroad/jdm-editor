@@ -43,7 +43,9 @@
 | [`i18n.md`](./i18n.md) | EN | i18n guide: provider setup via JdmConfigProvider, useT/createT, en+zh-CN catalogs, fallback chain, interpolation, coverage and known limitation (renderNode specs) |
 | [`i18n.zh-CN.md`](./i18n.zh-CN.md) | 中文 | 国际化指南(中文对照):Provider 接入、useT/createT、en+zh-CN 词条表、回退链、插值、覆盖范围与已知限制(renderNode 规格回调) |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
-| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)等 |
+| [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)、自定义节点按钮消失的三层叠加根因等 |
+| [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md) | EN | pnpm workspace linking: direct symlink vs peer-variant physical clone, hardlink freeze cycle, source-passthrough policy, forensics one-liners |
+| [`pnpm-workspace-linking.zh-CN.md`](./pnpm-workspace-linking.zh-CN.md) | 中文 | pnpm workspace 链接机制(中文对照):直连 symlink 与 peer-variant 物理克隆、硬链接冻结循环、源码直通策略与取证单行命令 |
 | [`host-migration-guide.md`](./host-migration-guide.md) | EN | Host migration guide: @gorules → @republicroad quick switch, breaking changes, --grl-* contract, 0.2.x additions (new exports, DecisionGraph props, custom node authoring, i18n increments), 0.3.0 heads-up |
 | [`host-migration-guide.zh-CN.md`](./host-migration-guide.zh-CN.md) | 中文 | 宿主迁移指南(中文对照):快速切换、破坏性变更、--grl-* 契约、0.2.x 新增(导出、DecisionGraph 属性、自定义节点开发、i18n 增量)、0.3.0 预告 |
 | [`appshell.md`](./appshell.md) | EN | @republicroad/jdm-appshell — the scheme D reference consumer shell: custom node hosting (six nodes), registry and protocols, skin system, GraphPersistenceAdapter persistence contract, host wiring |

@@ -635,6 +635,10 @@ each masked by the fix for the previous one:
   code — `zrule` did. Knowing which branch holds the "last known good"
   state halves the investigation.
 
+> Full mechanism (both linking modes, why the clone materializes, the
+> freeze cycle) is documented in
+> [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md).
+
 ### Exhibit: the dual-dist forensics (2026-09-09 disk capture)
 
 Link configuration that produced the bug — the same kernel, resolved at

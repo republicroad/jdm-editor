@@ -551,6 +551,9 @@ SyntaxError: [lightningcss minify] Invalid qualified rule
   根本没有丢失的代码——在 `zrule` 里。先弄清"最后已知完好状态"在哪个
   分支,排查时间直接减半。
 
+> 机制细节(两种链接形态、物化原因、冻结循环的完整解释)见
+> [`pnpm-workspace-linking.zh-CN.md`](./pnpm-workspace-linking.zh-CN.md)。
+
 ### 附录：双副本磁盘取证（2026-09-09 实测）
 
 产生该 bug 的链接配置——同一个 kernel，被解析到两个不同物理位置：
