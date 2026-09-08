@@ -10,7 +10,16 @@
  * Flags:  --keep   keep temp workspace for debugging
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import net from 'node:net';
@@ -115,6 +124,21 @@ createRoot(document.getElementById('app')).render(
   React.createElement(DecisionGraph, { value: { nodes: [], edges: [] }, onChange: () => {} }),
 );`;
 
+// roadmap 3.1: single-surface measuring host — imports ONLY DecisionTable to
+// quantify the per-surface payload of the tree-shaken host bundle.
+const TABLE_MAIN_JS = `import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { DecisionTable } from '@republicroad/jdm-editor';
+import '@republicroad/jdm-editor/dist/style.css';
+
+createRoot(document.getElementById('app')).render(
+  React.createElement(DecisionTable, {
+    tableHeight: '100%',
+    value: undefined,
+    onChange: () => {},
+  }),
+);`;
+
 const results = [];
 const workspace = mkdtempSync(path.join(os.tmpdir(), 'jdm-consumer-smoke-'));
 
@@ -133,7 +157,7 @@ try {
     const pkg = { name: host.label, private: true, type: 'module' };
     writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
     writeFileSync(path.join(dir, 'index.html'), INDEX_HTML);
-    writeFileSync(path.join(dir, 'main.js'), MAIN_JS);
+    writeFileSync(path.join(dir, 'main.js'), host.main ?? MAIN_JS);
 
     console.log(`[smoke] ${host.label}: installing react ${host.react} + library…`);
     runPnpm(['add', `react@${host.react}`, `react-dom@${host.react}`], dir);
@@ -165,6 +189,37 @@ try {
     console.log(
       `[smoke] ${host.label}: ${ok ? 'PASS' : 'FAIL'} ${JSON.stringify(state)}${errors.length ? ` errors=${JSON.stringify(errors.slice(0, 3))}` : ''}`,
     );
+  }
+
+  // Single-surface measuring host (roadmap 3.1): build a DecisionTable-only
+  // host and report the emitted bundle bytes — quantifies per-surface payload
+  // after tree shaking. No browser pass needed; a successful build suffices.
+  {
+    const label = MEASURE_HOST.label;
+    const dir = path.join(workspace, label);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      path.join(dir, 'package.json'),
+      JSON.stringify({ name: label, private: true, type: 'module' }, null, 2),
+    );
+    writeFileSync(path.join(dir, 'index.html'), INDEX_HTML);
+    writeFileSync(path.join(dir, 'main.js'), TABLE_MAIN_JS);
+
+    console.log(`[smoke] ${label}: installing react ${MEASURE_HOST.react} + library…`);
+    runPnpm(['add', `react@${MEASURE_HOST.react}`, `react-dom@${MEASURE_HOST.react}`], dir);
+    runPnpm(['add', '-D', 'vite'], dir);
+    runPnpm(['add', kernelTarball], dir);
+
+    console.log(`[smoke] ${label}: building host app…`);
+    runPnpm(['exec', 'vite', 'build'], dir);
+
+    const assets = readdirSync(path.join(dir, 'dist'))
+      .filter((f) => /\.js$/.test(f))
+      .map((f) => ({ file: f, bytes: statSync(path.join(dir, 'dist', f)).size }))
+      .sort((a, b) => b.bytes - a.bytes);
+    const totalJs = assets.reduce((n, a) => n + a.bytes, 0);
+    console.log(`[smoke] ${label}: PASS ${JSON.stringify({ totalJsBytes: totalJs, assets })}`);
+    results.push({ host: label, ok: true, totalJsBytes: totalJs });
   }
 
   await browser.close();

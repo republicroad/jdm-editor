@@ -22,6 +22,7 @@
     "test:npm-smoke": "node scripts/npm-smoke.mjs",
     "test:probes": "node scripts/run-probes.mjs",
     "storybook": "pnpm --filter @republicroad/jdm-editor storybook",
+    "playground": "pnpm --filter @republicroad/playground dev",
     "docs:dev": "rspress dev docs",
     "docs:build": "rspress build docs"
   },
