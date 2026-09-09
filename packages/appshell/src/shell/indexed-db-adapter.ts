@@ -32,6 +32,7 @@ type StoredMeta = {
   revision: string;
   auto?: boolean;
   versionName?: string;
+  pinned?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -162,6 +163,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         revision,
         auto: record.auto,
         versionName: record.versionName,
+        pinned: record.pinned,
         createdAt,
         updatedAt: now,
       };
@@ -173,7 +175,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
 
       // auto 版本保留策略——命名版本视为受保护，不计入治理
       const autos = (await listByPrefix(`${VER_PREFIX}${record.id}::`)).filter(
-        (a) => a.entry.meta.auto && !a.entry.meta.versionName,
+        (a) => a.entry.meta.auto && !a.entry.meta.versionName && !a.entry.meta.pinned,
       );
       const excess = autos.length - AUTO_VERSIONS_KEEP;
       const sorted = autos.sort(
@@ -201,23 +203,30 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         .map(({ entry }) => ({
           revision: entry.meta.revision,
           versionName: entry.meta.versionName,
+          pinned: entry.meta.pinned,
           updatedAt: entry.meta.updatedAt,
           auto: entry.meta.auto,
         }))
         .sort((a, b) => a.revision.localeCompare(b.revision));
     },
 
-    async renameVersion(id, revision, versionName) {
+    async updateVersionMeta(id, revision, meta) {
       const key = versionKey(id, revision);
       const entry = await getEntry(key);
       if (!entry) {
         throw new GraphPersistenceError('NOT_FOUND', `version ${revision} of graph ${id} does not exist`);
       }
-      const { versionName: _dropped, ...restMeta } = entry.meta;
-      await putEntry(key, {
-        ...entry,
-        meta: versionName === null ? restMeta : { ...restMeta, versionName },
-      });
+      // null/undefined 值 = 清除对应键（meta 缺省语义即「无此属性」）
+      const { versionName: _vn, pinned: _pin, ...restMeta } = entry.meta;
+      const next: StoredMeta = { ...restMeta };
+      if (meta.versionName != null) next.versionName = meta.versionName;
+      if (meta.pinned != null) next.pinned = meta.pinned;
+      await putEntry(key, { ...entry, meta: next });
+    },
+
+    async renameVersion(id, revision, versionName) {
+      // 兼容别名：转调 updateVersionMeta 的 versionName 通道
+      await this.updateVersionMeta!(id, revision, { versionName });
     },
   };
 }

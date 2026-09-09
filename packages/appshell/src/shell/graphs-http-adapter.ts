@@ -13,6 +13,7 @@ interface HttpGraphMeta {
   revision: string;
   auto?: boolean;
   versionName?: string;
+  pinned?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,6 +39,7 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
     revision: m.revision,
     auto: m.auto,
     versionName: m.versionName,
+    pinned: m.pinned,
     createdAt: m.createdAt,
     updatedAt: m.updatedAt,
   });
@@ -98,17 +100,25 @@ export const createGraphsHttpAdapter = (baseUrl = '/api/graphs'): GraphPersisten
 
     async listVersions(id) {
       const { data } = await axios.get<
-        Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>
+        Array<{
+          revision: string;
+          versionName?: string;
+          pinned?: boolean;
+          updatedAt?: string;
+          auto?: boolean;
+        }>
       >(`${baseUrl}/${encodeURIComponent(id)}/versions`);
       return data;
     },
 
-    // 契约：PATCH /graphs/{id}/versions/{revision}，body { versionName }。
-    // 参考后端未实现时宿主不应暴露重命名入口（方法存在性即 UI 特性检测）。
+    // 契约：PATCH /graphs/{id}/versions/{revision}，body { pinned?, versionName? }。
+    // 参考后端未实现时宿主不应暴露对应入口（方法存在性即 UI 特性检测）。
+    async updateVersionMeta(id, revision, meta) {
+      await axios.patch(`${baseUrl}/${encodeURIComponent(id)}/versions/${encodeURIComponent(revision)}`, meta);
+    },
+
     async renameVersion(id, revision, versionName) {
-      await axios.patch(`${baseUrl}/${encodeURIComponent(id)}/versions/${encodeURIComponent(revision)}`, {
-        versionName,
-      });
+      await this.updateVersionMeta!(id, revision, { versionName });
     },
   };
 };

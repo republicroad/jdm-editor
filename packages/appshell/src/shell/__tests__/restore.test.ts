@@ -72,4 +72,31 @@ describe('restoreVersion（恢复即前进）', () => {
     await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
     await expect(restoreVersion(adapter, id, 'v99')).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
+
+  test('updateVersionMeta：设置与清除 pinned', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'a', content: graph('a'), auto: true, revision: '' });
+    await adapter.save({ id, name: 'b', content: graph('b'), revision: '' });
+
+    await adapter.updateVersionMeta!(id, 'v1', { pinned: true });
+    const versions = await adapter.listVersions!(id);
+    expect(versions.find((v) => v.revision === 'v1')?.pinned).toBe(true);
+
+    await adapter.updateVersionMeta!(id, 'v1', { pinned: false });
+    expect((await adapter.listVersions!(id)).find((v) => v.revision === 'v1')?.pinned).toBe(false);
+  });
+
+  test('保留策略：pinned auto 豁免治理（与命名豁免并存）', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'keep', content: graph('keep'), auto: true, pinned: true, revision: '' }); // v1 pinned auto
+    for (let i = 2; i <= 24; i++) {
+      await adapter.save({ id, name: `a${i}`, content: graph(`a${i}`), auto: true, revision: '' }); // v2..v24 auto
+    }
+
+    const versions = await adapter.listVersions!(id);
+    expect(versions.find((v) => v.revision === 'v1')?.pinned).toBe(true);
+    // 未命名未钉住的 v2 被清理，pinned v1 保留
+    expect(versions.some((v) => v.revision === 'v2')).toBe(false);
+    expect(versions.some((v) => v.revision === 'v1' && v.pinned)).toBe(true);
+  });
 });

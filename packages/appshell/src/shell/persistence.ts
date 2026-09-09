@@ -19,6 +19,8 @@ export interface GraphRecordMeta {
    * 命名版本不受 auto 保留策略治理（见各适配器实现）。
    */
   versionName?: string;
+  /** 钉住标记（S007）：钉住的版本（含 auto）同样豁免 auto 保留策略治理。 */
+  pinned?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -69,11 +71,22 @@ export interface GraphPersistenceAdapter {
   /** 列出指定图的所有历史版本(可选；未实现则 shell 不展示版本历史面板) */
   listVersions?(
     id: string,
-  ): Promise<Array<{ revision: string; versionName?: string; updatedAt?: string; auto?: boolean }>>;
+  ): Promise<Array<{ revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean }>>;
 
   /**
-   * 重命名（或清除，传 null）某个历史版本的命名(可选；未实现则 shell 隐藏重命名入口)。
-   * @throws GraphPersistenceError('NOT_FOUND') 版本不存在时（本地适配器语义）
+   * 更新指定历史版本的元数据（钉住/命名，S007）：可选方法；未实现则 shell 隐藏
+   * 对应入口。仅显式给出的键被更新。
+   * @throws GraphPersistenceError('NOT_FOUND') 版本不存在时（本地适配器语义）。
+   */
+  updateVersionMeta?(
+    id: string,
+    revision: string,
+    meta: { pinned?: boolean; versionName?: string | null },
+  ): Promise<void>;
+
+  /**
+   * 重命名（或清除，传 null）指定历史版本的 versionName。兼容别名：
+   * 等价于 updateVersionMeta(id, revision, { versionName })。
    */
   renameVersion?(id: string, revision: string, versionName: string | null): Promise<void>;
 }

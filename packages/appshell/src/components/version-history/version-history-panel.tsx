@@ -1,5 +1,5 @@
 import { type GraphDiff, useT } from '@republicroad/jdm-editor';
-import { ChevronDownIcon, ChevronRightIcon, PencilIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PencilIcon, PinIcon, PinOffIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '../ui/button';
@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 export type VersionHistoryEntry = {
   revision: string;
   versionName?: string;
+  pinned?: boolean;
   updatedAt?: string;
   auto?: boolean;
 };
@@ -30,6 +31,8 @@ export interface VersionHistoryPanelProps {
    * 键 = 版本 revision）。提供后条目显示 +/−/~ 摘要，点击展开变更明细。
    */
   diffs?: Record<string, GraphDiff>;
+  /** 钉住/取消钉住版本(宿主实现：adapter.updateVersionMeta)；未提供则隐藏钉住入口 */
+  onPin?: (revision: string, pinned: boolean) => void;
 }
 
 /** 版本差异摘要行：+新增 / −删除 / ~修改（节点与边合并计数），点击展开变更明细 */
@@ -124,6 +127,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   onRestore,
   onRename,
   diffs,
+  onPin,
 }) => {
   const t = useT();
   const [query, setQuery] = React.useState('');
@@ -141,7 +145,10 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   const q = query.trim().toLowerCase();
   const filtered = q
     ? versions.filter(
-        (entry) => (entry.versionName ?? '').toLowerCase().includes(q) || entry.revision.toLowerCase().includes(q),
+        (entry) =>
+          (entry.versionName ?? '').toLowerCase().includes(q) ||
+          entry.revision.toLowerCase().includes(q) ||
+          (q === 'pinned' && entry.pinned),
       )
     : versions;
 
@@ -222,6 +229,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                     auto
                                   </span>
                                 )}
+                                {entry.pinned && (
+                                  <span className='rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-600 dark:text-amber-400'>
+                                    {t('vh.entry.pinned')}
+                                  </span>
+                                )}
                                 {isCurrent && (
                                   <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
                                     current
@@ -273,6 +285,27 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                 {t('vh.name.button')}
                               </Button>
                             ))}
+                          {onPin && !isEditing && (
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              className='h-8 w-8'
+                              title={entry.pinned ? t('vh.unpin.title') : t('vh.pin.title')}
+                              aria-label={
+                                entry.pinned
+                                  ? t('vh.unpin.aria', { revision: entry.revision })
+                                  : t('vh.pin.aria', { revision: entry.revision })
+                              }
+                              onClick={() => onPin(entry.revision, !entry.pinned)}
+                            >
+                              {entry.pinned ? (
+                                <PinOffIcon className='h-3.5 w-3.5' />
+                              ) : (
+                                <PinIcon className='h-3.5 w-3.5' />
+                              )}
+                            </Button>
+                          )}
                           <Button
                             type='button'
                             variant='outline'
