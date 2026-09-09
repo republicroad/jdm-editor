@@ -115,12 +115,28 @@ JS 字节数。本仓实测 2.8 MB（react 19，minified）——单面板负载
 | workspace 链接策略显式化（源码直通三处别名） | ✅ |
 | 单例依赖 peer 契约 + external 策略 | ✅ |
 | optimizeDeps.exclude 覆盖 workspace 包 | ✅ |
+| **appshell 类型源码直通**（paths 自创建起即指向 kernel `src/index.ts` + ambient 声明 include） | ✅ |
+| @types/react 双轨（kernel 19 / appshell 18，多候选 paths 钉住） | ✅（有意设计，服务双 React 宿主支持） |
 | 双门禁（源码 vitest/storybook + 产物 consumer-smoke） | ✅ |
 | 单面板测量宿主（量化拆分决策） | ✅ |
 | size 预算门禁（含 i18n 目录金丝雀） | ✅ |
 | 内部包 vs 发布包边界文档化 | ✅（playground private；kernel/appshell 发布） |
 | 子路径入口拆分（`./dist/table` 等） | ⏸ 有数据后按需启动 |
 | sideEffects 数组声明 | ⏸ 待 rolldown 数组语义可靠后重评 |
+
+### 类型消费的已知脆弱点（有意的权衡，勿"顺手修复"）
+
+- **@types/react 双轨**：kernel 按 React 19 类型（19.2.18）编写，appshell 按
+  React 18 类型（18.3.31）typecheck——多候选 paths 有意钉住 18，保证对
+  React 18 宿主的兼容性。kernel 采用 React 19 独有类型（`use`、
+  ref-as-prop、`React.JSX` 命名空间）时 appshell typecheck 会断，属预期
+  信号而非误报；
+- **`#*` 子路径导入**（`#icons` 等）依赖 kernel package.json `imports`
+  字段解析（moduleResolution: bundler）——appshell 切回
+  `moduleResolution: node` 或抽共享 base 时需补 `#*` paths 镜像；
+- **appshell 未设 esModuleInterop**（kernel base 为 true）且 `lib` 为
+  ES2022：kernel 采用 ES2023+ API 或依赖互操作语义的默认导入类型时，
+  appshell typecheck 可能报不兼容——目前未发生，发生时补设置即可。
 
 ## 参考
 
