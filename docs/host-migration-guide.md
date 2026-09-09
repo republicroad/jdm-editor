@@ -140,6 +140,6 @@ for the full catalog.
   and an inline rename flow when the host passes `onRename(revision, name|null)`
   (feature-detect: pass it only when the adapter implements `renameVersion`).
 
-See [`hostapp/appshell-plan.md`](./hostapp/appshell-plan.md) for the storage
-model and [`hostapp/graph-diff-spec.md`](./hostapp/graph-diff-spec.md) for the
+See [`hostapp/appshell-plan.md`](../archive/hostapp/appshell-plan.md) for the storage
+model and [`hostapp/graph-diff-spec.md`](../archive/hostapp/graph-diff-spec.md) for the
 planned version-diff layer on top of it.

@@ -1,5 +1,12 @@
 # Appshell 规划总纲（宿主协作视角）
 
+> **状态：已归档（2026-09-09）。** 规划范围内全部条目已落地：
+> §2 已落地能力（五十~五十二批）、§3 IndexedDB 适配器、§4 恢复即前进 +
+> 命名版本（appshell 0.2.0/0.3.0 + `restoreVersion`）、§5 Graph Diff
+> P1+P2（`computeGraphDiff` + `diffBaseline` 画布模式）、§6 playground
+> （`packages/playground`）。本文转为历史记录，不再更新；现行契约见
+> `docs/host-migration-guide.md` 与 `docs/appshell.md`。
+>
 > 2026-09-05 由 editor 宿主会话起草（第五十三批）。定位：**appshell 的能力规划、
 > 宿主分工边界与协作记录**——与 `docs/appshell.md`（包 API 文档，由内核会话维护）
 > 互补不重复。

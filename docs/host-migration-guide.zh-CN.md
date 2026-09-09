@@ -132,5 +132,5 @@ import {
   提供客户端过滤(按名称或版本号子串),宿主传入 `onRename(revision, name|null)`
   时展示行内重命名入口(特性检测:仅当适配器实现 `renameVersion` 时传入)。
 
-存储模型见 [`hostapp/appshell-plan.md`](./hostapp/appshell-plan.md);
-其上的版本对比能力规划见 [`hostapp/graph-diff-spec.md`](./hostapp/graph-diff-spec.md)。
+存储模型见 [`hostapp/appshell-plan.md`](../archive/hostapp/appshell-plan.md);
+其上的版本对比能力规划见 [`hostapp/graph-diff-spec.md`](../archive/hostapp/graph-diff-spec.md)。

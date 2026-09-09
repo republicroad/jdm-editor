@@ -4,7 +4,7 @@
 （DecisionGraph / DecisionTable / 内置模拟器）与 `@republicroad/jdm-appshell`
 （IndexedDB 持久化 / VersionHistoryPanel / restoreVersion）。
 
-价值（见 `docs/hostapp/appshell-plan.md` §6）：
+价值（见 `docs/archive/hostapp/appshell-plan.md` §6）：
 
 - **自包含集成验证面**——宿主 bump gitlink 前即可在树内发现问题；
 - 演示 / onboarding：保存到 IndexedDB、版本历史、命名版本、恢复即前进、
