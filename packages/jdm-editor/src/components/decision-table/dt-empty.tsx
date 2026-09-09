@@ -2,7 +2,6 @@ import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
-import type { JSX } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import type { SchemaSelectProps } from '../../helpers/components';
@@ -27,7 +26,7 @@ export type DecisionTableEmptyType = {
   value?: DecisionTableType;
   disabled?: boolean;
   disableHitPolicy?: boolean;
-  cellRenderer?: (props: TableCellProps) => JSX.Element | null | undefined;
+  cellRenderer?: (props: TableCellProps) => React.JSX.Element | null | undefined;
   inputsSchema?: SchemaSelectProps[];
   outputsSchema?: SchemaSelectProps[];
   permission?: DecisionTableStoreType['state']['permission'];

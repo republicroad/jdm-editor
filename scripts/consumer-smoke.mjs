@@ -37,8 +37,8 @@ if (!existsSync(path.join(DIST_DIR, 'index.js'))) {
 }
 
 const HOSTS = [
-  { label: 'react18', react: '18.3.1', typesMajor: '^18' },
-  { label: 'react19', react: '19.2.8', typesMajor: '^19' },
+  { label: 'react18', react: '18.3.1', typesMajor: '^18', typesCheck: true },
+  { label: 'react19', react: '19.2.8', typesMajor: '^19', typesCheck: true },
 ];
 
 const require = createRequire(REPO_ROOT + '/package.json');
@@ -161,11 +161,58 @@ try {
 
     console.log(`[smoke] ${host.label}: installing react ${host.react} + library…`);
     runPnpm(['add', `react@${host.react}`, `react-dom@${host.react}`], dir);
-    runPnpm(['add', '-D', 'vite'], dir);
+    runPnpm(
+      ['add', '-D', 'vite', 'typescript', `@types/react@${host.typesMajor}`, `@types/react-dom@${host.typesMajor}`],
+      dir,
+    );
     runPnpm(['add', kernelTarball], dir);
 
     console.log(`[smoke] ${host.label}: building host app…`);
     runPnpm(['exec', 'vite', 'build'], dir);
+
+    // S001: react-major type-compliance check — compile a representative
+    // exports fixture against THIS host's @types/react major with tsc.
+    if (host.typesCheck) {
+      writeFileSync(
+        path.join(dir, 'tsconfig.json'),
+        JSON.stringify(
+          {
+            compilerOptions: {
+              strict: true,
+              target: 'esnext',
+              module: 'esnext',
+              moduleResolution: 'bundler',
+              jsx: 'react-jsx',
+              skipLibCheck: true,
+              noEmit: true,
+            },
+            include: ['types-fixture.tsx'],
+          },
+          null,
+          2,
+        ),
+      );
+      writeFileSync(
+        path.join(dir, 'types-fixture.tsx'),
+        `import type { DecisionGraphProps } from '@republicroad/jdm-editor';
+import { DecisionGraph, DecisionTable } from '@republicroad/jdm-editor';
+
+const graphProps: DecisionGraphProps = {
+  value: { nodes: [], edges: [] },
+  onChange: (next) => {
+    void next;
+  },
+};
+
+export const graph = <DecisionGraph {...graphProps} />;
+export const table = (
+  <DecisionTable tableHeight={400} value={undefined} onChange={(next) => void next} />
+);
+`,
+      );
+      console.log(`[smoke] ${host.label}: type-checking exports fixture…`);
+      runPnpm(['exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], dir);
+    }
 
     const server = await serve(path.join(dir, 'dist'));
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
