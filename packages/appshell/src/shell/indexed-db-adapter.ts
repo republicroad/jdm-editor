@@ -134,6 +134,7 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
         revision: meta.revision,
         auto: meta.auto,
         versionName: meta.versionName,
+        pinned: meta.pinned,
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
         content,
@@ -216,11 +217,17 @@ export function createIndexedDbAdapter(): GraphPersistenceAdapter {
       if (!entry) {
         throw new GraphPersistenceError('NOT_FOUND', `version ${revision} of graph ${id} does not exist`);
       }
-      // null/undefined 值 = 清除对应键（meta 缺省语义即「无此属性」）
-      const { versionName: _vn, pinned: _pin, ...restMeta } = entry.meta;
-      const next: StoredMeta = { ...restMeta };
-      if (meta.versionName != null) next.versionName = meta.versionName;
-      if (meta.pinned != null) next.pinned = meta.pinned;
+      // 部分更新契约（见 persistence.ts）：仅显式给出的键被更新，其余键保留；
+      // null = 清除对应键（meta 缺省语义即「无此属性」），undefined = 不动。
+      const next: StoredMeta = { ...entry.meta };
+      if (meta.versionName !== undefined) {
+        if (meta.versionName === null) delete next.versionName;
+        else next.versionName = meta.versionName;
+      }
+      if (meta.pinned !== undefined) {
+        if (meta.pinned === null) delete next.pinned;
+        else next.pinned = meta.pinned;
+      }
       await putEntry(key, { ...entry, meta: next });
     },
 

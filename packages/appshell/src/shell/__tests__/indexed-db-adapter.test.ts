@@ -207,4 +207,29 @@ describe('createIndexedDbAdapter', () => {
     await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
     await expect(adapter.renameVersion!(id, 'v99', 'x')).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
+
+  test('updateVersionMeta 部分更新：钉住保留 versionName，命名保留 pinned', async () => {
+    const id = newId();
+    await adapter.save({ id, name: 'n', content: graph('a'), revision: '' });
+    await adapter.save({ id, name: 'n', content: graph('b'), revision: '' });
+
+    // 钉住 → versionName 原样保留（回归：兄弟键曾被无条件剥离）
+    await adapter.updateVersionMeta!(id, 'v1', { versionName: 'keep-me' });
+    await adapter.updateVersionMeta!(id, 'v1', { pinned: true });
+    let entry = await adapter.load(id, { revision: 'v1' });
+    expect(entry?.versionName).toBe('keep-me');
+    expect(entry?.pinned).toBe(true);
+
+    // 命名 → pinned 原样保留
+    await adapter.updateVersionMeta!(id, 'v1', { versionName: 'renamed' });
+    entry = await adapter.load(id, { revision: 'v1' });
+    expect(entry?.versionName).toBe('renamed');
+    expect(entry?.pinned).toBe(true);
+
+    // null 清除 versionName，pinned 不受影响
+    await adapter.updateVersionMeta!(id, 'v1', { versionName: null });
+    entry = await adapter.load(id, { revision: 'v1' });
+    expect(entry?.versionName).toBeUndefined();
+    expect(entry?.pinned).toBe(true);
+  });
 });

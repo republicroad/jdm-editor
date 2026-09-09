@@ -75,7 +75,8 @@ export interface GraphPersistenceAdapter {
 
   /**
    * 更新指定历史版本的元数据（钉住/命名，S007）：可选方法；未实现则 shell 隐藏
-   * 对应入口。仅显式给出的键被更新。
+   * 对应入口。部分更新语义：仅显式给出的键被更新（undefined = 保留现值，
+   * null = 清除），未提及的兄弟键必须原样保留。
    * @throws GraphPersistenceError('NOT_FOUND') 版本不存在时（本地适配器语义）。
    */
   updateVersionMeta?(

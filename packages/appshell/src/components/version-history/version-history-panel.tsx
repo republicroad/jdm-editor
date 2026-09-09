@@ -33,6 +33,13 @@ export interface VersionHistoryPanelProps {
   diffs?: Record<string, GraphDiff>;
   /** 钉住/取消钉住版本(宿主实现：adapter.updateVersionMeta)；未提供则隐藏钉住入口 */
   onPin?: (revision: string, pinned: boolean) => void;
+  /**
+   * 画布对比指定版本(宿主实现：载入该版本内容作为 DecisionGraph.diffBaseline；
+   * 传 null = 退出对比)；未提供则隐藏对比入口。
+   */
+  onCompare?: (revision: string | null) => void;
+  /** 当前正在对比的版本 revision：其条目显示「对比中」徽标，对比入口呈退出态 */
+  comparingRevision?: string;
 }
 
 /** 版本差异摘要行：+新增 / −删除 / ~修改（节点与边合并计数），点击展开变更明细 */
@@ -128,6 +135,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   onRename,
   diffs,
   onPin,
+  onCompare,
+  comparingRevision,
 }) => {
   const t = useT();
   const [query, setQuery] = React.useState('');
@@ -234,6 +243,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                     {t('vh.entry.pinned')}
                                   </span>
                                 )}
+                                {entry.revision === comparingRevision && (
+                                  <span className='rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-600 dark:text-violet-400'>
+                                    {t('vh.compare.entry')}
+                                  </span>
+                                )}
                                 {isCurrent && (
                                   <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
                                     current
@@ -304,6 +318,30 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                               ) : (
                                 <PinIcon className='h-3.5 w-3.5' />
                               )}
+                            </Button>
+                          )}
+                          {onCompare && !isEditing && (
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='sm'
+                              className='h-8 px-2 text-xs'
+                              disabled={isCurrent}
+                              title={
+                                entry.revision === comparingRevision
+                                  ? t('vh.compare.exit.title')
+                                  : t('vh.compare.title')
+                              }
+                              aria-label={
+                                entry.revision === comparingRevision
+                                  ? t('vh.compare.exit.aria', { revision: entry.revision })
+                                  : t('vh.compare.aria', { revision: entry.revision })
+                              }
+                              onClick={() => onCompare(entry.revision === comparingRevision ? null : entry.revision)}
+                            >
+                              {entry.revision === comparingRevision
+                                ? t('vh.compare.exit.button')
+                                : t('vh.compare.button')}
                             </Button>
                           )}
                           <Button

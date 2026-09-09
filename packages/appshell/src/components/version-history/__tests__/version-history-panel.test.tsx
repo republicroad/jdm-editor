@@ -187,4 +187,60 @@ describe('VersionHistoryPanel', () => {
     expect(screen.getByText('No changes')).toBeInTheDocument();
     expect(screen.queryByRole('button', { expanded: false })).not.toBeInTheDocument();
   });
+
+  // ── pin ──
+
+  test('未提供 onPin 时不渲染钉住入口', () => {
+    renderPanel({ versions: [entry('v1')] });
+    expect(screen.queryByRole('button', { name: 'Pin version v1' })).not.toBeInTheDocument();
+  });
+
+  test('Pin/Unpin：pinned 徽标 + 回调携带 revision 与目标态', () => {
+    const onPin = vi.fn();
+    renderPanel({ versions: [entry('v1', { pinned: true }), entry('v2')], onPin });
+
+    expect(screen.getByText('pinned')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Unpin version v1' }));
+    expect(onPin).toHaveBeenCalledExactlyOnceWith('v1', false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pin version v2' }));
+    expect(onPin).toHaveBeenCalledWith('v2', true);
+  });
+
+  test('过滤框支持 pinned 关键字过滤钉住版本', () => {
+    renderPanel({ versions: [entry('v1', { pinned: true }), entry('v2')], onPin: vi.fn() });
+
+    const filter = screen.getByLabelText('Filter versions');
+    fireEvent.change(filter, { target: { value: 'pinned' } });
+    expect(screen.getByText('v1')).toBeInTheDocument();
+    expect(screen.queryByText('v2')).not.toBeInTheDocument();
+  });
+
+  // ── compare ──
+
+  test('未提供 onCompare 时不渲染对比入口', () => {
+    renderPanel({ versions: [entry('v1')] });
+    expect(screen.queryByRole('button', { name: /compare against version v1/i })).not.toBeInTheDocument();
+  });
+
+  test('Compare 回调携带所点条目的 revision；current 条目对比入口禁用', () => {
+    const onCompare = vi.fn();
+    renderPanel({ currentRevision: 'v3', onCompare });
+
+    const buttons = screen.getAllByRole('button', { name: /Compare against version/ });
+    expect(buttons).toHaveLength(3);
+    expect(buttons[2]).toBeDisabled();
+
+    fireEvent.click(buttons[1]);
+    expect(onCompare).toHaveBeenCalledExactlyOnceWith('v2');
+  });
+
+  test('comparingRevision：条目显示 comparing 徽标，入口呈退出态并回调 null', () => {
+    const onCompare = vi.fn();
+    renderPanel({ versions: [entry('v1'), entry('v2')], comparingRevision: 'v2', onCompare });
+
+    expect(screen.getByText('comparing')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Exit compare (was against v2)' }));
+    expect(onCompare).toHaveBeenCalledExactlyOnceWith(null);
+  });
 });
