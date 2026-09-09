@@ -195,7 +195,7 @@ try {
   // host and report the emitted bundle bytes — quantifies per-surface payload
   // after tree shaking. No browser pass needed; a successful build suffices.
   {
-    const label = MEASURE_HOST.label;
+    const label = 'table-only-measure';
     const dir = path.join(workspace, label);
     mkdirSync(dir, { recursive: true });
     writeFileSync(
@@ -205,20 +205,24 @@ try {
     writeFileSync(path.join(dir, 'index.html'), INDEX_HTML);
     writeFileSync(path.join(dir, 'main.js'), TABLE_MAIN_JS);
 
-    console.log(`[smoke] ${label}: installing react ${MEASURE_HOST.react} + library…`);
-    runPnpm(['add', `react@${MEASURE_HOST.react}`, `react-dom@${MEASURE_HOST.react}`], dir);
+    console.log(`[smoke] ${label}: installing react 19.2.8 + library…`);
+    runPnpm(['add', 'react@19.2.8', 'react-dom@19.2.8'], dir);
     runPnpm(['add', '-D', 'vite'], dir);
     runPnpm(['add', kernelTarball], dir);
 
     console.log(`[smoke] ${label}: building host app…`);
     runPnpm(['exec', 'vite', 'build'], dir);
 
-    const assets = readdirSync(path.join(dir, 'dist'))
+    const distDir = path.join(dir, 'dist');
+    const assets = readdirSync(distDir, { recursive: true })
       .filter((f) => /\.js$/.test(f))
-      .map((f) => ({ file: f, bytes: statSync(path.join(dir, 'dist', f)).size }))
+      .map((f) => ({
+        file: f.split('\\').join('/'),
+        bytes: statSync(path.join(distDir, f)).size,
+      }))
       .sort((a, b) => b.bytes - a.bytes);
     const totalJs = assets.reduce((n, a) => n + a.bytes, 0);
-    console.log(`[smoke] ${label}: PASS ${JSON.stringify({ totalJsBytes: totalJs, assets })}`);
+    console.log(`[smoke] ${label}: PASS ${JSON.stringify({ totalJsBytes: totalJs, assets: assets.slice(0, 6) })}`);
     results.push({ host: label, ok: true, totalJsBytes: totalJs });
   }
 

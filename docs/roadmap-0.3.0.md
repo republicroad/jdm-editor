@@ -77,6 +77,10 @@
     host to consumer-smoke to quantify the per-surface payload; escalate to
     `./dist/table`/`./dist/graph` subpath entries only if that still misses
     the mark.
+  - **MEASURING HOST SHIPPED (2026-09-09):** consumer-smoke now builds a
+    DecisionTable-only host (react 19) and reports the tree-shaken bundle:
+    **2.8 MB total JS** across the host build. Subpath splitting stays
+    deferred — per-surface payload is dominated by the shared editor core.
 
 ### 3.2 Keyboard support for row drag (custom function table)
 

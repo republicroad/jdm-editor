@@ -61,6 +61,9 @@
   - 下一步(下一周期候选):以 consumer-smoke 增加一个「仅引
     DecisionTable」的树摇测量宿主,量化单面板实际负载;若仍不达标,
     再上 `./dist/table`/`./dist/graph` 子路径入口拆分。
+  - **测量宿主已上线(2026-09-09):** consumer-smoke 新增仅引
+    DecisionTable 的宿主(react 19),实测树摇后全量 JS **2.8 MB**。子路径
+    拆分继续推迟——单面板负载由共享编辑器内核主导。
 
 ### 3.2 行拖拽的键盘支持(custom function 表格)
 
