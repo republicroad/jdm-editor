@@ -1,6 +1,7 @@
 import {
   type GraphDiff,
   type GraphPersistenceAdapter,
+  ThemeContextProvider,
   VersionHistoryPanel,
   createIndexedDbAdapter,
   restoreVersion,
@@ -97,39 +98,41 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className='pg-root'>
-      <header className='pg-header'>
-        <strong>JDM Playground</strong>
-        <nav>
-          {(['graph', 'table'] as Page[]).map((p) => (
-            <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
-              {p === 'graph' ? 'Decision Graph' : 'Decision Table'}
-            </button>
-          ))}
-        </nav>
-        <div className='pg-actions'>
-          <button onClick={() => void save()}>Save (IndexedDB)</button>
-          <button onClick={() => void openHistory()}>Version history</button>
-          <span className='pg-status'>{status}</span>
-        </div>
-      </header>
+    <ThemeContextProvider>
+      <div className='pg-root'>
+        <header className='pg-header'>
+          <strong>JDM Playground</strong>
+          <nav>
+            {(['graph', 'table'] as Page[]).map((p) => (
+              <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
+                {p === 'graph' ? 'Decision Graph' : 'Decision Table'}
+              </button>
+            ))}
+          </nav>
+          <div className='pg-actions'>
+            <button onClick={() => void save()}>Save (IndexedDB)</button>
+            <button onClick={() => void openHistory()}>Version history</button>
+            <span className='pg-status'>{status}</span>
+          </div>
+        </header>
 
-      <main className='pg-main'>
-        {page === 'graph' ? (
-          <DecisionGraph value={graph} onChange={setGraph} />
-        ) : (
-          <DecisionTable value={table} onChange={setTable} mode='business' tableHeight='100%' />
-        )}
-      </main>
+        <main className='pg-main'>
+          {page === 'graph' ? (
+            <DecisionGraph value={graph} onChange={setGraph} />
+          ) : (
+            <DecisionTable value={table} onChange={setTable} mode='business' tableHeight='100%' />
+          )}
+        </main>
 
-      <VersionHistoryPanel
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-        versions={versions}
-        currentRevision={currentRevision}
-        diffs={diffs}
-        onRestore={(revision) => void onRestore(revision)}
-      />
-    </div>
+        <VersionHistoryPanel
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          versions={versions}
+          currentRevision={currentRevision}
+          diffs={diffs}
+          onRestore={(revision) => void onRestore(revision)}
+        />
+      </div>
+    </ThemeContextProvider>
   );
 };

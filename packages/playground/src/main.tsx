@@ -4,8 +4,9 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './App';
-// kernel 源码直通（vite alias）时其 src/index.ts 已自带样式导入，无需再引 dist/style.css
 import './playground.css';
+// kernel 源码直通（vite alias）时其 src/index.ts 已自带样式导入，无需再引 dist/style.css
+import './theme.css';
 
 self.MonacoEnvironment = {
   getWorker() {
