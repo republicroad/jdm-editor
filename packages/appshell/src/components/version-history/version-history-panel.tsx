@@ -1,4 +1,4 @@
-import type { GraphDiff } from '@republicroad/jdm-editor';
+import { type GraphDiff, useT } from '@republicroad/jdm-editor';
 import { ChevronDownIcon, ChevronRightIcon, PencilIcon } from 'lucide-react';
 import * as React from 'react';
 
@@ -38,8 +38,9 @@ const DiffSummary: React.FC<{ diff: GraphDiff; expanded: boolean; onToggle: () =
   expanded,
   onToggle,
 }) => {
+  const t = useT();
   if (diff.unchanged) {
-    return <div className='text-xs text-muted-foreground'>No changes</div>;
+    return <div className='text-xs text-muted-foreground'>{t('vh.noChanges')}</div>;
   }
 
   const counts = [
@@ -79,7 +80,7 @@ const DiffSummary: React.FC<{ diff: GraphDiff; expanded: boolean; onToggle: () =
               </span>
             ),
         )}
-        <span className='text-muted-foreground'>changes</span>
+        <span className='text-muted-foreground'>{t('vh.changes')}</span>
       </button>
       {expanded && (
         <ul className='mt-1 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground'>
@@ -124,6 +125,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   onRename,
   diffs,
 }) => {
+  const t = useT();
   const [query, setQuery] = React.useState('');
   const [editing, setEditing] = React.useState<{ revision: string; draft: string } | null>(null);
   const [expandedDiff, setExpandedDiff] = React.useState<string | null>(null);
@@ -156,32 +158,26 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side='right' className='flex w-full flex-col gap-4 sm:max-w-md'>
         <SheetHeader>
-          <SheetTitle>Version history</SheetTitle>
+          <SheetTitle>{t('vh.title')}</SheetTitle>
           <SheetDescription>
-            {versions.length > 0
-              ? `${versions.length} version(s). Restoring loads that version as the current one.`
-              : 'No versions yet. Each save creates one.'}
+            {versions.length > 0 ? t('vh.description.some', { count: versions.length }) : t('vh.description.none')}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className='-mx-2 min-h-0 flex-1 px-2'>
           {loading ? (
             <div className='px-2 py-6 text-center text-sm text-muted-foreground'>Loading…</div>
-          ) : versions.length === 0 ? (
-            <div className='rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground'>
-              Save this graph to create its first version.
-            </div>
-          ) : (
+          ) : versions.length === 0 ? null : (
             <div className='flex flex-col gap-2 py-1'>
               <Input
-                aria-label='Filter versions'
-                placeholder='Filter by name or revision…'
+                aria-label={t('vh.filter.label')}
+                placeholder={t('vh.filter.placeholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className='h-8 text-sm'
               />
               {filtered.length === 0 ? (
                 <div className='rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground'>
-                  No versions match “{query.trim()}”.
+                  {t('vh.filter.noMatch', { query: query.trim() })}
                 </div>
               ) : (
                 <ul className='flex flex-col gap-2'>
@@ -198,7 +194,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                           <div className='flex items-center gap-2'>
                             {isEditing ? (
                               <Input
-                                aria-label={`Rename version ${entry.revision}`}
+                                aria-label={t('vh.rename.aria', { revision: entry.revision })}
                                 autoFocus
                                 value={editing.draft}
                                 onChange={(e) => setEditing({ revision: entry.revision, draft: e.target.value })}
@@ -258,8 +254,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                 variant='ghost'
                                 size='icon'
                                 className='h-8 w-8'
-                                title='Rename version'
-                                aria-label={`Rename version ${entry.revision}`}
+                                title={t('vh.rename.title')}
+                                aria-label={t('vh.rename.aria', { revision: entry.revision })}
                                 onClick={() => setEditing({ revision: entry.revision, draft: entry.versionName ?? '' })}
                               >
                                 <PencilIcon className='h-3.5 w-3.5' />
@@ -270,11 +266,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                                 variant='ghost'
                                 size='sm'
                                 className='h-8 px-2 text-xs'
-                                title='Name this version'
-                                aria-label={`Name version ${entry.revision}`}
+                                title={t('vh.name.button')}
+                                aria-label={t('vh.name.aria', { revision: entry.revision })}
                                 onClick={() => setEditing({ revision: entry.revision, draft: '' })}
                               >
-                                Name
+                                {t('vh.name.button')}
                               </Button>
                             ))}
                           <Button
@@ -284,7 +280,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                             disabled={isCurrent}
                             onClick={() => onRestore(entry.revision)}
                           >
-                            Restore
+                            {t('vh.restore')}
                           </Button>
                         </div>
                       </li>

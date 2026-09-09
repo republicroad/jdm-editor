@@ -3,6 +3,7 @@ import './styles/tokens.css';
 
 export * from './components';
 export * from './theme';
+export { useT } from './theming/i18n';
 
 export { codemirror } from './helpers/codemirror';
 export { useNodeType } from './helpers/node-type';
