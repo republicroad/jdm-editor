@@ -27,7 +27,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@republicroad/jdm-editor": ">=0.5.0",
+    "@republicroad/jdm-editor": ">=0.3.0",
     "react": ">=18",
     "react-dom": ">=18"
   },
