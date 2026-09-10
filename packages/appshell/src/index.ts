@@ -26,6 +26,7 @@ export * from './lib/crypto-protocol';
 export * from './shell';
 export { HttpRequestTab, httpRequestNode } from './components/custom-node/http-request-node';
 export { QueryListTab, queryListNode } from './components/custom-node/query-list-node';
+export { CryptoTab, cryptoNode } from './components/custom-node/crypto-node';
 export { CurrentDateTab, currentDateNode } from './components/custom-node/current-date-node';
 export { KeyValueEditor } from './components/custom-node/key-value-editor';
 export { LockedCornerBadge } from './components/custom-node/locked-corner-badge';

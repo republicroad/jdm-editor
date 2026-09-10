@@ -1,6 +1,7 @@
 export { EditorShellProvider, useEditorShell, type EditorShellContextValue } from './editor-shell.context';
 export { ThemeContextProvider, useTheme, type ThemePreference } from '../context/theme.provider';
 export { createDefaultSimulate } from './default-simulate';
+export { createExecuteSimulate } from './execute-simulate';
 export type { EditorShellOptions, SimulateHandler, ShellSimulateResult } from './types';
 export { GraphPersistenceError } from './persistence';
 export { createGraphsHttpAdapter } from './graphs-http-adapter';

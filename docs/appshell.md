@@ -22,8 +22,8 @@ layer.
 
 | Domain | Location | Contents |
 | --- | --- | --- |
-| **Custom node hosting** | `components/custom-node/`, `hooks/useCustomNodes.ts` | Three nodes — HTTP request, query list, current date — each with a tab renderer (`*Node` spec + `*Tab` component), plus `KeyValueEditor` and `LockedCornerBadge`. (crypto / JSON path / template nodes were removed — zen expressions cover the latter two; crypto execution moves to the platform backend) |
-| **Registry & protocols** | `lib/` | `custom-node-registry` (schema→nodes conversion with bundled fallback), `custom-node-plans`, protocol libs (http-request / json-path / crypto — the latter two retained as wire contracts; crypto is the platform backend's execution contract), `user-resolver` (better-auth + anonymous adapters), `storage-key` |
+| **Custom node hosting** | `components/custom-node/`, `hooks/useCustomNodes.ts` | Four nodes — HTTP request, query list, crypto, current date — each with a tab renderer (`*Node` spec + `*Tab` component), plus `KeyValueEditor` and `LockedCornerBadge`. (JSON path / template nodes were removed — zen expressions cover them; the crypto node stays because zen expressions have no crypto — its server-side execution contract lives in the platform backend) |
+| **Registry & protocols** | `lib/` | `custom-node-registry` (schema→nodes conversion with bundled fallback), `custom-node-plans`, protocol libs (http-request / json-path / crypto — the latter two retained as wire contracts; crypto execution is the platform backend's job), `user-resolver` (better-auth + anonymous adapters), `storage-key` |
 | **Node composition hook** | `hooks/useCustomNodes.ts` | Composes base nodes + schema-fetched nodes (graceful fallback) + skin overrides into the `customNodes` array consumed by `DecisionGraph` |
 | **Skin system** | `skin/`, `context/theme.provider` | `applyNodeOverrides` — per-`kind` renderTab/renderNode overrides; theme seeds flow through `ThemeProvider` into node UI slots |
 | **Shell persistence contract** | `shell/persistence.ts`, `shell/graphs-http-adapter.ts` | `GraphPersistenceAdapter` — host-implemented: `list`/`load`/`save` (optimistic lock via `baseRevision` → CONFLICT) / `delete` / `listVersions`; 404 semantics (null/false, never throws); `graphs-http-adapter` is the HTTP implementation; `default-simulate` wires the remote engine |
@@ -76,6 +76,22 @@ The persistence contract (`GraphPersistenceAdapter`) is implemented by the
 host (REST, database, filesystem — see `shell/graphs-http-adapter.ts` for the
 HTTP reference).
 
+## Simulator wiring (SkinnedDecisionGraph)
+
+Pass a `simulateHandler` to `SkinnedDecisionGraph` and it registers the
+sidebar simulator panel for you (kernel `GraphSimulator`: request JSON →
+Run → per-node hit highlighting + Output/Input/Trace editors):
+
+```tsx
+import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-appshell';
+
+<SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
+```
+
+`createExecuteSimulate` speaks the demo-server / verdict execute dialect
+(`POST {model, input, trace}` → `{result, performance, trace}`);
+`createDefaultSimulate` keeps serving the same-origin /api/simulate dialect.
+Without a handler the component behaves exactly like plain `DecisionGraph`.
 ## Integration story
 
 `src/integration/decision-graph-appshell.stories.tsx` mounts the kernel

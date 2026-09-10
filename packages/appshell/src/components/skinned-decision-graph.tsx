@@ -3,15 +3,28 @@ import {
   type DecisionGraphProps,
   type DecisionGraphRef,
   type DecisionGraphType,
+  GraphSimulator,
+  type Simulation,
   type ToolbarItem,
 } from '@republicroad/jdm-editor';
+import { FlaskConicalIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
+import type { SimulateHandler } from '../shell/types';
 import { mapToolbarSlots } from '../skin/layout';
 import type { SkinSlotHostContext } from '../skin/types';
 
-export type SkinnedDecisionGraphProps = DecisionGraphProps;
+type PanelItem = NonNullable<DecisionGraphProps['panels']>[number];
+
+export type SkinnedDecisionGraphProps = DecisionGraphProps & {
+  /**
+   * 传入后自动注册左侧栏 simulator 面板（kernel GraphSimulator：输入 JSON →
+   * Run → 画布命中高亮 + Output/Trace），onRun 经由此 handler 调执行引擎。
+   * 不传则与直接渲染 `<DecisionGraph>` 行为完全一致。
+   */
+  simulateHandler?: SimulateHandler;
+};
 
 /**
  * 皮肤感知的 DecisionGraph（S005 P1）：读取 activeSkin.layout 把工具栏槽位
@@ -22,8 +35,11 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps;
  */
 export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
+  const { simulateHandler, ...restProps } = props;
   const internalRef = useRef<DecisionGraphRef | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [simulation, setSimulation] = useState<Simulation | undefined>(undefined);
+  const [running, setRunning] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -55,5 +71,39 @@ export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDe
     // activeSkin 参与依赖：切肤即重映射
   }, [activeSkin, mounted, props.value, props.defaultValue, props.disabled, props.toolbarItems]);
 
-  return <DecisionGraph {...props} ref={setRef} toolbarItems={toolbarItems} />;
+  const panels = useMemo<DecisionGraphProps['panels']>(() => {
+    if (!simulateHandler) {
+      return props.panels;
+    }
+    const simulatorPanel: PanelItem = {
+      id: 'simulator',
+      title: 'Simulator',
+      icon: <FlaskConicalIcon size={16} />,
+      hideHeader: true,
+      renderPanel: () => (
+        <GraphSimulator
+          defaultRequest={'{\n  \n}'}
+          loading={running}
+          onRun={({ graph, context }) => {
+            setRunning(true);
+            simulateHandler(graph as DecisionGraphType, context)
+              .then((outcome) => setSimulation(outcome.simulation))
+              .finally(() => setRunning(false));
+          }}
+          onClear={() => setSimulation(undefined)}
+        />
+      ),
+    };
+    return [...(props.panels ?? []), simulatorPanel];
+  }, [props.panels, simulateHandler, running]);
+
+  return (
+    <DecisionGraph
+      {...restProps}
+      ref={setRef}
+      toolbarItems={toolbarItems}
+      panels={panels}
+      simulate={props.simulate ?? simulation}
+    />
+  );
 });

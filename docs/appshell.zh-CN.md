@@ -18,8 +18,8 @@ UI 套件副本(`components/ui/*`、`reui/*`),不回触内核的 UI 层。
 
 | 职责域 | 位置 | 内容 |
 | --- | --- | --- |
-| **Custom node 宿主** | `components/custom-node/`、`hooks/useCustomNodes.ts` | 三个节点——HTTP request、query list、current date——每个含页签渲染器(`*Node` 规格 + `*Tab` 组件),另有 `KeyValueEditor` 与 `LockedCornerBadge`。(crypto / JSON path / template 节点已移除——前两者 zen 表达式已覆盖;crypto 执行移至平台后端) |
-| **Registry 与协议** | `lib/` | `custom-node-registry`(schema→节点转换,含内置兜底)、`custom-node-plans`、协议库(http-request / json-path / crypto——后两者保留为线上契约;crypto 即平台后端的执行契约)、`user-resolver`(better-auth + anonymous 双适配)、`storage-key` |
+| **Custom node 宿主** | `components/custom-node/`、`hooks/useCustomNodes.ts` | 四个节点——HTTP request、query list、crypto、current date——每个含页签渲染器(`*Node` 规格 + `*Tab` 组件),另有 `KeyValueEditor` 与 `LockedCornerBadge`。(JSON path / template 节点已移除——zen 表达式已覆盖;crypto 节点保留——zen 表达式无加密能力,其服务端执行契约在平台后端) |
+| **Registry 与协议** | `lib/` | `custom-node-registry`(schema→节点转换,含内置兜底)、`custom-node-plans`、协议库(http-request / json-path / crypto——后两者保留为线上契约;crypto 执行由平台后端实现)、`user-resolver`(better-auth + anonymous 双适配)、`storage-key` |
 | **节点组合 Hook** | `hooks/useCustomNodes.ts` | 组合基础节点 + schema 拉取节点(优雅回退)+ 皮肤覆盖,产出 `DecisionGraph` 消费的 `customNodes` 数组 |
 | **Skin 皮肤系统** | `skin/`、`context/theme.provider` | `applyNodeOverrides` —— 按 kind 覆盖 renderTab/renderNode;主题种子经 `ThemeProvider` 流入节点 UI 槽位 |
 | **Shell 持久化契约** | `shell/persistence.ts`、`shell/graphs-http-adapter.ts` | `GraphPersistenceAdapter` —— 宿主实现:`list`/`load`/`save`(`baseRevision` 乐观锁 → CONFLICT)/`delete`/`listVersions`;404 语义(null/false,绝不抛错);`graphs-http-adapter` 为 HTTP 参考实现;`default-simulate` 接线远程引擎 |
@@ -68,6 +68,20 @@ import { createUserResolver, createBetterAuthAdapter } from '@republicroad/jdm-a
 持久化契约(`GraphPersistenceAdapter`)由宿主实现(REST、数据库、文件系统
 均可——HTTP 参考实现见 `shell/graphs-http-adapter.ts`)。
 
+## 模拟器接线（SkinnedDecisionGraph）
+
+给 `SkinnedDecisionGraph` 传 `simulateHandler` 即自动注册侧栏模拟器面板
+（kernel `GraphSimulator`：输入 JSON → Run → 逐节点命中高亮 + Output/Input/Trace 编辑器）：
+
+```tsx
+import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-appshell';
+
+<SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
+```
+
+`createExecuteSimulate` 说 demo-server / verdict 的执行方言
+（`POST {model, input, trace}` → `{result, performance, trace}`）；`createDefaultSimulate`
+继续服务同源 /api/simulate 方言。不传 handler 时组件行为与裸 `DecisionGraph` 一致。
 ## 集成 story
 
 `src/integration/decision-graph-appshell.stories.tsx` 同时挂载内核

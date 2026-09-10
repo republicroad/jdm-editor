@@ -6,6 +6,7 @@ import {
   ThemeContextProvider,
   ThemePreference,
   VersionHistoryPanel,
+  createExecuteSimulate,
   createIndexedDbAdapter,
   restoreVersion,
   useTheme,
@@ -293,6 +294,7 @@ export const App: React.FC = () => {
               onChange={setGraph}
               diffBaseline={diffBase ? (diffBase.content as any) : undefined}
               disabled={diffBase ? true : undefined}
+              simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
             />
           ) : (
             <DecisionTable value={table} onChange={setTable} mode='business' tableHeight='100%' />

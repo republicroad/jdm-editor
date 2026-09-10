@@ -151,6 +151,7 @@ try {
     'ThemePreference',
     'createSpecNode',
     'schemaToCustomNodes',
+    'cryptoNode',
     'httpRequestNode',
     'queryListNode',
     'currentDateNode',

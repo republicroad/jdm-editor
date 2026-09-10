@@ -131,7 +131,7 @@ One command starts the playground frontend and the demo server together:
 pnpm dev        # playground :517x + demo-server :8787 (run-p)
 ```
 
-The playground header gains a **Server run** button (graph page) that POSTs the current graph to `:8787/v1/execute` and shows the result — the editor UI and the execution backend, end to end. Override the target with `VITE_DEMO_SERVER_URL`.
+The playground header gains a **Server run** button (graph page) that POSTs the current graph to `:8787/v1/execute` and shows the result, and the graph sidebar gains a **simulator panel** (flask icon): enter request JSON, hit Run, and the canvas highlights per-node hits with Output/Trace editors — the editor UI and the execution backend, end to end. Override the target with `VITE_DEMO_SERVER_URL`.
 
 Docker (server only):
 

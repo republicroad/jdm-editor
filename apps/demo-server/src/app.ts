@@ -76,6 +76,7 @@ export const createApp = () => {
 
       return c.json({
         result: outcome.result ?? null,
+        performance: outcome.performance ?? '',
         ...(body?.trace === true && outcome.trace !== undefined ? { trace: outcome.trace } : {}),
       });
     } catch (err) {
