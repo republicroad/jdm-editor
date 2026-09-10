@@ -1,6 +1,6 @@
 # S005 · 皮肤布局槽位规格稿 v1（SkinDefinition.layout）
 
-- 状态: spec-ready（待宿主确认 4 项后进入实现，见 §9）
+- 状态: confirmed（宿主四项裁决已落定 2026-09-10，见 §10；P1 可进入实现）
 - 目标库: `@republicroad/jdm-editor`（锚点）+ `@republicroad/jdm-appshell`（模式与映射）
 - 提出方: editor 会话（第五十七批），规格化: kernel 会话（2026-09-10）
 - 需求来源: libsuggest S005（宿主 ocean + 默认双皮肤实践中的布局能力缺口）
@@ -132,7 +132,8 @@ export type PanelType = {
 - `right`：右侧栏镜像实现（图标轨 + Sheet 从右滑出，复用 VersionHistoryPanel 同款
   Sheet 容器样式）
 - `bottom`：基于 `react-resizable-panels`（tab-json-schema 已引入）加水平
-  PanelGroup；实现量最大，**是否交付取决于宿主确认（§9-2）**
+  PanelGroup；实现量最大，~~是否交付取决于宿主确认（§9-2）~~ **已裁决（§10-2）：
+  裁剪——宿主无底部停靠硬需求，P2 仅交付 `right`**
 
 `activePanel` 全局唯一性维持现状（同刻至多一个激活面板，跨位置也不叠加）。
 
@@ -185,14 +186,44 @@ kernel 无 header 且不应有（页面骨架属宿主）。规格：appshell �
 
 每期独立可发版、可回滚；P1 落地即满足宿主"发布/模拟按钮入栏"的最高优先诉求。
 
-## 9. 待宿主确认项（阻塞实现，不阻塞规格）
+## 9. 待宿主确认项（已全部裁决 2026-09-10，裁决详情见 §10）
 
-1. **工具栏分组命名**：保留组 `'export' | 'simulate'` 是否够用？宿主"发布"按钮
-   期望进既有组还是独立 `host` 组（独立组 = 最右分隔线后）？
-2. **bottom 面板真伪需求**：宿主是否确有底部停靠场景（请求面板类）？若无，P2 只
-   交付 `right`，裁掉 PanelGroup 重排工作量
-3. **header 锚点归属**：接受"appshell 壳层 `ShellHeader`"方案，还是期望挂在
-   kernel 图头（tab 条上方）？前者不动 kernel、后者与画布视觉更连贯
-4. **SkinSlotContext 富度**：是否需要 `simulate` 结果、当前激活 Tab 等运行时
-   上下文？P1 先交付最小集 `{ graph, disabled, graphRef }`，富上下文按需追加
-   （向后兼容）
+1. **工具栏分组命名**：✅ 保留组够用；宿主「发布」按钮走**独立组**（最右分隔线后），不进保留组
+2. **bottom 面板真伪需求**：✅ 无硬需求——**P2 裁掉 bottom，仅交付 `right`**（PanelGroup 重排不做）
+3. **header 锚点归属**：✅ 接受 **appshell 壳层 `ShellHeader`** 方案（kernel 保持无 header）
+4. **SkinSlotContext 富度**：✅ **P1 最小集** `{ graph, disabled, graphRef }` 确认；富上下文按需向后兼容追加
+
+## 10. 宿主确认记录（2026-09-10，editor 会话）
+
+### 10-1 工具栏分组：保留组够用，宿主注入走独立组
+
+保留组 `'export' | 'simulate'` 是 kernel 既有语义分组，够用且不应扩。宿主「发布」按钮
+（S005 原始诉求）走**独立组**：`id: 'host:toolbar.publish'`、缺省组语义（最右分隔线后独立
+渲染）。理由：与约束 §6-3「只追加不替换」一致；宿主注入项自成一组，未来追加第二、第三个
+宿主按钮时天然聚在同一分隔线后，不与 kernel 原生语义组耦合。
+
+### 10-2 bottom 面板：裁剪（P2 仅交付 right）
+
+宿主现状盘点：模拟器已是左侧面板（`panels` 注入，id `simulator`）、版本历史走右侧 Sheet
+（`restoreVersion`/`diffBaseline` 均按右滑出交互设计）、请求编辑为页签非面板。**无底部停靠
+硬需求**。裁掉 `bottom` 省去 `react-resizable-panels` 水平 PanelGroup 的最大实现量；若未来
+出现横向 diff 对照等场景，按 0.7.x 补交付（`position` 类型现含 `'bottom'` 字面量即可，
+无破坏性追加）。
+
+### 10-3 header 归属：接受 appshell 壳层 ShellHeader
+
+kernel 无 header 且不应有（页面骨架属宿主，与 §3「kernel 皮肤无感知」裁决同构）。宿主现状
+已有自摆 `PageHeader`（标题/保存/模式切换），P3 `ShellHeader` 对宿主是**可选迁移项而非
+阻塞**——P3 落地后宿主按视觉连贯性（与画布 tab 条的关系）实机评估是否迁移。
+
+### 10-4 SkinSlotContext：P1 最小集确认
+
+宿主首期注入（发布按钮）仅需 `disabled` + `graphRef`（点击触发模拟/发布动作）。富上下文
+（simulate 结果、激活 Tab）确认**按需向后兼容追加**；实现建议：追加时以独立 context hook
+暴露（如 `useSkinSlotRuntime()`）而非扩 `SkinSlotContext` 参数——避免既有槽位闭包签名变更。
+
+### 10-5 宿主消费计划（P1 交付后）
+
+宿主从 `<DecisionGraph>` 切换为 `<SkinnedDecisionGraph>`（无皮肤时行为等价，68 批
+`diffBaseline`/`restoreVersion` 回归随切换验证）；ocean 皮肤注入 `host:toolbar.publish`
+示范按钮 + 一条右侧槽位面板（72 批，宿主消费批）。kernel/appshell 0.6.0 发版为切换前置。
