@@ -1,6 +1,6 @@
 # S005 · 皮肤布局槽位规格稿 v1（SkinDefinition.layout）
 
-- 状态: confirmed（宿主四项裁决已落定 2026-09-10，见 §10；P1 可进入实现）
+- 状态: confirmed · P1 shipped（2026-09-10，kernel/appshell 0.6.0；P2/P3 待交付）
 - 目标库: `@republicroad/jdm-editor`（锚点）+ `@republicroad/jdm-appshell`（模式与映射）
 - 提出方: editor 会话（第五十七批），规格化: kernel 会话（2026-09-10）
 - 需求来源: libsuggest S005（宿主 ocean + 默认双皮肤实践中的布局能力缺口）
@@ -180,7 +180,7 @@ kernel 无 header 且不应有（页面骨架属宿主）。规格：appshell �
 
 | 期 | 内容 | 发版口径 |
 | --- | --- | --- |
-| P1 | kernel `toolbarItems` + appshell `SkinLayout.toolbar` 映射 + `SkinnedDecisionGraph` + playground 演示 | kernel/appshell 0.6.0（新 props，均为可选追加，非破坏） |
+| P1 | kernel `toolbarItems` + appshell `SkinLayout.toolbar` 映射 + `SkinnedDecisionGraph` + playground 演示 | kernel/appshell 0.6.0（新 props，均为可选追加，非破坏）✅ **shipped 2026-09-10** |
 | P2 | kernel `PanelType.position`（right/bottom）+ appshell `layout.panels` | kernel/appshell 0.7.0（bottom 视 §9-2 确认结果可裁剪） |
 | P3 | appshell `ShellHeader` + `layout.header` | appshell 0.8.0（kernel 不动） |
 
