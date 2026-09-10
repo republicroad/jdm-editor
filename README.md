@@ -125,13 +125,24 @@ For webpack and other configurations, you may require some additional loaders, s
 
 This repository ships a stateless demo server (`apps/demo-server`, Bun + [Hono](https://hono.dev)) that validates and executes decision models with `@gorules/zen-engine`. It is a **self-hosting demo only** — no auth, no storage, no business logic.
 
+One command starts the playground frontend and the demo server together:
+
+```bash
+pnpm dev        # playground :517x + demo-server :8787 (run-p)
+```
+
+The playground header gains a **Server run** button (graph page) that POSTs the current graph to `:8787/v1/execute` and shows the result — the editor UI and the execution backend, end to end. Override the target with `VITE_DEMO_SERVER_URL`.
+
+Docker (server only):
+
 ```bash
 docker compose up demo-server   # :8787
 
-curl -s localhost:8787/v1/execute -H "content-type: application/json" \n  -d "{"model": $(cat model.json), "input": {"customer": {"tier": "GOLD"}}}"
+curl -s localhost:8787/v1/execute -H "content-type: application/json" \
+  -d "{"model": $(cat model.json), "input": {"customer": {"tier": "GOLD"}}}"
 ```
 
-See [apps/demo-server/README.md](apps/demo-server/README.md) for the API surface. A production-grade rule platform (auth, multi-tenant workspaces, audit) is out of scope here.
+See [apps/demo-server/README.md](apps/demo-server/README.md) for the API surface. A production-grade rule platform (auth, multi-tenant workspaces, audit) lives in the private `verdict` repo and is out of scope here.
 
 ## License
 

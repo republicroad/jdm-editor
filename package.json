@@ -24,7 +24,9 @@
     "storybook": "pnpm --filter @republicroad/jdm-editor storybook",
     "playground": "pnpm --filter @republicroad/playground dev",
     "docs:dev": "rspress dev docs",
-    "docs:build": "rspress build docs"
+    "docs:build": "rspress build docs",
+    "dev": "run-p playground demo-server",
+    "demo-server": "pnpm --filter @republicroad/demo-server dev"
   },
   "engines": {
     "pnpm": "~10"

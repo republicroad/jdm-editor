@@ -228,6 +228,26 @@ export const App: React.FC = () => {
     [refreshVersions],
   );
 
+  // apps/demo-server 联动：当前图 POST 到本地执行服务（`pnpm dev` 同时拉起两端）
+  const onServerExecute = useCallback(async () => {
+    const { id: _id, revision: _rev, ...model } = graph;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787'}/v1/execute`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ model, input: {} }),
+      });
+      const body = (await res.json()) as { result?: unknown; error?: string };
+      setStatus(
+        res.ok
+          ? `server: ${JSON.stringify(body.result ?? null).slice(0, 100)}`
+          : `server ${res.status}: ${body.error ?? 'failed'}`,
+      );
+    } catch (err) {
+      setStatus(`server unreachable (:8787): ${String(err).slice(0, 60)}`);
+    }
+  }, [graph]);
+
   return (
     <ThemeContextProvider options={{ skins, defaultSkinId: 'default' }}>
       <div className='pg-root'>
@@ -255,6 +275,11 @@ export const App: React.FC = () => {
               Save (IndexedDB)
             </button>
             <button onClick={() => void openHistory()}>Version history</button>
+            {page === 'graph' && (
+              <button onClick={() => void onServerExecute()} title='POST current graph to apps/demo-server :8787'>
+                Server run
+              </button>
+            )}
             <SkinSwitcher />
             <ThemeToggle />
             <span className='pg-status'>{status}</span>

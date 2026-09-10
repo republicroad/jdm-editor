@@ -93,3 +93,21 @@ describe('demo-server api', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('demo-server cors', () => {
+  const app = createApp();
+
+  it('跨域响应头开放（playground 直连）', async () => {
+    const res = await app.request('/healthz', { headers: { origin: 'http://localhost:5173' } });
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('OPTIONS 预检通过 POST', async () => {
+    const res = await app.request('/v1/execute', {
+      method: 'OPTIONS',
+      headers: { 'origin': 'http://localhost:5173', 'access-control-request-method': 'POST' },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get('access-control-allow-methods')).toContain('POST');
+  });
+});

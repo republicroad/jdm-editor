@@ -1,5 +1,6 @@
 import { ZenEngine } from '@gorules/zen-engine';
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 export type ExecuteBody = {
   model?: unknown;
@@ -26,6 +27,9 @@ const isModelShape = (value: unknown): value is { nodes: unknown[]; edges?: unkn
  */
 export const createApp = () => {
   const app = new Hono();
+
+  // demo 全开放跨域：playground（vite dev）等本地前端直连
+  app.use('*', cors());
 
   app.use('*', async (c, next) => {
     await next();
