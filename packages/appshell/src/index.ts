@@ -4,6 +4,7 @@ export { applyNodeOverrides } from './skin/apply';
 export { mapToolbarSlots } from './skin/layout';
 export * from './skin/types';
 export { SkinnedDecisionGraph, type SkinnedDecisionGraphProps } from './components/skinned-decision-graph';
+export { ShellHeader, type ShellHeaderProps } from './components/shell-header';
 export * from './lib/custom-node-plans';
 export * from './lib/custom-node-schema-source';
 export * from './lib/custom-node-types';

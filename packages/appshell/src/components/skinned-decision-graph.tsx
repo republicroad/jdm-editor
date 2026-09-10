@@ -14,6 +14,7 @@ import { useTheme } from '../context/theme.provider';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinSlotHostContext } from '../skin/types';
+import { ShellHeader } from './shell-header';
 import { ScrollArea } from './ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 
@@ -114,64 +115,86 @@ export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDe
     graphRef: mounted ? internalRef.current : null,
   };
 
-  const graph = (
-    <div className={rightSlots?.length ? 'h-full min-w-0 flex-1' : 'contents'}>
-      <DecisionGraph
-        {...restProps}
-        ref={setRef}
-        toolbarItems={toolbarItems}
-        panels={panels}
-        simulate={props.simulate ?? simulation}
-      />
-    </div>
+  // S005 P3：皮肤头部槽位（ShellHeader，kernel 无 header）
+  const headerSlots = activeSkin?.layout?.header?.slots;
+  const hasHeader = !!(headerSlots?.left || headerSlots?.right);
+  const headerNode = hasHeader ? (
+    <ShellHeader graph={slotContext.graph} disabled={slotContext.disabled} graphRef={slotContext.graphRef} />
+  ) : null;
+
+  const hasRail = !!rightSlots?.length;
+  const decisionGraph = (
+    <DecisionGraph
+      {...restProps}
+      ref={setRef}
+      toolbarItems={toolbarItems}
+      panels={panels}
+      simulate={props.simulate ?? simulation}
+    />
   );
 
-  if (!rightSlots?.length) {
-    return graph;
+  const sheetNode = hasRail ? (
+    <Sheet open={openSlot !== null} onOpenChange={(open) => !open && setOpenSlot(null)}>
+      <SheetContent
+        side='right'
+        className='flex w-full flex-col gap-4 sm:max-w-md'
+        aria-label={openSlot ? `Skin panel ${openSlot}` : undefined}
+      >
+        <SheetHeader>
+          <SheetTitle>{openSlot}</SheetTitle>
+        </SheetHeader>
+        <ScrollArea className='-mx-2 min-h-0 flex-1 px-2'>
+          {openSlot !== null &&
+            rightSlotRenders?.[openSlot]?.({
+              graph: slotContext.graph ?? { nodes: [], edges: [] },
+              disabled: !!slotContext.disabled,
+              graphRef: slotContext.graphRef,
+            })}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  ) : null;
+
+  const railNode = hasRail ? (
+    <div
+      aria-label='skin-panel-rail'
+      className='flex w-12 shrink-0 flex-col items-center gap-2 border-l border-[var(--border)] bg-[var(--grl-color-bg-container)] py-2'
+    >
+      {rightSlots.map((slotId) => (
+        <button
+          key={slotId}
+          type='button'
+          title={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
+          aria-label={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
+          aria-expanded={openSlot === slotId}
+          className='flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
+          style={openSlot === slotId ? { background: 'rgba(0, 0, 0, 0.1)' } : undefined}
+          onClick={() => setOpenSlot((current) => (current === slotId ? null : slotId))}
+        >
+          <PanelRightIcon className='h-4 w-4' />
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  if (!hasHeader && !hasRail) {
+    return <div className='contents'>{decisionGraph}</div>;
   }
 
+  const body = hasRail ? (
+    <div className='flex h-full min-h-0 w-full min-w-0 flex-1'>
+      <div className='h-full min-w-0 flex-1'>{decisionGraph}</div>
+      {railNode}
+    </div>
+  ) : (
+    <div className='h-full min-w-0 flex-1'>{decisionGraph}</div>
+  );
+
   return (
-    <div className='flex h-full w-full min-h-0'>
-      {graph}
-      <div
-        aria-label='skin-panel-rail'
-        className='flex w-12 shrink-0 flex-col items-center gap-2 border-l border-[var(--border)] bg-[var(--grl-color-bg-container)] py-2'
-      >
-        {rightSlots.map((slotId) => (
-          <React.Fragment key={slotId}>
-            <button
-              type='button'
-              title={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
-              aria-label={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
-              aria-expanded={openSlot === slotId}
-              className='flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
-              style={openSlot === slotId ? { background: 'rgba(0, 0, 0, 0.1)' } : undefined}
-              onClick={() => setOpenSlot((current) => (current === slotId ? null : slotId))}
-            >
-              <PanelRightIcon className='h-4 w-4' />
-            </button>
-          </React.Fragment>
-        ))}
-      </div>
-      <Sheet open={openSlot !== null} onOpenChange={(open) => !open && setOpenSlot(null)}>
-        <SheetContent
-          side='right'
-          className='flex w-full flex-col gap-4 sm:max-w-md'
-          aria-label={openSlot ? `Skin panel ${openSlot}` : undefined}
-        >
-          <SheetHeader>
-            <SheetTitle>{openSlot}</SheetTitle>
-          </SheetHeader>
-          <ScrollArea className='-mx-2 min-h-0 flex-1 px-2'>
-            {openSlot !== null &&
-              rightSlotRenders?.[openSlot]?.({
-                graph: slotContext.graph ?? { nodes: [], edges: [] },
-                disabled: !!slotContext.disabled,
-                graphRef: slotContext.graphRef,
-              })}
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
+    <div className='flex h-full w-full min-h-0 flex-col'>
+      {headerNode}
+      {body}
+      {sheetNode}
     </div>
   );
 });

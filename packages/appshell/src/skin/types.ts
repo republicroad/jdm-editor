@@ -48,10 +48,21 @@ export type SkinPanelsLayout = {
   };
 };
 
-/** 布局槽位（P3 头部后续追加，见规格稿 §5.4） */
+/** P3 · 头部槽位（ShellHeader 壳层实现；每侧一个渲染函数，宿主裁决 §10-3） */
+export type SkinHeaderLayout = {
+  slots?: {
+    /** 标题区左侧（标题/环境标识） */
+    left?: SkinSlotRender;
+    /** 标题区右侧（状态徽标/操作） */
+    right?: SkinSlotRender;
+  };
+};
+
+/** 布局槽位（S005 三期：toolbar P1 / panels P2 / header P3） */
 export type SkinLayout = {
   toolbar?: SkinToolbarLayout;
   panels?: SkinPanelsLayout;
+  header?: SkinHeaderLayout;
 };
 
 /** 皮肤 = 主题种子 + token 覆写 + 节点 UI 槽位覆写 + 布局槽位；一次切换即「一键换UI/换肤/换布局」 */

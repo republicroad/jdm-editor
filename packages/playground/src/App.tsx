@@ -143,6 +143,30 @@ export const App: React.FC = () => {
             order: ['host:panel.notes'],
           },
         },
+        // S005 P3 演示：头部槽位（ShellHeader，左标题右徽标）
+        header: {
+          slots: {
+            left: () => (
+              <span style={{ fontSize: 13, fontWeight: 600 }}>
+                🌊 Ocean&nbsp;
+                <span style={{ fontWeight: 400, opacity: 0.7 }}>environment</span>
+              </span>
+            ),
+            right: ({ graph: g }) => (
+              <span
+                style={{
+                  fontSize: 11,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  background: 'rgba(2, 132, 199, 0.15)',
+                  color: '#0369a1',
+                }}
+              >
+                {(g.nodes ?? []).length} nodes
+              </span>
+            ),
+          },
+        },
       },
     },
   ];
