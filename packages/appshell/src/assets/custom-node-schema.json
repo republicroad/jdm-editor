@@ -1,55 +1,6 @@
 [
   {
     "type": "namespace",
-    "title": "crypto",
-    "name": "crypto",
-    "description": "",
-    "tools": [
-      {
-        "name": "crypto",
-        "title": "crypto",
-        "type": "function",
-        "description": "计算字符串摘要或 HMAC 签名，返回摘要字符串. algorithm 支持 md5/sha1/sha256/sha512(非法值回退 sha256)，secret 非空时启用 HMAC 模式，encoding 支持 hex/base64/base64url(非法值回退 hex)，upper 仅对 hex 生效(大写输出).",
-        "parameters": {
-          "properties": {
-            "input": { "type": "string", "title": "Input", "description": "待摘要内容" },
-            "algorithm": {
-              "type": "string",
-              "title": "Algorithm",
-              "description": "摘要算法(md5/sha1/sha256/sha512)，默认 sha256，非法值回退 sha256",
-              "default": "sha256"
-            },
-            "secret": {
-              "type": "string",
-              "title": "Secret",
-              "description": "HMAC 密钥，非空启用 HMAC 模式，留空则为普通摘要",
-              "default": ""
-            },
-            "encoding": {
-              "type": "string",
-              "title": "Encoding",
-              "description": "输出编码(hex/base64/base64url)，默认 hex，非法值回退 hex",
-              "default": "hex"
-            },
-            "upper": {
-              "type": "boolean",
-              "title": "Upper",
-              "description": "hex 输出转大写(仅 encoding=hex 时生效)，默认 false",
-              "default": false
-            }
-          },
-          "required": ["input"],
-          "title": "crypto",
-          "type": "object"
-        },
-        "returns": { "type": "string", "title": "crypto 函数返回", "properties": {} },
-        "namespace": "crypto",
-        "kind": "crypto"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
     "title": "debug",
     "name": "debug",
     "description": "",
@@ -61,15 +12,38 @@
         "description": "Docstring for inout\n自定义函数测试, 返回值返回入参, 用于调试.",
         "parameters": {
           "properties": {
-            "b": { "description": "参数 b", "title": "B", "type": "integer" },
-            "a": { "anyOf": [{ "type": "string" }, { "type": "integer" }], "description": "参数 a", "title": "A" },
-            "c": { "description": "参数 c", "title": "C", "type": "null" }
+            "b": {
+              "description": "参数 b",
+              "title": "B",
+              "type": "integer"
+            },
+            "a": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "description": "参数 a",
+              "title": "A"
+            },
+            "c": {
+              "description": "参数 c",
+              "title": "C",
+              "type": "null"
+            }
           },
           "required": ["b", "a", "c"],
           "title": "inout",
           "type": "object"
         },
-        "returns": { "type": "string", "title": "inout 函数返回", "properties": {} },
+        "returns": {
+          "type": "string",
+          "title": "inout 函数返回",
+          "properties": {}
+        },
         "namespace": "debug",
         "kind": "debug"
       },
@@ -78,8 +52,16 @@
         "title": "func_without_args",
         "type": "function",
         "description": "Docstring for func_without_args\n无参数函数, 用于自定义函数测试",
-        "parameters": { "properties": {}, "title": "func_without_args", "type": "object" },
-        "returns": { "type": "string", "title": "func_without_args 函数返回", "properties": {} },
+        "parameters": {
+          "properties": {},
+          "title": "func_without_args",
+          "type": "object"
+        },
+        "returns": {
+          "type": "string",
+          "title": "func_without_args 函数返回",
+          "properties": {}
+        },
         "namespace": "debug",
         "kind": "debug"
       }
@@ -96,77 +78,18 @@
         "title": "current_date",
         "type": "function",
         "description": "返回服务器当前日期(本地时区，YYYY-MM-DD 格式)，无参数.",
-        "parameters": { "properties": {}, "title": "current_date", "type": "object" },
-        "returns": { "type": "string", "title": "current_date 函数返回", "properties": {} },
+        "parameters": {
+          "properties": {},
+          "title": "current_date",
+          "type": "object"
+        },
+        "returns": {
+          "type": "string",
+          "title": "current_date 函数返回",
+          "properties": {}
+        },
         "namespace": "debugui",
         "kind": "debugui"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
-    "title": "json_path",
-    "name": "json_path",
-    "description": "",
-    "tools": [
-      {
-        "name": "json_path",
-        "title": "json_path",
-        "type": "function",
-        "description": "按 JSONPath 表达式从数据中提取值(标准语法，支持通配符/下标/过滤)，单个命中返回该值，多个命中返回数组；无命中或表达式非法时返回 default. input 为对象，字符串会先尝试 JSON 解析.",
-        "parameters": {
-          "properties": {
-            "input": { "type": "any", "title": "Input", "description": "待提取的数据对象(字符串将尝试 JSON 解析)" },
-            "path": { "type": "string", "title": "Path", "description": "JSONPath 表达式，如 $.cart.items[*].price" },
-            "default": {
-              "type": "any",
-              "title": "Default",
-              "description": "无命中或解析失败时的回退值，默认 null",
-              "default": null
-            }
-          },
-          "required": ["input", "path"],
-          "title": "json_path",
-          "type": "object"
-        },
-        "returns": { "type": "object", "title": "json_path 函数返回", "properties": {} },
-        "namespace": "json_path",
-        "kind": "json_path"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
-    "title": "template",
-    "name": "template",
-    "description": "",
-    "tools": [
-      {
-        "name": "template",
-        "title": "template",
-        "type": "function",
-        "description": "渲染模板字符串：${path} 形式插值 vars 对象(支持点路径与 [n] 数组下标)，缺失变量替换为空串；非字符串值按 String() 序列化.",
-        "parameters": {
-          "properties": {
-            "template": {
-              "type": "string",
-              "title": "Template",
-              "description": "模板字符串，如 \"您好 ${user.name}\""
-            },
-            "vars": {
-              "type": "object",
-              "title": "Vars",
-              "description": "插值变量键值对对象，默认空对象",
-              "default": {}
-            }
-          },
-          "required": ["template"],
-          "title": "template",
-          "type": "object"
-        },
-        "returns": { "type": "string", "title": "template 函数返回", "properties": {} },
-        "namespace": "template",
-        "kind": "template"
       }
     ]
   },
@@ -183,7 +106,11 @@
         "description": "发起 HTTP 请求, 返回响应结果 { status, headers, body }. 支持 params 查询参数合并、timeout 单次超时(默认 10s, 上限 60s)、retry 重试(仅网络异常/超时/5xx/429, 指数退避)与 auth 认证({ type: \"basic\", username, password } 或 { type: \"bearer\", token }, headers 显式 Authorization 优先). 失败返回结构化错误 { status: 0, error }, 不抛出异常.",
         "parameters": {
           "properties": {
-            "url": { "type": "string", "title": "URL", "description": "请求地址" },
+            "url": {
+              "type": "string",
+              "title": "URL",
+              "description": "请求地址"
+            },
             "method": {
               "type": "string",
               "title": "Method",
@@ -231,7 +158,11 @@
           "title": "http_request",
           "type": "object"
         },
-        "returns": { "type": "object", "title": "http_request 函数返回", "properties": {} },
+        "returns": {
+          "type": "object",
+          "title": "http_request 函数返回",
+          "properties": {}
+        },
         "namespace": "http",
         "kind": "http"
       }
@@ -250,14 +181,26 @@
         "description": "查询名单：在服务端指定名单中查询某个值是否存在，返回命中结果.",
         "parameters": {
           "properties": {
-            "roster": { "type": "string", "title": "名单", "description": "服务端名单名称(从名单下拉中动态选择)" },
-            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+            "roster": {
+              "type": "string",
+              "title": "名单",
+              "description": "服务端名单名称(从名单下拉中动态选择)"
+            },
+            "value": {
+              "type": "string",
+              "title": "查询值",
+              "description": "待查询的值"
+            }
           },
           "required": ["roster", "value"],
           "title": "roster",
           "type": "object"
         },
-        "returns": { "type": "object", "title": "roster 函数返回", "properties": {} },
+        "returns": {
+          "type": "object",
+          "title": "roster 函数返回",
+          "properties": {}
+        },
         "namespace": "roster",
         "kind": "roster"
       }
@@ -276,14 +219,27 @@
         "description": "旧域重建·名单查询：在服务端指定名单中查询某个值是否存在，返回 {result}。",
         "parameters": {
           "properties": {
-            "list_name": { "type": "string", "title": "名单名称", "description": "服务端名单名称" },
-            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+            "list_name": {
+              "type": "string",
+              "title": "名单名称",
+              "description": "服务端名单名称"
+            },
+            "value": {
+              "type": "string",
+              "title": "查询值",
+              "description": "待查询的值"
+            }
           }
         },
         "returns": {
           "type": "object",
           "title": "custom_list_query_result",
-          "properties": { "result": { "type": "boolean", "title": "Result" } },
+          "properties": {
+            "result": {
+              "type": "boolean",
+              "title": "Result"
+            }
+          },
           "required": ["result"]
         },
         "namespace": "custom-list-query",
@@ -303,16 +259,38 @@
         "type": "function",
         "description": "旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。",
         "parameters": {
-          "properties": { "entity": { "type": "string", "title": "实体", "description": "计数实体（如 ip、phone）" } }
+          "properties": {
+            "entity": {
+              "type": "string",
+              "title": "实体",
+              "description": "计数实体（如 ip、phone）"
+            }
+          }
         },
         "returns": {
           "type": "object",
           "title": "RateCommonResult",
           "properties": {
-            "counter": { "type": "integer", "title": "Counter", "default": 0 },
-            "v": { "type": "string", "title": "V", "default": "" },
-            "idle": { "type": "integer", "title": "Idle", "default": 0 },
-            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+            "counter": {
+              "type": "integer",
+              "title": "Counter",
+              "default": 0
+            },
+            "v": {
+              "type": "string",
+              "title": "V",
+              "default": ""
+            },
+            "idle": {
+              "type": "integer",
+              "title": "Idle",
+              "default": 0
+            },
+            "timestamp": {
+              "type": "string",
+              "title": "Timestamp",
+              "default": ""
+            }
           }
         },
         "namespace": "rate-window",
@@ -325,22 +303,62 @@
         "description": "旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。",
         "parameters": {
           "properties": {
-            "group": { "type": "string", "title": "组", "description": "分组键（如 ip）" },
-            "value": { "type": "string", "title": "值", "description": "组内观测值（如 phone）" }
+            "group": {
+              "type": "string",
+              "title": "组",
+              "description": "分组键（如 ip）"
+            },
+            "value": {
+              "type": "string",
+              "title": "值",
+              "description": "组内观测值（如 phone）"
+            }
           }
         },
         "returns": {
           "type": "object",
           "title": "GroupDistinctCommonResult",
           "properties": {
-            "idle": { "type": "integer", "title": "Idle", "default": 0 },
-            "pv": { "type": "integer", "title": "Pv", "default": 0 },
-            "uv": { "type": "integer", "title": "Uv", "default": 0 },
-            "gidle": { "type": "integer", "title": "Gidle", "default": 0 },
-            "vidle": { "type": "integer", "title": "Vidle", "default": 0 },
-            "group": { "type": "string", "title": "Group", "default": "" },
-            "v": { "type": "string", "title": "V", "default": "" },
-            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+            "idle": {
+              "type": "integer",
+              "title": "Idle",
+              "default": 0
+            },
+            "pv": {
+              "type": "integer",
+              "title": "Pv",
+              "default": 0
+            },
+            "uv": {
+              "type": "integer",
+              "title": "Uv",
+              "default": 0
+            },
+            "gidle": {
+              "type": "integer",
+              "title": "Gidle",
+              "default": 0
+            },
+            "vidle": {
+              "type": "integer",
+              "title": "Vidle",
+              "default": 0
+            },
+            "group": {
+              "type": "string",
+              "title": "Group",
+              "default": ""
+            },
+            "v": {
+              "type": "string",
+              "title": "V",
+              "default": ""
+            },
+            "timestamp": {
+              "type": "string",
+              "title": "Timestamp",
+              "default": ""
+            }
           }
         },
         "namespace": "rate-window",
@@ -360,17 +378,38 @@
         "type": "function",
         "description": "旧域重建·IP 属地解析：按最长前缀匹配数据集（env IP_LOCATION_DATASET 指向 JSON）返回 country/province/city/isp；未命中返回空字段。",
         "parameters": {
-          "properties": { "ip": { "type": "string", "title": "IP", "description": "待解析的 IP 地址" } }
+          "properties": {
+            "ip": {
+              "type": "string",
+              "title": "IP",
+              "description": "待解析的 IP 地址"
+            }
+          }
         },
         "returns": {
           "type": "object",
           "title": "ip_location_result",
           "properties": {
-            "country": { "type": "string", "title": "Country" },
-            "province": { "type": "string", "title": "Province" },
-            "city": { "type": "string", "title": "City" },
-            "isp": { "type": "string", "title": "Isp" },
-            "ip": { "type": "string", "title": "Ip" }
+            "country": {
+              "type": "string",
+              "title": "Country"
+            },
+            "province": {
+              "type": "string",
+              "title": "Province"
+            },
+            "city": {
+              "type": "string",
+              "title": "City"
+            },
+            "isp": {
+              "type": "string",
+              "title": "Isp"
+            },
+            "ip": {
+              "type": "string",
+              "title": "Ip"
+            }
           },
           "required": ["country", "province", "city", "isp", "ip"]
         },

@@ -1,12 +1,9 @@
 import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
 import { useEffect, useMemo, useState } from 'react';
 
-import { cryptoNode } from '../components/custom-node/crypto-node';
 import { currentDateNode } from '../components/custom-node/current-date-node';
 import { httpRequestNode } from '../components/custom-node/http-request-node';
-import { jsonPathNode } from '../components/custom-node/json-path-node';
 import { queryListNode } from '../components/custom-node/query-list-node';
-import { templateNode } from '../components/custom-node/template-node';
 import { useTheme } from '../context/theme.provider';
 import {
   type CustomNodeSchemaSource,
@@ -20,7 +17,7 @@ import { applyNodeOverrides } from '../skin/apply';
 type CustomNodeSpec = CustomNodeSpecification<object, any>;
 
 // 宿主以专用节点接管的函数名（函数名全局唯一）：从 schema 驱动结果中排除，避免侧边栏重复
-const overriddenFunctions = new Set(['roster', 'crypto', 'http_request', 'json_path', 'template', 'current_date']);
+const overriddenFunctions = new Set(['roster', 'http_request', 'current_date']);
 
 const isOverridden = (toolName: string): boolean => overriddenFunctions.has(toolName);
 
@@ -43,9 +40,6 @@ const composeBaseNodes = (extraNodes?: CustomNodeSpec[]): CustomNodeSpec[] => [
   ...(extraNodes ?? []),
   queryListNode,
   httpRequestNode,
-  cryptoNode,
-  jsonPathNode,
-  templateNode,
   currentDateNode,
   createLegacyUdfNode() as CustomNodeSpec,
 ];

@@ -44,17 +44,20 @@ try {
   if (registryVersion) {
     check(`registry version ${registryVersion} requested`, true, 'installing from registry');
   } else {
-    // 1. npm pack applies publishConfig (dev src entries -> dist); bun pm pack may not.
-    const pack = spawnSync('npm', ['pack', '--json'], {
+    // 1. pnpm pack applies publishConfig (dev src entries -> dist) AND rewrites
+    //    `catalog:` specifiers to real versions — npm pack does neither, and a
+    //    tarball carrying `catalog:` deps is uninstallable by npm.
+    const pack = spawnSync('pnpm', ['pack', '--json'], {
       cwd: pkgDir,
       encoding: 'utf8',
       shell: process.platform === 'win32',
     });
     if (pack.status !== 0) {
-      console.error('[npm-smoke] npm pack failed:', pack.stderr);
+      console.error('[npm-smoke] pnpm pack failed:', pack.stderr);
       process.exit(1);
     }
-    const tarballName = JSON.parse(pack.stdout)[0].filename;
+    const packed = JSON.parse(pack.stdout);
+    const tarballName = Array.isArray(packed) ? packed[0].filename : packed.filename;
     const tarball = path.join(pkgDir, tarballName);
     const sizeKb = Math.round(statSync(tarball).size / 1024);
     check('tarball packed', existsSync(tarball), `${tarballName} ${sizeKb}kB`);
@@ -148,11 +151,8 @@ try {
     'ThemePreference',
     'createSpecNode',
     'schemaToCustomNodes',
-    'cryptoNode',
     'httpRequestNode',
     'queryListNode',
-    'jsonPathNode',
-    'templateNode',
     'currentDateNode',
     'KeyValueEditor',
     'LockedCornerBadge',
