@@ -14,6 +14,8 @@ import { GraphSideToolbar } from './graph/graph-side-toolbar';
 import type { GraphTabsProps } from './graph/graph-tabs';
 import { GraphTabs } from './graph/graph-tabs';
 import { CustomFunctionTable } from './graph/tab-custom-function-table';
+import type { ToolbarItem } from './graph/toolbar-anchor';
+import { ToolbarAnchor } from './graph/toolbar-anchor';
 import { decisionTableSpecification } from './nodes/specifications/decision-table.specification';
 import { expressionSpecification } from './nodes/specifications/expression.specification';
 import { functionSpecification } from './nodes/specifications/function.specification';
@@ -24,6 +26,11 @@ import { NodeKind } from './nodes/specifications/specification-types';
 export type DecisionGraphWrapperProps = {
   reactFlowProOptions?: ProOptions;
   tabBarExtraContent?: GraphTabsProps['tabBarExtraContent'];
+  /**
+   * 工具栏注入项（S005 P1）：渲染在页签条右端、原生操作之后，group 变化处
+   * 出现分隔线。无注入项时零渲染（与不传完全一致）。
+   */
+  toolbarItems?: ToolbarItem[];
   userResolver?: UserResolver;
   customFunctions?: any;
 };
@@ -61,7 +68,7 @@ const ResolveUserEffect: React.FC<{ userResolver?: UserResolver }> = ({ userReso
 
 export const DecisionGraphWrapper = React.memo(
   forwardRef<GraphRef, DecisionGraphWrapperProps>(function DecisionGraphWrapperInner(
-    { reactFlowProOptions, tabBarExtraContent, userResolver, customFunctions },
+    { reactFlowProOptions, tabBarExtraContent, toolbarItems, userResolver, customFunctions },
     ref,
   ) {
     const [disableTabs, setDisableTabs] = useState(false);
@@ -75,12 +82,23 @@ export const DecisionGraphWrapper = React.memo(
       },
     );
 
+    // 无注入项时保持原 tabBarExtraContent 引用不变——零注入零 DOM 差异
+    const tabsExtra =
+      toolbarItems && toolbarItems.length > 0 ? (
+        <>
+          {tabBarExtraContent}
+          <ToolbarAnchor items={toolbarItems} />
+        </>
+      ) : (
+        tabBarExtraContent
+      );
+
     return (
       <>
         <ResolveUserEffect userResolver={userResolver} />
         {!hideLeftToolbar && <GraphSideToolbar />}
         <div className={'[grid-area:graph] flex flex-1 flex-col gap-1 overflow-hidden bg-white'}>
-          <GraphTabs disabled={disableTabs} tabBarExtraContent={tabBarExtraContent} />
+          <GraphTabs disabled={disableTabs} tabBarExtraContent={tabsExtra} />
 
           <Graph
             ref={ref}

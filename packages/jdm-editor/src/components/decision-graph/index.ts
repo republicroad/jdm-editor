@@ -52,6 +52,7 @@ export { computeGraphDiff, type GraphDiff, type GraphNodeChange } from './diff/c
 
 export { TabRequest, type TabRequestProps } from './graph/tab-request';
 export { CustomFunctionTable, type TabCustomFunctionProps } from './graph/tab-custom-function-table';
+export { ToolbarAnchor, clusterToolbarItems, type ToolbarItem } from './graph/toolbar-anchor';
 
 export {
   type DecisionEdge,

@@ -18,7 +18,7 @@ export type DecisionGraphProps = {} & DecisionGraphWrapperProps & DecisionGraphC
 export type DecisionGraphRef = GraphRef;
 
 export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
-  ({ reactFlowProOptions, tabBarExtraContent, userResolver, ...props }, ref) => {
+  ({ reactFlowProOptions, tabBarExtraContent, toolbarItems, userResolver, ...props }, ref) => {
     return (
       <SafeBoundary>
         <div className={clsx(['grl-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
@@ -29,6 +29,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
                   ref={ref}
                   reactFlowProOptions={reactFlowProOptions}
                   tabBarExtraContent={tabBarExtraContent}
+                  toolbarItems={toolbarItems}
                   userResolver={userResolver}
                   customFunctions={props.customFunctions}
                 />

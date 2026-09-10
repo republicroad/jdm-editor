@@ -1,6 +1,8 @@
 import {
   type GraphDiff,
   type GraphPersistenceAdapter,
+  type SkinDefinition,
+  SkinnedDecisionGraph,
   ThemeContextProvider,
   ThemePreference,
   VersionHistoryPanel,
@@ -8,7 +10,7 @@ import {
   restoreVersion,
   useTheme,
 } from '@republicroad/jdm-appshell';
-import { DecisionGraph, DecisionTable, computeGraphDiff } from '@republicroad/jdm-editor';
+import { DecisionTable, computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
 const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
@@ -60,6 +62,28 @@ const ThemeToggle: React.FC = () => {
   );
 };
 
+/** 皮肤切换（S005 P1 演示：default 无 layout 零注入，ocean 注入 host: 工具栏槽位） */
+const SkinSwitcher: React.FC = () => {
+  const { skins, skinId, setSkinId } = useTheme();
+  if (skins.length < 2) {
+    return null;
+  }
+  return (
+    <span style={{ display: 'inline-flex', gap: 4 }}>
+      {skins.map((skin) => (
+        <button
+          key={skin.id}
+          className={skinId === skin.id ? 'pg-active' : ''}
+          onClick={() => setSkinId(skin.id)}
+          title={`Skin: ${skin.label}`}
+        >
+          {skin.label}
+        </button>
+      ))}
+    </span>
+  );
+};
+
 export const App: React.FC = () => {
   const [page, setPage] = useState<Page>('graph');
   const [graph, setGraph] = useState<any>(initialGraph);
@@ -71,6 +95,35 @@ export const App: React.FC = () => {
   const [status, setStatus] = useState('');
 
   const currentRevision = (graph as { revision?: string }).revision;
+
+  // S005 P1 演示：ocean 皮肤经 layout.toolbar 注入 host: 槽位（规格稿 §10-1 独立组语义）
+  const skins: SkinDefinition[] = [
+    { id: 'default', label: 'Default' },
+    {
+      id: 'ocean',
+      label: 'Ocean',
+      seeds: { primary: '#0284c7' },
+      layout: {
+        toolbar: {
+          slots: {
+            'host:toolbar.hello': ({ graph: g, disabled }) => (
+              <button
+                key='hello'
+                onClick={() =>
+                  setStatus(`[ocean] hello from toolbar slot — graph has ${(g.nodes ?? []).length} node(s)`)
+                }
+                disabled={disabled}
+                style={disabled ? { opacity: 0.5 } : undefined}
+              >
+                Ocean action
+              </button>
+            ),
+          },
+          order: ['host:toolbar.hello'],
+        },
+      },
+    },
+  ];
 
   const save = useCallback(async () => {
     try {
@@ -176,7 +229,7 @@ export const App: React.FC = () => {
   );
 
   return (
-    <ThemeContextProvider>
+    <ThemeContextProvider options={{ skins, defaultSkinId: 'default' }}>
       <div className='pg-root'>
         <header className='pg-header'>
           <strong>JDM Playground</strong>
@@ -202,6 +255,7 @@ export const App: React.FC = () => {
               Save (IndexedDB)
             </button>
             <button onClick={() => void openHistory()}>Version history</button>
+            <SkinSwitcher />
             <ThemeToggle />
             <span className='pg-status'>{status}</span>
           </div>
@@ -209,7 +263,7 @@ export const App: React.FC = () => {
 
         <main className='pg-main'>
           {page === 'graph' ? (
-            <DecisionGraph
+            <SkinnedDecisionGraph
               value={graph}
               onChange={setGraph}
               diffBaseline={diffBase ? (diffBase.content as any) : undefined}
