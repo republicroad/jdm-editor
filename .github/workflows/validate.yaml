@@ -16,6 +16,10 @@ jobs:
     name: Validate
     steps:
       - uses: actions/checkout@v5
+      # demo-server 的测试跑 bun test（apps 工具链），CI 显式装 Bun
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - uses: pnpm/action-setup@v4
         with:
           run_install: false

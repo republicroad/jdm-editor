@@ -1,0 +1,11 @@
+# 自托管 demo：stateless JDM 执行服务（demo only —— 无鉴权、无存储、勿暴露公网）
+services:
+  demo-server:
+    build:
+      context: .
+      dockerfile: apps/demo-server/Dockerfile
+    ports:
+      - '8787:8787'
+    environment:
+      PORT: 8787
+    restart: unless-stopped

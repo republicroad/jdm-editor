@@ -121,6 +121,18 @@ loader.config({ monaco });
 
 For webpack and other configurations, you may require some additional loaders, such as https://www.npmjs.com/package/monaco-editor-webpack-plugin.
 
+## Self-host demo server (experimental)
+
+This repository ships a stateless demo server (`apps/demo-server`, Bun + [Hono](https://hono.dev)) that validates and executes decision models with `@gorules/zen-engine`. It is a **self-hosting demo only** — no auth, no storage, no business logic.
+
+```bash
+docker compose up demo-server   # :8787
+
+curl -s localhost:8787/v1/execute -H "content-type: application/json" \n  -d "{"model": $(cat model.json), "input": {"customer": {"tier": "GOLD"}}}"
+```
+
+See [apps/demo-server/README.md](apps/demo-server/README.md) for the API surface. A production-grade rule platform (auth, multi-tenant workspaces, audit) is out of scope here.
+
 ## License
 
 MIT © [GoRules](https://github.com/gorules/jdm-editor/LICENSE)
