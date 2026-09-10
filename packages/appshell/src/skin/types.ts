@@ -40,9 +40,18 @@ export type SkinToolbarLayout = {
   order?: string[];
 };
 
-/** 布局槽位（P2 面板位置 / P3 头部后续追加，见规格稿 §5.2/§5.4） */
+/** P2 · 右缘面板槽位（Sheet 容器，VersionHistoryPanel 同款；bottom 已裁剪 §10-2） */
+export type SkinPanelsLayout = {
+  right?: {
+    slots?: Record<string, SkinSlotRender>;
+    order?: string[];
+  };
+};
+
+/** 布局槽位（P3 头部后续追加，见规格稿 §5.4） */
 export type SkinLayout = {
   toolbar?: SkinToolbarLayout;
+  panels?: SkinPanelsLayout;
 };
 
 /** 皮肤 = 主题种子 + token 覆写 + 节点 UI 槽位覆写 + 布局槽位；一次切换即「一键换UI/换肤/换布局」 */

@@ -122,6 +122,27 @@ export const App: React.FC = () => {
           },
           order: ['host:toolbar.hello'],
         },
+        // S005 P2 演示：右缘面板槽位（Sheet 容器）
+        panels: {
+          right: {
+            slots: {
+              'host:panel.notes': ({ graph: g }) => (
+                <div style={{ fontSize: 13, lineHeight: 1.6 }}>
+                  <p style={{ margin: '0 0 8px' }}>
+                    <strong>Ocean notes</strong>
+                  </p>
+                  <p style={{ margin: '0 0 8px' }}>
+                    当前图包含 <strong>{(g.nodes ?? []).length}</strong> 个节点。
+                  </p>
+                  <p style={{ margin: 0, opacity: 0.7 }}>
+                    This panel renders from the skin&rsquo;s layout.panels.right slot (host:panel.notes).
+                  </p>
+                </div>
+              ),
+            },
+            order: ['host:panel.notes'],
+          },
+        },
       },
     },
   ];

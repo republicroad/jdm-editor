@@ -7,13 +7,15 @@ import {
   type Simulation,
   type ToolbarItem,
 } from '@republicroad/jdm-editor';
-import { FlaskConicalIcon } from 'lucide-react';
+import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
 import type { SimulateHandler } from '../shell/types';
-import { mapToolbarSlots } from '../skin/layout';
+import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinSlotHostContext } from '../skin/types';
+import { ScrollArea } from './ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 
 type PanelItem = NonNullable<DecisionGraphProps['panels']>[number];
 
@@ -97,13 +99,79 @@ export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDe
     return [...(props.panels ?? []), simulatorPanel];
   }, [props.panels, simulateHandler, running]);
 
+  // S005 P2：右缘面板槽位（VersionHistoryPanel 同款 Sheet 容器）
+  const rightSlots = useMemo(() => mapPanelSlotIds(activeSkin?.layout?.panels?.right), [activeSkin]);
+  const rightSlotRenders = activeSkin?.layout?.panels?.right?.slots;
+  const [openSlot, setOpenSlot] = useState<string | null>(null);
+  useEffect(() => {
+    // 切肤/槽位变化后，打开态指向不存在的槽位时收起
+    setOpenSlot((current) => (current && rightSlots?.includes(current) ? current : null));
+  }, [rightSlots]);
+
+  const slotContext: SkinSlotHostContext = {
+    graph: (props.value ?? props.defaultValue) as DecisionGraphType | undefined,
+    disabled: props.disabled,
+    graphRef: mounted ? internalRef.current : null,
+  };
+
+  const graph = (
+    <div className={rightSlots?.length ? 'h-full min-w-0 flex-1' : 'contents'}>
+      <DecisionGraph
+        {...restProps}
+        ref={setRef}
+        toolbarItems={toolbarItems}
+        panels={panels}
+        simulate={props.simulate ?? simulation}
+      />
+    </div>
+  );
+
+  if (!rightSlots?.length) {
+    return graph;
+  }
+
   return (
-    <DecisionGraph
-      {...restProps}
-      ref={setRef}
-      toolbarItems={toolbarItems}
-      panels={panels}
-      simulate={props.simulate ?? simulation}
-    />
+    <div className='flex h-full w-full min-h-0'>
+      {graph}
+      <div
+        aria-label='skin-panel-rail'
+        className='flex w-12 shrink-0 flex-col items-center gap-2 border-l border-[var(--border)] bg-[var(--grl-color-bg-container)] py-2'
+      >
+        {rightSlots.map((slotId) => (
+          <React.Fragment key={slotId}>
+            <button
+              type='button'
+              title={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
+              aria-label={`${openSlot === slotId ? 'Close' : 'Open'} ${slotId}`}
+              aria-expanded={openSlot === slotId}
+              className='flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
+              style={openSlot === slotId ? { background: 'rgba(0, 0, 0, 0.1)' } : undefined}
+              onClick={() => setOpenSlot((current) => (current === slotId ? null : slotId))}
+            >
+              <PanelRightIcon className='h-4 w-4' />
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+      <Sheet open={openSlot !== null} onOpenChange={(open) => !open && setOpenSlot(null)}>
+        <SheetContent
+          side='right'
+          className='flex w-full flex-col gap-4 sm:max-w-md'
+          aria-label={openSlot ? `Skin panel ${openSlot}` : undefined}
+        >
+          <SheetHeader>
+            <SheetTitle>{openSlot}</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className='-mx-2 min-h-0 flex-1 px-2'>
+            {openSlot !== null &&
+              rightSlotRenders?.[openSlot]?.({
+                graph: slotContext.graph ?? { nodes: [], edges: [] },
+                disabled: !!slotContext.disabled,
+                graphRef: slotContext.graphRef,
+              })}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 });
