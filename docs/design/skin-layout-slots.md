@@ -1,6 +1,6 @@
 # S005 · 皮肤布局槽位规格稿 v1（SkinDefinition.layout）
 
-- 状态: confirmed · P1 shipped（2026-09-10，kernel/appshell 0.6.0；P2/P3 待交付）
+- 状态: confirmed · P1/P2 shipped（P1 0.6.0；P2 0.8.0，appshell-only；P3 待交付）
 - 目标库: `@republicroad/jdm-editor`（锚点）+ `@republicroad/jdm-appshell`（模式与映射）
 - 提出方: editor 会话（第五十七批），规格化: kernel 会话（2026-09-10）
 - 需求来源: libsuggest S005（宿主 ocean + 默认双皮肤实践中的布局能力缺口）
@@ -129,8 +129,9 @@ export type PanelType = {
 ```
 
 - `left`：走现役左侧栏（零改动）
-- `right`：右侧栏镜像实现（图标轨 + Sheet 从右滑出，复用 VersionHistoryPanel 同款
-  Sheet 容器样式）
+- `right`（P2 已交付，appshell-only）：右缘图标轨 + radix Sheet 从右滑出（VersionHistoryPanel
+  同款容器）。**实现精化**：kernel `PanelType.position` 未加——确认的浮层 UX 在壳层即可完整
+  实现，kernel 保持无感；停靠式（非浮层）右面板需求出现时再补 `position`
 - `bottom`：基于 `react-resizable-panels`（tab-json-schema 已引入）加水平
   PanelGroup；实现量最大，~~是否交付取决于宿主确认（§9-2）~~ **已裁决（§10-2）：
   裁剪——宿主无底部停靠硬需求，P2 仅交付 `right`**

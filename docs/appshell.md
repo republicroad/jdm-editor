@@ -88,6 +88,10 @@ import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-a
 <SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
 ```
 
+Skin right panels: a skin's `layout.panels.right.slots` render behind an edge
+rail on the graph's right side; clicking a slot opens a Sheet sliding from the
+right with `SkinSlotContext` injected (single-open semantics).
+
 `createExecuteSimulate` speaks the demo-server / verdict execute dialect
 (`POST {model, input, trace}` → `{result, performance, trace}`);
 `createDefaultSimulate` keeps serving the same-origin /api/simulate dialect.

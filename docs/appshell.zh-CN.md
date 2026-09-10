@@ -79,6 +79,9 @@ import { createExecuteSimulate, SkinnedDecisionGraph } from '@republicroad/jdm-a
 <SkinnedDecisionGraph ... simulateHandler={createExecuteSimulate("http://localhost:8787")} />
 ```
 
+皮肤右面板：皮肤的 `layout.panels.right.slots` 渲染在画布右缘图标轨后，
+点击槽位从右侧滑出 Sheet，注入 `SkinSlotContext`（单开语义）。
+
 `createExecuteSimulate` 说 demo-server / verdict 的执行方言
 （`POST {model, input, trace}` → `{result, performance, trace}`）；`createDefaultSimulate`
 继续服务同源 /api/simulate 方言。不传 handler 时组件行为与裸 `DecisionGraph` 一致。
