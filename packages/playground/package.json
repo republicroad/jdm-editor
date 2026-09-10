@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@republicroad/jdm-appshell": "workspace:*",
     "@republicroad/jdm-editor": "workspace:*",
     "react": "^19.0.0",
