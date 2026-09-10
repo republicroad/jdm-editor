@@ -262,5 +262,121 @@
         "kind": "roster"
       }
     ]
+  },
+  {
+    "type": "namespace",
+    "title": "custom-list-query",
+    "name": "custom-list-query",
+    "description": "",
+    "tools": [
+      {
+        "name": "custom_list_query",
+        "title": "custom_list_query",
+        "type": "function",
+        "description": "旧域重建·名单查询：在服务端指定名单中查询某个值是否存在，返回 {result}。",
+        "parameters": {
+          "properties": {
+            "list_name": { "type": "string", "title": "名单名称", "description": "服务端名单名称" },
+            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+          }
+        },
+        "returns": {
+          "type": "object",
+          "title": "custom_list_query_result",
+          "properties": { "result": { "type": "boolean", "title": "Result" } },
+          "required": ["result"]
+        },
+        "namespace": "custom-list-query",
+        "kind": "custom-list-query"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "rate-window",
+    "name": "rate-window",
+    "description": "",
+    "tools": [
+      {
+        "name": "rate_1h",
+        "title": "rate_1h",
+        "type": "function",
+        "description": "旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。",
+        "parameters": {
+          "properties": { "entity": { "type": "string", "title": "实体", "description": "计数实体（如 ip、phone）" } }
+        },
+        "returns": {
+          "type": "object",
+          "title": "RateCommonResult",
+          "properties": {
+            "counter": { "type": "integer", "title": "Counter", "default": 0 },
+            "v": { "type": "string", "title": "V", "default": "" },
+            "idle": { "type": "integer", "title": "Idle", "default": 0 },
+            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+          }
+        },
+        "namespace": "rate-window",
+        "kind": "rate-window"
+      },
+      {
+        "name": "group_distinct_1h",
+        "title": "group_distinct_1h",
+        "type": "function",
+        "description": "旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。",
+        "parameters": {
+          "properties": {
+            "group": { "type": "string", "title": "组", "description": "分组键（如 ip）" },
+            "value": { "type": "string", "title": "值", "description": "组内观测值（如 phone）" }
+          }
+        },
+        "returns": {
+          "type": "object",
+          "title": "GroupDistinctCommonResult",
+          "properties": {
+            "idle": { "type": "integer", "title": "Idle", "default": 0 },
+            "pv": { "type": "integer", "title": "Pv", "default": 0 },
+            "uv": { "type": "integer", "title": "Uv", "default": 0 },
+            "gidle": { "type": "integer", "title": "Gidle", "default": 0 },
+            "vidle": { "type": "integer", "title": "Vidle", "default": 0 },
+            "group": { "type": "string", "title": "Group", "default": "" },
+            "v": { "type": "string", "title": "V", "default": "" },
+            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+          }
+        },
+        "namespace": "rate-window",
+        "kind": "rate-window"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "ip-location",
+    "name": "ip-location",
+    "description": "",
+    "tools": [
+      {
+        "name": "ip_location",
+        "title": "ip_location",
+        "type": "function",
+        "description": "旧域重建·IP 属地解析：按最长前缀匹配数据集（env IP_LOCATION_DATASET 指向 JSON）返回 country/province/city/isp；未命中返回空字段。",
+        "parameters": {
+          "properties": { "ip": { "type": "string", "title": "IP", "description": "待解析的 IP 地址" } }
+        },
+        "returns": {
+          "type": "object",
+          "title": "ip_location_result",
+          "properties": {
+            "country": { "type": "string", "title": "Country" },
+            "province": { "type": "string", "title": "Province" },
+            "city": { "type": "string", "title": "City" },
+            "isp": { "type": "string", "title": "Isp" },
+            "ip": { "type": "string", "title": "Ip" }
+          },
+          "required": ["country", "province", "city", "isp", "ip"]
+        },
+        "namespace": "ip-location",
+        "kind": "ip-location"
+      }
+    ]
   }
 ]
