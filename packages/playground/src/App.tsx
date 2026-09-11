@@ -14,6 +14,8 @@ import {
 import { DecisionTable, computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
+import { DataGridPage } from './data-grid-page';
+
 const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
 const GRAPH_ID = 'playground-graph';
 
@@ -37,7 +39,7 @@ const initialTable = {
   ],
 };
 
-type Page = 'graph' | 'table';
+type Page = 'graph' | 'table' | 'grid';
 type VersionEntry = { revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean };
 type DiffBase = { revision: string; content: unknown };
 
@@ -300,9 +302,9 @@ export const App: React.FC = () => {
         <header className='pg-header'>
           <strong>JDM Playground</strong>
           <nav>
-            {(['graph', 'table'] as Page[]).map((p) => (
+            {(['graph', 'table', 'grid'] as Page[]).map((p) => (
               <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
-                {p === 'graph' ? 'Decision Graph' : 'Decision Table'}
+                {p === 'graph' ? 'Decision Graph' : p === 'grid' ? 'Data Grid' : 'Decision Table'}
               </button>
             ))}
           </nav>
@@ -333,7 +335,9 @@ export const App: React.FC = () => {
         </header>
 
         <main className='pg-main'>
-          {page === 'graph' ? (
+          {page === 'grid' ? (
+            <DataGridPage />
+          ) : page === 'graph' ? (
             <SkinnedDecisionGraph
               value={graph}
               onChange={setGraph}
