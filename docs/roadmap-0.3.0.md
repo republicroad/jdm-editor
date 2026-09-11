@@ -84,11 +84,12 @@
 
 ### 3.2 Keyboard support for row drag (custom function table)
 
-- **Status: done (2026-09-11).** Landing-order tuning closed the gap: the table was
-  already on @dnd-kit/sortable + sortableKeyboardCoordinates; the real defects were
-  swap-semantics in onDragEnd (now moveRows array-move, applied live in onDragOver so
-  every arrow move lands deterministically) and closestCorners (now closestCenter).
-  Probe upgraded to assert final landing order (down ×1 / down ×2 / up ×2) — 9/9.
+- **Status: done (2026-09-11).** The table was already on @dnd-kit/sortable with
+  sortableKeyboardCoordinates (the earlier "needs sortable refactor" note was stale).
+  The real defects were consumer-side: onDragEnd applied swap semantics and
+  closestCorners mispredicted on content-driven row heights. Fixed with moveRows
+  (array-move) applied live in onDragOver + closestCenter; probe upgraded to assert
+  final landing order — 9/9.
 
 ### 3.3 Simulator story determinism
 
