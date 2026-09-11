@@ -8,8 +8,21 @@ export type ShellHeaderProps = {
   /** 注入槽位的图文档（SkinnedDecisionGraph 自动传入；独立使用时由宿主提供） */
   graph?: DecisionGraphType;
   disabled?: boolean;
-  graphRef?: DecisionGraphRef | null;
+  /**
+   * 决策图引用：ref 对象（`useRef` 产物，内部自动解包为当前句柄）或句柄本身；
+   * null = 尚未挂载。
+   */
+  graphRef?: DecisionGraphRef | React.RefObject<DecisionGraphRef | null> | null;
   className?: string;
+};
+
+type GraphRefInput = NonNullable<ShellHeaderProps['graphRef']>;
+
+const isRefObject = (value: GraphRefInput): value is React.RefObject<DecisionGraphRef | null> => 'current' in value;
+
+const resolveGraphRef = (value: ShellHeaderProps['graphRef']): DecisionGraphRef | null => {
+  if (value == null) return null;
+  return isRefObject(value) ? value.current : value;
 };
 
 /**
@@ -26,10 +39,11 @@ export const ShellHeader: React.FC<ShellHeaderProps> = ({ graph, disabled, graph
     return null;
   }
 
+  const handle = resolveGraphRef(graphRef);
   const ctx: SkinSlotContext = {
     graph: graph ?? { nodes: [], edges: [] },
     disabled: !!disabled,
-    graphRef,
+    graphRef: handle,
   };
 
   return (
