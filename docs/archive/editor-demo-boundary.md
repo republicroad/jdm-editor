@@ -38,3 +38,15 @@ verdict（SaaS，私有）───────┘  （仅经 npm 包，运行�
 
 - 不引入 verdict / 任何 SaaS 平台的端点、依赖或业务语义
 - 不在公开仓存放密钥（REUI_LICENSE_KEY 等仅入本地 .env.local，已 gitignore）
+
+## 后续建议状态对照（2026-09-10，editor 会话回写）
+
+| # | 建议 | 状态 |
+| --- | --- | --- |
+| 1 | 升级 jdm-editor ≥0.9.0 + SkinnedDecisionGraph + 三期槽位 | P1/P3 ✅（editor 第七十一批：切换 + ocean toolbar 注入）；P2 右缘面板 + P3 ShellHeader 接线 → editor 第七十三批收口 |
+| 2 | 0.7.0 breaking 迁移（停注册 json_path/template，crypto 保留） | ✅（editor 第七十二批：contrib 移除，与内核终态对齐） |
+| 3 | monaco 本地加载 | 宿主现状为**自托管 AMD min/vs**（版本化静态路径），无 CDN 依赖——已满足边界；playground ESM 姿势作为路线③可选演进备案（宿主 docs/18 裁决维持现状） |
+| 4 | 模拟器 onRun 接本地 zen-rule | 收口方式调整为 `bun run dev` 单命令全栈（concurrently：dev:api + vite）——「本地执行」定位不变；浏览器 wasm 回退（无 UDF 执行能力）列为可选后续 |
+| 5 | 键盘拖拽宿主侧配合 | 待内核 roadmap 3.2 启用 |
+
+红线核查：代码零 verdict 依赖 ✓；.env.local 已 gitignore（REUI_LICENSE_KEY 仅本地）✓。
