@@ -84,15 +84,11 @@
 
 ### 3.2 Keyboard support for row drag (custom function table)
 
-- **Status: partially done.** KeyboardSensor is wired (pickup via Space/
-  Enter, cancel via Esc, drop completes without errors) and guarded by the
-  `cf-drag-keyboard` probe (6 checks). `MeasuringStrategy.Always` +
-  `closestCorners` were added for droppable accuracy.
-- **Open:** arrow-move collision tuning — a keyboard drop does not yet
-  reliably land on the intended row (probe asserts the lifecycle, not the
-  landing order). Likely needs a sortable-style layout (dnd-kit
-  `@dnd-kit/sortable` with `sortableKeyboardCoordinates`) rather than raw
-  core droppables; defer until the list is a first-party surface.
+- **Status: done (2026-09-11).** Landing-order tuning closed the gap: the table was
+  already on @dnd-kit/sortable + sortableKeyboardCoordinates; the real defects were
+  swap-semantics in onDragEnd (now moveRows array-move, applied live in onDragOver so
+  every arrow move lands deterministically) and closestCorners (now closestCenter).
+  Probe upgraded to assert final landing order (down ×1 / down ×2 / up ×2) — 9/9.
 
 ### 3.3 Simulator story determinism
 

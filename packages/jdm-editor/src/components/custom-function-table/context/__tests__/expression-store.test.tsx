@@ -64,6 +64,26 @@ describe('expression store', () => {
     expect(store.getState().expressions.map((e) => e.key)).toEqual(['country', 'weight']);
   });
 
+  it('moveRows 数组移动：0 → 1（摘除后插入目标位）', () => {
+    act(() => store.getState().moveRows(0, 1));
+    expect(store.getState().expressions.map((e) => e.key)).toEqual(['country', 'weight']);
+  });
+
+  it('moveRows 反向：1 → 0', () => {
+    act(() => store.getState().moveRows(1, 0));
+    expect(store.getState().expressions.map((e) => e.key)).toEqual(['country', 'weight']);
+  });
+
+  it('moveRows 往返后复原（键盘多步语义可逆）', () => {
+    act(() => store.getState().moveRows(0, 1));
+    act(() => store.getState().moveRows(1, 0));
+    expect(store.getState().expressions.map((e) => e.key)).toEqual(['weight', 'country']);
+  });
+
+  it('moveRows 越界目标不崩溃（splice 语义兜底）', () => {
+    expect(() => store.getState().moveRows(0, 99)).not.toThrow();
+  });
+
   it('updateRow merges fields and keeps the row identity', () => {
     act(() => store.getState().updateRow(0, { key: 'renamed', value: '$.x' }));
     const row = store.getState().expressions[0];

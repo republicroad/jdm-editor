@@ -45,6 +45,9 @@ export type ExpressionStore = {
   expressions: ExpressionEntry[];
   setExpressions: (expressions: ExpressionEntry[]) => void;
 
+  /** 数组移动语义：摘除 source 行并插入 target 位（拖拽重排用；相邻步等价交换） */
+  moveRows: (sourceIndex: number, targetIndex: number) => void;
+  /** @deprecated 兼容别名：内部转调 moveRows */
   swapRows: (sourceIndex: number, targetIndex: number) => void;
   updateRow: (index: number, update: Partial<Omit<ExpressionEntry, 'id'>>) => void;
   removeRow: (index: number) => void;
@@ -76,7 +79,7 @@ export const ExpressionStoreProvider: React.FC<React.PropsWithChildren<Expressio
 }) => {
   const store = useMemo(
     () =>
-      create<ExpressionStore>((set) => ({
+      create<ExpressionStore>((set, get) => ({
         disabled: false,
         debugIndex: 0,
         addRowAbove: (index = 0) => {
@@ -101,7 +104,7 @@ export const ExpressionStoreProvider: React.FC<React.PropsWithChildren<Expressio
         setExpressions: (expressions) => {
           set({ expressions });
         },
-        swapRows: (sourceIndex, targetIndex) => {
+        moveRows: (sourceIndex, targetIndex) => {
           set(
             produce<ExpressionStore>((draft) => {
               const [input] = draft.expressions.splice(sourceIndex, 1);
@@ -110,6 +113,9 @@ export const ExpressionStoreProvider: React.FC<React.PropsWithChildren<Expressio
               return draft;
             }),
           );
+        },
+        swapRows: (sourceIndex, targetIndex) => {
+          get().moveRows(sourceIndex, targetIndex);
         },
         removeRow: (index) => {
           set(
