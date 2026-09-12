@@ -4,6 +4,7 @@ import {
   Background,
   ControlButton,
   Controls,
+  MiniMap,
   ReactFlow,
   SelectionMode,
   getOutgoers,
@@ -393,6 +394,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
                   <CompressOutlined />
                 </ControlButton>
               </Controls>
+              <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
             </ReactFlow>
           </div>
