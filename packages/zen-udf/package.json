@@ -1,11 +1,10 @@
 {
   "name": "@republicroad/zen-udf",
-  "version": "0.1.0",
-  "description": "zen-engine custom-node UDF runtime: multi-function execution spec, decision cache, multi-tenant data-plane UDFs",
+  "version": "0.2.0",
+  "description": "zen-engine custom-node UDF runtime: multi-function execution spec, UdfPack registry, L1 decision cache, multi-tenant context & data-plane ports",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "private": true,
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"
@@ -16,5 +15,10 @@
   "devDependencies": {
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
-  }
+  },
+  "files": [
+    "src",
+    "docs",
+    "README.md"
+  ]
 }
