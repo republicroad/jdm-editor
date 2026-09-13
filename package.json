@@ -26,7 +26,9 @@
     "docs:dev": "rspress dev docs",
     "docs:build": "rspress build docs",
     "dev": "run-p playground demo-server",
-    "demo-server": "pnpm --filter @republicroad/demo-server dev"
+    "demo-server": "pnpm --filter @republicroad/demo-server dev",
+    "test:demo-server-live": "node scripts/probes/demo-server-live.mjs",
+    "test:zen-udf-smoke": "node scripts/probes/zen-udf-npm-smoke.mjs"
   },
   "engines": {
     "pnpm": "~10"
