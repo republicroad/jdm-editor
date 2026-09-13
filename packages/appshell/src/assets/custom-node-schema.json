@@ -44,7 +44,40 @@
         },
         "returns": { "type": "string", "title": "crypto 函数返回", "properties": {} },
         "namespace": "crypto",
-        "kind": "crypto"
+        "kind": "crypto",
+        "semantics": "query"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "custom-list-query",
+    "name": "custom-list-query",
+    "description": "",
+    "tools": [
+      {
+        "name": "custom_list_query",
+        "title": "custom_list_query",
+        "type": "function",
+        "description": "旧域重建·名单查询：在服务端指定名单中查询某个值是否存在，返回 {result}。",
+        "parameters": {
+          "properties": {
+            "list_name": { "type": "string", "title": "名单名称", "description": "服务端名单名称" },
+            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+          },
+          "required": ["list_name", "value"],
+          "title": "custom_list_query",
+          "type": "object"
+        },
+        "returns": {
+          "type": "object",
+          "title": "custom_list_query_result",
+          "properties": { "result": { "type": "boolean", "title": "Result" } },
+          "required": ["result"]
+        },
+        "namespace": "custom-list-query",
+        "kind": "custom-list-query",
+        "semantics": "query"
       }
     ]
   },
@@ -71,7 +104,8 @@
         },
         "returns": { "type": "string", "title": "inout 函数返回", "properties": {} },
         "namespace": "debug",
-        "kind": "debug"
+        "kind": "debug",
+        "semantics": "query"
       },
       {
         "name": "func_without_args",
@@ -81,7 +115,8 @@
         "parameters": { "properties": {}, "title": "func_without_args", "type": "object" },
         "returns": { "type": "string", "title": "func_without_args 函数返回", "properties": {} },
         "namespace": "debug",
-        "kind": "debug"
+        "kind": "debug",
+        "semantics": "query"
       }
     ]
   },
@@ -99,7 +134,8 @@
         "parameters": { "properties": {}, "title": "current_date", "type": "object" },
         "returns": { "type": "string", "title": "current_date 函数返回", "properties": {} },
         "namespace": "debugui",
-        "kind": "debugui"
+        "kind": "debugui",
+        "semantics": "query"
       }
     ]
   },
@@ -166,121 +202,8 @@
         },
         "returns": { "type": "object", "title": "http_request 函数返回", "properties": {} },
         "namespace": "http",
-        "kind": "http"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
-    "title": "roster",
-    "name": "roster",
-    "description": "",
-    "tools": [
-      {
-        "name": "roster",
-        "title": "roster",
-        "type": "function",
-        "description": "查询名单：在服务端指定名单中查询某个值是否存在，返回命中结果.",
-        "parameters": {
-          "properties": {
-            "roster": { "type": "string", "title": "名单", "description": "服务端名单名称(从名单下拉中动态选择)" },
-            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
-          },
-          "required": ["roster", "value"],
-          "title": "roster",
-          "type": "object"
-        },
-        "returns": { "type": "object", "title": "roster 函数返回", "properties": {} },
-        "namespace": "roster",
-        "kind": "roster"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
-    "title": "custom-list-query",
-    "name": "custom-list-query",
-    "description": "",
-    "tools": [
-      {
-        "name": "custom_list_query",
-        "title": "custom_list_query",
-        "type": "function",
-        "description": "旧域重建·名单查询：在服务端指定名单中查询某个值是否存在，返回 {result}。",
-        "parameters": {
-          "properties": {
-            "list_name": { "type": "string", "title": "名单名称", "description": "服务端名单名称" },
-            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
-          },
-          "required": ["list_name", "value"],
-          "title": "custom_list_query",
-          "type": "object"
-        },
-        "returns": {
-          "type": "object",
-          "title": "custom_list_query_result",
-          "properties": { "result": { "type": "boolean", "title": "Result" } },
-          "required": ["result"]
-        },
-        "namespace": "custom-list-query",
-        "kind": "custom-list-query"
-      }
-    ]
-  },
-  {
-    "type": "namespace",
-    "title": "rate-window",
-    "name": "rate-window",
-    "description": "",
-    "tools": [
-      {
-        "name": "rate_1h",
-        "title": "rate_1h",
-        "type": "function",
-        "description": "旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。",
-        "parameters": {
-          "properties": { "entity": { "type": "string", "title": "实体", "description": "计数实体（如 ip、phone）" } }
-        },
-        "returns": {
-          "type": "object",
-          "title": "RateCommonResult",
-          "properties": {
-            "counter": { "type": "integer", "title": "Counter", "default": 0 },
-            "v": { "type": "string", "title": "V", "default": "" },
-            "idle": { "type": "integer", "title": "Idle", "default": 0 },
-            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
-          }
-        },
-        "namespace": "rate-window",
-        "kind": "rate-window"
-      },
-      {
-        "name": "group_distinct_1h",
-        "title": "group_distinct_1h",
-        "type": "function",
-        "description": "旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。",
-        "parameters": {
-          "properties": {
-            "group": { "type": "string", "title": "组", "description": "分组键（如 ip）" },
-            "value": { "type": "string", "title": "值", "description": "组内观测值（如 phone）" }
-          }
-        },
-        "returns": {
-          "type": "object",
-          "title": "GroupDistinctCommonResult",
-          "properties": {
-            "idle": { "type": "integer", "title": "Idle", "default": 0 },
-            "pv": { "type": "integer", "title": "Pv", "default": 0 },
-            "uv": { "type": "integer", "title": "Uv", "default": 0 },
-            "gidle": { "type": "integer", "title": "Gidle", "default": 0 },
-            "vidle": { "type": "integer", "title": "Vidle", "default": 0 },
-            "group": { "type": "string", "title": "Group", "default": "" },
-            "v": { "type": "string", "title": "V", "default": "" },
-            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
-          }
-        },
-        "namespace": "rate-window",
-        "kind": "rate-window"
+        "kind": "http",
+        "semantics": "query"
       }
     ]
   },
@@ -311,7 +234,94 @@
           "required": ["country", "province", "city", "isp", "ip"]
         },
         "namespace": "ip-location",
-        "kind": "ip-location"
+        "kind": "ip-location",
+        "semantics": "query"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "rate-window",
+    "name": "rate-window",
+    "description": "",
+    "tools": [
+      {
+        "name": "rate_1h",
+        "title": "rate_1h",
+        "type": "function",
+        "description": "旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。",
+        "parameters": {
+          "properties": { "entity": { "type": "string", "title": "实体", "description": "计数实体（如 ip、phone）" } }
+        },
+        "returns": {
+          "type": "object",
+          "title": "RateCommonResult",
+          "properties": {
+            "counter": { "type": "integer", "title": "Counter", "default": 0 },
+            "v": { "type": "string", "title": "V", "default": "" },
+            "idle": { "type": "integer", "title": "Idle", "default": 0 },
+            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+          }
+        },
+        "namespace": "rate-window",
+        "kind": "rate-window",
+        "semantics": "observe"
+      },
+      {
+        "name": "group_distinct_1h",
+        "title": "group_distinct_1h",
+        "type": "function",
+        "description": "旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。",
+        "parameters": {
+          "properties": {
+            "group": { "type": "string", "title": "组", "description": "分组键（如 ip）" },
+            "value": { "type": "string", "title": "值", "description": "组内观测值（如 phone）" }
+          }
+        },
+        "returns": {
+          "type": "object",
+          "title": "GroupDistinctCommonResult",
+          "properties": {
+            "idle": { "type": "integer", "title": "Idle", "default": 0 },
+            "pv": { "type": "integer", "title": "Pv", "default": 0 },
+            "uv": { "type": "integer", "title": "Uv", "default": 0 },
+            "gidle": { "type": "integer", "title": "Gidle", "default": 0 },
+            "vidle": { "type": "integer", "title": "Vidle", "default": 0 },
+            "group": { "type": "string", "title": "Group", "default": "" },
+            "v": { "type": "string", "title": "V", "default": "" },
+            "timestamp": { "type": "string", "title": "Timestamp", "default": "" }
+          }
+        },
+        "namespace": "rate-window",
+        "kind": "rate-window",
+        "semantics": "observe"
+      }
+    ]
+  },
+  {
+    "type": "namespace",
+    "title": "roster",
+    "name": "roster",
+    "description": "",
+    "tools": [
+      {
+        "name": "roster",
+        "title": "roster",
+        "type": "function",
+        "description": "查询名单：在服务端指定名单中查询某个值是否存在，返回命中结果.",
+        "parameters": {
+          "properties": {
+            "roster": { "type": "string", "title": "名单", "description": "服务端名单名称(从名单下拉中动态选择)" },
+            "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
+          },
+          "required": ["roster", "value"],
+          "title": "roster",
+          "type": "object"
+        },
+        "returns": { "type": "object", "title": "roster 函数返回", "properties": {} },
+        "namespace": "roster",
+        "kind": "roster",
+        "semantics": "query"
       }
     ]
   }
