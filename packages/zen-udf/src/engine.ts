@@ -20,6 +20,17 @@ interface ExprAstItem {
   value: string | string[];
 }
 
+/** UDF 函数粒度执行轨迹（执行规范 §6.6）：经 customHandler 的 traceData 下发 */
+export interface UdfTrace {
+  /** 表达式实例 key（customNode 输出字段） */
+  key: string;
+  name: string;
+  micros: number;
+  /** 违例/异常码：INVALID_PARAM / UDF_TIMEOUT / INVALID_RESULT / UDF_NOT_FOUND / UDF_ERROR */
+  code?: string;
+  issues?: string[];
+}
+
 interface EvaluateResponse {
   performance: string;
   result: unknown;
@@ -36,6 +47,13 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   metricsSink?: (snapshot: CacheMetricsSnapshot) => void;
   /** per-tenant 并发闸（执行规范 §6.3）；缺省不限并发 */
   limiter?: ConcurrencyLimiter;
+  /**
+   * 返回值契约档位（执行规范 §6.5，宿主裁决 D5）：缺省 `warn`——违例计入 traceData、
+   * 结果原样下发；`enforce` 把违例结果替换为 INVALID_RESULT 结构化错误。
+   */
+  resultValidation?: 'off' | 'warn' | 'enforce';
+  /** UDF 错误消息脱敏器（执行规范 §6.7）；缺省内置规则（路径/敏感环境值替换为占位） */
+  sanitizer?: (message: string) => string;
 }
 
 interface GraphNode {
@@ -62,6 +80,17 @@ function evaluateExpressionSafe(expr: string, input?: unknown): unknown {
   }
 }
 
+/** 内置脱敏规则（执行规范 §6.7）：绝对路径占位 + 敏感名环境变量值替换为 [ENV_NAME] */
+const sanitizeErrorDefault = (message: string): string => {
+  let out = message.replace(/(?:[A-Za-z]:)?(?:[/\\][^\s'"`]+)+/g, '[path]');
+  for (const [name, value] of Object.entries(process.env)) {
+    if (/(secret|token|password|key|credential)/i.test(name) && value && value.length >= 4) {
+      out = out.split(value).join(`[${name.toUpperCase()}]`);
+    }
+  }
+  return out;
+};
+
 class DecisionRuntime {
   static CUSTOM_HANDLER_META = CUSTOM_HANDLER_META;
 
@@ -73,11 +102,17 @@ class DecisionRuntime {
   cache: DecisionCache;
   /** per-tenant 并发闸（缺省 undefined = 不限并发） */
   limiter?: ConcurrencyLimiter;
+  /** 返回值契约档位（缺省 warn，宿主裁决 D5） */
+  resultValidation: 'off' | 'warn' | 'enforce';
+  /** 错误消息脱敏器 */
+  sanitizer: (message: string) => string;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
     this.cache = new DecisionCache({ capacity: options.cacheCapacity, metricsSink: options.metricsSink });
     this.limiter = options.limiter;
+    this.resultValidation = options.resultValidation ?? 'warn';
+    this.sanitizer = options.sanitizer ?? sanitizeErrorDefault;
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -297,7 +332,9 @@ class DecisionRuntime {
     };
 
     const execute = async (): Promise<ZenEngineHandlerResponse> => {
-      const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context));
+      // 执行规范 §6.6：UDF 函数粒度轨迹（经 traceData 下发，simulator/verdict 审计共用）
+      const traces: UdfTrace[] = [];
+      const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context, traces));
       const resultsArr = await Promise.all(coroFuncs);
       const results: Record<string, unknown> = {};
       exprAsts.forEach((item, i) => {
@@ -320,7 +357,7 @@ class DecisionRuntime {
         }
       }
 
-      return { output: results };
+      return traces.length > 0 ? { output: results, traceData: { udf: traces } } : { output: results };
     };
 
     return execCtx ? runWithExecContext(execCtx, execute) : execute();
@@ -330,6 +367,7 @@ class DecisionRuntime {
     execExpr: ExprAstItem,
     nodeInput: unknown,
     context: Record<string, unknown>,
+    traces: UdfTrace[],
   ): Promise<unknown> {
     try {
       const exprId = execExpr.id;
@@ -351,6 +389,7 @@ class DecisionRuntime {
         // 执行规范 §6.1：位置参数必填项前置校验
         const paramIssues = this.registry.validatePositionalArgs(funcName, args);
         if (paramIssues.length > 0) {
+          traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'INVALID_PARAM', issues: paramIssues });
           return { error: { code: 'INVALID_PARAM', issues: paramIssues } };
         }
 
@@ -367,6 +406,7 @@ class DecisionRuntime {
         const tenantId = getExecContext()?.tenantId;
         const release = this.limiter && tenantId ? await this.limiter.acquire(tenantId) : null;
         let result: unknown;
+        const startedAt = process.hrtime.bigint();
         try {
           // 执行规范 §6.2：kwargs.timeout 约定（毫秒）——运行时级超时兜底，超时返回结构化错误
           const timeoutMs = typeof kwargs.timeout === 'number' && kwargs.timeout > 0 ? kwargs.timeout : null;
@@ -382,22 +422,46 @@ class DecisionRuntime {
         } catch (timeoutError) {
           const message = timeoutError instanceof Error ? timeoutError.message : String(timeoutError);
           if (message.includes('udf timeout')) {
+            traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'UDF_TIMEOUT' });
             return { error: { code: 'UDF_TIMEOUT', message } };
           }
           throw timeoutError;
         } finally {
           release?.();
         }
+        const micros = Number(process.hrtime.bigint() - startedAt) / 1000;
+
+        // 执行规范 §6.5：返回值契约（缺省 warn——只记账不改行为；enforce 换成结构化错误）
+        if (this.resultValidation !== 'off') {
+          const resultIssues = this.registry.validateResult(funcName, result);
+          if (resultIssues.length > 0) {
+            traces.push({
+              key: execExpr.key,
+              name: funcName,
+              micros,
+              code: 'INVALID_RESULT',
+              issues: resultIssues,
+            });
+            if (this.resultValidation === 'enforce') {
+              return { error: { code: 'INVALID_RESULT', issues: resultIssues } };
+            }
+          }
+        }
+
+        traces.push({ key: execExpr.key, name: funcName, micros });
         return result;
       } else {
         if (funcName) {
+          traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'UDF_NOT_FOUND' });
           return { error: `udf ${funcName} not found` };
         }
+        traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_NOT_FOUND' });
         return { error: 'empty udf name not allowed' };
       }
     } catch (error) {
       // UDF 抛错不下发为 null(否则 simulator 无痕吞错)：以结构化错误对象出现在 trace/输出中
-      return { error: error instanceof Error ? error.message : String(error) };
+      traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_ERROR' });
+      return { error: this.sanitizer(error instanceof Error ? error.message : String(error)) };
     }
   }
 

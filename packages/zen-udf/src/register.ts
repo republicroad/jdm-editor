@@ -93,6 +93,32 @@ interface UdfEntry {
 /** 可注册的 UDF 函数签名(动态注册表，运行时统一以单个 kwargs 对象调用) */
 type UdfFunction = (kwargs: Record<string, unknown>) => unknown;
 
+/** JSON Schema type 语义匹配（校验用；'any'/'null' 恒真，未知类型不判违例） */
+function matchJsonType(value: unknown, type: string): boolean {
+  switch (type) {
+    case 'string':
+      return typeof value === 'string';
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'integer':
+      return typeof value === 'number' && Number.isInteger(value);
+    case 'number':
+      return typeof value === 'number' && Number.isFinite(value);
+    case 'object':
+      return typeof value === 'object' && value !== null && !Array.isArray(value);
+    case 'array':
+      return Array.isArray(value);
+    default:
+      return true;
+  }
+}
+
+function describeJsonType(value: unknown): string {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
 function jsonT2pyT(jsonType: string): (v: unknown) => unknown {
   const m: Record<string, (v: unknown) => unknown> = {
     null: () => null,
@@ -259,6 +285,37 @@ class UdfRegistry {
         issues.push(`${paramName} is required (position ${i})`);
       }
     });
+    return issues;
+  }
+
+  /**
+   * 返回值契约校验（执行规范 §6.5）：按 returnsSchema 顶层断言
+   * （type / required / properties 浅层类型）。返回错误清单（空数组 = 通过）。
+   */
+  validateResult(name: string, result: unknown): string[] {
+    const schema = this.functions.get(name)?.schema;
+    const rs = schema?.returnsSchema;
+    if (!rs) return [];
+    const issues: string[] = [];
+    if (typeof rs.type === 'string' && rs.type !== 'any' && rs.type !== 'null' && !matchJsonType(result, rs.type)) {
+      issues.push(`result type expected ${rs.type}, got ${describeJsonType(result)}`);
+    }
+    if (result !== null && typeof result === 'object' && !Array.isArray(result)) {
+      const record = result as Record<string, unknown>;
+      for (const key of rs.required ?? []) {
+        if (record[key] === undefined) {
+          issues.push(`result.${key} is required`);
+        }
+      }
+      for (const [key, prop] of Object.entries(rs.properties ?? {})) {
+        const value = record[key];
+        if (value === undefined) continue;
+        const propType = typeof prop?.type === 'string' ? prop.type : undefined;
+        if (propType && propType !== 'any' && !matchJsonType(value, propType)) {
+          issues.push(`result.${key} type expected ${propType}, got ${describeJsonType(value)}`);
+        }
+      }
+    }
     return issues;
   }
 

@@ -3,7 +3,7 @@
 // 并按需用 loadReferenceInto 装载参考域。
 import './reference.ts';
 
-export { DecisionRuntime, type DecisionRuntimeOptions } from './engine.ts';
+export { DecisionRuntime, type DecisionRuntimeOptions, type UdfTrace } from './engine.ts';
 export {
   DecisionCache,
   type CacheMetricsSnapshot,
