@@ -345,7 +345,7 @@ export const App: React.FC = () => {
           {page === 'grid' ? (
             <DataGridPage />
           ) : page === 'reui' ? (
-            <ReUIShowcasePage />
+            <ReUIShowcasePage graph={graph} />
           ) : page === 'graph' ? (
             <SkinnedDecisionGraph
               value={graph}

@@ -1,10 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
-
-const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src');
 
 // 仓内消费者一律源码直通（两个 workspace 包的 dist 是发布产物，存在 pnpm
 // 硬链接副本陈旧问题——见 docs/troubleshooting 案例 8）；monaco 用宿主安装版。
@@ -12,10 +9,11 @@ const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'src')
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
+    // '#' 子路径走 playground/package.json 的 imports 字段（对齐 jdm-editor 的
+    // 包级解析方式，作用域限定在本包内，不会劫持 jdm-editor 源码的 #icons 等）
     alias: {
       '@republicroad/jdm-editor': fileURLToPath(new URL('../jdm-editor/src/index.ts', import.meta.url)),
       '@republicroad/jdm-appshell': fileURLToPath(new URL('../appshell/src/index.ts', import.meta.url)),
-      '#': srcDir,
     },
   },
   optimizeDeps: {

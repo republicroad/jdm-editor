@@ -24,6 +24,17 @@ const ruleItems = [
 
 type TreeNode = { id: string; name: string; children?: TreeNode[] };
 
+// zen 图节点 type id → 可读标签
+const NODE_TYPE_LABELS: Record<string, string> = {
+  inputNode: 'Input',
+  outputNode: 'Output',
+  decisionTableNode: 'Decision Table',
+  expressionNode: 'Expression',
+  functionNode: 'Function',
+  customNode: 'Custom',
+  switchNode: 'Switch',
+};
+
 const treeData: TreeNode = {
   id: 'root',
   name: 'Decision Model',
@@ -65,8 +76,31 @@ function SimpleTree({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
   );
 }
 
-export const ReUIShowcasePage: React.FC = () => {
+export const ReUIShowcasePage: React.FC<{ graph?: { nodes: any[]; edges: any[] } }> = ({ graph }) => {
   const [sortableItems, setSortableItems] = useState(ruleItems);
+  const isLiveTree = Boolean(graph?.nodes?.length);
+
+  // graphToTree：从实时 decisionGraph 构建层级树（非硬编码数据）
+  const liveTree = React.useMemo(() => {
+    if (!graph?.nodes?.length) return treeData; // fallback to demo data
+    const nodeMap = new Map<string, TreeNode>();
+    for (const n of graph.nodes) {
+      const label = NODE_TYPE_LABELS[n.type as string] ?? (n.type as string) ?? 'Node';
+      nodeMap.set(n.id, { id: n.id, name: `${label}: ${n.name}`, children: [] });
+    }
+    for (const e of graph.edges ?? []) {
+      const parent = nodeMap.get(e.source);
+      const child = nodeMap.get(e.target);
+      if (parent && child) parent.children!.push(child);
+    }
+    // 根 = 无入边的节点
+    const targets = new Set((graph.edges ?? []).map((e) => e.target));
+    const roots = [...nodeMap.values()].filter((n) => {
+      const nodeId = n.id;
+      return !targets.has(nodeId);
+    });
+    return roots.length === 1 ? roots[0] : { id: 'root', name: 'Decision Model', children: roots };
+  }, [graph]);
 
   return (
     <div style={{ padding: '24px 16px', maxWidth: 900, margin: '0 auto', display: 'grid', gap: 24 }}>
@@ -110,8 +144,13 @@ export const ReUIShowcasePage: React.FC = () => {
       </section>
 
       <section className='v-card' style={{ display: 'grid', gap: 12 }}>
-        <h3 style={{ margin: 0, fontSize: 14 }}>Tree（决策模型层级）</h3>
-        <SimpleTree node={treeData} />
+        <h3 style={{ margin: 0, fontSize: 14 }}>
+          Tree（决策模型层级）
+          <span style={{ fontSize: 12, opacity: 0.5, marginLeft: 8 }}>
+            {isLiveTree ? `实时图 · ${graph.nodes.length} 节点` : '示例数据 — 切到 Graph 页签编辑后自动同步'}
+          </span>
+        </h3>
+        <SimpleTree node={liveTree} />
       </section>
     </div>
   );
