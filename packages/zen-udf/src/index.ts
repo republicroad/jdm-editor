@@ -32,3 +32,11 @@ export {
   type CustomNodeNamespace,
 } from './register.ts';
 export { loadReferenceInto, referenceDomains } from './reference.ts';
+export {
+  setRateStore,
+  getRateStore,
+  InMemoryRateStore,
+  type RateStore,
+  type RateCommonResult,
+  type GroupDistinctCommonResult,
+} from './contrib/rate-window.ts';
