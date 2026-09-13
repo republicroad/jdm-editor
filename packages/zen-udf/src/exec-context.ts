@@ -5,11 +5,32 @@ export interface ExecContext {
   tenantId?: string;
   userId?: string;
   requestId?: string;
+  /** 决策幂等键（Y2）：审计事件主键；act 类效果的幂等去重依据 */
+  decisionId?: string;
+  /** 事件时间（Y2，ISO 字符串）：审计 asOf 与 observe/query 类算子的事件时间锚点；缺省 = 处理时间 */
+  eventTime?: string;
+  /** 回放模式（Y3）：设置后 observe/act 类 UDF 不重执行，从 journal 读回当时返回值 */
+  replay?: ReplayContext;
   /**
    * 显式单租户豁免：置 true 后 evaluate 入口不再强制 tenantId，
    * 仅限 CLI / 本地 / 单租户部署使用；多租户服务端禁止开启。
    */
   tenantExempt?: boolean;
+}
+
+/** 单条 UDF 观测 journal（来自审计事件 observed；Y3 回放的数据源） */
+export interface ReplayJournalEntry {
+  key: string;
+  name: string;
+  outcome: unknown;
+}
+
+/** 回放上下文（Y3）：observe/act 不重执行（读 journal），query 用 asOf 时钟 */
+export interface ReplayContext {
+  decisionId: string;
+  /** 事件时间（ISO）——query 类算子的事件时间锚点 */
+  asOf: string;
+  journal: ReplayJournalEntry[];
 }
 
 const execStorage = new AsyncLocalStorage<ExecContext>();

@@ -6,11 +6,12 @@ import type {
   ZenEvaluateOptions,
 } from '@gorules/zen-engine';
 import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/zen-engine';
+import { createHash } from 'node:crypto';
 
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
 import { type ConcurrencyLimiter } from './limiter.ts';
-import { type UdfRegistry, globalUdfRegistry } from './register.ts';
+import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
 
@@ -26,9 +27,13 @@ export interface UdfTrace {
   key: string;
   name: string;
   micros: number;
-  /** 违例/异常码：INVALID_PARAM / UDF_TIMEOUT / INVALID_RESULT / UDF_NOT_FOUND / UDF_ERROR */
+  /** 违例/异常码：INVALID_PARAM / UDF_TIMEOUT / INVALID_RESULT / UDF_NOT_FOUND / UDF_ERROR / REPLAYED / REPLAY_JOURNAL_MISS / CIRCUIT_OPEN */
   code?: string;
   issues?: string[];
+  /** 算子语义（Y1） */
+  semantics?: UdfSemantics;
+  /** UDF 返回值快照（Y2 审计 journal 依据；错误路径为结构化错误对象） */
+  outcome?: unknown;
 }
 
 interface EvaluateResponse {
@@ -54,6 +59,40 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   resultValidation?: 'off' | 'warn' | 'enforce';
   /** UDF 错误消息脱敏器（执行规范 §6.7）；缺省内置规则（路径/敏感环境值替换为占位） */
   sanitizer?: (message: string) => string;
+  /** 决策审计事件 sink（Y2）：evaluate 完成后回调；持久化属宿主。配置后 evaluate 内部强制开启 trace */
+  onDecision?: (event: DecisionAuditEvent) => void;
+}
+
+/** 单个 UDF 的观测记录（Y2 审计事件 observed 数组项） */
+export interface DecisionObservedCall {
+  key: string;
+  name: string;
+  semantics: UdfSemantics;
+  /** 返回值快照（含结构化错误对象——journal 回放依据） */
+  outcome: unknown;
+  micros: number;
+}
+
+/**
+ * 决策审计事件（Y2）：决策完成时经 onDecision 下发，持久化属宿主。
+ * inputHash = sha256(JSON.stringify(input))——数据最小化；原文存储属宿主策略。
+ * observed 含 query/observe/act 全部 UDF 返回值快照，是 Y3 回放 journal 的来源。
+ */
+export interface DecisionAuditEvent {
+  decisionId: string;
+  tenantId: string;
+  key: string;
+  rev: string;
+  inputHash: string;
+  /** 完整决策结论（宿主裁决 D11） */
+  output: unknown;
+  /** 事件时间（ExecContext.eventTime；缺省 = 处理时间） */
+  asOf?: string;
+  processingTime: string;
+  requestId?: string;
+  source: 'live' | 'replay';
+  observed: DecisionObservedCall[];
+  performance?: string;
 }
 
 interface GraphNode {
@@ -106,6 +145,8 @@ class DecisionRuntime {
   resultValidation: 'off' | 'warn' | 'enforce';
   /** 错误消息脱敏器 */
   sanitizer: (message: string) => string;
+  /** 决策审计事件 sink（缺省 undefined = 不出审计事件） */
+  onDecision?: (event: DecisionAuditEvent) => void;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
@@ -113,6 +154,7 @@ class DecisionRuntime {
     this.limiter = options.limiter;
     this.resultValidation = options.resultValidation ?? 'warn';
     this.sanitizer = options.sanitizer ?? sanitizeErrorDefault;
+    this.onDecision = options.onDecision;
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -235,23 +277,111 @@ class DecisionRuntime {
     return { ...(ctx as Record<string, unknown>), [EXEC_CONTEXT_INPUT_KEY]: Object.freeze({ ...execCtx }) };
   }
 
+  /**
+   * 审计事件（Y2）：配置 onDecision 后，evaluate 内部强制开启 trace，
+   * 从节点 traceData 收集 observed（含各 UDF 返回值快照），构造 DecisionAuditEvent 下发。
+   * sink 异常不中断决策（仅 console.error）。
+   */
+  private emitAudit(
+    execCtx: ExecContext | undefined,
+    key: string,
+    rev: string | undefined,
+    rawInput: unknown,
+    result: EvaluateResponse,
+  ): void {
+    if (!this.onDecision) return;
+    try {
+      const observed: DecisionObservedCall[] = [];
+      const trace = result.trace as
+        | Record<string, { traceData?: { udf?: Array<UdfTrace & { outcome?: unknown; semantics?: UdfSemantics }> } }>
+        | undefined;
+      for (const nodeTrace of Object.values(trace ?? {})) {
+        for (const t of nodeTrace?.traceData?.udf ?? []) {
+          observed.push({
+            key: t.key,
+            name: t.name,
+            semantics: t.semantics ?? 'query',
+            outcome: t.outcome,
+            micros: t.micros,
+          });
+        }
+      }
+      const event: DecisionAuditEvent = {
+        decisionId: execCtx?.decisionId ?? globalThis.crypto?.randomUUID?.() ?? `dec-${Date.now()}-${Math.random()}`,
+        tenantId: execCtx?.tenantId ?? 'single',
+        key,
+        rev: rev ?? 'latest',
+        inputHash: createHash('sha256').update(JSON.stringify(rawInput)).digest('hex'),
+        output: result.result,
+        asOf: execCtx?.eventTime,
+        processingTime: new Date().toISOString(),
+        requestId: execCtx?.requestId,
+        source: execCtx?.replay ? 'replay' : 'live',
+        observed,
+        performance: result.performance,
+      };
+      this.onDecision(event);
+    } catch (sinkError) {
+      console.error(
+        '[zen-udf] onDecision sink failed:',
+        sinkError instanceof Error ? sinkError.message : String(sinkError),
+      );
+    }
+  }
+
   evaluate(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
-    DecisionRuntime.requireTenantContext();
-    const decision = this.getDecision(key, rev);
-    return decision.evaluate(
-      DecisionRuntime.enrichInputWithExecContext(ctx),
-      options as ZenEvaluateOptions | null | undefined,
-    ) as Promise<EvaluateResponse>;
+    return this.evaluateAsync(key, ctx, options, rev);
   }
 
   async evaluateAsync(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
     DecisionRuntime.requireTenantContext();
     const decision = this.getDecision(key, rev);
-    const result = await decision.evaluate(
+    const execCtx = getExecContext();
+    // Y2：配置 onDecision 时强制 trace（observed 从节点 traceData 收集）
+    const evalOpts =
+      this.onDecision != null
+        ? ({ ...(options as Record<string, unknown> | undefined), trace: true } as ZenEvaluateOptions)
+        : (options as ZenEvaluateOptions | null | undefined);
+    const result = (await decision.evaluate(
       DecisionRuntime.enrichInputWithExecContext(ctx),
-      options as ZenEvaluateOptions | null | undefined,
+      evalOpts,
+    )) as EvaluateResponse;
+    this.emitAudit(execCtx, key, rev, ctx, result);
+    return result;
+  }
+
+  /**
+   * 确定性回放（Y3）：从审计事件构造 replay 上下文重演决策。
+   * - observe/act：不重执行，读 journal 中钉住的当时返回值
+   * - query：以 asOf 为时钟正常执行
+   * - 输入校验：sha256(input) 必须匹配审计 inputHash，否则抛错（trust 语义）
+   * 回放本身也会产生一条 source: 'replay' 的审计事件。
+   */
+  async evaluateReplay(
+    audit: DecisionAuditEvent,
+    input: unknown,
+    options?: ZenEvaluateOptions,
+  ): Promise<EvaluateResponse> {
+    const inputHash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
+    if (inputHash !== audit.inputHash) {
+      throw new Error(
+        `[zen-udf] replay input hash mismatch — supplied input (\`${inputHash.slice(0, 12)}\`) does not match the audited decision (\`${audit.inputHash.slice(0, 12)}\`)`,
+      );
+    }
+    const execCtx: ExecContext = {
+      tenantId: audit.tenantId,
+      requestId: audit.requestId,
+      decisionId: audit.decisionId,
+      eventTime: audit.asOf,
+      replay: {
+        decisionId: audit.decisionId,
+        asOf: audit.asOf ?? audit.processingTime,
+        journal: audit.observed.map((o) => ({ key: o.key, name: o.name, outcome: o.outcome })),
+      },
+    };
+    return runWithExecContext(execCtx, () =>
+      this.evaluateAsync(audit.key, input, options, audit.rev === 'latest' ? undefined : audit.rev),
     );
-    return result as EvaluateResponse;
   }
 
   graphAddons(content: GraphContent): object {
@@ -380,6 +510,37 @@ class DecisionRuntime {
 
       const inputField = context['inputField'] as string | null;
       const fSchema = this.registry.udfFunctionSchema(funcName);
+      const semantics = (fSchema?.semantics as UdfSemantics | undefined) ?? 'query';
+
+      // Y3 回放模式：observe/act 不重执行——从 ExecContext.replay.journal 读回当时返回值；
+      // journal 缺失 fail closed（REPLAY_JOURNAL_MISS），query 类正常执行（时钟用 asOf）
+      const replayCtx = getExecContext()?.replay;
+      if (replayCtx && semantics !== 'query') {
+        const entry = replayCtx.journal.find((j) => j.key === execExpr.key && j.name === funcName);
+        if (!entry) {
+          const missOutcome = {
+            error: { code: 'REPLAY_JOURNAL_MISS', issues: [`no journaled outcome for ${funcName}`] },
+          };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'REPLAY_JOURNAL_MISS',
+            semantics,
+            outcome: missOutcome,
+          });
+          return missOutcome;
+        }
+        traces.push({
+          key: execExpr.key,
+          name: funcName,
+          micros: 0,
+          code: 'REPLAYED',
+          semantics,
+          outcome: entry.outcome,
+        });
+        return entry.outcome;
+      }
 
       if (fSchema) {
         const args = opArgExpressions.map((i: string) => {
@@ -390,8 +551,17 @@ class DecisionRuntime {
         // 执行规范 §6.1：位置参数必填项前置校验
         const paramIssues = this.registry.validatePositionalArgs(funcName, args);
         if (paramIssues.length > 0) {
-          traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'INVALID_PARAM', issues: paramIssues });
-          return { error: { code: 'INVALID_PARAM', issues: paramIssues } };
+          const invalidParamOutcome = { error: { code: 'INVALID_PARAM', issues: paramIssues } };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'INVALID_PARAM',
+            issues: paramIssues,
+            semantics,
+            outcome: invalidParamOutcome,
+          });
+          return invalidParamOutcome;
         }
 
         const operatorKwargs = this.registry.funcBindParams(funcName, args);
@@ -423,8 +593,16 @@ class DecisionRuntime {
         } catch (timeoutError) {
           const message = timeoutError instanceof Error ? timeoutError.message : String(timeoutError);
           if (message.includes('udf timeout')) {
-            traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'UDF_TIMEOUT' });
-            return { error: { code: 'UDF_TIMEOUT', message } };
+            const timeoutOutcome = { error: { code: 'UDF_TIMEOUT', message } };
+            traces.push({
+              key: execExpr.key,
+              name: funcName,
+              micros: 0,
+              code: 'UDF_TIMEOUT',
+              semantics,
+              outcome: timeoutOutcome,
+            });
+            return timeoutOutcome;
           }
           throw timeoutError;
         } finally {
@@ -442,6 +620,8 @@ class DecisionRuntime {
               micros,
               code: 'INVALID_RESULT',
               issues: resultIssues,
+              semantics,
+              outcome: result,
             });
             if (this.resultValidation === 'enforce') {
               return { error: { code: 'INVALID_RESULT', issues: resultIssues } };
@@ -449,20 +629,30 @@ class DecisionRuntime {
           }
         }
 
-        traces.push({ key: execExpr.key, name: funcName, micros });
+        traces.push({ key: execExpr.key, name: funcName, micros, semantics, outcome: result });
         return result;
       } else {
         if (funcName) {
-          traces.push({ key: execExpr.key, name: funcName, micros: 0, code: 'UDF_NOT_FOUND' });
-          return { error: `udf ${funcName} not found` };
+          const notFoundOutcome = { error: `udf ${funcName} not found` };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'UDF_NOT_FOUND',
+            semantics,
+            outcome: notFoundOutcome,
+          });
+          return notFoundOutcome;
         }
-        traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_NOT_FOUND' });
-        return { error: 'empty udf name not allowed' };
+        const emptyOutcome = { error: 'empty udf name not allowed' };
+        traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_NOT_FOUND', outcome: emptyOutcome });
+        return emptyOutcome;
       }
     } catch (error) {
       // UDF 抛错不下发为 null(否则 simulator 无痕吞错)：以结构化错误对象出现在 trace/输出中
-      traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_ERROR' });
-      return { error: this.sanitizer(error instanceof Error ? error.message : String(error)) };
+      const errorOutcome = { error: this.sanitizer(error instanceof Error ? error.message : String(error)) };
+      traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_ERROR', outcome: errorOutcome });
+      return errorOutcome;
     }
   }
 

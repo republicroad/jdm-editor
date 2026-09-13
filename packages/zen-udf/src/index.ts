@@ -10,7 +10,13 @@ export {
   type DecisionCacheEntry,
   type DecisionCacheOptions,
 } from './decision-cache.ts';
-export { getExecContext, runWithExecContext, type ExecContext } from './exec-context.ts';
+export {
+  getExecContext,
+  runWithExecContext,
+  type ExecContext,
+  type ReplayContext,
+  type ReplayJournalEntry,
+} from './exec-context.ts';
 export { InMemoryConcurrencyLimiter, NoopConcurrencyLimiter, type ConcurrencyLimiter } from './limiter.ts';
 export { registerRoster, listRosters, getRoster, deleteRoster, queryRoster, type Roster } from './roster.ts';
 export {
