@@ -1,6 +1,6 @@
 # zen-udf 开发计划（U 系列）
 
-状态：plan · 待宿主确认（3 个决策点见文末）
+状态：plan · confirmed（宿主 2026-09-13 裁决 D1–D3，见文末）
 上游设计：[zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md)（M1 已完成：包名、缓存语义哨兵、设计稿）
 
 ## 总览
@@ -85,18 +85,18 @@
 ## U10 verdict 接入（verdict 仓，非本仓范围）
 
 - `@verdict/udf-pack` 出生：fraud/logistics 首批函数域（UdfPack 契约）
-- PostgreSQL 内容存储（rev 化）= L0；model-execute 服务组装 `new ZenRule({ packs })` + Prometheus sink
+- PostgreSQL 内容存储（rev 化）= L0；model-execute 服务组装 `new DecisionRuntime({ packs })` + Prometheus sink
 - Redis RateStore / ConcurrencyLimiter / EgressGuard / SecretResolver 真实实现，跑 U8 conformance 套件
 - 依赖：U4 U6 U8；zen-udf ≥0.2.0
 
 ## 发布与版本策略
 
 - 0.1.x：当前（M1 收尾态）
-- 0.2.0（U6 后）：UdfPack 契约 + 实例注入，首次供 verdict 消费——待宿主确认 D2
+- 0.2.0（U6 后）：UdfPack 契约 + 实例注入，首次供 verdict 消费（宿主已确认发布 npm 公开仓）
 - 1.0.0（U8/U9 后）：端口面（RateStore/ConcurrencyLimiter/EgressGuard/SecretResolver）冻结
 
-## 待宿主确认
+## 宿主裁决（2026-09-13 已确认）
 
-- **D1**：Redis RateStore 实现住 verdict 仓（推荐，依赖不进 jdm-editor）vs jdm-editor 可选 peerDependency
-- **D2**：zen-udf 发布 npm 公开仓（推荐，纯机制无业务；contrib 参考域随包发布）vs git 依赖
-- **D3**：contrib 参考域长期保留为 `builtin: 'reference'`（推荐，playground/demo-server 与验收图依赖它）vs M3 后拆出独立私有包
+- **D1** ✅：Redis RateStore 实现住 **verdict 仓**——本仓只出接口 + conformance 测试套件，ioredis 等存储依赖不进 jdm-editor
+- **D2** ✅：zen-udf 0.2.0 **发布 npm 公开仓**（纯机制无业务；contrib 参考域随包发布）
+- **D3** ✅：contrib 参考域**暂时保留**为 `builtin: 'reference'`，M3 后拆出独立私有包
