@@ -32,6 +32,7 @@ export {
   type CustomNodeNamespace,
 } from './register.ts';
 export { loadReferenceInto, referenceDomains } from './reference.ts';
+export { configureHttpUdf, type EgressGuard, type SecretResolver } from './contrib/http.ts';
 export {
   setRateStore,
   getRateStore,

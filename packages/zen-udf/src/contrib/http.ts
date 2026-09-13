@@ -1,5 +1,29 @@
 // http 域(http_request 函数，有专属 UI 设计，文件名即 namespace)
+import { getExecContext } from '../exec-context.ts';
 import { defineContrib, defineTool } from '../register.ts';
+
+/**
+ * 出口防护端口（执行规范 §6.3，U9）：按租户校验出口 URL，拒绝时抛错。
+ * verdict 注入真实 allowlist；未配置 = 允许所有出口（开发态默认）。
+ */
+export interface EgressGuard {
+  assertAllowed(url: string, tenantId: string | undefined): void | Promise<void>;
+}
+
+/** 密钥解析端口：图内 auth 值支持 `${secret:名称}` 引用，真实凭证按租户解析，不进图内容 */
+export interface SecretResolver {
+  resolve(ref: string, tenantId: string | undefined): string | Promise<string>;
+}
+
+let egressGuard: EgressGuard | undefined;
+let secretResolver: SecretResolver | undefined;
+
+export const configureHttpUdf = (options: { egressGuard?: EgressGuard; secretResolver?: SecretResolver }): void => {
+  egressGuard = options.egressGuard;
+  secretResolver = options.secretResolver;
+};
+
+const SECRET_REF_PATTERN = /^\$\{secret:([^}]+)\}$/;
 
 const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -65,13 +89,15 @@ interface HttpAttemptResult {
   headers: Record<string, string>;
   body: unknown;
   error?: undefined | string;
+  /** 策略性失败（egress/secret）：不参与重试 */
+  policyBlocked?: boolean;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** 网络异常/超时(status=0)、429 与 5xx 可重试；其余 4xx 属业务错误不重试 */
+/** 网络异常/超时(status=0)、429 与 5xx 可重试；其余 4xx 属业务错误不重试；策略性失败不重试 */
 const shouldRetryResult = (result: HttpAttemptResult): boolean =>
-  result.status === 0 || result.status === 429 || result.status >= 500;
+  !result.policyBlocked && (result.status === 0 || result.status === 429 || result.status >= 500);
 
 export const http_request = defineTool({
   name: 'http_request',
@@ -159,11 +185,48 @@ export const http_request = defineTool({
       return httpErrorResult(`invalid url '${rawUrl}'`);
     }
 
+    // 执行规范 §6.3：出口防护（egress 拒绝属策略性失败，不重试）
+    const tenantId = getExecContext()?.tenantId;
+    try {
+      await egressGuard?.assertAllowed(url, tenantId);
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      return { ...httpErrorResult('egress blocked by policy: ' + reason), policyBlocked: true };
+    }
+
+    // 执行规范：secret 引用解析（`${secret:名称}` → 按租户解析真实凭证，不进图内容）
+    const effectiveAuth = { ...rawAuth };
+    try {
+      if (secretResolver) {
+        for (const key of ['username', 'password', 'token']) {
+          const value = effectiveAuth[key];
+          if (typeof value === 'string') {
+            const ref = value.match(SECRET_REF_PATTERN);
+            if (ref) {
+              effectiveAuth[key] = await secretResolver.resolve(ref[1], tenantId);
+            }
+          }
+        }
+      } else {
+        for (const key of ['username', 'password', 'token']) {
+          if (typeof effectiveAuth[key] === 'string' && SECRET_REF_PATTERN.test(effectiveAuth[key])) {
+            return {
+              ...httpErrorResult(`secret reference in auth.${key} requires a configured secretResolver`),
+              policyBlocked: true,
+            };
+          }
+        }
+      }
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      return { ...httpErrorResult('secret resolve failed: ' + reason), policyBlocked: true };
+    }
+
     const requestHeaders: Record<string, string> = {};
     for (const [key, value] of Object.entries(asRecord(kwargs?.headers))) {
       requestHeaders[String(key)] = String(value);
     }
-    applyAuthHeader(requestHeaders, rawAuth);
+    applyAuthHeader(requestHeaders, effectiveAuth);
 
     let requestBody: string | undefined;
     if (method !== 'GET' && method !== 'HEAD' && Object.keys(rawBody).length > 0) {
