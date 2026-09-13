@@ -4,6 +4,12 @@
 import './reference.ts';
 
 export { DecisionRuntime, type DecisionRuntimeOptions } from './engine.ts';
+export {
+  DecisionCache,
+  type CacheMetricsSnapshot,
+  type DecisionCacheEntry,
+  type DecisionCacheOptions,
+} from './decision-cache.ts';
 export { getExecContext, runWithExecContext, type ExecContext } from './exec-context.ts';
 export { registerRoster, listRosters, getRoster, deleteRoster, queryRoster, type Roster } from './roster.ts';
 export {

@@ -41,7 +41,10 @@ const customGraph = (id: string) => ({
 describe('DecisionRuntime 租户上下文强制（U2）', () => {
   test('无租户上下文时 evaluate 拒绝执行（fail closed）', async () => {
     const runtime = new DecisionRuntime({});
-    runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+    await runWithExecContext({ tenantId: 'setup' }, () => {
+      runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+      return Promise.resolve();
+    });
 
     await expect(runtime.evaluateAsync('k', { x: 1 })).rejects.toThrow('missing exec context tenantId');
     await expect(runWithExecContext({ userId: 'u1' }, () => runtime.evaluateAsync('k', { x: 1 }))).rejects.toThrow(
@@ -51,7 +54,10 @@ describe('DecisionRuntime 租户上下文强制（U2）', () => {
 
   test('携带 tenantId 时正常执行', async () => {
     const runtime = new DecisionRuntime({});
-    runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+    await runWithExecContext({ tenantId: 't-1' }, () => {
+      runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+      return Promise.resolve();
+    });
 
     const result = await runWithExecContext({ tenantId: 't-1', userId: 'u1' }, () =>
       runtime.evaluateAsync('k', { x: 1 }),
@@ -61,7 +67,10 @@ describe('DecisionRuntime 租户上下文强制（U2）', () => {
 
   test('tenantExempt 豁免单租户部署', async () => {
     const runtime = new DecisionRuntime({});
-    runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+    await runWithExecContext({ tenantExempt: true }, () => {
+      runtime.createDecisionWithCacheKey('k', structuredClone(graph));
+      return Promise.resolve();
+    });
 
     const result = await runWithExecContext({ tenantExempt: true }, () => runtime.evaluateAsync('k', { x: 1 }));
     expect(result.result).toBeDefined();
@@ -93,8 +102,11 @@ describe('DecisionRuntime 实例注入（U3）', () => {
   test('两个运行时实例同名 UDF 各自解析，互不串扰', async () => {
     const ra = new DecisionRuntime({ registry: makeRegistry('A') });
     const rb = new DecisionRuntime({ registry: makeRegistry('B') });
-    ra.createDecisionWithCacheKey('k', customGraph('ga'));
-    rb.createDecisionWithCacheKey('k', customGraph('gb'));
+    await runWithExecContext({ tenantId: 't-1' }, () => {
+      ra.createDecisionWithCacheKey('k', customGraph('ga'));
+      rb.createDecisionWithCacheKey('k', customGraph('gb'));
+      return Promise.resolve();
+    });
 
     const [a, b] = await Promise.all([
       runWithExecContext({ tenantId: 't-1' }, () => ra.evaluateAsync('k', { x: 1 })),
@@ -106,7 +118,10 @@ describe('DecisionRuntime 实例注入（U3）', () => {
 
   test('空注册表的运行时对未知 UDF 返回结构化错误而非抛出', async () => {
     const runtime = new DecisionRuntime({ registry: new UdfRegistry() });
-    runtime.createDecisionWithCacheKey('k', customGraph('g-empty'));
+    await runWithExecContext({ tenantId: 't-1' }, () => {
+      runtime.createDecisionWithCacheKey('k', customGraph('g-empty'));
+      return Promise.resolve();
+    });
 
     const result = await runWithExecContext({ tenantId: 't-1' }, () => runtime.evaluateAsync('k', { x: 1 }));
     const serialized = JSON.stringify(result);

@@ -7,6 +7,7 @@ import type {
 } from '@gorules/zen-engine';
 import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/zen-engine';
 
+import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { getExecContext } from './exec-context.ts';
 import { type UdfRegistry, globalUdfRegistry } from './register.ts';
 
@@ -24,10 +25,14 @@ interface EvaluateResponse {
   trace?: unknown;
 }
 
-/** DecisionRuntime 构造项：zen-engine 原生 options + 实例级 UDF 注册表 */
+/** DecisionRuntime 构造项：zen-engine 原生 options + 实例级 UDF 注册表 + L1 缓存配置 */
 export interface DecisionRuntimeOptions extends ZenEngineOptions {
   /** 缺省回落 globalUdfRegistry（配合 `@republicroad/zen-udf` 根导入的 reference 装载） */
   registry?: UdfRegistry;
+  /** L1 决策缓存容量（条目数），缺省 500 */
+  cacheCapacity?: number;
+  /** 缓存指标 sink（verdict 接 Prometheus 用），每次读写后回调快照 */
+  metricsSink?: (snapshot: CacheMetricsSnapshot) => void;
 }
 
 interface GraphNode {
@@ -61,11 +66,12 @@ class DecisionRuntime {
   options: DecisionRuntimeOptions;
   /** 实例级 UDF 注册表（缺省回落 globalUdfRegistry；多实例互不污染） */
   registry: UdfRegistry;
-  decisionCache = new Map<string, ZenDecision>();
-  contentCache = new Map<string, unknown>();
+  /** L1 决策缓存（键含租户与 rev，见 docs/design/zen-udf-multi-tenant.md §3） */
+  cache: DecisionCache;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
+    this.cache = new DecisionCache({ capacity: options.cacheCapacity, metricsSink: options.metricsSink });
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -80,62 +86,81 @@ class DecisionRuntime {
     return this.engine.createDecision(decisionContent);
   }
 
-  createDecisionWithCacheKey(key: string, content: string | object): ZenDecision {
-    if (this.decisionCache.has(key)) {
+  /**
+   * L1 缓存键：`${tenantId}:${key}@${rev}`——不可变版本键，与 verdict `modelId:v{rev}` 对齐。
+   * tenantExempt 时租户段为 'single'；无任何租户上下文时拒绝（fail closed）。
+   */
+  private composeCacheKey(key: string, rev?: string): string {
+    const ctx = getExecContext();
+    const tenant = ctx?.tenantId ?? (ctx?.tenantExempt ? 'single' : '');
+    if (!tenant) {
+      throw new Error('[zen-udf] cache operations require exec context tenantId (or tenantExempt)');
+    }
+    return tenant + ':' + key + '@' + (rev ?? 'latest');
+  }
+
+  private buildAndCache(cacheKey: string, content: string | object): ZenDecision {
+    const startedAt = this.cache.markBuildStart();
+    const decision = this.createDecision(content);
+    this.cache.markBuildEnd(startedAt);
+    this.cache.set(cacheKey, { decision, content });
+    return decision;
+  }
+
+  createDecisionWithCacheKey(key: string, content: string | object, rev?: string): ZenDecision {
+    const cacheKey = this.composeCacheKey(key, rev);
+    if (this.cache.has(cacheKey)) {
       throw new Error(
-        `rule key:${key} is existed, if confirm to overwrite this key, please use updateDecisionWithCacheKey`,
+        'rule key:' + key + ' is existed, if confirm to overwrite this key, please use updateDecisionWithCacheKey',
       );
     }
-    const decision = this.createDecision(content);
-    this.decisionCache.set(key, decision);
-    this.contentCache.set(key, content);
-    return decision;
+    return this.buildAndCache(cacheKey, content);
   }
 
-  updateDecisionWithCacheKey(key: string, content: string | object): ZenDecision {
-    if (!this.decisionCache.has(key)) {
-      throw new Error(`rule key:${key} is not existed, please use createDecisionWithCacheKey`);
+  updateDecisionWithCacheKey(key: string, content: string | object, rev?: string): ZenDecision {
+    const cacheKey = this.composeCacheKey(key, rev);
+    if (!this.cache.has(cacheKey)) {
+      throw new Error('rule key:' + key + ' is not existed, please use createDecisionWithCacheKey');
     }
-    const decision = this.createDecision(content);
-    this.decisionCache.set(key, decision);
-    this.contentCache.set(key, content);
-    return decision;
+    return this.buildAndCache(cacheKey, content);
   }
 
-  deleteDecisionWithCacheKey(key: string): void {
-    if (!this.decisionCache.has(key)) {
-      throw new Error(`delete failed! rule key:${key} is not existed`);
+  deleteDecisionWithCacheKey(key: string, rev?: string): void {
+    const cacheKey = this.composeCacheKey(key, rev);
+    if (!this.cache.has(cacheKey)) {
+      throw new Error('delete failed! rule key:' + key + ' is not existed');
     }
-    this.decisionCache.delete(key);
-    this.contentCache.delete(key);
+    this.cache.delete(cacheKey);
   }
 
-  getDecision(key: string): ZenDecision {
-    const cached = this.decisionCache.get(key);
+  getDecision(key: string, rev?: string): ZenDecision {
+    const cacheKey = this.composeCacheKey(key, rev);
+    const cached = this.cache.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached.decision;
     }
     const loader = this.options.loader;
     // zen-engine 2.0：loader 为「函数 | static/fs/zip 对象」四形联合——本仓仅支持同步函数形态
     if (typeof loader !== 'function') {
-      throw new Error(`decision ${key} not found, please use createDecisionWithCacheKey`);
+      throw new Error('decision ' + key + ' not found, please use createDecisionWithCacheKey');
     }
     const decisionContent = loader(key);
     if (decisionContent instanceof Promise) {
       throw new Error('loader returned a Promise; only sync loaders are supported for now');
     }
+    const startedAt = this.cache.markBuildStart();
     const decision = this.createDecision(decisionContent);
-    this.decisionCache.set(key, decision);
-    this.contentCache.set(key, decisionContent);
+    this.cache.markBuildEnd(startedAt);
+    this.cache.set(cacheKey, { decision, content: decisionContent });
     return decision;
   }
 
-  getDecisionCache(key: string): ZenDecision | undefined {
-    return this.decisionCache.get(key);
+  getDecisionCache(key: string, rev?: string): ZenDecision | undefined {
+    return this.cache.get(this.composeCacheKey(key, rev))?.decision;
   }
 
-  getContentCache(key: string): unknown {
-    return this.contentCache.get(key);
+  getContentCache(key: string, rev?: string): unknown {
+    return this.cache.get(this.composeCacheKey(key, rev))?.content;
   }
 
   /**
@@ -152,15 +177,15 @@ class DecisionRuntime {
     }
   }
 
-  evaluate(key: string, ctx: unknown, options?: unknown): Promise<EvaluateResponse> {
+  evaluate(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
     DecisionRuntime.requireTenantContext();
-    const decision = this.getDecision(key);
+    const decision = this.getDecision(key, rev);
     return decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined) as Promise<EvaluateResponse>;
   }
 
-  async evaluateAsync(key: string, ctx: unknown, options?: unknown): Promise<EvaluateResponse> {
+  async evaluateAsync(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
     DecisionRuntime.requireTenantContext();
-    const decision = this.getDecision(key);
+    const decision = this.getDecision(key, rev);
     const result = await decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined);
     return result as EvaluateResponse;
   }
