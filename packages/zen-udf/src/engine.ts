@@ -12,6 +12,7 @@ import { type CircuitBreaker } from './breaker.ts';
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
 import { type ConcurrencyLimiter } from './limiter.ts';
+import { withOtelSpan } from './otel.ts';
 import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
@@ -64,6 +65,8 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   sanitizer?: (message: string) => string;
   /** 决策审计事件 sink（Y2）：evaluate 完成后回调；持久化属宿主。配置后 evaluate 内部强制开启 trace */
   onDecision?: (event: DecisionAuditEvent) => void;
+  /** OpenTelemetry 桥（Y6）：置 true 且宿主安装 @opentelemetry/api 时，evaluate 产生根 span（UdfTrace 作为事件） */
+  otel?: boolean;
 }
 
 /** 单个 UDF 的观测记录（Y2 审计事件 observed 数组项） */
@@ -152,6 +155,8 @@ class DecisionRuntime {
   sanitizer: (message: string) => string;
   /** 决策审计事件 sink（缺省 undefined = 不出审计事件） */
   onDecision?: (event: DecisionAuditEvent) => void;
+  /** OTel 桥开关（缺省 false） */
+  otel: boolean;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
@@ -161,6 +166,7 @@ class DecisionRuntime {
     this.resultValidation = options.resultValidation ?? 'warn';
     this.sanitizer = options.sanitizer ?? sanitizeErrorDefault;
     this.onDecision = options.onDecision;
+    this.otel = options.otel ?? false;
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -340,20 +346,41 @@ class DecisionRuntime {
   }
 
   async evaluateAsync(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
-    DecisionRuntime.requireTenantContext();
-    const decision = this.getDecision(key, rev);
-    const execCtx = getExecContext();
-    // Y2：配置 onDecision 时强制 trace（observed 从节点 traceData 收集）
-    const evalOpts =
-      this.onDecision != null
-        ? ({ ...(options as Record<string, unknown> | undefined), trace: true } as ZenEvaluateOptions)
-        : (options as ZenEvaluateOptions | null | undefined);
-    const result = (await decision.evaluate(
-      DecisionRuntime.enrichInputWithExecContext(ctx),
-      evalOpts,
-    )) as EvaluateResponse;
-    this.emitAudit(execCtx, key, rev, ctx, result);
-    return result;
+    const evalInternal = async (
+      span?: { addEvent(name: string, attrs: Record<string, unknown>): void } | undefined,
+    ) => {
+      DecisionRuntime.requireTenantContext();
+      const decision = this.getDecision(key, rev);
+      const execCtx = getExecContext();
+      // Y2：配置 onDecision 时强制 trace（observed 从节点 traceData 收集）
+      const evalOpts =
+        this.onDecision != null || this.otel
+          ? ({ ...(options as Record<string, unknown> | undefined), trace: true } as ZenEvaluateOptions)
+          : (options as ZenEvaluateOptions | null | undefined);
+      const result = (await decision.evaluate(
+        DecisionRuntime.enrichInputWithExecContext(ctx),
+        evalOpts,
+      )) as EvaluateResponse;
+      this.emitAudit(execCtx, key, rev, ctx, result);
+      // Y6：UdfTrace 作为 span events
+      if (span) {
+        const trace = result.trace as Record<string, { traceData?: { udf?: UdfTrace[] } }> | undefined;
+        for (const nodeTrace of Object.values(trace ?? {})) {
+          for (const t of nodeTrace?.traceData?.udf ?? []) {
+            span.addEvent('zen-udf.udf', { key: t.key, name: t.name, micros: t.micros, code: t.code ?? 'ok' });
+          }
+        }
+      }
+      return result;
+    };
+    if (this.otel) {
+      return withOtelSpan(
+        'zen-udf.evaluate',
+        { attributes: { 'zen-udf.key': key, 'zen-udf.rev': rev ?? 'latest' } },
+        (span) => evalInternal(span),
+      );
+    }
+    return evalInternal();
   }
 
   /**
