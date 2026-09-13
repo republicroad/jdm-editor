@@ -1,6 +1,6 @@
 # zen-udf 开发计划 X 系列（部署修复与稳态运营）
 
-状态：plan · 待宿主确认（2 个决策点见文末）
+状态：shipped · X1 完成（2026-09-13，podman 构建 + 容器冒烟通过）；D9 裁决：暂不拆 contrib；D10 裁决：本机 podman 验收
 上游：U/V/W 系列已 shipped；0.2.0 已发布 npm（zen-udf 机制仓进入稳态）
 
 ## 现状侦察结论
@@ -13,8 +13,8 @@
 
 | 期 | 内容 | 状态 |
 | --- | --- | --- |
-| X1 | demo-server Docker 链路修复（V7 回归） | 待开发 |
-| X2 | contrib 参考域拆分评估与执行 | 决策点 D9 |
+| X1 | demo-server Docker 链路修复（V7 回归） | ✅ fb0a18c2（podman 构建 + 容器内 rate=0.85 + trace 冒烟通过） |
+| X2 | contrib 参考域拆分评估与执行 | ⏸ D9 裁决：暂不拆（demo-server 唯一消费方；待 verdict 上线后再评估） |
 | X3 | verdict U10 联调支持（跨仓观察/答疑/补机制） | 持续 |
 | X4 | W4 上游 issue（等宿主 contextvars 总结） | 挂起 |
 | X5 | 0.3.x 观察名单（enforce 切换 / 上游 PR 跟进 / verdict 反馈回灌） | 持续 |
@@ -50,7 +50,7 @@
 - 上游原生传播 PR 进展（若 gorules/zen 接受，验证保留键通道退化为保险）
 - verdict 反馈的机制缺口回灌（新端口/校验规则）
 
-## 待宿主确认
+## 宿主裁决（2026-09-13 已确认）
 
-- **D9**：contrib 参考域是否现在拆出独立私有包（推荐：**暂不拆**——demo-server 是唯一消费方且公开发布物已含参考域用途说明；待 verdict 上线、出现第二个业务包消费方时再拆）
-- **D10**：X1 的 docker build 验收是否本机执行（推荐：是——若本机 docker 可用；否则结构审查 + 本地生产模式冒烟）
+- **D9** ✅：contrib 参考域**暂不拆**——demo-server 为唯一消费方，公开发布物已含参考域用途说明；待 verdict 上线、出现第二个业务包消费方时再评估拆分
+- **D10** ✅：X1 验收在本机以 **podman**（6.1.1）执行——构建 + 容器内 healthz/execute(rate=0.85)/trace 全链路冒烟通过
