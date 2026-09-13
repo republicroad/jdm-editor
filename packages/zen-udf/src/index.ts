@@ -27,6 +27,7 @@ export {
   createExtRegister,
   createUdfRegistry,
   validatePack,
+  packWarnings,
   type UdfPack,
   type UdfSemantics,
   type CreateUdfRegistryOptions,

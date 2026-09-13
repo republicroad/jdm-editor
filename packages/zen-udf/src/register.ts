@@ -57,6 +57,7 @@ export interface CustomFunctionTool {
   namespace: string;
   kind: string;
   semantics: UdfSemantics;
+  idempotent?: boolean;
 }
 
 /** 自定义节点命名空间(namespace/tools 格式)，对应侧边栏 group */
@@ -90,6 +91,8 @@ export interface UdfSchema {
   description?: string;
   /** 算子语义（Y1）：缺省 'query'；决定回放模式下的执行策略 */
   semantics?: UdfSemantics;
+  /** act 语义的幂等声明（Z1）：缺失时 validatePack 产生警告（不阻断），verdict 审计可见 */
+  idempotent?: boolean;
 }
 
 interface UdfEntry {
@@ -273,6 +276,7 @@ class UdfRegistry {
           parametersSchema: def.parametersSchema,
           returnsSchema: def.returnsSchema,
           semantics: def.semantics,
+          idempotent: def.idempotent,
         },
         def.name,
       );
@@ -401,6 +405,7 @@ class UdfRegistry {
         namespace: ns,
         kind: ns,
         semantics: entry.schema.semantics ?? 'query',
+        idempotent: entry.schema.idempotent,
       });
     }
     return [...namespaces.values()];
@@ -432,6 +437,8 @@ export interface ContribToolDef {
   description?: string;
   /** 算子语义（Y1）：缺省 'query' */
   semantics?: UdfSemantics;
+  /** act 语义幂等声明（Z1）：建议 act 工具显式声明 */
+  idempotent?: boolean;
   parametersSchema?: UdfSchema['parametersSchema'];
   returnsSchema?: UdfSchema['returnsSchema'];
   fn: UdfFunction;
@@ -454,6 +461,7 @@ export function defineContrib(importMetaUrl: string, def: ContribDef): ContribTo
       parametersSchema: tool.parametersSchema,
       returnsSchema: tool.returnsSchema,
       semantics: tool.semantics,
+      idempotent: tool.idempotent,
     })(tool.fn);
   }
   return def.tools;
@@ -470,6 +478,22 @@ export const defineTool = (tool: ContribToolDef): ContribToolDef => tool;
 export interface UdfPack {
   namespace: string;
   tools: ContribToolDef[];
+}
+
+/**
+ * act 幂等声明警告（Z1）：act 语义工具未声明 idempotent 时产生警告（不阻断注册）。
+ * 警告与错误分离：errors 阻断，warnings 仅提示（verdict 登记页可见）。
+ */
+export function packWarnings(pack: UdfPack): string[] {
+  const warnings: string[] = [];
+  for (const tool of pack.tools) {
+    if (tool.semantics === 'act' && tool.idempotent !== true) {
+      warnings.push(
+        `act tool '${tool.name}' has no idempotent declaration — replay/submission dedup relies on decisionId at the sink`,
+      );
+    }
+  }
+  return warnings;
 }
 
 /** 校验 UdfPack 形状，返回错误清单（空数组 = 通过）。createUdfRegistry 注册前自动调用 */
@@ -523,6 +547,9 @@ export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRe
     const errors = validatePack(pack);
     if (errors.length > 0) {
       throw new Error(`[udf] invalid UdfPack '${pack.namespace}': ${errors.join('; ')}`);
+    }
+    for (const warning of packWarnings(pack)) {
+      console.warn('[udf] pack "' + pack.namespace + '" warning: ' + warning);
     }
     registry.registerTools(pack.tools, pack.namespace);
   }

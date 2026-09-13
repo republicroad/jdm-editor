@@ -36,6 +36,8 @@ export interface UdfTrace {
   semantics?: UdfSemantics;
   /** UDF 返回值快照（Y2 审计 journal 依据；错误路径为结构化错误对象） */
   outcome?: unknown;
+  /** act 语义幂等声明（Z1） */
+  idempotent?: boolean;
 }
 
 interface EvaluateResponse {
@@ -77,6 +79,8 @@ export interface DecisionObservedCall {
   /** 返回值快照（含结构化错误对象——journal 回放依据） */
   outcome: unknown;
   micros: number;
+  /** act 语义幂等声明（Z1，verdict 审计可见） */
+  idempotent?: boolean;
 }
 
 /**
@@ -313,6 +317,7 @@ class DecisionRuntime {
             key: t.key,
             name: t.name,
             semantics: t.semantics ?? 'query',
+            idempotent: t.idempotent,
             outcome: t.outcome,
             micros: t.micros,
           });
@@ -545,6 +550,7 @@ class DecisionRuntime {
       const inputField = context['inputField'] as string | null;
       const fSchema = this.registry.udfFunctionSchema(funcName);
       const semantics = (fSchema?.semantics as UdfSemantics | undefined) ?? 'query';
+      const idempotent = fSchema?.idempotent as boolean | undefined;
 
       // Y3 回放模式：observe/act 不重执行——从 ExecContext.replay.journal 读回当时返回值；
       // journal 缺失 fail closed（REPLAY_JOURNAL_MISS），query 类正常执行（时钟用 asOf）
@@ -571,6 +577,7 @@ class DecisionRuntime {
           micros: 0,
           code: 'REPLAYED',
           semantics,
+          idempotent,
           outcome: entry.outcome,
         });
         return entry.outcome;
@@ -679,7 +686,7 @@ class DecisionRuntime {
           }
         }
 
-        traces.push({ key: execExpr.key, name: funcName, micros, semantics, outcome: result });
+        traces.push({ key: execExpr.key, name: funcName, micros, semantics, idempotent, outcome: result });
         return result;
       } else {
         if (funcName) {
