@@ -11,8 +11,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@gorules/zen-engine": "0.54.0",
-    "hono": "^4.6.0"
+    "hono": "^4.6.0",
+    "@republicroad/zen-udf": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "^1.2.0",

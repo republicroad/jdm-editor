@@ -129,9 +129,9 @@ importers:
 
   apps/demo-server:
     dependencies:
-      '@gorules/zen-engine':
-        specifier: 0.54.0
-        version: 0.54.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@republicroad/zen-udf':
+        specifier: workspace:*
+        version: link:../../packages/zen-udf
       hono:
         specifier: ^4.6.0
         version: 4.13.7
@@ -1321,22 +1321,10 @@ packages:
   '@gorules/lezer-zen@0.8.1':
     resolution: {integrity: sha512-alMzl4cqlzuqIFz+/bbKiWGN3eI64KjJLq84QkUCHHZG5p9DftV0uRo2RCdMtccSYyoIEWsrkx+ceRGlUMZUVw==}
 
-  '@gorules/zen-engine-darwin-arm64@0.54.0':
-    resolution: {integrity: sha512-FBNmqK+plKAnJvbCi26BGHdhdhRFL2IJs+jVmlzAE95Mkt0DKB6jdVRSRZS3y1hhEnIdcXEBhx6S2f/eWDLcZA==}
-    engines: {node: '>= 14'}
-    cpu: [arm64]
-    os: [darwin]
-
   '@gorules/zen-engine-darwin-arm64@2.0.2':
     resolution: {integrity: sha512-Mt92lOL5ADCDRxp5Jg+DttP/Yx/3u/ZJorvv8o8dXXLEjo/b0AqdVMVXziU5+uBeSm9QNQNBdzmMB1GYgHh28Q==}
     engines: {node: '>= 14'}
     cpu: [arm64]
-    os: [darwin]
-
-  '@gorules/zen-engine-darwin-x64@0.54.0':
-    resolution: {integrity: sha512-SL+dPc6K149fQZ/43Cuf11wUrUqmA2/Dhu2HJDnHNf9yTTs8/o2WnK5+amZ+eWTZZdbDJmYpfIDdM7YRnL5KEw==}
-    engines: {node: '>= 14'}
-    cpu: [x64]
     os: [darwin]
 
   '@gorules/zen-engine-darwin-x64@2.0.2':
@@ -1345,26 +1333,12 @@ packages:
     cpu: [x64]
     os: [darwin]
 
-  '@gorules/zen-engine-linux-arm64-gnu@0.54.0':
-    resolution: {integrity: sha512-3bCz4p1BgTQcSWc+4AWWYcX3IPqHuct+QjxLFfQQNeuYjmkCPP44tgRltaVZsLtWIebBeOUAxuF9AHnTwrpDDA==}
-    engines: {node: '>= 14'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
   '@gorules/zen-engine-linux-arm64-gnu@2.0.2':
     resolution: {integrity: sha512-tbiUCZ6UVjqTI/Z1NdI6ZSnfbYh9H403IAYEeTCnxNcQ3fREuw1BofBC2A/GNztY8V9dcO0AAZTGmzkbLnwqTw==}
     engines: {node: '>= 14'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
-
-  '@gorules/zen-engine-linux-arm64-musl@0.54.0':
-    resolution: {integrity: sha512-lWNthckrELOOPCyArgWKDPmE0k4tlAL8KkAW/xjjKU6mMnrQWMi6ZgQbUMF4Egp86BY8zRwZfqFGkQL7JvInbg==}
-    engines: {node: '>= 14'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
 
   '@gorules/zen-engine-linux-arm64-musl@2.0.2':
     resolution: {integrity: sha512-QsCVNqUxkY4xOgOUP126CCUFc5mlSn+FPfHBNlyx2Co330J9T+4JYim6Rbt4EMAVAJwyf/g27ObO6E+d2LehSA==}
@@ -1373,13 +1347,6 @@ packages:
     os: [linux]
     libc: [musl]
 
-  '@gorules/zen-engine-linux-x64-gnu@0.54.0':
-    resolution: {integrity: sha512-1EW5Ri7+XuUWsp+wNfgao/RN9CO1HL1ddf9vES4VjqBe6AYL9RaqcFDa+hDUCcp5CDvC34sCf/Xnvr8BCm5DBg==}
-    engines: {node: '>= 14'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
   '@gorules/zen-engine-linux-x64-gnu@2.0.2':
     resolution: {integrity: sha512-K2v2OlgqgSNE9bmnmywEAEEOke7LjYKwiNZFDKq96f1gLgvzfC79tVIXPTpmTRn1rh9NxxEMWtCvEirrZiW2Tg==}
     engines: {node: '>= 14'}
@@ -1387,24 +1354,12 @@ packages:
     os: [linux]
     libc: [glibc]
 
-  '@gorules/zen-engine-linux-x64-musl@0.54.0':
-    resolution: {integrity: sha512-YSo2fwUw16QFBYTRsM4euhDEMDvN6UmSp6mWIxE1p/VeCGjxDTS9PJpPK114HYYmI/nSLiKP3qCe/tkA0PRSOA==}
-    engines: {node: '>= 14'}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
   '@gorules/zen-engine-linux-x64-musl@2.0.2':
     resolution: {integrity: sha512-xoJroGGvSGp5R9eiVRX0yPgFqSV98csb0USu0eB9fqo/WxXA42pBjLGrOmciIXPo4rrM8fDXH3j86QzSNbdwzg==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
-
-  '@gorules/zen-engine-wasm32-wasi@0.54.0':
-    resolution: {integrity: sha512-CGpmNAm22+iEHGGNIH/sf9dDrNzxDYeA9jAkt/vynCYRJarF55YgfbvutOZ0t8pl+8D+falA6mB9eJ6ME7wWaA==}
-    engines: {node: '>=14.0.0'}
-    cpu: [wasm32]
 
   '@gorules/zen-engine-wasm32-wasi@2.0.2':
     resolution: {integrity: sha512-cUYRdsw+ZhHqebFmyAARCVuPKwyFkPswTYkEtd2Fvuh8uonp70b8pd3YcEW8k+/ZE3aL6WEwuLJHoZl0vb+rvw==}
@@ -1414,21 +1369,11 @@ packages:
   '@gorules/zen-engine-wasm@0.23.1':
     resolution: {integrity: sha512-FuuzqeRyUhHjz+SLYoqKHpTKog8O+O3LLCbdvgOuarsUAdXiC+tItbHw1PmrDw3jlIQbnfBW+CDOK2serI2mzA==}
 
-  '@gorules/zen-engine-win32-x64-msvc@0.54.0':
-    resolution: {integrity: sha512-bj5PytBCNFBueP+8jma0iL0MnF75c0lk147FL9CrGvZdsxuHw5v4ogvv8vQNQMKhidDyfokcfq67+dFcUP9gUQ==}
-    engines: {node: '>= 14'}
-    cpu: [x64]
-    os: [win32]
-
   '@gorules/zen-engine-win32-x64-msvc@2.0.2':
     resolution: {integrity: sha512-BOp7nkf53HhRXqPlcKDsZIKoYFTcfCQPA0hsxT89GPhpQ8OfOnz270pcRdr9HGVdHPycbbi5EUokyhtIxUS6Ig==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [win32]
-
-  '@gorules/zen-engine@0.54.0':
-    resolution: {integrity: sha512-rt8LeikbQVxDthok9KsLGQxoLVG26Hmb4QCS+CCVSaoFDVDMmo3VfhryyCVkqvY0FjIeIZTluZcPlAI8gNAkqw==}
-    engines: {node: '>= 14'}
 
   '@gorules/zen-engine@2.0.2':
     resolution: {integrity: sha512-KlPBj61KnYvpZ9qMvOep8N9QDlGHS1RsHgFamY6sLk2sJYrFVJRhvuGSjAG0nEIZxPzRyjd549azl3PQ8W4x4w==}
@@ -10643,48 +10588,22 @@ snapshots:
       '@lezer/highlight': 1.2.1
       '@lezer/lr': 1.4.2
 
-  '@gorules/zen-engine-darwin-arm64@0.54.0':
-    optional: true
-
   '@gorules/zen-engine-darwin-arm64@2.0.2':
-    optional: true
-
-  '@gorules/zen-engine-darwin-x64@0.54.0':
     optional: true
 
   '@gorules/zen-engine-darwin-x64@2.0.2':
     optional: true
 
-  '@gorules/zen-engine-linux-arm64-gnu@0.54.0':
-    optional: true
-
   '@gorules/zen-engine-linux-arm64-gnu@2.0.2':
-    optional: true
-
-  '@gorules/zen-engine-linux-arm64-musl@0.54.0':
     optional: true
 
   '@gorules/zen-engine-linux-arm64-musl@2.0.2':
     optional: true
 
-  '@gorules/zen-engine-linux-x64-gnu@0.54.0':
-    optional: true
-
   '@gorules/zen-engine-linux-x64-gnu@2.0.2':
     optional: true
 
-  '@gorules/zen-engine-linux-x64-musl@0.54.0':
-    optional: true
-
   '@gorules/zen-engine-linux-x64-musl@2.0.2':
-    optional: true
-
-  '@gorules/zen-engine-wasm32-wasi@0.54.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
-    dependencies:
-      '@napi-rs/wasm-runtime': 1.2.3(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
-    transitivePeerDependencies:
-      - '@emnapi/core'
-      - '@emnapi/runtime'
     optional: true
 
   '@gorules/zen-engine-wasm32-wasi@2.0.2(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
@@ -10697,25 +10616,8 @@ snapshots:
 
   '@gorules/zen-engine-wasm@0.23.1': {}
 
-  '@gorules/zen-engine-win32-x64-msvc@0.54.0':
-    optional: true
-
   '@gorules/zen-engine-win32-x64-msvc@2.0.2':
     optional: true
-
-  '@gorules/zen-engine@0.54.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
-    optionalDependencies:
-      '@gorules/zen-engine-darwin-arm64': 0.54.0
-      '@gorules/zen-engine-darwin-x64': 0.54.0
-      '@gorules/zen-engine-linux-arm64-gnu': 0.54.0
-      '@gorules/zen-engine-linux-arm64-musl': 0.54.0
-      '@gorules/zen-engine-linux-x64-gnu': 0.54.0
-      '@gorules/zen-engine-linux-x64-musl': 0.54.0
-      '@gorules/zen-engine-wasm32-wasi': 0.54.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
-      '@gorules/zen-engine-win32-x64-msvc': 0.54.0
-    transitivePeerDependencies:
-      - '@emnapi/core'
-      - '@emnapi/runtime'
 
   '@gorules/zen-engine@2.0.2(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     optionalDependencies:
