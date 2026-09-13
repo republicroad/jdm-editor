@@ -27,7 +27,7 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     const zr = new DecisionRuntime({});
     zr.createDecisionWithCacheKey('chuangku-hit', JSON.stringify(content));
 
-    const result = (await runWithExecContext({ userId: ACTOR }, () =>
+    const result = (await runWithExecContext({ tenantId: 'acceptance-tenant', userId: ACTOR }, () =>
       zr.evaluateAsync('chuangku-hit', { ip: '8.8.8.8', phone: '13800000000' }, { trace: true }),
     )) as { result?: { reason?: string }; performance?: string };
     const s = JSON.stringify(result);
@@ -47,7 +47,7 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     const zr = new DecisionRuntime({});
     zr.createDecisionWithCacheKey('chuangku-miss', JSON.stringify(content));
 
-    const result = (await runWithExecContext({ userId: ACTOR }, () =>
+    const result = (await runWithExecContext({ tenantId: 'acceptance-tenant', userId: ACTOR }, () =>
       zr.evaluateAsync('chuangku-miss', { ip: '9.9.9.9', phone: '13900000000' }, { trace: true }),
     )) as unknown as Record<string, unknown>;
     const s = JSON.stringify(result);

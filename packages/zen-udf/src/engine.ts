@@ -15,6 +15,7 @@ import './contrib/http.ts';
 import './contrib/ip-location.ts';
 import './contrib/rate-window.ts';
 import './contrib/roster.ts';
+import { getExecContext } from './exec-context.ts';
 import { globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
@@ -142,12 +143,28 @@ class DecisionRuntime {
     return this.contentCache.get(key);
   }
 
+  /**
+   * 多租户安全默认（fail closed）：evaluate 入口强制租户上下文。
+   * 单租户 CLI/本地场景在 ExecContext 设 tenantExempt: true 显式豁免。
+   */
+  private static requireTenantContext(): void {
+    const ctx = getExecContext();
+    if (ctx?.tenantExempt) return;
+    if (!ctx?.tenantId) {
+      throw new Error(
+        '[zen-udf] missing exec context tenantId — wrap the call in runWithExecContext({ tenantId }, fn), or set tenantExempt: true for single-tenant deployments',
+      );
+    }
+  }
+
   evaluate(key: string, ctx: unknown, options?: unknown): Promise<EvaluateResponse> {
+    DecisionRuntime.requireTenantContext();
     const decision = this.getDecision(key);
     return decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined) as Promise<EvaluateResponse>;
   }
 
   async evaluateAsync(key: string, ctx: unknown, options?: unknown): Promise<EvaluateResponse> {
+    DecisionRuntime.requireTenantContext();
     const decision = this.getDecision(key);
     const result = await decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined);
     return result as EvaluateResponse;

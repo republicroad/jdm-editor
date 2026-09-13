@@ -1,8 +1,15 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 export interface ExecContext {
+  /** 租户标识：多租户运行时强制要求（见 DecisionRuntime.evaluate 入口校验） */
+  tenantId?: string;
   userId?: string;
   requestId?: string;
+  /**
+   * 显式单租户豁免：置 true 后 evaluate 入口不再强制 tenantId，
+   * 仅限 CLI / 本地 / 单租户部署使用；多租户服务端禁止开启。
+   */
+  tenantExempt?: boolean;
 }
 
 const execStorage = new AsyncLocalStorage<ExecContext>();
