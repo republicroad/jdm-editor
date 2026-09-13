@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-import { createExtRegister } from '../register.ts';
-
-const registerUdf = createExtRegister(import.meta.url);
+import { defineContrib, defineTool } from '../register.ts';
 
 /**
  * 旧平台函数域重建（第六十九批 D2，docs/13 §8.3）：IP 属地解析。
@@ -37,42 +35,48 @@ const loadDataset = (): Record<string, GeoEntry> => {
   return cachedDataset;
 };
 
-registerUdf('ip_location', {
-  description:
-    '旧域重建·IP 属地解析：按最长前缀匹配数据集（env IP_LOCATION_DATASET 指向 JSON）返回 country/province/city/isp；未命中返回空字段。',
-  parametersSchema: {
-    properties: {
-      ip: {
-        type: 'string',
-        title: 'IP',
-        description: '待解析的 IP 地址',
+export default defineContrib(import.meta.url, {
+  tools: [
+    defineTool({
+      name: 'ip_location',
+      description:
+        '旧域重建·IP 属地解析：按最长前缀匹配数据集（env IP_LOCATION_DATASET 指向 JSON）返回 country/province/city/isp；未命中返回空字段。',
+      parametersSchema: {
+        properties: {
+          ip: {
+            type: 'string',
+            title: 'IP',
+            description: '待解析的 IP 地址',
+          },
+        },
       },
-    },
-  },
-  returnsSchema: {
-    type: 'object',
-    title: 'ip_location_result',
-    properties: {
-      country: { type: 'string', title: 'Country' },
-      province: { type: 'string', title: 'Province' },
-      city: { type: 'string', title: 'City' },
-      isp: { type: 'string', title: 'Isp' },
-      ip: { type: 'string', title: 'Ip' },
-    },
-    required: ['country', 'province', 'city', 'isp', 'ip'],
-  },
-})(function ipLocationUdf(kwargs: Record<string, unknown>) {
-  const ip = String(kwargs?.ip ?? '');
-  const dataset = loadDataset();
-  const hit = Object.keys(dataset)
-    .filter((prefix) => ip.startsWith(prefix))
-    .sort((a, b) => b.length - a.length)[0];
-  const geo = hit ? dataset[hit] : undefined;
-  return {
-    country: geo?.country ?? '',
-    province: geo?.province ?? '',
-    city: geo?.city ?? '',
-    isp: geo?.isp ?? '',
-    ip,
-  };
+      returnsSchema: {
+        type: 'object',
+        title: 'ip_location_result',
+        properties: {
+          country: { type: 'string', title: 'Country' },
+          province: { type: 'string', title: 'Province' },
+          city: { type: 'string', title: 'City' },
+          isp: { type: 'string', title: 'Isp' },
+          ip: { type: 'string', title: 'Ip' },
+        },
+        required: ['country', 'province', 'city', 'isp', 'ip'],
+      },
+      fn: function ipLocationUdf(kwargs: Record<string, unknown>) {
+        const ip = String(kwargs?.ip ?? '');
+        const dataset = loadDataset();
+        const hit = Object.keys(dataset)
+          .filter((prefix) => ip.startsWith(prefix))
+          .sort((a, b) => b.length - a.length)[0];
+        const geo = hit ? dataset[hit] : undefined;
+        return {
+          country: geo?.country ?? '',
+          province: geo?.province ?? '',
+          city: geo?.city ?? '',
+          isp: geo?.isp ?? '',
+          ip,
+        };
+      },
+    }),
+  ],
 });

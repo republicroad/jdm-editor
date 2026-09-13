@@ -177,31 +177,43 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
 class UdfRegistry {
   private functions = new Map<string, UdfEntry>();
 
-  /** 平台硬化：函数名与 namespace 名同名校验——裸 kind 解析中 namespace 优先，同名会使其中一方 kind 不可达 */
-  private warnNamespaceCollision(name: string, namespace: string): void {
+  /**
+   * 平台硬化：跨名冲突校验——裸 kind 解析中 namespace 优先，函数名/namespace 交叉同名
+   * 会使其中一方 kind 不可达，注册期直接失败（force 可显式接管）。
+   * 函数名与自身 namespace 同名（如 contrib/roster.ts 的 roster 工具）为遗留既定契约，放行：
+   * 语义确定为 namespace 优先。
+   */
+  private assertNoNamespaceCollision(name: string, namespace: string): void {
     const existingNamespaces = new Set<string>();
     for (const entry of this.functions.values()) {
       existingNamespaces.add(entry.schema.namespace ?? 'default');
     }
-    if (name === namespace) {
-      console.warn(
-        `[udf] 函数 '${name}' 与其自身 namespace 同名：锁定 kind 与容器 kind 撞名，专用 spec 需以 override 函数名接管`,
+    if (name !== namespace && existingNamespaces.has(name)) {
+      throw new Error(
+        `[udf] 函数 '${name}' 与现有 namespace 同名：裸 kind 解析时 namespace 优先，函数锁定 kind 不可达（force 可显式接管）`,
       );
-    } else if (existingNamespaces.has(name)) {
-      console.warn(`[udf] 函数 '${name}' 与现有 namespace 同名：裸 kind 解析时 namespace 优先，该函数锁定 kind 不可达`);
-    } else if ([...this.functions.keys()].some((fnName) => fnName === namespace)) {
-      console.warn(
-        `[udf] namespace '${namespace}' 与现有函数同名：其中函数的裸 kind 解析将命中 namespace（scoped 优先）`,
+    }
+    if (name !== namespace && [...this.functions.keys()].some((fnName) => fnName === namespace)) {
+      throw new Error(
+        `[udf] namespace '${namespace}' 与现有函数同名：其中函数的裸 kind 解析将命中 namespace（force 可显式接管）`,
       );
     }
   }
 
-  registerFunction(fn: UdfFunction, namespace?: string, schema?: UdfSchema, nameOverride?: string): void {
+  registerFunction(
+    fn: UdfFunction,
+    namespace?: string,
+    schema?: UdfSchema,
+    nameOverride?: string,
+    options?: { force?: boolean },
+  ): void {
     const name = nameOverride ?? fn.name;
     if (!name) {
       throw new Error('Function must have a name to register');
     }
-    this.warnNamespaceCollision(name, namespace ?? 'default');
+    if (!options?.force) {
+      this.assertNoNamespaceCollision(name, namespace ?? 'default');
+    }
     this.functions.set(name, {
       fn,
       schema: normalizeUdfSchema({
@@ -213,6 +225,22 @@ class UdfRegistry {
         description: schema?.description,
       }),
     });
+  }
+
+  /** 批量注册工具定义（UdfPack / reference 域装载共用；namespace 缺省 'default'） */
+  registerTools(defs: ContribToolDef[], namespace?: string): void {
+    for (const def of defs) {
+      this.registerFunction(
+        def.fn,
+        namespace,
+        {
+          description: def.description,
+          parametersSchema: def.parametersSchema,
+          returnsSchema: def.returnsSchema,
+        },
+        def.name,
+      );
+    }
   }
 
   udfFunctionSchema(name: string): UdfSchema | undefined {

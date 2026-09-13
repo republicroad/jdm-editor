@@ -2,6 +2,10 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from './engine.ts';
 import { getExecContext, runWithExecContext } from './exec-context.ts';
+import './reference.ts';
+import { UdfRegistry } from './register.ts';
+
+// 缺省构造回落 globalUdfRegistry：装载参考域
 
 const graph = {
   id: 'tenant-graph',
@@ -11,6 +15,28 @@ const graph = {
   ],
   edges: [],
 };
+
+/** 带 customNode 的图：expr 调用 probe_udf 并把结果写到 out 字段 */
+const customGraph = (id: string) => ({
+  id,
+  nodes: [
+    { id: 'in', type: 'inputNode', name: 'Request' },
+    {
+      id: 'c1',
+      type: 'customNode',
+      name: 'custom',
+      content: {
+        kind: 'UDF',
+        config: { expressions: [{ id: 'e1', key: 'out', value: 'probe_udf;;x' }] },
+      },
+    },
+    { id: 'out', type: 'outputNode', name: 'Response' },
+  ],
+  edges: [
+    { id: 'ed1', sourceId: 'in', targetId: 'c1', type: 'edge' },
+    { id: 'ed2', sourceId: 'c1', targetId: 'out', type: 'edge' },
+  ],
+});
 
 describe('DecisionRuntime 租户上下文强制（U2）', () => {
   test('无租户上下文时 evaluate 拒绝执行（fail closed）', async () => {
@@ -52,5 +78,43 @@ describe('DecisionRuntime 租户上下文强制（U2）', () => {
       runWithExecContext({ tenantId: 't-c' }, probe),
     ]);
     expect(results).toEqual(['t-a', 't-b', 't-c']);
+  });
+});
+
+describe('DecisionRuntime 实例注入（U3）', () => {
+  const makeRegistry = (tag: string): UdfRegistry => {
+    const registry = new UdfRegistry();
+    registry.registerFunction(function probe_udf(kwargs: Record<string, unknown>) {
+      return { tag, x: kwargs?.x ?? null };
+    }, 'probe');
+    return registry;
+  };
+
+  test('两个运行时实例同名 UDF 各自解析，互不串扰', async () => {
+    const ra = new DecisionRuntime({ registry: makeRegistry('A') });
+    const rb = new DecisionRuntime({ registry: makeRegistry('B') });
+    ra.createDecisionWithCacheKey('k', customGraph('ga'));
+    rb.createDecisionWithCacheKey('k', customGraph('gb'));
+
+    const [a, b] = await Promise.all([
+      runWithExecContext({ tenantId: 't-1' }, () => ra.evaluateAsync('k', { x: 1 })),
+      runWithExecContext({ tenantId: 't-1' }, () => rb.evaluateAsync('k', { x: 2 })),
+    ]);
+    expect((a.result as { out: { tag: string } }).out.tag).toBe('A');
+    expect((b.result as { out: { tag: string } }).out.tag).toBe('B');
+  });
+
+  test('空注册表的运行时对未知 UDF 返回结构化错误而非抛出', async () => {
+    const runtime = new DecisionRuntime({ registry: new UdfRegistry() });
+    runtime.createDecisionWithCacheKey('k', customGraph('g-empty'));
+
+    const result = await runWithExecContext({ tenantId: 't-1' }, () => runtime.evaluateAsync('k', { x: 1 }));
+    const serialized = JSON.stringify(result);
+    expect(serialized).toContain('udf probe_udf not found');
+  });
+
+  test('缺省构造回落 globalUdfRegistry（reference 装载后 http 可用）', () => {
+    const runtime = new DecisionRuntime();
+    expect(runtime.udfFunctionSchemaTools().length).toBeGreaterThan(0);
   });
 });

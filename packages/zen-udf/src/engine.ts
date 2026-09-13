@@ -7,16 +7,8 @@ import type {
 } from '@gorules/zen-engine';
 import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/zen-engine';
 
-import './contrib/crypto.ts';
-import './contrib/custom-list-query.ts';
-import './contrib/debug.ts';
-import './contrib/debugui.ts';
-import './contrib/http.ts';
-import './contrib/ip-location.ts';
-import './contrib/rate-window.ts';
-import './contrib/roster.ts';
 import { getExecContext } from './exec-context.ts';
-import { globalUdfRegistry } from './register.ts';
+import { type UdfRegistry, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
 
@@ -30,6 +22,12 @@ interface EvaluateResponse {
   performance: string;
   result: unknown;
   trace?: unknown;
+}
+
+/** DecisionRuntime 构造项：zen-engine 原生 options + 实例级 UDF 注册表 */
+export interface DecisionRuntimeOptions extends ZenEngineOptions {
+  /** 缺省回落 globalUdfRegistry（配合 `@republicroad/zen-udf` 根导入的 reference 装载） */
+  registry?: UdfRegistry;
 }
 
 interface GraphNode {
@@ -58,23 +56,20 @@ function evaluateExpressionSafe(expr: string, input?: unknown): unknown {
 
 class DecisionRuntime {
   static CUSTOM_HANDLER_META = CUSTOM_HANDLER_META;
-  /** 全局默认注册表（U3 实例化后此静态绑定移除，改为实例字段） */
-  static registry = globalUdfRegistry;
 
   engine: ZenEngine;
-  options: ZenEngineOptions;
+  options: DecisionRuntimeOptions;
+  /** 实例级 UDF 注册表（缺省回落 globalUdfRegistry；多实例互不污染） */
+  registry: UdfRegistry;
   decisionCache = new Map<string, ZenDecision>();
   contentCache = new Map<string, unknown>();
 
-  constructor(options?: ZenEngineOptions) {
-    if (options) {
-      if (options.customHandler == null) {
-        options.customHandler = DecisionRuntime.customHandlerFunc;
-      }
-      this.options = options;
-    } else {
-      this.options = { customHandler: DecisionRuntime.customHandlerFunc };
+  constructor(options: DecisionRuntimeOptions = {}) {
+    this.registry = options.registry ?? globalUdfRegistry;
+    if (options.customHandler == null) {
+      options.customHandler = (request) => this.handleCustomNode(request);
     }
+    this.options = options;
     this.engine = new ZenEngine(this.options);
   }
 
@@ -227,7 +222,8 @@ class DecisionRuntime {
     return parts;
   }
 
-  static async customHandlerFunc(request: ZenEngineHandlerRequest): Promise<ZenEngineHandlerResponse> {
+  /** customNode 执行器（实例绑定：经 this.registry 解析 UDF，多运行时互不串扰） */
+  private async handleCustomNode(request: ZenEngineHandlerRequest): Promise<ZenEngineHandlerResponse> {
     const node = request.node;
     const exprAsts = (node.config?.['expr_asts'] ?? []) as ExprAstItem[];
     const inputField = (node.config?.['inputField'] as string | null) ?? null;
@@ -243,7 +239,7 @@ class DecisionRuntime {
       outputPath,
     };
 
-    const coroFuncs = exprAsts.map((item) => DecisionRuntime.executeExpr(item, request.input, context));
+    const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context));
     const resultsArr = await Promise.all(coroFuncs);
     const results: Record<string, unknown> = {};
     exprAsts.forEach((item, i) => {
@@ -269,7 +265,7 @@ class DecisionRuntime {
     return { output: results };
   }
 
-  private static async executeExpr(
+  private async executeExpr(
     execExpr: ExprAstItem,
     nodeInput: unknown,
     context: Record<string, unknown>,
@@ -283,7 +279,7 @@ class DecisionRuntime {
       const opArgExpressions = ast.slice(1);
 
       const inputField = context['inputField'] as string | null;
-      const fSchema = globalUdfRegistry.udfFunctionSchema(funcName);
+      const fSchema = this.registry.udfFunctionSchema(funcName);
 
       if (fSchema) {
         const args = opArgExpressions.map((i: string) => {
@@ -291,7 +287,7 @@ class DecisionRuntime {
           return evaluateExpressionSafe(expr, nodeInput);
         });
 
-        const operatorKwargs = globalUdfRegistry.funcBindParams(funcName, args);
+        const operatorKwargs = this.registry.funcBindParams(funcName, args);
         const kwargs: Record<string, unknown> = {
           ...operatorKwargs,
           ...context,
@@ -300,7 +296,7 @@ class DecisionRuntime {
           _node_input_: nodeInput,
         };
 
-        const result = await globalUdfRegistry.call(funcName, kwargs);
+        const result = await this.registry.call(funcName, kwargs);
         return result;
       } else {
         if (funcName) {
@@ -314,8 +310,8 @@ class DecisionRuntime {
     }
   }
 
-  static udfFunctionSchemaTools(): unknown[] {
-    return globalUdfRegistry.udfFunctionSchemaTools();
+  udfFunctionSchemaTools(): unknown[] {
+    return this.registry.udfFunctionSchemaTools();
   }
 }
 
