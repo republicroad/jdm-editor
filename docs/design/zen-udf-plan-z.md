@@ -1,6 +1,7 @@
 # zen-udf 开发计划 Z 系列（0.3.0 发布与治理收口）
 
-状态：plan · 待宿主确认（3 个决策点见文末）
+状态：shipped · D12–D14 裁决落地，Z1–Z4 完成（2026-09-14，114/114）；0.3.0 已触发 CI 发布
+宿主裁决：D13 HAProxy observe 算子包归 verdict 实现（本仓仅文档指引）；D14 审计演示纳入；上游 issue 文档追加 OTel 子 span 影响与验收标准。
 上游：Y 系列（语义/审计/回放/熔断/OTel/夹具）已 shipped；0.2.0 在架；W4 挂起；verdict U10 跨仓执行中
 
 ## 现状盘点
@@ -14,12 +15,12 @@
 
 | 期 | 内容 | 状态 |
 | --- | --- | --- |
-| Z1 | act 幂等声明校验（Y1 遗留） | 待开发 |
-| Z2 | README/docs 刷新至 0.3.0 能力全集 | 待开发 |
-| Z3 | 0.3.0 版本收口与发布 | 待开发 |
-| Z4 | demo-server 审计演示（决策审计生命周期可视化） | 决策点 D14 |
-| Z5 | HAProxy observe 算子包落点 | 决策点 D13 |
-| Z6 | OTel customNode 子 span | 挂起（依赖上游原生传播） |
+| Z1 | act 幂等声明校验（Y1 遗留） | ✅ 5209104a |
+| Z2 | README/docs 刷新至 0.3.0 能力全集 | ✅ f9148edf |
+| Z3 | 0.3.0 版本收口与发布 | ✅ 版本 bump + 冒烟 + chore(release) 触发 |
+| Z4 | demo-server 审计演示（决策审计生命周期可视化） | ✅ onDecision → stdout JSON 行 |
+| Z5 | HAProxy observe 算子包落点 | ⏸ D13 裁决：由 verdict 实现（本仓仅文档指引） |
+| Z6 | OTel customNode 子 span | ⏸ 已并入上游 issue 草稿（影响 + 验收标准） |
 | Z7 | verdict U10 支持 | 跨仓持续 |
 
 建议执行序：Z1 → Z2 → Z4（视 D14）→ Z3 → Z5（按 D13 记录方向）；Z6 观察名单。
@@ -64,8 +65,4 @@
 
 - 跨仓持续：按 [verdict-zen-udf-integration.md](./verdict-zen-udf-integration.md) 支持 U10 执行；本仓按需补机制/契约测试
 
-## 待宿主确认
-
-- **D12**：0.3.0 发布内容确认（推荐：Y1–Y7 全部 + Z1/Z2 收口后发布）
-- **D13**：HAProxy observe 参考包落点（推荐：xrule 仓私有包，zen-udf 只出文档指引）
-- **D14**：demo-server 审计演示（推荐：纳入——stdout JSON 行，改动极小、演示价值高）
+undefined
