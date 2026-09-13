@@ -578,7 +578,7 @@ importers:
         specifier: 'catalog:'
         version: 8.2.2(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.86.3)(tsx@4.23.13)(yaml@2.9.0)
 
-  packages/zen-rule:
+  packages/zen-udf:
     dependencies:
       '@gorules/zen-engine':
         specifier: 2.0.2
