@@ -222,6 +222,7 @@ class DecisionRuntime {
    * ALS 不跨 zen-engine 的 Rust worker → TSFN 回调边界存活（探针实证），
    * 把当前 ExecContext 以保留键嵌入输入对象，由 handleCustomNode 提取后
    * 重建立上下文。仅对象输入可承载；其余形态按无上下文执行（UDF 内 fail closed）。
+   * 嵌入的是冻结副本：防图表达式篡改调用方持有的共享 ctx 对象（加固 §5）。
    */
   private static enrichInputWithExecContext(ctx: unknown): unknown {
     if (ctx === null || typeof ctx !== 'object' || Array.isArray(ctx)) {
@@ -231,7 +232,7 @@ class DecisionRuntime {
     if (!execCtx) {
       return ctx;
     }
-    return { ...(ctx as Record<string, unknown>), [EXEC_CONTEXT_INPUT_KEY]: execCtx };
+    return { ...(ctx as Record<string, unknown>), [EXEC_CONTEXT_INPUT_KEY]: Object.freeze({ ...execCtx }) };
   }
 
   evaluate(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
