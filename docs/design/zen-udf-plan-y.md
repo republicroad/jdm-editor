@@ -1,6 +1,6 @@
 # zen-udf 开发计划 Y 系列（语义声明、审计与确定性回放）
 
-状态：plan · 待宿主确认（1 个决策点见文末）
+状态：shipped · Y1–Y7 全部完成（2026-09-14，114/114 测试；D11 裁决：审计 output 记录完整决策结论，脱敏属宿主持久化层）
 上游：U/V/W 系列已 shipped；0.2.0 已发布 npm
 定位：**实时决策引擎赢得客户信任的核心**。客户信任 = 能回答"这个决策为什么发生、当时的状态是什么、重演是否一致"。本系列把"副作用与无状态功能的隔离"从作者约定升级为**运行时强制**：声明（作者）→ 强制（运行时）→ 证据（审计）→ 重演（回放）。
 
@@ -22,14 +22,14 @@
 | 期 | 内容 | 依赖 | 状态 |
 | --- | --- | --- | --- |
 | Y1 | 语义三元声明（`semantics: query \| observe \| act`） | — | 待开发 |
-| Y2 | 决策审计事件（`onDecision` 钩子 + DecisionAuditEvent） | Y1 | 待开发 |
-| Y3 | replay 模式（ExecContext.replay + journal 重放） | Y1 Y2 | 待开发 |
-| Y4 | RateStore as-of 化（事件时间语义） | Y1 | 待开发 |
-| Y5 | CircuitBreaker 端口（熔断） | — | 待开发 |
-| Y6 | OpenTelemetry 桥（可选 peerDependency） | — | 待开发 |
-| Y7 | 决策测试夹具运行器（基于 Y3 回放语义） | Y3 | 待开发 |
+| Y2 | 决策审计事件（`onDecision` 钩子 + DecisionAuditEvent） | Y1 | ✅ cd4ad746 |
+| Y3 | replay 模式（ExecContext.replay + journal 重放） | Y1 Y2 | ✅ cd4ad746 |
+| Y4 | RateStore as-of 化（事件时间语义） | Y1 | ✅ 1f1d0d5c |
+| Y5 | CircuitBreaker 端口（熔断） | — | ✅ 300d0788 |
+| Y6 | OpenTelemetry 桥（可选 peerDependency） | — | ✅ 09cc1715 |
+| Y7 | 决策测试夹具运行器（基于 Y3 回放语义） | Y3 | ✅ e0e9cf8c |
 
-建议执行序：Y1 → Y2 → Y3 → Y4 → Y5 → Y6 → Y7。目标版本：0.3.0。
+建议执行序：Y1 → Y2 → Y3 → Y4 → Y5 → Y6 → Y7。目标版本：0.3.0（发布待宿主触发 chore(release) 提交）。
 
 ## Y1 语义三元声明
 
