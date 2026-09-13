@@ -99,6 +99,29 @@ exact 逐成员键（基数=存储，如 `group:v` 组合键）在攻击风暴�
 - **整段决策逻辑下推到数据侧**（读账户+计数器+规则分支+更新状态一次往返，对应 xrule 的 Lua 方向）→ **Tarantool 更强**：Lua 应用服务器即"逻辑住在数据旁边"的原生形态，Alfa-Bank 投行核心为同型验证
 - 二者都是 **observe/query 端口的后端替换**（换实现不换契约）；引入时机纪律：**仅当每节点口径真成瓶颈**（延迟预算 >1ms 且需跨节点一致）才引入，否则 stick table 热层已足
 
+### 4.2 事实层选型：FoundationDB
+
+**定位辨析**：FoundationDB（FDB）与 §4.1 的 Aerospike/Tarantool **不构成竞争关系**——FDB 是"严格串行化事务 KV"（Apple 2015 收购、2019 开源，Apache 2.0），架构核心是确定性仿真测试带来的极端正确性 + 计算存储分离。它的写事务延迟地板（GRV 读版本 + 提交等待，典型 ~5–15ms）决定了它**不能进在途计数层**；但它恰是事实层（L0 模型库 / 审计存档 / 元数据）的强一致底座候选。
+
+关键特征与错位论证：
+
+| 维度 | FDB 表现 | 对在途计数层的含义 |
+| --- | --- | --- |
+| 事务 | 全键空间**严格可串行化** ACID，MVCC + 乐观并发（冲突重试） | 强一致注册/存档无忧 |
+| 延迟 | 写事务 ~5–15ms（GRV + 提交等待版本稳定），读个位数 ms | 比 stick table/Aerospike 慢 1–2 个数量级——**禁止进热层** |
+| 原子自增读 | atomic op（`ADD`）无冲突但不回读；事务内 read-my-own-write 需 get+add（付冲突与延迟代价） | 不满足同步计数核心语义 |
+| TTL | 无原生记录 TTL（自建清理层） | 滑窗过期需另行实现 |
+| 排序 | **versionstamp**：每次提交获得全局有序版本号 | 天然适配模型 rev 不可变链（L0） |
+| 许可 | Apache 2.0（宽松，无 AGPL 顾虑） | verdict 自托管无忧 |
+
+事实层用途映射：
+
+1. **L0 模型内容库**：`(tenant, key, rev)` 不可变版本链——FDB tuple + versionstamp 天然给出 rev 的全局排序（发布顺序即版本序），严格串行化保证登记无竞态
+2. **审计事件存档**（Y2 DecisionAuditEvent 的持久化层之一）：事务性追加不丢事件，海量有序
+3. **元数据/注册中心**：先例——**Snowflake 的元数据层构建在 FDB 上**（SIGMOD 论文公开）；Apple 自家 iCloud 日历/通讯录等数 PB 级验证
+
+运维现实：FDB **无官方托管服务**，集群运维/备份/DR/客户端调优需要专家技能，社区小而精（Apple/Snowflake 级团队如鱼得水）。verdict 初期规模下 L0 用 **PostgreSQL 起步**，把 FDB 记入观察名单——当审计存档与模型注册的一致性/规模需求真实超出 PG 时再迁移。
+
 ## 6. 对 zen-udf / verdict 的映射
 
 | 结论 | 归属 | 形态 |
@@ -108,12 +131,13 @@ exact 逐成员键（基数=存储，如 `group:v` 组合键）在攻击风暴�
 | RateStore as-of / 事实层端口 | 本仓机制（Y4）+ verdict Redis 实现 | 事件时间窗口，存事实记录非递增计数器 |
 | 热层实现（HAProxy stick table REST 端点） | xrule/verdict 侧 | `semantics: 'observe'` 的 UdfPack，实现调 REST |
 | 全局一致同步层（跨节点频次/状态，引入时） | verdict 侧 | Aerospike（计数/频次/TTL）或 Tarantool（决策逻辑下推），observe/query 端口后端替换 |
+| 事实/元数据层强一致底座（规模超出 PG 时） | verdict 侧 | FoundationDB（versionstamp=rev 排序；L0 模型库 + 审计存档），Apache 2.0 |
 | 原始事件保留期 / 幂等键去重 / 阈值偏置策略 | verdict 策略 | 数据保留、sink 幂等、阈值调优 |
 | HAProxy 补强项 | xrule 侧 | 多副本按节点计数口径、租户键前缀、used 比例告警、基数自适应（HLL） |
 
 ## 7. 结论
 
-HAProxy stick table 方案与 Cloudflare/Envoy/Kong 的在途限流同宗，是 **read-my-own-write 同步计数的正统业界实现**——处理时间与状态变更对 observe 算子是正确语义而非债务。设计上需要补的只有两条：基数自适应（HLL/CMS 兜底）与故障偏置显式化；配合 Y 系列的"观测值入审计 + 回放不重执行"，同步计数的速度优势与决策的确定性回放即可兼得。跨节点一致成为真实瓶颈时，按 §4.1 选型引入 Aerospike/Tarantool 全局同步层——observe/query 端口后端替换，决策图与审计/回放语义零改动。
+HAProxy stick table 方案与 Cloudflare/Envoy/Kong 的在途限流同宗，是 **read-my-own-write 同步计数的正统业界实现**——处理时间与状态变更对 observe 算子是正确语义而非债务。设计上需要补的只有两条：基数自适应（HLL/CMS 兜底）与故障偏置显式化；配合 Y 系列的"观测值入审计 + 回放不重执行"，同步计数的速度优势与决策的确定性回放即可兼得。跨节点一致成为真实瓶颈时，按 §4.1 选型引入 Aerospike/Tarantool 全局同步层——observe/query 端口后端替换，决策图与审计/回放语义零改动。事实/元数据层（L0 模型库与审计存档）的强一致底座候选为 FoundationDB（§4.2），初期 PostgreSQL 起步、FDB 留作规模触顶后的迁移目标。
 
 ## 参考来源
 
@@ -124,3 +148,4 @@ HAProxy stick table 方案与 Cloudflare/Envoy/Kong 的在途限流同宗，是 
 - [Tarantool for Banks](https://www.tarantool.io/en/banks/) · [Alfa-Bank case（IB-Core 40+ 节点）](https://www.tarantool.io/en/cases/alfabank/) · [Tarantool DB 银行用例（≥20K TPS）](https://www.tarantool.io/en/tarantooldb/)
 - [Redis vs Tarantool（VK/Habr）](https://habr.com/en/companies/vk/articles/575772/)
 - [Aerospike Community 许可（AGPLv3）](https://github.com/aerospike/aerospike-server/blob/master/LICENSE)
+- [FoundationDB（Apple 开源公告）](https://www.foundationdb.org/blog/announcing-foundationdb-documentation/) · [FDB 文档](https://apple.github.io/foundationdb/) · [Snowflake Using FoundationDB（SIGMOD 论文）](https://www.mdpi.com/journal/data) — Snowflake 元数据层先例见 [Snowflake 工程博客](https://www.snowflake.com/blog/inside-snowflake-metadata-teams-journey-to-foundationdb/)
