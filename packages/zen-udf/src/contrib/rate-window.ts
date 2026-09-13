@@ -1,3 +1,4 @@
+import { getExecContext } from '../exec-context.ts';
 import { defineContrib, defineTool } from '../register.ts';
 
 /**
@@ -33,11 +34,12 @@ export interface GroupDistinctCommonResult {
 
 /** 频控存储端口：Redis 化实现（verdict 侧）须通过 rate-store-conformance 契约测试 */
 export interface RateStore {
-  rate(entity: string, windowMs: number): RateCommonResult | Promise<RateCommonResult>;
+  rate(entity: string, windowMs: number, asOf?: number): RateCommonResult | Promise<RateCommonResult>;
   groupDistinct(
     group: string,
     value: string,
     windowMs: number,
+    asOf?: number,
   ): GroupDistinctCommonResult | Promise<GroupDistinctCommonResult>;
   /** 清空状态（测试辅助；生产实现可为 no-op） */
   reset?(): void;
@@ -59,8 +61,8 @@ export class InMemoryRateStore implements RateStore {
     this.valueWindows.clear();
   }
 
-  rate(entity: string, windowMs: number): RateCommonResult {
-    const now = this.now();
+  rate(entity: string, windowMs: number, asOf?: number): RateCommonResult {
+    const now = asOf ?? this.now();
     const stamps = (this.rateWindows.get(entity) ?? []).filter((t) => now - t < windowMs);
     const previous = stamps[stamps.length - 1];
     stamps.push(now);
@@ -73,8 +75,8 @@ export class InMemoryRateStore implements RateStore {
     };
   }
 
-  groupDistinct(group: string, value: string, windowMs: number): GroupDistinctCommonResult {
-    const now = this.now();
+  groupDistinct(group: string, value: string, windowMs: number, asOf?: number): GroupDistinctCommonResult {
+    const now = asOf ?? this.now();
 
     const entry = this.groupWindows.get(group) ?? { pv: [], values: new Map<string, number[]>() };
     entry.pv = entry.pv.filter((t) => now - t < windowMs);
@@ -124,6 +126,15 @@ export const __resetRateWindows = (): void => {
 
 const WINDOW_MS = 60 * 60 * 1000;
 
+/** 事件时间锚点：ExecContext.eventTime / replay.asOf（ISO）→ epoch ms；缺省 undefined = 处理时间 */
+const resolveAsOfMs = (): number | undefined => {
+  const ctx = getExecContext();
+  const iso = ctx?.eventTime ?? ctx?.replay?.asOf;
+  if (!iso) return undefined;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : undefined;
+};
+
 const rate_1h = defineTool({
   name: 'rate_1h',
   semantics: 'observe',
@@ -149,7 +160,7 @@ const rate_1h = defineTool({
   },
   fn: function rateUdf(kwargs: Record<string, unknown>) {
     const entity = String(kwargs?.entity ?? '');
-    return Promise.resolve(getRateStore().rate(entity, WINDOW_MS));
+    return Promise.resolve(getRateStore().rate(entity, WINDOW_MS, resolveAsOfMs()));
   },
 });
 
@@ -188,7 +199,7 @@ const group_distinct_1h = defineTool({
   fn: function groupDistinctUdf(kwargs: Record<string, unknown>) {
     const group = String(kwargs?.group ?? '');
     const value = String(kwargs?.value ?? '');
-    return Promise.resolve(getRateStore().groupDistinct(group, value, WINDOW_MS));
+    return Promise.resolve(getRateStore().groupDistinct(group, value, WINDOW_MS, resolveAsOfMs()));
   },
 });
 

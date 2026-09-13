@@ -55,6 +55,23 @@ export const rateStoreConformance = (name: string, createStore: (now: () => numb
       expect(other.v).toBe('p1');
     });
 
+    test('rate/groupDistinct：asOf 事件时间锚点（point-in-time 复算）', async () => {
+      nowMs = 2_100_000_000_000;
+      store = createStore(() => nowMs);
+      await store.rate('ip-asof', 60_000);
+      const atPlus30 = await store.rate('ip-asof', 60_000, nowMs + 30_000);
+      expect(atPlus30.counter).toBe(2);
+      expect(atPlus30.idle).toBe(30);
+      const atPlus61 = await store.rate('ip-asof', 60_000, nowMs + 61_000);
+      // 窗口随 asOf 平移：事件1(nowMs) 滑出，事件2(nowMs+30s) 仍在窗内，本次调用自身计入 → 2
+      expect(atPlus61.counter).toBe(2);
+
+      const g1 = await store.groupDistinct('g-asof', 'v1', 60_000, nowMs + 90_000);
+      const g2 = await store.groupDistinct('g-asof', 'v2', 60_000, nowMs + 90_000);
+      expect([g1.pv, g1.uv]).toEqual([1, 1]);
+      expect([g2.pv, g2.uv]).toEqual([2, 2]);
+    });
+
     test('groupDistinct：窗口滑出后 pv/uv 重置', async () => {
       nowMs = 1_900_000_000_000;
       store = createStore(() => nowMs);
