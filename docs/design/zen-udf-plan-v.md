@@ -1,6 +1,7 @@
 # zen-udf 开发计划 V 系列（发布与收尾）
 
-状态：plan · 待宿主确认（3 个决策点见文末）
+状态：shipped · V1–V8 全部完成（2026-09-13，zen-udf 98/98 + demo-server 9/9；0.2.0 发布就绪，实际 publish 由宿主/CI 执行）
+宿主裁决 D4–D6 见文末。
 上游：U 系列（U2–U9）已 shipped，见 [zen-udf-development-plan.md](./zen-udf-development-plan.md)
 定位：U 系列完成了机制与租户契约；V 系列完成**对外发布、规范收尾、消费方验证、上游回馈**。
 
@@ -8,14 +9,14 @@
 
 | 期 | 内容 | 依赖 | 状态 |
 | --- | --- | --- | --- |
-| V1 | 0.2.0 发布准备（README/exports 审计/npm 冒烟） | — | 待开发 |
-| V2 | 返回值契约（§6.5 returnsSchema 校验） | — | 待开发 |
-| V3 | UDF 级 trace（§6.6 耗时/错误码入 traceData） | V2 | 待开发 |
-| V4 | 表达式错误脱敏（§6.7） | — | 待开发 |
-| V5 | 上下文加固（冻结副本 + 混合租户并发断言） | — | 待开发 |
-| V6 | 上游回馈：gorules/zen 原生传播 issue + 复现 + PR 草案 | — | 待开发 |
-| V7 | demo-server 升级消费 zen-udf（真实消费方验证） | V1 | 待开发 |
-| V8 | verdict U10 交接包（集成指南 + 端口实现规范） | V1 V2 V3 | 待开发 |
+| V1 | 0.2.0 发布准备（README/exports 审计/npm 冒烟） | — | ✅ 23270401 |
+| V2 | 返回值契约（§6.5 returnsSchema 校验） | — | ✅ 4c29ef29 |
+| V3 | UDF 级 trace（§6.6 耗时/错误码入 traceData） | V2 | ✅ 4c29ef29 |
+| V4 | 表达式错误脱敏（§6.7） | — | ✅ 4c29ef29 |
+| V5 | 上下文加固（冻结副本 + 混合租户并发断言） | — | ✅ 94d06e23 |
+| V6 | 上游回馈：gorules/zen 原生传播 issue + 复现 + PR 草案 | — | ✅ 草稿 docs/upstream/gorules-zen-async-context.md |
+| V7 | demo-server 升级消费 zen-udf（真实消费方验证） | V1 | ✅ 208403d9 |
+| V8 | verdict U10 交接包（集成指南 + 端口实现规范） | V1 V2 V3 | ✅ verdict-zen-udf-integration.md |
 
 建议执行序：V1 → V2 → V3 → V4 → V5 → V6（可并行）→ V7 → V8。
 
@@ -75,8 +76,8 @@
   - UdfPack 编写规范（注册是 deploy-time、租户走 ExecContext、secret 走端口）
 - 交付物给 verdict 仓（独立 agent 执行 U10）
 
-## 待宿主确认
+## 宿主裁决（2026-09-13 已确认）
 
-- **D4**：demo-server 升级消费 zen-udf 是否纳入本仓（推荐：是——发布物需要真实消费方；替代：保持双轨由 verdict 验证）
-- **D5**：resultValidation 缺省档位（推荐：`warn`——不破坏现有图；替代：`enforce` 一步到位）
-- **D6**：0.2.0 发布时机（推荐：V1 完成即发，V2–V5 进 0.3.x；替代：等 V5 后再发）
+- **D4** ✅：demo-server 升级消费 zen-udf **纳入本仓**，源码直通
+- **D5** ✅：`resultValidation` 缺省 **`warn`**（不破坏现有图），以后择机切 `enforce`
+- **D6** ✅：**V5 完成后再发 0.2.0**（V1 的 README/冒烟先行，版本收口在 V5 后）

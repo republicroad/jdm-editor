@@ -1,6 +1,6 @@
 # @republicroad/demo-server
 
-> **Demo only.** Stateless JDM model validate/execute over `@gorules/zen-engine`.
+> **Demo only.** Stateless JDM model validate/execute over `@republicroad/zen-udf`（zen-engine 2.0.2 + UDF 运行时）。
 > No auth, no storage, no business logic — 每个响应携带 `X-JDM-Demo: true`。
 > 生产级规则平台（鉴权/多租户/审计）见独立私有仓 `verdict`。
 
