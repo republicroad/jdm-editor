@@ -243,6 +243,25 @@ class UdfRegistry {
     }
   }
 
+  /**
+   * 位置参数前置校验（执行规范 §6.1）：对已求值、未绑定的位置参数检查必填项。
+   * 返回错误清单（空数组 = 通过）。缺省参数在 funcBindParams 中回退，不算缺失。
+   */
+  validatePositionalArgs(name: string, args: unknown[]): string[] {
+    const schema = this.functions.get(name)?.schema;
+    if (!schema?.parameters) return [];
+    const issues: string[] = [];
+    Object.entries(schema.parameters).forEach(([paramName, paramSchema], i) => {
+      if (i >= args.length) return; // 越界位置由 funcBindParams 以默认值补齐
+      if (paramSchema.default !== undefined) return; // 有默认值 = 非必填
+      const value = args[i];
+      if (value === undefined || value === null) {
+        issues.push(`${paramName} is required (position ${i})`);
+      }
+    });
+    return issues;
+  }
+
   udfFunctionSchema(name: string): UdfSchema | undefined {
     return this.functions.get(name)?.schema;
   }

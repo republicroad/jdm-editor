@@ -9,6 +9,7 @@ import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/
 
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
+import { type ConcurrencyLimiter } from './limiter.ts';
 import { type UdfRegistry, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
@@ -33,6 +34,8 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   cacheCapacity?: number;
   /** 缓存指标 sink（verdict 接 Prometheus 用），每次读写后回调快照 */
   metricsSink?: (snapshot: CacheMetricsSnapshot) => void;
+  /** per-tenant 并发闸（执行规范 §6.3）；缺省不限并发 */
+  limiter?: ConcurrencyLimiter;
 }
 
 interface GraphNode {
@@ -68,10 +71,13 @@ class DecisionRuntime {
   registry: UdfRegistry;
   /** L1 决策缓存（键含租户与 rev，见 docs/design/zen-udf-multi-tenant.md §3） */
   cache: DecisionCache;
+  /** per-tenant 并发闸（缺省 undefined = 不限并发） */
+  limiter?: ConcurrencyLimiter;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
     this.cache = new DecisionCache({ capacity: options.cacheCapacity, metricsSink: options.metricsSink });
+    this.limiter = options.limiter;
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -342,6 +348,12 @@ class DecisionRuntime {
           return evaluateExpressionSafe(expr, nodeInput);
         });
 
+        // 执行规范 §6.1：位置参数必填项前置校验
+        const paramIssues = this.registry.validatePositionalArgs(funcName, args);
+        if (paramIssues.length > 0) {
+          return { error: { code: 'INVALID_PARAM', issues: paramIssues } };
+        }
+
         const operatorKwargs = this.registry.funcBindParams(funcName, args);
         const kwargs: Record<string, unknown> = {
           ...operatorKwargs,
@@ -351,7 +363,31 @@ class DecisionRuntime {
           _node_input_: nodeInput,
         };
 
-        const result = await this.registry.call(funcName, kwargs);
+        // 执行规范 §6.3：per-tenant 并发闸（注入 limiter 时生效）
+        const tenantId = getExecContext()?.tenantId;
+        const release = this.limiter && tenantId ? await this.limiter.acquire(tenantId) : null;
+        let result: unknown;
+        try {
+          // 执行规范 §6.2：kwargs.timeout 约定（毫秒）——运行时级超时兜底，超时返回结构化错误
+          const timeoutMs = typeof kwargs.timeout === 'number' && kwargs.timeout > 0 ? kwargs.timeout : null;
+          const call = this.registry.call(funcName, kwargs);
+          result = timeoutMs
+            ? await Promise.race([
+                call,
+                new Promise((_resolve, reject) =>
+                  setTimeout(() => reject(new Error('udf timeout after ' + timeoutMs + 'ms')), timeoutMs),
+                ),
+              ])
+            : await call;
+        } catch (timeoutError) {
+          const message = timeoutError instanceof Error ? timeoutError.message : String(timeoutError);
+          if (message.includes('udf timeout')) {
+            return { error: { code: 'UDF_TIMEOUT', message } };
+          }
+          throw timeoutError;
+        } finally {
+          release?.();
+        }
         return result;
       } else {
         if (funcName) {
