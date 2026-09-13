@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { runWithExecContext } from '../exec-context.ts';
-import { udfManager } from '../register.ts';
+import { globalUdfRegistry } from '../register.ts';
 import { registerRoster } from '../roster.ts';
 import './custom-list-query.ts';
 import './ip-location.ts';
@@ -9,7 +9,7 @@ import './rate-window.ts';
 import { __resetRateWindows } from './rate-window.ts';
 
 const call = <T>(name: string, args: unknown[]): Promise<T> =>
-  udfManager.call(name, udfManager.funcBindParams(name, args)) as Promise<T>;
+  globalUdfRegistry.call(name, globalUdfRegistry.funcBindParams(name, args)) as Promise<T>;
 
 describe('custom_list_query（D2 重建）', () => {
   test('名单命中返回 result:true，未命中 false（actor 隔离）', async () => {

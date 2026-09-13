@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { getExecContext, runWithExecContext } from './exec-context.ts';
-import { registerUdf, udfManager } from './register.ts';
+import { globalUdfRegistry, registerUdf } from './register.ts';
 
 describe('exec-context', () => {
   test('无上下文时返回 undefined', () => {
@@ -30,7 +30,7 @@ describe('exec-context', () => {
       return { caller: getExecContext()?.userId ?? null };
     });
 
-    const callProbe = () => udfManager.call('exec_probe_test', {}) as Promise<{ caller: string | null }>;
+    const callProbe = () => globalUdfRegistry.call('exec_probe_test', {}) as Promise<{ caller: string | null }>;
     const [a, b] = await Promise.all([
       runWithExecContext({ userId: 'user-a' }, callProbe),
       runWithExecContext({ userId: 'user-b' }, callProbe),

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { runWithExecContext } from '../exec-context.ts';
-import { udfManager } from '../register.ts';
+import { globalUdfRegistry } from '../register.ts';
 import { deleteRoster, registerRoster } from '../roster.ts';
 import './roster.ts';
 
@@ -11,7 +11,7 @@ describe('roster UDF', () => {
     registerRoster({ name: 'o_udf_b', items: ['ip-b'] }, 'udf-user-b');
 
     const call = () =>
-      udfManager.call('roster', udfManager.funcBindParams('roster', ['o_udf_a', 'ip-a'])) as Promise<{
+      globalUdfRegistry.call('roster', globalUdfRegistry.funcBindParams('roster', ['o_udf_a', 'ip-a'])) as Promise<{
         hit: boolean;
       }>;
     const [asA, asB] = await Promise.all([

@@ -1,9 +1,9 @@
-export { ZenRule } from './engine.ts';
+export { DecisionRuntime } from './engine.ts';
 export { getExecContext, runWithExecContext, type ExecContext } from './exec-context.ts';
 export { registerRoster, listRosters, getRoster, deleteRoster, queryRoster, type Roster } from './roster.ts';
 export {
-  UDFManager,
-  udfManager,
+  UdfRegistry,
+  globalUdfRegistry,
   registerUdf,
   createExtRegister,
   type UdfSchema,

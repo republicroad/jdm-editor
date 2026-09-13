@@ -174,7 +174,7 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
   return normalized;
 }
 
-class UDFManager {
+class UdfRegistry {
   private functions = new Map<string, UdfEntry>();
 
   /** 平台硬化：函数名与 namespace 名同名校验——裸 kind 解析中 namespace 优先，同名会使其中一方 kind 不可达 */
@@ -237,7 +237,7 @@ class UDFManager {
   async call(udfName: string, ...args: unknown[]): Promise<unknown> {
     const entry = this.functions.get(udfName);
     if (!entry) {
-      throw new Error(`Function '${udfName}' is not registered in UDFManager`);
+      throw new Error(`Function '${udfName}' is not registered in UdfRegistry`);
     }
     const kwargs = (args[0] as Record<string, unknown> | undefined) ?? {};
     const result = entry.fn(kwargs);
@@ -292,11 +292,11 @@ class UDFManager {
   }
 }
 
-const udfManager = new UDFManager();
+const globalUdfRegistry = new UdfRegistry();
 
 function registerUdf(name: string, namespace?: string, schema?: UdfSchema): (fn: UdfFunction) => UdfFunction {
   return (fn: UdfFunction) => {
-    udfManager.registerFunction(fn, namespace, schema, name);
+    globalUdfRegistry.registerFunction(fn, namespace, schema, name);
     return fn;
   };
 }
@@ -344,4 +344,4 @@ export function defineContrib(importMetaUrl: string, def: ContribDef): ContribTo
 /** 单工具声明助手：为字面量提供 ContribToolDef 类型检查与补全 */
 export const defineTool = (tool: ContribToolDef): ContribToolDef => tool;
 
-export { UDFManager, udfManager, registerUdf };
+export { UdfRegistry, globalUdfRegistry, registerUdf };

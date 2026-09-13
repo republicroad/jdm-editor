@@ -23,24 +23,24 @@
 ## U2 执行上下文贯通 tenantId
 
 - `exec-context.ts`：`ExecContext` 加 `tenantId`；`runWithExecContext` 签名同步
-- `ZenRule.evaluate/evaluateAsync`：要求 ctx 携带 tenantId（单租户 CLI 场景提供显式 opt-out 常量）
+- `DecisionRuntime.evaluate/evaluateAsync`：要求 ctx 携带 tenantId（单租户 CLI 场景提供显式 opt-out 常量）
 - 测试：并发双租户 AsyncLocalStorage 隔离；无 tenantId 的显式报错路径
 - 验收：现有 contrib 测试全部迁入租户上下文语义运行
 
 ## U3 实例注入重构
 
-- `engine.ts`：`customHandlerFunc` static → 实例方法；`ZenRule` 实例持有 `udfManager`
+- `engine.ts`：`customHandlerFunc` static → 实例方法；`DecisionRuntime` 实例持有 `UdfRegistry`
 - 副作用 `import './contrib/*.ts'` → 显式装载开关 `builtin: 'none' | 'reference'`（默认 `reference` 保持现行为）
-- 全局 `udfManager` 单例保留为默认值（demo-server/playground 兼容，零迁移成本）
+- 全局 `globalUdfRegistry` 单例保留为默认值（demo-server/playground 兼容，零迁移成本）
 - 注册撞名：`console.warn` → `throw`（保留 `force` 逃生口）
-- 测试：多 ZenRule 实例 UDF 域互不污染；撞名抛错；默认构造行为不变
+- 测试：多 DecisionRuntime 实例 UDF 域互不污染；撞名抛错；默认构造行为不变
 - 依赖：无（与 U2 可并行）
 
 ## U4 L1 决策缓存
 
 - 新 `decision-cache.ts`：键 `${tenantId}:${key}@${rev}`、LRU 上限（默认 500）、hit/miss/eviction/build 耗时计数
 - 指标 sink 可注入（默认内存计数器；verdict 后接 Prometheus）
-- `ZenRule` 的 `decisionCache`/`contentCache`/`getDecision` loader 兜底路径全部迁入；禁用 `engine.evaluate(key)` 路径（代码层移除便捷入口，文档标注）
+- `DecisionRuntime` 的 `decisionCache`/`contentCache`/`getDecision` loader 兜底路径全部迁入；禁用 `engine.evaluate(key)` 路径（代码层移除便捷入口，文档标注）
 - 测试：LRU 驱逐序、in-flight 驱逐安全（GC 兜底）、原子替换、命中率断言
 - 依赖：U2
 

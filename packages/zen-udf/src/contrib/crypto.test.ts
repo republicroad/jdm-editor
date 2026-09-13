@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
 
-import { udfManager } from '../register.ts';
+import { globalUdfRegistry } from '../register.ts';
 import './crypto.ts';
 
 const callCrypto = async (...args: unknown[]): Promise<string> => {
-  const kwargs = udfManager.funcBindParams('crypto', args);
-  return (await udfManager.call('crypto', kwargs)) as string;
+  const kwargs = globalUdfRegistry.funcBindParams('crypto', args);
+  return (await globalUdfRegistry.call('crypto', kwargs)) as string;
 };
 
 describe('crypto UDF', () => {
@@ -50,7 +50,7 @@ describe('crypto UDF', () => {
   });
 
   test('引擎路径：funcBindParams 按声明顺序位置绑定，缺省参数回退默认值', () => {
-    const kwargs = udfManager.funcBindParams('crypto', ['hello']);
+    const kwargs = globalUdfRegistry.funcBindParams('crypto', ['hello']);
     expect(Object.keys(kwargs)).toEqual(['input', 'algorithm', 'secret', 'encoding', 'upper']);
     expect(kwargs['algorithm']).toBe('sha256');
     expect(kwargs['encoding']).toBe('hex');

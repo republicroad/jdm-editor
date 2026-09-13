@@ -1,7 +1,7 @@
 import { type IncomingMessage, type Server, type ServerResponse, createServer } from 'node:http';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { udfManager } from '../register.ts';
+import { globalUdfRegistry } from '../register.ts';
 import { httpRequest } from './http.ts';
 
 let server: Server;
@@ -208,23 +208,23 @@ describe('http_request udf', () => {
   });
 
   test('引擎路径：funcBindParams 按声明顺序位置绑定，url 缺省参数回退默认值', async () => {
-    const kwargs = udfManager.funcBindParams('http_request', [`${baseUrl}/json`]);
+    const kwargs = globalUdfRegistry.funcBindParams('http_request', [`${baseUrl}/json`]);
     expect(Object.keys(kwargs)).toEqual(['url', 'method', 'headers', 'body', 'params', 'timeout', 'retry', 'auth']);
     expect(kwargs['method']).toBe('GET');
     expect(kwargs['timeout']).toBe(10000);
     expect(kwargs['retry']).toBe(0);
-    const result = (await udfManager.call('http_request', kwargs)) as Record<string, unknown>;
+    const result = (await globalUdfRegistry.call('http_request', kwargs)) as Record<string, unknown>;
     expect(result['status']).toBe(200);
     expect(result['body']).toEqual({ ok: true, q: null });
   });
 
   test('旧图兼容：仅前 4 个位置参数时新参数回退默认值并可正常执行', async () => {
-    const kwargs = udfManager.funcBindParams('http_request', [`${baseUrl}/json`, 'POST', { x: '1' }, { a: 1 }]);
+    const kwargs = globalUdfRegistry.funcBindParams('http_request', [`${baseUrl}/json`, 'POST', { x: '1' }, { a: 1 }]);
     expect(kwargs['params']).toEqual({});
     expect(kwargs['auth']).toEqual({});
     expect(kwargs['timeout']).toBe(10000);
     expect(kwargs['retry']).toBe(0);
-    const result = (await udfManager.call('http_request', kwargs)) as Record<string, unknown>;
+    const result = (await globalUdfRegistry.call('http_request', kwargs)) as Record<string, unknown>;
     expect(result['status']).toBe(200);
   });
 });

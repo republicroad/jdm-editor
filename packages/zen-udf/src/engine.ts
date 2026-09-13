@@ -15,7 +15,7 @@ import './contrib/http.ts';
 import './contrib/ip-location.ts';
 import './contrib/rate-window.ts';
 import './contrib/roster.ts';
-import { udfManager } from './register.ts';
+import { globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
 
@@ -55,9 +55,10 @@ function evaluateExpressionSafe(expr: string, input?: unknown): unknown {
   }
 }
 
-class ZenRule {
+class DecisionRuntime {
   static CUSTOM_HANDLER_META = CUSTOM_HANDLER_META;
-  static udfManager = udfManager;
+  /** 全局默认注册表（U3 实例化后此静态绑定移除，改为实例字段） */
+  static registry = globalUdfRegistry;
 
   engine: ZenEngine;
   options: ZenEngineOptions;
@@ -67,11 +68,11 @@ class ZenRule {
   constructor(options?: ZenEngineOptions) {
     if (options) {
       if (options.customHandler == null) {
-        options.customHandler = ZenRule.customHandlerFunc;
+        options.customHandler = DecisionRuntime.customHandlerFunc;
       }
       this.options = options;
     } else {
-      this.options = { customHandler: ZenRule.customHandlerFunc };
+      this.options = { customHandler: DecisionRuntime.customHandlerFunc };
     }
     this.engine = new ZenEngine(this.options);
   }
@@ -190,7 +191,7 @@ class ZenRule {
         const exprAsts: ExprAstItem[] = [];
         for (const funcItem of customExpressions) {
           const item = { ...funcItem };
-          item.value = ZenRule.parseOperatorExpr(funcItem.value);
+          item.value = DecisionRuntime.parseOperatorExpr(funcItem.value);
           exprAsts.push(item);
         }
         config['expr_asts'] = exprAsts;
@@ -225,7 +226,7 @@ class ZenRule {
       outputPath,
     };
 
-    const coroFuncs = exprAsts.map((item) => ZenRule.executeExpr(item, request.input, context));
+    const coroFuncs = exprAsts.map((item) => DecisionRuntime.executeExpr(item, request.input, context));
     const resultsArr = await Promise.all(coroFuncs);
     const results: Record<string, unknown> = {};
     exprAsts.forEach((item, i) => {
@@ -260,12 +261,12 @@ class ZenRule {
       const exprId = execExpr.id;
       const exprAst = execExpr.value;
 
-      const ast = Array.isArray(exprAst) ? exprAst : ZenRule.parseOperatorExpr(exprAst);
+      const ast = Array.isArray(exprAst) ? exprAst : DecisionRuntime.parseOperatorExpr(exprAst);
       const funcName = ast[0] as string;
       const opArgExpressions = ast.slice(1);
 
       const inputField = context['inputField'] as string | null;
-      const fSchema = udfManager.udfFunctionSchema(funcName);
+      const fSchema = globalUdfRegistry.udfFunctionSchema(funcName);
 
       if (fSchema) {
         const args = opArgExpressions.map((i: string) => {
@@ -273,7 +274,7 @@ class ZenRule {
           return evaluateExpressionSafe(expr, nodeInput);
         });
 
-        const operatorKwargs = udfManager.funcBindParams(funcName, args);
+        const operatorKwargs = globalUdfRegistry.funcBindParams(funcName, args);
         const kwargs: Record<string, unknown> = {
           ...operatorKwargs,
           ...context,
@@ -282,7 +283,7 @@ class ZenRule {
           _node_input_: nodeInput,
         };
 
-        const result = await udfManager.call(funcName, kwargs);
+        const result = await globalUdfRegistry.call(funcName, kwargs);
         return result;
       } else {
         if (funcName) {
@@ -297,8 +298,8 @@ class ZenRule {
   }
 
   static udfFunctionSchemaTools(): unknown[] {
-    return udfManager.udfFunctionSchemaTools();
+    return globalUdfRegistry.udfFunctionSchemaTools();
   }
 }
 
-export { ZenRule };
+export { DecisionRuntime };

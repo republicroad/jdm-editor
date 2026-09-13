@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { ZenRule } from '../engine.ts';
+import { DecisionRuntime } from '../engine.ts';
 import { runWithExecContext } from '../exec-context.ts';
 import { deleteRoster, registerRoster } from '../roster.ts';
 import './custom-list-query.ts';
@@ -24,7 +24,7 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     __resetRateWindows();
     registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, ACTOR);
     const content = JSON.parse(readFileSync(GRAPH, 'utf8')) as unknown;
-    const zr = new ZenRule({});
+    const zr = new DecisionRuntime({});
     zr.createDecisionWithCacheKey('chuangku-hit', JSON.stringify(content));
 
     const result = (await runWithExecContext({ userId: ACTOR }, () =>
@@ -44,7 +44,7 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     __resetRateWindows();
     registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, ACTOR);
     const content = JSON.parse(readFileSync(GRAPH, 'utf8')) as unknown;
-    const zr = new ZenRule({});
+    const zr = new DecisionRuntime({});
     zr.createDecisionWithCacheKey('chuangku-miss', JSON.stringify(content));
 
     const result = (await runWithExecContext({ userId: ACTOR }, () =>
