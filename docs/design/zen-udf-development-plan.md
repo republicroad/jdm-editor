@@ -1,23 +1,25 @@
 # zen-udf 开发计划（U 系列）
 
-状态：plan · confirmed（宿主 2026-09-13 裁决 D1–D3，见文末）
+状态：shipped · U2–U9 全部完成（2026-09-13，测试 87/87；U10 verdict 侧待启动）
 上游设计：[zen-udf-multi-tenant.md](./zen-udf-multi-tenant.md)（M1 已完成：包名、缓存语义哨兵、设计稿）
 
 ## 总览
 
-| 期 | 内容 | 依赖 | 仓 |
-| --- | --- | --- | --- |
-| U2 | ExecContext 贯通 tenantId | — | jdm-editor |
-| U3 | 实例注入重构（handler 实例化 + 撞名硬失败） | — | jdm-editor |
-| U4 | L1 决策缓存：LRU + 指标 | U2 | jdm-editor |
-| U5 | roster 租户化 | U2 | jdm-editor |
-| U6 | UdfPack 契约定形 + createUdfManager | U3 | jdm-editor |
-| U7 | 执行规范强化（参数校验/超时/并发闸） | U6 | jdm-editor |
-| U8 | RateStore 端口 + conformance 测试 | U2 | jdm-editor（接口）；Redis 实现住 verdict |
-| U9 | http UDF 加固（egress/secret 端口） | U2 | jdm-editor |
-| U10 | verdict 接入（业务包 + model-execute） | U4 U6 U8 | verdict |
+| 期 | 内容 | 依赖 | 仓 | 状态 |
+| --- | --- | --- | --- | --- |
+| U2 | ExecContext 贯通 tenantId | — | jdm-editor | ✅ d59a729d |
+| U3 | 实例注入重构（handler 实例化 + 跨名撞名硬失败） | — | jdm-editor | ✅ 9da30880 |
+| U4 | L1 决策缓存：LRU + 指标 | U2 | jdm-editor | ✅ c68d0a16 |
+| U5 | roster 租户化 | U2 | jdm-editor | ✅ f844a62b |
+| U6 | UdfPack 契约定形 + createUdfRegistry | U3 | jdm-editor | ✅ b0be3be6 |
+| U7 | 执行规范强化（参数校验/超时/并发闸） | U6 | jdm-editor | ✅ 1687b0d0 |
+| U8 | RateStore 端口 + conformance 测试 | U2 | jdm-editor（接口）；Redis 实现住 verdict | ✅ bbd102f5 |
+| U9 | http UDF 加固（egress/secret 端口） | U2 | jdm-editor | ✅ bf547dfb |
+| U10 | verdict 接入（业务包 + model-execute） | U4 U6 U8 | verdict | 待启动 |
 
-建议执行序：U2 → U3 → U4 → U6 → U5 → U7 → U8 → U9 → U10。
+> U5 附带关键发现：AsyncLocalStorage 不跨 zen-engine 的 Rust worker → TSFN 回调边界存活；
+> DecisionRuntime 以输入保留键（`__zen_udf_exec_ctx__`）携带 ExecContext 并在 customNode
+> 回调内重建立上下文（回归测试钉死该语义）。
 每期门禁：bun test 全绿、biome lint、tsc 清洁、根仓 verify；测试数只增不减（现 32）。
 
 ## U2 执行上下文贯通 tenantId
