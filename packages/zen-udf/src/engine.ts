@@ -8,6 +8,7 @@ import type {
 import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/zen-engine';
 import { createHash } from 'node:crypto';
 
+import { type CircuitBreaker } from './breaker.ts';
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
 import { type ConcurrencyLimiter } from './limiter.ts';
@@ -52,6 +53,8 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   metricsSink?: (snapshot: CacheMetricsSnapshot) => void;
   /** per-tenant 并发闸（执行规范 §6.3）；缺省不限并发 */
   limiter?: ConcurrencyLimiter;
+  /** 熔断器（Y5）：per tenantId+udfName 故障隔离；缺省无熔断 */
+  breaker?: CircuitBreaker;
   /**
    * 返回值契约档位（执行规范 §6.5，宿主裁决 D5）：缺省 `warn`——违例计入 traceData、
    * 结果原样下发；`enforce` 把违例结果替换为 INVALID_RESULT 结构化错误。
@@ -141,6 +144,8 @@ class DecisionRuntime {
   cache: DecisionCache;
   /** per-tenant 并发闸（缺省 undefined = 不限并发） */
   limiter?: ConcurrencyLimiter;
+  /** 熔断器（缺省 undefined = 不熔断） */
+  breaker?: CircuitBreaker;
   /** 返回值契约档位（缺省 warn，宿主裁决 D5） */
   resultValidation: 'off' | 'warn' | 'enforce';
   /** 错误消息脱敏器 */
@@ -152,6 +157,7 @@ class DecisionRuntime {
     this.registry = options.registry ?? globalUdfRegistry;
     this.cache = new DecisionCache({ capacity: options.cacheCapacity, metricsSink: options.metricsSink });
     this.limiter = options.limiter;
+    this.breaker = options.breaker;
     this.resultValidation = options.resultValidation ?? 'warn';
     this.sanitizer = options.sanitizer ?? sanitizeErrorDefault;
     this.onDecision = options.onDecision;
@@ -500,6 +506,7 @@ class DecisionRuntime {
     context: Record<string, unknown>,
     traces: UdfTrace[],
   ): Promise<unknown> {
+    let breakerKey: string | null = null;
     try {
       const exprId = execExpr.id;
       const exprAst = execExpr.value;
@@ -575,6 +582,20 @@ class DecisionRuntime {
 
         // 执行规范 §6.3：per-tenant 并发闸（注入 limiter 时生效）
         const tenantId = getExecContext()?.tenantId;
+        // Y5：熔断检查（per tenantId+udfName），打开时 CIRCUIT_OPEN 快速失败
+        breakerKey = tenantId ? `${tenantId}:${funcName}` : funcName;
+        if (this.breaker && !this.breaker.allow(breakerKey)) {
+          const openOutcome = { error: { code: 'CIRCUIT_OPEN', message: `circuit open for ${breakerKey}` } };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'CIRCUIT_OPEN',
+            semantics,
+            outcome: openOutcome,
+          });
+          return openOutcome;
+        }
         const release = this.limiter && tenantId ? await this.limiter.acquire(tenantId) : null;
         let result: unknown;
         const startedAt = process.hrtime.bigint();
@@ -590,7 +611,9 @@ class DecisionRuntime {
                 ),
               ])
             : await call;
+          this.breaker?.recordSuccess(breakerKey);
         } catch (timeoutError) {
+          this.breaker?.recordFailure(breakerKey);
           const message = timeoutError instanceof Error ? timeoutError.message : String(timeoutError);
           if (message.includes('udf timeout')) {
             const timeoutOutcome = { error: { code: 'UDF_TIMEOUT', message } };
@@ -650,6 +673,7 @@ class DecisionRuntime {
       }
     } catch (error) {
       // UDF 抛错不下发为 null(否则 simulator 无痕吞错)：以结构化错误对象出现在 trace/输出中
+      if (breakerKey) this.breaker?.recordFailure(breakerKey);
       const errorOutcome = { error: this.sanitizer(error instanceof Error ? error.message : String(error)) };
       traces.push({ key: execExpr.key, name: '', micros: 0, code: 'UDF_ERROR', outcome: errorOutcome });
       return errorOutcome;
