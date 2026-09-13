@@ -8,7 +8,7 @@ import type {
 import { ZenDecisionContent, ZenEngine, evaluateExpressionSync } from '@gorules/zen-engine';
 
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
-import { getExecContext } from './exec-context.ts';
+import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
 import { type UdfRegistry, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
@@ -177,16 +177,38 @@ class DecisionRuntime {
     }
   }
 
+  /**
+   * ALS 不跨 zen-engine 的 Rust worker → TSFN 回调边界存活（探针实证），
+   * 把当前 ExecContext 以保留键嵌入输入对象，由 handleCustomNode 提取后
+   * 重建立上下文。仅对象输入可承载；其余形态按无上下文执行（UDF 内 fail closed）。
+   */
+  private static enrichInputWithExecContext(ctx: unknown): unknown {
+    if (ctx === null || typeof ctx !== 'object' || Array.isArray(ctx)) {
+      return ctx;
+    }
+    const execCtx = getExecContext();
+    if (!execCtx) {
+      return ctx;
+    }
+    return { ...(ctx as Record<string, unknown>), [EXEC_CONTEXT_INPUT_KEY]: execCtx };
+  }
+
   evaluate(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
     DecisionRuntime.requireTenantContext();
     const decision = this.getDecision(key, rev);
-    return decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined) as Promise<EvaluateResponse>;
+    return decision.evaluate(
+      DecisionRuntime.enrichInputWithExecContext(ctx),
+      options as ZenEvaluateOptions | null | undefined,
+    ) as Promise<EvaluateResponse>;
   }
 
   async evaluateAsync(key: string, ctx: unknown, options?: unknown, rev?: string): Promise<EvaluateResponse> {
     DecisionRuntime.requireTenantContext();
     const decision = this.getDecision(key, rev);
-    const result = await decision.evaluate(ctx, options as ZenEvaluateOptions | null | undefined);
+    const result = await decision.evaluate(
+      DecisionRuntime.enrichInputWithExecContext(ctx),
+      options as ZenEvaluateOptions | null | undefined,
+    );
     return result as EvaluateResponse;
   }
 
@@ -256,6 +278,10 @@ class DecisionRuntime {
     const passThrough = (node.config?.['passThrough'] as boolean | null) ?? null;
     const meta = (node.config?.[CUSTOM_HANDLER_META] as Record<string, unknown>) ?? {};
 
+    // ExecContext 重建立：ALS 不跨 TSFN 边界，从嵌入输入的保留键恢复（见 evaluate）
+    const rawInput = (request.input ?? {}) as Record<string, unknown>;
+    const execCtx = rawInput[EXEC_CONTEXT_INPUT_KEY] as ExecContext | undefined;
+
     const context: Record<string, unknown> = {
       node_id: node.id,
       [CUSTOM_HANDLER_META]: meta,
@@ -264,30 +290,34 @@ class DecisionRuntime {
       outputPath,
     };
 
-    const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context));
-    const resultsArr = await Promise.all(coroFuncs);
-    const results: Record<string, unknown> = {};
-    exprAsts.forEach((item, i) => {
-      results[item.key] = resultsArr[i];
-    });
+    const execute = async (): Promise<ZenEngineHandlerResponse> => {
+      const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context));
+      const resultsArr = await Promise.all(coroFuncs);
+      const results: Record<string, unknown> = {};
+      exprAsts.forEach((item, i) => {
+        results[item.key] = resultsArr[i];
+      });
 
-    if (passThrough && typeof request.input === 'object' && request.input !== null) {
-      const input = request.input as Record<string, unknown>;
-      for (const key of Object.keys(input)) {
-        if (key !== '$nodes') {
-          results[key] = input[key];
+      if (passThrough && typeof request.input === 'object' && request.input !== null) {
+        const input = request.input as Record<string, unknown>;
+        for (const key of Object.keys(input)) {
+          if (key !== '$nodes' && key !== EXEC_CONTEXT_INPUT_KEY) {
+            results[key] = input[key];
+          }
         }
       }
-    }
 
-    if (outputPath) {
-      const tmp = evaluateExpressionSafe(`${outputPath}=_`, { _: results }) as Record<string, unknown> | undefined;
-      if (tmp && typeof tmp === 'object') {
-        Object.assign(results, tmp);
+      if (outputPath) {
+        const tmp = evaluateExpressionSafe(`${outputPath}=_`, { _: results }) as Record<string, unknown> | undefined;
+        if (tmp && typeof tmp === 'object') {
+          Object.assign(results, tmp);
+        }
       }
-    }
 
-    return { output: results };
+      return { output: results };
+    };
+
+    return execCtx ? runWithExecContext(execCtx, execute) : execute();
   }
 
   private async executeExpr(

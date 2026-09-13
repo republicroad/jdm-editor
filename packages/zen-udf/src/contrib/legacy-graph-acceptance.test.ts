@@ -22,7 +22,7 @@ const ACTOR = 'acceptance-user';
 describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', () => {
   test('白名单命中路径：无 udf not found，custom_list_query result:true', async () => {
     __resetRateWindows();
-    registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, ACTOR);
+    registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, { tenantId: 'acceptance-tenant', actor: ACTOR });
     const content = JSON.parse(readFileSync(GRAPH, 'utf8')) as unknown;
     const zr = new DecisionRuntime({});
     await runWithExecContext({ tenantId: 'acceptance-tenant', userId: ACTOR }, async () =>
@@ -39,12 +39,12 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     expect(result.result?.reason ?? '').toContain('白名单');
     // custom_list_query 输出 {result:true} 进入 trace
     expect(s).toContain('"result":true');
-    deleteRoster(LIST_NAME, ACTOR);
+    deleteRoster(LIST_NAME, { tenantId: 'acceptance-tenant', actor: ACTOR });
   });
 
   test('非白名单路径：频控/组去重/属地函数全部解析执行', async () => {
     __resetRateWindows();
-    registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, ACTOR);
+    registerRoster({ name: LIST_NAME, items: ['8.8.8.8'] }, { tenantId: 'acceptance-tenant', actor: ACTOR });
     const content = JSON.parse(readFileSync(GRAPH, 'utf8')) as unknown;
     const zr = new DecisionRuntime({});
     await runWithExecContext({ tenantId: 'acceptance-tenant', userId: ACTOR }, async () =>
@@ -62,6 +62,6 @@ describe('撞库攻击防御.json 仿真验收（第六十九批 D2 闭环）', 
     expect(s).toContain('"pv":1');
     // ip_location 空 dataset 回退：字段齐全 + ip 回显
     expect(s).toContain('"ip":"9.9.9.9"');
-    deleteRoster(LIST_NAME, ACTOR);
+    deleteRoster(LIST_NAME, { tenantId: 'acceptance-tenant', actor: ACTOR });
   });
 });

@@ -132,4 +132,23 @@ describe('DecisionRuntime 实例注入（U3）', () => {
     const runtime = new DecisionRuntime();
     expect(runtime.udfFunctionSchemaTools().length).toBeGreaterThan(0);
   });
+
+  test('ExecContext 经输入保留键贯穿 TSFN 边界，UDF 内可读（ALS 重建立）', async () => {
+    const registry = new UdfRegistry();
+    registry.registerFunction(function probe_udf() {
+      return { tenantInUdf: getExecContext()?.tenantId ?? null, userInUdf: getExecContext()?.userId ?? null };
+    }, 'probe');
+    const runtime = new DecisionRuntime({ registry });
+    await runWithExecContext({ tenantId: 't-1' }, () => {
+      runtime.createDecisionWithCacheKey('k', customGraph('g-als'));
+      return Promise.resolve();
+    });
+
+    const result = await runWithExecContext({ tenantId: 't-1', userId: 'u-9' }, () =>
+      runtime.evaluateAsync('k', { x: 1 }),
+    );
+    const out = (result.result as { out?: { tenantInUdf?: string; userInUdf?: string } }).out;
+    expect(out?.tenantInUdf).toBe('t-1');
+    expect(out?.userInUdf).toBe('u-9');
+  });
 });

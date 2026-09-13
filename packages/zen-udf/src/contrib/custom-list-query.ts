@@ -38,7 +38,12 @@ export default defineContrib(import.meta.url, {
         required: ['result'],
       },
       fn: function customListQueryUdf(kwargs: Record<string, unknown>) {
-        const { hit } = queryRoster(String(kwargs?.list_name ?? ''), kwargs?.value ?? null, getExecContext()?.userId);
+        const ctx = getExecContext();
+        if (!ctx?.tenantId) return { result: false };
+        const { hit } = queryRoster(String(kwargs?.list_name ?? ''), kwargs?.value ?? null, {
+          tenantId: ctx.tenantId,
+          actor: ctx.userId,
+        });
         return { result: hit };
       },
     },
