@@ -4,7 +4,7 @@ import type { EdgeChange, NodeChange, ReactFlowInstance, useEdgesState, useNodes
 import equal from 'fast-deep-equal/es6/react';
 import type { WritableDraft } from 'immer';
 import { produce } from 'immer';
-import React, { type MutableRefObject, createRef, useMemo } from 'react';
+import React, { type MutableRefObject, createRef, useMemo, useRef } from 'react';
 import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create } from 'zustand';
@@ -22,6 +22,7 @@ import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
 import type { Simulation } from '../simulator/simulation.types';
 import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
+import { createUndoRedoStack } from './undo-redo';
 
 export type PanelType = {
   id: string;
@@ -75,6 +76,9 @@ export type DecisionGraphStoreType = {
 
     name: string;
 
+    canUndo: boolean;
+    canRedo: boolean;
+
     customNodes: CustomNodeSpecification<object, any>[];
 
     panels?: PanelType[];
@@ -106,6 +110,10 @@ export type DecisionGraphStoreType = {
 
   actions: {
     setDecisionGraph: (val: Partial<DecisionGraphType>, options?: SetDecisionGraphOptions) => void;
+
+    undo: () => void;
+    redo: () => void;
+    commitUndo: () => void;
 
     handleNodesChange: (nodesChange: NodeChange[]) => void;
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
@@ -201,9 +209,22 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
         nodeTypes: {},
         globalType: {},
+        canUndo: false,
+        canRedo: false,
       })),
     [],
   );
+
+  const undoRedoStack = useMemo(() => createUndoRedoStack<DecisionGraphType>(100), []);
+
+  // updateNode 防抖：500ms 内同一节点的连续编辑合并为一步
+  const editDebounceRef = useRef<{ nodeId: string | null; timer: ReturnType<typeof setTimeout> | null }>({
+    nodeId: null,
+    timer: null,
+  });
+
+  // 节点拖拽会话追踪：首次 position 变更时 pushUndo（捕获拖拽前位置）
+  const dragSessionRef = useRef(false);
 
   const listenerStore = useMemo(
     () =>
@@ -225,11 +246,49 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
     [],
   );
 
-  const actions = useMemo<DecisionGraphStoreType['actions']>(
-    () => ({
+  const actions = useMemo<DecisionGraphStoreType['actions']>(() => {
+    const pushUndo = () => {
+      const { decisionGraph } = stateStore.getState();
+      undoRedoStack.push(JSON.parse(JSON.stringify(decisionGraph)));
+      stateStore.setState({ canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
+    };
+
+    return {
+      undo: () => {
+        const current = stateStore.getState().decisionGraph;
+        const prev = undoRedoStack.undo(current);
+        if (prev === null) return;
+        stateStore.setState({ decisionGraph: prev, canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
+        listenerStore.getState().onChange?.(prev);
+      },
+      redo: () => {
+        const current = stateStore.getState().decisionGraph;
+        const next = undoRedoStack.redo(current);
+        if (next === null) return;
+        stateStore.setState({ decisionGraph: next, canUndo: undoRedoStack.canUndo, canRedo: undoRedoStack.canRedo });
+        listenerStore.getState().onChange?.(next);
+      },
+      commitUndo: () => {
+        pushUndo();
+      },
       handleNodesChange: (changes = []) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+
+        // 拖拽会话追踪：首次拖拽 position 变更时 pushUndo（捕获拖拽前位置）
+        const positionChanges = changes.filter((c): c is NodeChange & { type: 'position' } => c.type === 'position');
+        if (positionChanges.length > 0) {
+          const isDragStart = positionChanges.some((c) => 'dragging' in c && c.dragging === true);
+          const isDragEnd = positionChanges.some((c) => 'dragging' in c && c.dragging === false);
+          if (isDragStart && !dragSessionRef.current) {
+            pushUndo();
+            dragSessionRef.current = true;
+          }
+          if (isDragEnd) {
+            dragSessionRef.current = false;
+          }
+        }
+
         const [, , onNodesChange] = nodesState.current;
 
         let hasChanges = false;
@@ -279,6 +338,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         const { decisionGraph } = stateStore.getState();
         const { edgesState } = referenceStore.getState();
 
+        const hasStructuralChange = changes.some((c) => c.type === 'remove' || c.type === 'add');
+        if (hasStructuralChange) pushUndo();
+
         edgesState?.current?.[2](changes);
         if (changes.find((c) => c.type === 'remove')) {
           const newDecisionGraph = produce(decisionGraph, (draft) => {
@@ -313,6 +375,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       addNodes: (nodes: DecisionNode[]) => {
         const { nodesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+        pushUndo();
 
         const hasInput = nodesState.current[0]?.some((n) => n.type === NodeKind.Input);
         if (hasInput) {
@@ -330,6 +393,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       duplicateNodes: (ids) => {
         const { nodesState, edgesState } = referenceStore.getState();
         const { decisionGraph } = stateStore.getState();
+        pushUndo();
 
         let nodes = (decisionGraph?.nodes || []).filter((n) => ids.includes(n.id));
 
@@ -405,6 +469,7 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       removeNodes: (ids = []) => {
         const { nodesState, edgesState } = referenceStore.getState();
         const { decisionGraph, nodeTypes } = stateStore.getState();
+        pushUndo();
 
         nodesState.current[1]?.((nodes) => nodes.filter((n) => ids.every((id) => n.id !== id)));
         edgesState.current[1]?.((edges) =>
@@ -482,6 +547,19 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
       updateNode: (id, updater) => {
+        // Debounced undo: first edit of a session captures pre-edit state;
+        // rapid consecutive edits on the same node merge into one undo step
+        const isContinuation = editDebounceRef.current.nodeId === id && editDebounceRef.current.timer !== null;
+        if (!isContinuation) {
+          pushUndo();
+        }
+        if (editDebounceRef.current.timer) clearTimeout(editDebounceRef.current.timer);
+        editDebounceRef.current.nodeId = id;
+        editDebounceRef.current.timer = setTimeout(() => {
+          editDebounceRef.current.nodeId = null;
+          editDebounceRef.current.timer = null;
+        }, 500);
+
         const { decisionGraph } = stateStore.getState();
         const { nodesState } = referenceStore.getState();
         const [nodes, setNodes] = nodesState.current;
@@ -653,9 +731,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
       },
-    }),
-    [],
-  );
+    };
+  }, []);
 
   const value = useMemo(
     () => ({

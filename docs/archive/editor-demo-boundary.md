@@ -47,6 +47,6 @@ verdict（SaaS，私有）───────┘  （仅经 npm 包，运行�
 | 2 | 0.7.0 breaking 迁移（停注册 json_path/template，crypto 保留） | ✅（editor 第七十二批：contrib 移除，与内核终态对齐） |
 | 3 | monaco 本地加载 | 宿主现状为**自托管 AMD min/vs**（版本化静态路径），无 CDN 依赖——已满足边界；playground ESM 姿势作为路线③可选演进备案（宿主 docs/18 裁决维持现状） |
 | 4 | 模拟器 onRun 接本地 zen-rule | 收口方式调整为 `bun run dev` 单命令全栈（concurrently：dev:api + vite）——「本地执行」定位不变；浏览器 wasm 回退（无 UDF 执行能力）列为可选后续 |
-| 5 | 键盘拖拽宿主侧配合 | 待内核 roadmap 3.2 启用 |
+| 5 | 键盘拖拽宿主侧配合 | ✅ 闭环（2026-09-12）：内核 roadmap 3.2 done（a76d3bd，cf-table 键盘拖拽 array-move 语义修正）；宿主回归经 gitlink 消化（editor 第七十六批）随全门禁验证完成，宿主侧零专属工作 |
 
 红线核查：代码零 verdict 依赖 ✓；.env.local 已 gitignore（REUI_LICENSE_KEY 仅本地）✓。
