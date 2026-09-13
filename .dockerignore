@@ -1,0 +1,6 @@
+# 根级构建上下文瘦身（demo-server 镜像自仓库根构建，见 apps/demo-server/Dockerfile）
+**/node_modules
+**/dist
+**/doc-out
+**/.git
+**/.zcode
