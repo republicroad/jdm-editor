@@ -1,6 +1,8 @@
 # zen-udf 开发计划 W 系列（发布闭环与文档收口）
 
-状态：plan · 待宿主确认（2 个决策点见文末）
+状态：shipped · W1–W3 完成（2026-09-13）；W4 按宿主指示挂起
+宿主裁决：D7 issue 暂不提交——先总结 Python contextvars 同类行为，待宿主手动探索确认后一并提交；D8 全部文档进站（自动侧栏 + 新增落地页 docs/zen-udf.md，docs:build 验证）。
+0.2.0 发布：本机无 npm 凭据（ENEEDAUTH）——按仓内管线以 chore(release) 头部提交触发 CI 发布（publish.yaml 自动拾取 packages/* 未发布包）。
 上游：V 系列已 shipped（0.2.0 发布就绪；demo-server 已升级消费；上游 issue 草稿就位）
 
 ## 现状侦察结论
@@ -14,10 +16,10 @@
 
 | 期 | 内容 | 状态 |
 | --- | --- | --- |
-| W1 | demo-server 端到端冒烟探针（补 V7 验收） | 待开发 |
-| W2 | 0.2.0 发布管线核验（publish.yaml + npm-smoke 扩展） | 待开发 |
-| W3 | docs 站点收录 zen-udf 文档 | 待开发 |
-| W4 | 上游 issue 提交（对外动作） | 草稿已就位，待宿主确认 |
+| W1 | demo-server 端到端冒烟探针（补 V7 验收） | ✅ 全绿 6/6（scripts/probes/demo-server-live.mjs） |
+| W2 | 0.2.0 发布管线核验（publish.yaml + npm-smoke 扩展） | ✅ pack→安装→执行链路冒烟通过（scripts/probes/zen-udf-npm-smoke.mjs） |
+| W3 | docs 站点收录 zen-udf 文档 | ✅ 全部进站 + 落地页 docs/zen-udf.md（docs:build 验证） |
+| W4 | 上游 issue 提交（对外动作） | ⏸ 挂起——宿主将手动探索 Python contextvars 同类行为后一并总结提交 |
 
 建议执行序：W1 → W2 → W3；W4 独立（需宿主确认 D7）。
 
