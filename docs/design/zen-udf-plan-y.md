@@ -15,7 +15,7 @@
 设计要点（业界对齐）：
 - `observe` 的处理时间**是语义不是缺陷**（攻击检测问的就是到达时间）；其非确定性被隔离在热层，回放永不依赖热层——靠审计 journal 中钉住的观测值确定性重演（Temporal 活动 journaling 模式）
 - `act` 推荐的作者范式是"决策输出意图，宿主提交效果"（CQRS + Outbox，幂等键 = decisionId）；运行时机制保持中性：正常模式执行并 journal，回放模式读 journal
-- 热层（HAProxy stick table，处理时间、近似、10⁵+ QPS）与事实层（RateStore as-of、事件时间、精确）是两个层级两个端口：热层服务实时决策，事实层服务审计/回放/复盘/训练（Feast online/offline store 分层）
+- 热层（HAProxy stick table，处理时间、近似、10⁵+ QPS）与事实层（RateStore as-of、事件时间、精确）是两个层级两个端口：热层服务实时决策，事实层服务审计/回放/复盘/训练（Feast online/offline store 分层）。分层依据与同步计数（read-my-own-write）业界调研见 [zen-udf-sync-counting.md](./zen-udf-sync-counting.md)
 
 ## 2. 分期
 
