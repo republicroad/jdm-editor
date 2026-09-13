@@ -56,6 +56,16 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - 注册是 deploy-time 静态行为；租户差异（凭证/配额/白名单）在调用时经 ExecContext + 端口解析
 - 编译产物租户无关（同租户同模型共享缓存），数据面租户相关
 
+## 0.3.0 新能力（Y 系列）
+
+- **算子语义三元**：`semantics: query | observe | act` —— 副作用与无状态功能的机器强制隔离
+- **决策审计事件**：`onDecision` 钩子下发 DecisionAuditEvent（inputHash + 各算子返回值快照 + 完整决策结论）
+- **确定性回放**：`evaluateReplay(auditEvent, input)` —— observe/act 读审计 journal、query 以 asOf 重算，输入哈希校验
+- **RateStore as-of**：事件时间锚点（point-in-time 复算），契约测试含回放用例
+- **CircuitBreaker**：per tenantId+udfName 熔断，CIRCUIT_OPEN 结构化快速失败
+- **OTel 桥**：evaluate 根 span + UdfTrace span events（可选 peerDependency）
+- **测试夹具运行器**：`runDecisionTests` —— 模型发布前夹具闸门的执行引擎
+
 ## 深入阅读
 
 - [多租户最佳实践设计](/jdm-editor/docs/design/zen-udf-multi-tenant)

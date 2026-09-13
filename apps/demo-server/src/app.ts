@@ -23,7 +23,14 @@ const modelCacheKey = (model: unknown): string =>
 
 // 单租户自托管 demo：tenantExempt 豁免租户强制（zen-udf 多租户面向生产平台）。
 // 执行走 zen-udf DecisionRuntime（zen-engine 2.0.2 + reference 参考函数域 + L1 决策缓存）。
-const runtime = new DecisionRuntime({});
+// 审计演示（Z4）：决策审计事件以 JSON 行输出到 stdout——
+// playground「Server run」即可看到"声明→强制→证据"信任链的最小可见形态。
+// 生产落存储属 verdict（onDecision 持久化层）。
+const runtime = new DecisionRuntime({
+  onDecision: (event) => {
+    console.log('[audit] ' + JSON.stringify(event));
+  },
+});
 
 /**
  * Stateless demo API over zen-udf（自托管演示，非 SaaS 后端）：

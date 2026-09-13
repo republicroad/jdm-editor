@@ -42,7 +42,7 @@ customHandler 回调体内 `als.getStore()` 返回 **undefined**——回调由 
 ## 影响
 
 - 多租户服务端无法把租户身份透传进 customNode 的 UDF（当前只能通过在输入里嵌入上下文、回调内重建 ALS 的旁路实现——见宿主仓 `packages/zen-udf/src/engine.ts` 的 `__zen_udf_exec_ctx__` 通道）
-- OpenTelemetry span 在 customNode 段断裂（当前上下文无法跨越 TSFN）
+- OpenTelemetry span 在 customNode 段断裂（当前上下文无法跨越 TSFN）：宿主只能在 evaluate 外层建根 span，**customNode 级子 span 无法创建**——实时决策引擎的"每个 customNode/UDF 一个子 span"观测形态被阻断（宿主仓 Y6 OTel 桥因此只做根 span + UdfTrace 事件旁路，子 span 明确 defer 待本修复）
 - 请求作用域日志（pino request-child 等）在 customNode 段丢失绑定
 
 ## 复现要点
@@ -51,4 +51,4 @@ customHandler 回调体内 `als.getStore()` 返回 **undefined**——回调由 
 2. `als.run({ marker: 'x' }, () => decision.evaluate(...))`；
 3. 探针 UDF 内 `als.getStore()?.marker` → undefined（期望 'x'）。
 
-修复验收：同探针 marker === 'x'；并发多 context evaluate 各自不串号。
+修复验收：同探针 marker === 'x'；并发多 context evaluate 各自不串号；**宿主在 evaluate 内 startActiveSpan 创建的 span，在 customNode 回调内 `trace.getSpan(context.active())` 可见（子 span 正常续接）**。
