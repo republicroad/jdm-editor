@@ -372,4 +372,68 @@ export function defineContrib(importMetaUrl: string, def: ContribDef): ContribTo
 /** 单工具声明助手：为字面量提供 ContribToolDef 类型检查与补全 */
 export const defineTool = (tool: ContribToolDef): ContribToolDef => tool;
 
+/**
+ * UdfPack：宿主业务函数包契约（verdict 等仓以纯数据 + 处理器形态注入）。
+ * namespace 对应编辑器侧边栏 group 与 customNode 的 kind 域；注册是 deploy-time
+ * 静态行为，租户差异在调用时经 ExecContext/端口解析，禁止 per-tenant 注册。
+ */
+export interface UdfPack {
+  namespace: string;
+  tools: ContribToolDef[];
+}
+
+/** 校验 UdfPack 形状，返回错误清单（空数组 = 通过）。createUdfRegistry 注册前自动调用 */
+export function validatePack(pack: UdfPack): string[] {
+  const errors: string[] = [];
+  if (!pack.namespace || typeof pack.namespace !== 'string') {
+    errors.push('namespace is required and must be a non-empty string');
+  }
+  if (!Array.isArray(pack.tools) || pack.tools.length === 0) {
+    errors.push('tools must be a non-empty array');
+    return errors;
+  }
+  const seen = new Set<string>();
+  for (const tool of pack.tools) {
+    if (!tool || typeof tool.name !== 'string' || !tool.name) {
+      errors.push('every tool requires a non-empty string name');
+      continue;
+    }
+    if (typeof tool.fn !== 'function') {
+      errors.push(`tool '${tool.name}' requires a function fn`);
+    }
+    if (tool.parametersSchema && typeof tool.parametersSchema !== 'object') {
+      errors.push(`tool '${tool.name}' parametersSchema must be an object`);
+    }
+    if (tool.parametersSchema && !tool.parametersSchema.properties) {
+      errors.push(`tool '${tool.name}' parametersSchema.properties is required`);
+    }
+    if (seen.has(tool.name)) {
+      errors.push(`duplicate tool name '${tool.name}' within pack`);
+    }
+    seen.add(tool.name);
+  }
+  return errors;
+}
+
+export interface CreateUdfRegistryOptions {
+  /** 业务函数包（deploy-time 注入）；注册前逐个 validatePack，违例整体失败 */
+  packs?: UdfPack[];
+}
+
+/**
+ * 构建隔离的 UdfRegistry 实例（U6）：多运行时/多租户实例注入的推荐入口。
+ * 参考函数域按需经 loadReferenceInto(registry) 装载（builtin: 'reference' 语义）。
+ */
+export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRegistry {
+  const registry = new UdfRegistry();
+  for (const pack of options.packs ?? []) {
+    const errors = validatePack(pack);
+    if (errors.length > 0) {
+      throw new Error(`[udf] invalid UdfPack '${pack.namespace}': ${errors.join('; ')}`);
+    }
+    registry.registerTools(pack.tools, pack.namespace);
+  }
+  return registry;
+}
+
 export { UdfRegistry, globalUdfRegistry, registerUdf };
