@@ -40,6 +40,44 @@ export interface UdfTrace {
   idempotent?: boolean;
 }
 
+/** 字段级差异（AA1 影子评估 diff 报告） */
+export interface ShadowDiffEntry {
+  path: string;
+  prod: unknown;
+  shadow: unknown;
+}
+
+/** 影子评估结果：生产/影子双侧结论 + 等价性 + 字段级差异 */
+export interface ShadowEvaluation {
+  prod: unknown;
+  shadow: unknown;
+  equivalent: boolean;
+  differences: ShadowDiffEntry[];
+  prodPerformance?: string;
+  shadowPerformance?: string;
+}
+
+/** 字段级深遍历 diff（对象递归；标量/数组/类型不一致记单条差异） */
+const collectDiffs = (a: unknown, b: unknown, path: string, out: ShadowDiffEntry[]): ShadowDiffEntry[] => {
+  if (a === b) return out;
+  const bothObjects =
+    a !== null && b !== null && typeof a === 'object' && typeof b === 'object' && Array.isArray(a) === Array.isArray(b);
+  if (bothObjects) {
+    const keys = new Set([...Object.keys(a as object), ...Object.keys(b as object)]);
+    for (const k of keys) {
+      collectDiffs(
+        (a as Record<string, unknown>)[k],
+        (b as Record<string, unknown>)[k],
+        path ? path + '.' + k : k,
+        out,
+      );
+    }
+    return out;
+  }
+  out.push({ path: path || '$', prod: a, shadow: b });
+  return out;
+};
+
 interface EvaluateResponse {
   performance: string;
   result: unknown;
@@ -366,6 +404,10 @@ class DecisionRuntime {
         DecisionRuntime.enrichInputWithExecContext(ctx),
         evalOpts,
       )) as EvaluateResponse;
+      // 剥离输出中的上下文保留键（AA1：键仅用于跨 TSFN 传播，不进最终结论）
+      if (result.result !== null && typeof result.result === 'object' && !Array.isArray(result.result)) {
+        delete (result.result as Record<string, unknown>)[EXEC_CONTEXT_INPUT_KEY];
+      }
       this.emitAudit(execCtx, key, rev, ctx, result);
       // Y6：UdfTrace 作为 span events
       if (span) {
@@ -386,6 +428,55 @@ class DecisionRuntime {
       );
     }
     return evalInternal();
+  }
+
+  /**
+   * 影子评估（AA1）：生产 rev 正常执行（含审计），影子 rev 并行重演——
+   * act 类影子侧不执行（intent 占位，不双次处置，宿主裁决 D15 推荐）；影子侧不产生审计事件（off-path）。
+   * 用于模型发布前的灰度对比：不一致率达标后切流。
+   */
+  async evaluateShadow(
+    key: string,
+    revs: { prod: string; shadow: string },
+    input: unknown,
+    options?: ZenEvaluateOptions,
+  ): Promise<ShadowEvaluation> {
+    DecisionRuntime.requireTenantContext();
+    const base = getExecContext();
+    const prod = await this.evaluateAsync(key, input, options, revs.prod);
+
+    const shadowExec = {
+      ...(base ?? { tenantExempt: true }),
+      tenantId: base?.tenantId ?? 'single',
+      shadow: { prodRev: revs.prod },
+    };
+    const shadowDecision = this.getDecision(key, revs.shadow);
+    const enrichedShadowInput = {
+      ...((input ?? {}) as Record<string, unknown>),
+      [EXEC_CONTEXT_INPUT_KEY]: Object.freeze({ ...shadowExec }),
+    };
+    const shadowResult = (await runWithExecContext(shadowExec as ExecContext, () =>
+      shadowDecision.evaluate(enrichedShadowInput, options as ZenEvaluateOptions | null | undefined),
+    )) as EvaluateResponse;
+    // 最终结论剥离上下文保留键
+    if (
+      shadowResult.result !== null &&
+      typeof shadowResult.result === 'object' &&
+      !Array.isArray(shadowResult.result)
+    ) {
+      delete (shadowResult.result as Record<string, unknown>)[EXEC_CONTEXT_INPUT_KEY];
+    }
+
+    const differences: ShadowDiffEntry[] = [];
+    collectDiffs(prod.result, shadowResult.result, '', differences);
+    return {
+      prod: prod.result,
+      shadow: shadowResult.result,
+      equivalent: differences.length === 0,
+      differences,
+      prodPerformance: prod.performance,
+      shadowPerformance: shadowResult.performance,
+    };
   }
 
   /**
@@ -513,7 +604,9 @@ class DecisionRuntime {
       if (passThrough && typeof request.input === 'object' && request.input !== null) {
         const input = request.input as Record<string, unknown>;
         for (const key of Object.keys(input)) {
-          if (key !== '$nodes' && key !== EXEC_CONTEXT_INPUT_KEY) {
+          if (key !== '$nodes') {
+            // EXEC_CONTEXT_INPUT_KEY 随 passThrough 向下传播（下游 act 节点依赖），
+            // 最终结论在 evaluateAsync 出口统一剥离
             results[key] = input[key];
           }
         }
@@ -551,6 +644,14 @@ class DecisionRuntime {
       const fSchema = this.registry.udfFunctionSchema(funcName);
       const semantics = (fSchema?.semantics as UdfSemantics | undefined) ?? 'query';
       const idempotent = fSchema?.idempotent as boolean | undefined;
+
+      // AA1 影子评估：act 类影子侧不执行（返回 intent 占位，绝不双次处置）；observe/query 照常
+      const shadowMark = getExecContext()?.shadow;
+      if (shadowMark && semantics === 'act') {
+        const intentOutcome = { intent: true, skipped: 'shadow', name: funcName };
+        traces.push({ key: execExpr.key, name: funcName, micros: 0, semantics, outcome: intentOutcome });
+        return intentOutcome;
+      }
 
       // Y3 回放模式：observe/act 不重执行——从 ExecContext.replay.journal 读回当时返回值；
       // journal 缺失 fail closed（REPLAY_JOURNAL_MISS），query 类正常执行（时钟用 asOf）

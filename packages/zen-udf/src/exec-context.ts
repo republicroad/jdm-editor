@@ -11,6 +11,8 @@ export interface ExecContext {
   eventTime?: string;
   /** 回放模式（Y3）：设置后 observe/act 类 UDF 不重执行，从 journal 读回当时返回值 */
   replay?: ReplayContext;
+  /** 影子评估标记（AA1）：observe/query 照常执行；act 返回 intent 占位（不双次处置）。影子侧不产生审计事件 */
+  shadow?: { prodRev: string };
   /**
    * 显式单租户豁免：置 true 后 evaluate 入口不再强制 tenantId，
    * 仅限 CLI / 本地 / 单租户部署使用；多租户服务端禁止开启。
