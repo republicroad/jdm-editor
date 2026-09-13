@@ -211,7 +211,10 @@
           "properties": {
             "list_name": { "type": "string", "title": "名单名称", "description": "服务端名单名称" },
             "value": { "type": "string", "title": "查询值", "description": "待查询的值" }
-          }
+          },
+          "required": ["list_name", "value"],
+          "title": "custom_list_query",
+          "type": "object"
         },
         "returns": {
           "type": "object",
