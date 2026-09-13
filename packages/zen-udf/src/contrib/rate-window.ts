@@ -126,6 +126,7 @@ const WINDOW_MS = 60 * 60 * 1000;
 
 const rate_1h = defineTool({
   name: 'rate_1h',
+  semantics: 'observe',
   description: '旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。',
   parametersSchema: {
     properties: {
@@ -154,6 +155,7 @@ const rate_1h = defineTool({
 
 const group_distinct_1h = defineTool({
   name: 'group_distinct_1h',
+  semantics: 'observe',
   description: '旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。',
   parametersSchema: {
     properties: {

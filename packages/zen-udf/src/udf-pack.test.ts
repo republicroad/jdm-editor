@@ -66,6 +66,20 @@ describe('UdfPack 契约（U6）', () => {
     expect(result.marker).toBe('fraud-pack');
   });
 
+  test('Y1 semantics：无效语义被 validatePack 拒绝，合法语义透传下发', () => {
+    const errors = validatePack({
+      namespace: 'ns',
+      tools: [{ name: 't', fn: () => null, semantics: 'effect' as never }],
+    });
+    expect(errors.join('; ')).toContain('semantics must be one of query/observe/act');
+
+    const registry = createUdfRegistry({
+      packs: [{ namespace: 'obs', tools: [{ name: 'counter', fn: () => 1, semantics: 'observe' }] }],
+    });
+    expect(registry.udfFunctionSchema('counter')?.semantics).toBe('observe');
+    expect(registry.udfFunctionSchemaNamespaces()[0].tools[0].semantics).toBe('observe');
+  });
+
   test('createUdfRegistry：非法 pack 整体失败且不产生半注册状态', () => {
     const badPack: UdfPack = { namespace: 'bad', tools: [{ name: 't', fn: undefined as never }] };
     expect(() => createUdfRegistry({ packs: [badPack] })).toThrow(/invalid UdfPack 'bad'/);

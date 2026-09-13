@@ -56,6 +56,7 @@ export interface CustomFunctionTool {
   returns: JsonSchema;
   namespace: string;
   kind: string;
+  semantics: UdfSemantics;
 }
 
 /** 自定义节点命名空间(namespace/tools 格式)，对应侧边栏 group */
@@ -67,6 +68,10 @@ export interface CustomNodeNamespace {
   description?: string;
   tools: CustomFunctionTool[];
 }
+
+/** 算子语义三元（Y1）：query 纯读 / observe 观测累积（处理时间，回放不重执行）/ act 处置效果（回放读 journal） */
+export type UdfSemantics = 'query' | 'observe' | 'act';
+const UDF_SEMANTICS: readonly UdfSemantics[] = ['query', 'observe', 'act'];
 
 /** UDF 声明 schema(向后兼容：扁平 parameters 与完整 parametersSchema 二选一或并存) */
 export interface UdfSchema {
@@ -83,6 +88,8 @@ export interface UdfSchema {
   /** 完整 JSON Schema 形式的返回值定义 */
   returnsSchema?: JsonSchema;
   description?: string;
+  /** 算子语义（Y1）：缺省 'query'；决定回放模式下的执行策略 */
+  semantics?: UdfSemantics;
 }
 
 interface UdfEntry {
@@ -147,6 +154,7 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
     returns: schema.returns ?? { type: 'null' },
     namespace: schema.namespace ?? 'default',
     description: schema.description,
+    semantics: schema.semantics ?? 'query',
   };
 
   if (schema.parametersSchema) {
@@ -246,6 +254,7 @@ class UdfRegistry {
         parameters: schema?.parameters ?? {},
         returns: schema?.returns ?? { type: 'null' },
         namespace: namespace ?? 'default',
+        semantics: schema?.semantics,
         parametersSchema: schema?.parametersSchema,
         returnsSchema: schema?.returnsSchema,
         description: schema?.description,
@@ -263,6 +272,7 @@ class UdfRegistry {
           description: def.description,
           parametersSchema: def.parametersSchema,
           returnsSchema: def.returnsSchema,
+          semantics: def.semantics,
         },
         def.name,
       );
@@ -390,6 +400,7 @@ class UdfRegistry {
         returns: entry.schema.returnsSchema ?? { type: 'null', title: '', properties: {} },
         namespace: ns,
         kind: ns,
+        semantics: entry.schema.semantics ?? 'query',
       });
     }
     return [...namespaces.values()];
@@ -419,6 +430,8 @@ export function createExtRegister(importMetaUrl: string) {
 export interface ContribToolDef {
   name: string;
   description?: string;
+  /** 算子语义（Y1）：缺省 'query' */
+  semantics?: UdfSemantics;
   parametersSchema?: UdfSchema['parametersSchema'];
   returnsSchema?: UdfSchema['returnsSchema'];
   fn: UdfFunction;
@@ -440,6 +453,7 @@ export function defineContrib(importMetaUrl: string, def: ContribDef): ContribTo
       description: tool.description,
       parametersSchema: tool.parametersSchema,
       returnsSchema: tool.returnsSchema,
+      semantics: tool.semantics,
     })(tool.fn);
   }
   return def.tools;
@@ -482,6 +496,9 @@ export function validatePack(pack: UdfPack): string[] {
     }
     if (tool.parametersSchema && !tool.parametersSchema.properties) {
       errors.push(`tool '${tool.name}' parametersSchema.properties is required`);
+    }
+    if (tool.semantics !== undefined && !UDF_SEMANTICS.includes(tool.semantics)) {
+      errors.push(`tool '${tool.name}' semantics must be one of query/observe/act`);
     }
     if (seen.has(tool.name)) {
       errors.push(`duplicate tool name '${tool.name}' within pack`);

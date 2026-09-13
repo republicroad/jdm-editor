@@ -21,6 +21,7 @@ export {
   createUdfRegistry,
   validatePack,
   type UdfPack,
+  type UdfSemantics,
   type CreateUdfRegistryOptions,
   type ContribToolDef,
   type ContribDef,
