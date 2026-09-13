@@ -94,6 +94,50 @@ describe('demo-server api', () => {
   });
 });
 
+describe('demo-server replay（AA2 信任链闭环）', () => {
+  const app = createApp();
+
+  it('execute trace=true 响应携带审计事件（observed 数组）', async () => {
+    const res = await app.request('/v1/execute', {
+      method: 'POST',
+      body: JSON.stringify({ model: tableModel, input: { customer: { tier: 'GOLD' } }, trace: true }),
+    });
+    const body = (await res.json()) as { audit?: { inputHash: string; output: unknown; observed: unknown[] } };
+    expect(body.audit).toBeDefined();
+    expect(typeof body.audit?.inputHash).toBe('string');
+    expect(Array.isArray(body.audit?.observed)).toBe(true);
+  });
+
+  it('replay 闭环：同模型同输入回放一致（consistent true）', async () => {
+    const execRes = await app.request('/v1/execute', {
+      method: 'POST',
+      body: JSON.stringify({ model: tableModel, input: { customer: { tier: 'GOLD' } }, trace: true }),
+    });
+    const { audit } = (await execRes.json()) as { audit: { inputHash: string; output: unknown } };
+
+    const replayRes = await app.request('/v1/replay', {
+      method: 'POST',
+      body: JSON.stringify({ model: tableModel, input: { customer: { tier: 'GOLD' } }, audit }),
+    });
+    const replayBody = (await replayRes.json()) as { result: unknown; consistent: boolean };
+    expect(replayBody.consistent).toBe(true);
+  });
+
+  it('replay 输入篡改被拒（inputHash 校验 → 422）', async () => {
+    const execRes = await app.request('/v1/execute', {
+      method: 'POST',
+      body: JSON.stringify({ model: tableModel, input: { customer: { tier: 'GOLD' } }, trace: true }),
+    });
+    const { audit } = (await execRes.json()) as { audit: { inputHash: string } };
+
+    const res = await app.request('/v1/replay', {
+      method: 'POST',
+      body: JSON.stringify({ model: tableModel, input: { customer: { tier: 'SILVER' } }, audit }),
+    });
+    expect(res.status).toBe(422);
+  });
+});
+
 describe('demo-server cors', () => {
   const app = createApp();
 
