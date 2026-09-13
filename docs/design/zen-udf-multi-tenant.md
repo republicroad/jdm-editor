@@ -53,6 +53,7 @@ L3 数据面 UDF roster / rate-window / http / custom-list-query（按 L2 隔离
 ## 4. 执行上下文（L2）
 
 - `runWithExecContext({ tenantId, userId, requestId }, fn)` 贯穿 evaluate → customHandler → UDF（现 ExecContext 加 `tenantId`）
+- **ALS 边界限制**：AsyncLocalStorage 不跨 zen-engine 的 Rust worker → TSFN 回调边界存活——当前以输入保留键（`__zen_udf_exec_ctx__`）携带 ExecContext 并在回调内重建立；详见 [zen-udf-context-propagation.md](./zen-udf-context-propagation.md)（含绑定层原生传播提案）
 - `customHandler` 与 UDF 内经 `getExecContext()` 取租户；UDF **禁止**从图 config 读租户身份（防图内容带租户数据跨租户复制）
 - 请求级超时：`ZenConfig.functionTimeoutMillis` + http UDF 的 kwargs.timeout；外层调用方持 AbortSignal
 
