@@ -19,3 +19,23 @@ exports[`theme seed derivation (P0) > ladder covers exactly the documented deriv
   "colorWarningText",
 ]
 `;
+
+exports[`theme seed derivation (P0) ladder covers exactly the documented derivable keys 1`] = `
+[
+  "colorErrorBg",
+  "colorErrorBorder",
+  "colorFieldInputHover",
+  "colorFieldOutputHover",
+  "colorPrimaryActive",
+  "colorPrimaryBg",
+  "colorPrimaryBgHover",
+  "colorPrimaryBorder",
+  "colorPrimaryBorderHover",
+  "colorPrimaryHover",
+  "colorSuccessBg",
+  "colorSuccessBorder",
+  "colorWarningBg",
+  "colorWarningBorder",
+  "colorWarningText",
+]
+`;

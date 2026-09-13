@@ -15,6 +15,7 @@ import { DecisionTable, computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
 import { DataGridPage } from './data-grid-page';
+import { ReUIShowcasePage } from './reui-showcase';
 
 const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
 const GRAPH_ID = 'playground-graph';
@@ -39,7 +40,7 @@ const initialTable = {
   ],
 };
 
-type Page = 'graph' | 'table' | 'grid';
+type Page = 'graph' | 'table' | 'grid' | 'reui';
 type VersionEntry = { revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean };
 type DiffBase = { revision: string; content: unknown };
 
@@ -302,9 +303,15 @@ export const App: React.FC = () => {
         <header className='pg-header'>
           <strong>JDM Playground</strong>
           <nav>
-            {(['graph', 'table', 'grid'] as Page[]).map((p) => (
+            {(['graph', 'table', 'grid', 'reui'] as Page[]).map((p) => (
               <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
-                {p === 'graph' ? 'Decision Graph' : p === 'grid' ? 'Data Grid' : 'Decision Table'}
+                {p === 'graph'
+                  ? 'Decision Graph'
+                  : p === 'grid'
+                    ? 'Data Grid'
+                    : p === 'reui'
+                      ? 'ReUI'
+                      : 'Decision Table'}
               </button>
             ))}
           </nav>
@@ -337,6 +344,8 @@ export const App: React.FC = () => {
         <main className='pg-main'>
           {page === 'grid' ? (
             <DataGridPage />
+          ) : page === 'reui' ? (
+            <ReUIShowcasePage />
           ) : page === 'graph' ? (
             <SkinnedDecisionGraph
               value={graph}
