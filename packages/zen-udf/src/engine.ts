@@ -109,9 +109,21 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   onDecision?: (event: DecisionAuditEvent) => void;
   /** OpenTelemetry 桥（Y6）：置 true 且宿主安装 @opentelemetry/api 时，evaluate 产生根 span（UdfTrace 作为事件） */
   otel?: boolean;
+  /** 统一观测 sink（BB5）：UDF/熔断/并发闸事件流；缺省 undefined = 不出观测事件 */
+  metrics?: (event: MetricsEvent) => void;
 }
 
 /** 单个 UDF 的观测记录（Y2 审计事件 observed 数组项） */
+/**
+ * 统一观测事件（BB5）：metrics sink 按 kind 聚合——
+ * udf（每次 UDF 调用）/ circuit（熔断拒绝）/ limiter（并发闸等待）。
+ * verdict 侧聚合成 Prometheus 指标（如 zen_udf_udf_errors_total）。
+ */
+export type MetricsEvent =
+  | { kind: 'udf'; name: string; tenantId?: string; micros: number; code?: string; idempotent?: boolean }
+  | { kind: 'circuit'; key: string; allowed: false }
+  | { kind: 'limiter'; key: string; waitMicros: number };
+
 export interface DecisionObservedCall {
   key: string;
   name: string;
@@ -211,6 +223,8 @@ class DecisionRuntime {
   onDecision?: (event: DecisionAuditEvent) => void;
   /** OTel 桥开关（缺省 false） */
   otel: boolean;
+  /** 统一观测 sink（缺省 undefined = 不出观测事件） */
+  metrics?: (event: MetricsEvent) => void;
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
@@ -225,6 +239,7 @@ class DecisionRuntime {
     this.sanitizer = options.sanitizer ?? sanitizeErrorDefault;
     this.onDecision = options.onDecision;
     this.otel = options.otel ?? false;
+    this.metrics = options.metrics;
     if (options.customHandler == null) {
       options.customHandler = (request) => this.handleCustomNode(request);
     }
@@ -655,6 +670,18 @@ class DecisionRuntime {
         }
       }
 
+      if (traces.length > 0) {
+        for (const t of traces) {
+          this.metrics?.({
+            kind: 'udf',
+            name: t.name,
+            tenantId: execCtx?.tenantId,
+            micros: t.micros,
+            code: t.code,
+            idempotent: t.idempotent,
+          });
+        }
+      }
       return traces.length > 0 ? { output: results, traceData: { udf: traces } } : { output: results };
     };
 
@@ -757,6 +784,7 @@ class DecisionRuntime {
         breakerKey = tenantId ? `${tenantId}:${funcName}` : funcName;
         if (this.breaker && !this.breaker.allow(breakerKey)) {
           const openOutcome = { error: { code: 'CIRCUIT_OPEN', message: `circuit open for ${breakerKey}` } };
+          this.metrics?.({ kind: 'circuit', key: breakerKey, allowed: false });
           traces.push({
             key: execExpr.key,
             name: funcName,
@@ -767,7 +795,16 @@ class DecisionRuntime {
           });
           return openOutcome;
         }
-        const release = this.limiter && tenantId ? await this.limiter.acquire(tenantId) : null;
+        let release: (() => void) | null = null;
+        if (this.limiter && tenantId) {
+          const waitStart = process.hrtime.bigint();
+          release = await this.limiter.acquire(tenantId);
+          this.metrics?.({
+            kind: 'limiter',
+            key: tenantId,
+            waitMicros: Number(process.hrtime.bigint() - waitStart) / 1000,
+          });
+        }
         let result: unknown;
         const startedAt = process.hrtime.bigint();
         try {

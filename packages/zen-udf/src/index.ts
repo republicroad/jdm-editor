@@ -11,6 +11,7 @@ export {
   type DecisionObservedCall,
   type ShadowEvaluation,
   type ShadowDiffEntry,
+  type MetricsEvent,
 } from './engine.ts';
 export {
   DecisionCache,
