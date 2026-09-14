@@ -126,6 +126,34 @@ try {
   // 6. 同模型二连调：L1 缓存复用路径（第二次应命中缓存，行为一致）
   const cached = await post('/v1/execute', { model: tableModel, input: { customer: { tier: 'GOLD' } } });
   check('同模型二连调（L1 命中）结果一致', cached.status === 200 && cached.json?.result?.discount?.rate === 0.85);
+
+  // 7. AA2 回放闭环：execute 捕获 audit → replay 一致
+  const replaySrc = await post('/v1/execute', {
+    model: tableModel,
+    input: { customer: { tier: 'GOLD' } },
+    trace: true,
+  });
+  const audit = replaySrc.json?.audit;
+  check('execute trace=true 响应携带审计事件', audit !== undefined, JSON.stringify(replaySrc.json).slice(0, 200));
+
+  const replayed = await post('/v1/replay', {
+    model: tableModel,
+    input: { customer: { tier: 'GOLD' } },
+    audit,
+  });
+  check(
+    'replay 一致性核验（consistent true）',
+    replayed.status === 200 && replayed.json?.consistent === true,
+    JSON.stringify(replayed.json).slice(0, 200),
+  );
+
+  // 8. 篡改输入：inputHash 校验拒绝（422）
+  const tampered = await post('/v1/replay', {
+    model: tableModel,
+    input: { customer: { tier: 'SILVER' } },
+    audit,
+  });
+  check('replay 输入篡改 422', tampered.status === 422, JSON.stringify(tampered.json).slice(0, 200));
 } catch (error) {
   failures += 1;
   console.error('[demo-server-live] ✗ 探针异常:', error instanceof Error ? error.message : String(error));

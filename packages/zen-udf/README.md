@@ -8,9 +8,9 @@ zen-engine 的 customNode UDF 运行时：**多函数实例执行规范 + UdfPac
 
 zen-engine 原生只执行内置节点类型；本包负责四件事：
 
-1. **执行规范**——customNode 内多函数实例（`udf;;arg;;arg`）的求值、位置参数绑定、必填校验、超时兜底、per-tenant 并发闸与熔断、返回值契约、错误 containment 与脱敏
+1. **执行规范**——customNode 内多函数实例（`udf;;arg;;arg`）的求值、位置参数绑定、必填校验、超时兜底、per-tenant 并发闸与熔断、返回值契约、错误 containment 与脱敏、响应体积守卫（http maxBytes）
 2. **决策缓存**——L1 进程内缓存（LRU + 指标），键 `${tenantId}:${key}@${rev}`（zen-engine 函数 loader 无引擎级缓存，缓存责任在宿主——探针实证）
-3. **审计与确定性回放**——决策审计事件（onDecision）+ 算子语义三元（query/observe/act）+ journal 回放（observe/act 不重执行）
+3. **审计与确定性回放**——决策审计事件（onDecision）+ 算子语义三元（query/observe/act）+ journal 回放（observe/act 不重执行）+ 影子评估（evaluateShadow 字段级 diff）+ 输入序列化守卫（NaN/Infinity fail-fast）+ 批量评估（evaluateMany）
 4. **多租户上下文与端口**——AsyncLocalStorage 贯穿 evaluate → customNode → UDF（ALS 不跨 TSFN 边界，运行时以输入保留键重建）；数据面端口（RateStore/ConcurrencyLimiter/EgressGuard/SecretResolver）
 
 ## 快速上手

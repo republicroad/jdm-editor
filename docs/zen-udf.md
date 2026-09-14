@@ -56,7 +56,7 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - 注册是 deploy-time 静态行为；租户差异（凭证/配额/白名单）在调用时经 ExecContext + 端口解析
 - 编译产物租户无关（同租户同模型共享缓存），数据面租户相关
 
-## 0.3.0 新能力（Y 系列）
+## 0.4.0 新能力（AA+BB 系列）
 
 - **算子语义三元**：`semantics: query | observe | act` —— 副作用与无状态功能的机器强制隔离
 - **决策审计事件**：`onDecision` 钩子下发 DecisionAuditEvent（inputHash + 各算子返回值快照 + 完整决策结论）
@@ -65,6 +65,12 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - **CircuitBreaker**：per tenantId+udfName 熔断，CIRCUIT_OPEN 结构化快速失败
 - **OTel 桥**：evaluate 根 span + UdfTrace span events（可选 peerDependency）
 - **测试夹具运行器**：`runDecisionTests` —— 模型发布前夹具闸门的执行引擎
+- **影子评估**：`evaluateShadow(key, { prod, shadow }, input)` —— 新旧 rev 并行执行 + 字段级 diff（act 影子侧返回 intent 占位，绝不双次处置）
+- **回放演示端点**：demo-server `POST /v1/replay` —— 审计事件 + 输入 → 确定性重演 + 一致性标记
+- **输入序列化守卫**：NaN/Infinity 执行前 fail fast（无法跨 Rust 边界，实测 serde 崩溃场景）
+- **批量评估**：`evaluateMany` —— 同模型多输入并发，逐条错误隔离
+- **统一观测 sink**：metrics 回调统一 UDF/熔断/并发闸事件流，verdict 聚合为 Prometheus
+- **L1 缓存空闲 TTL**：`idleTtlMs` 惰性过期，与容量上限叠加
 
 ## 深入阅读
 
