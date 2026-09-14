@@ -147,6 +147,34 @@ try {
     JSON.stringify(replayed.json).slice(0, 200),
   );
 
+  // 8. AA1 影子评估：同模型双 rev → equivalent true
+  const shadowSame = await post('/v1/shadow', {
+    prodModel: tableModel,
+    shadowModel: tableModel,
+    input: { customer: { tier: 'GOLD' } },
+  });
+  check(
+    'shadow 同模型双 rev equivalent',
+    shadowSame.status === 200 && shadowSame.json?.equivalent === true,
+    JSON.stringify(shadowSame.json).slice(0, 200),
+  );
+
+  // 9. AA1 影子评估：异规则模型 → 字段级差异 + act 不双执行
+  const divergentModel = JSON.parse(JSON.stringify(tableModel));
+  divergentModel.nodes[1].content.rules[0]['out-rate'] = '0.5';
+  const shadowDiff = await post('/v1/shadow', {
+    prodModel: tableModel,
+    shadowModel: divergentModel,
+    input: { customer: { tier: 'GOLD' } },
+  });
+  check(
+    'shadow 异规则 divergent + 字段级差异',
+    shadowDiff.status === 200 &&
+      shadowDiff.json?.equivalent === false &&
+      (shadowDiff.json?.differences?.length ?? 0) > 0,
+    JSON.stringify(shadowDiff.json).slice(0, 200),
+  );
+
   // 8. 篡改输入：inputHash 校验拒绝（422）
   const tampered = await post('/v1/replay', {
     model: tableModel,

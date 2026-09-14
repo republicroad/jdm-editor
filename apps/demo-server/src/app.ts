@@ -16,6 +16,14 @@ export type ReplayBody = {
   audit?: Partial<DecisionAuditEvent>;
 };
 
+export type ShadowBody = {
+  /** 生产侧模型（基线） */
+  prodModel?: unknown;
+  /** 影子侧模型（候选）；缺省 = 生产模型自身 */
+  shadowModel?: unknown;
+  input?: unknown;
+};
+
 export type ApiError = { error: string; details?: unknown };
 
 const isModelShape = (value: unknown): value is { nodes: unknown[]; edges?: unknown[] } => {
@@ -156,6 +164,62 @@ export const createApp = () => {
       return c.json({ result: replayed.result ?? null, consistent });
     } catch (err) {
       return c.json({ error: 'replay failed', details: String(err).slice(0, 300) } satisfies ApiError, 422);
+    }
+  });
+
+  app.post('/v1/shadow', async (c) => {
+    let body: ShadowBody;
+    try {
+      body = (await c.req.json()) as ShadowBody;
+    } catch {
+      return c.json({ error: 'invalid JSON body' } satisfies ApiError, 400);
+    }
+
+    const prodModel: unknown = body?.prodModel;
+    const shadowModel: unknown = body?.shadowModel ?? prodModel;
+    if (!isModelShape(prodModel) || !isModelShape(shadowModel)) {
+      return c.json(
+        {
+          error: 'invalid model',
+          details: 'expected { prodModel: { nodes: [] }, shadowModel?, input }',
+        } satisfies ApiError,
+        400,
+      );
+    }
+
+    try {
+      // 内容哈希 → rev 别名：stateless demo 由调用方携带两个版本的模型
+      const prodRev = 'p' + createHash('sha256').update(JSON.stringify(prodModel)).digest('hex').slice(0, 16);
+      const shadowRev = 's' + createHash('sha256').update(JSON.stringify(shadowModel)).digest('hex').slice(0, 16);
+      const input = (body?.input ?? {}) as Record<string, unknown>;
+
+      const shadow = await runWithExecContext({ tenantExempt: true }, async () => {
+        for (const [rev, model] of [
+          [prodRev, prodModel],
+          [shadowRev, shadowModel],
+        ] as const) {
+          const cacheKey = `shadow-demo:${rev}`;
+          if (!runtime.getDecisionCache(cacheKey)) {
+            try {
+              runtime.createDecisionWithCacheKey('shadow-demo', model, rev);
+            } catch {
+              // 并发同 rev 重复登记：直接复用
+            }
+          }
+        }
+        return runtime.evaluateShadow('shadow-demo', { prod: prodRev, shadow: shadowRev }, input);
+      });
+
+      return c.json({
+        prod: shadow.prod ?? null,
+        shadow: shadow.shadow ?? null,
+        equivalent: shadow.equivalent,
+        differences: shadow.differences,
+        prodPerformance: shadow.prodPerformance ?? '',
+        shadowPerformance: shadow.shadowPerformance ?? '',
+      });
+    } catch (err) {
+      return c.json({ error: 'shadow evaluation failed', details: String(err).slice(0, 300) } satisfies ApiError, 422);
     }
   });
 
