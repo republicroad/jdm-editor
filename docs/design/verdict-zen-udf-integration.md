@@ -70,3 +70,15 @@ app.post('/v1/models/:key/execute', async (c) => {
 - [ ] 发布/回滚演练：rev 热替换、旧键失效广播
 - [ ] Prometheus 指标上线（cache snapshot + UdfTrace 错误码计数）
 - [ ] EgressGuard/SecretResolver 注入后 http UDF 冒烟
+
+## 附录 A：BB5 metrics 事件 → Prometheus 映射约定
+
+DecisionRuntime `metrics` sink 下发三类事件（`MetricsEvent`），verdict 聚合侧按下表映射：
+
+| kind | 字段 | 建议 Prom 指标 | 类型 |
+| --- | --- | --- | --- |
+| `udf` | name / tenantId / micros / code?（INVALID_PARAM、UDF_TIMEOUT、INVALID_RESULT、UDF_NOT_FOUND、UDF_ERROR、REPLAYED、REPLAY_JOURNAL_MISS、CIRCUIT_OPEN）/ idempotent? | `zen_udf_udf_calls_total{namespace,name,tenant,code}`（counter）+ `zen_udf_udf_duration_micros{namespace,name}`（histogram） | 每次 UDF 调用一条 |
+| `circuit` | key（tenantId:name）/ allowed:false | `zen_udf_circuit_denied_total{key}`（counter） | 每次熔断拒绝一条 |
+| `limiter` | key（tenantId）/ waitMicros | `zen_udf_limiter_wait_micros{tenant}`（histogram） | 每次获取槽位一条 |
+
+命名约定：`zen_udf_<kind>_<量纲>[_total]`；标签只带低基数维度（namespace/name/tenant/code），高基数值（输入内容、decisionId）不入标签。
