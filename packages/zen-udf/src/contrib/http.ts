@@ -31,6 +31,7 @@ const MIN_TIMEOUT_MS = 100;
 const MAX_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 5;
 const RETRY_BASE_DELAY_MS = 200;
+const DEFAULT_MAX_BYTES = 1024 * 1024; // 响应体积上限缺省 1MB（BB4，D18）
 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
@@ -237,6 +238,8 @@ export const http_request = defineTool({
       }
     }
 
+    // BB4：响应体积上限（字节）；kwargs.maxBytes 可调，硬上限 64MiB
+    const maxBytes = coerceCount(kwargs?.maxBytes, 1024, 64 * 1024 * 1024, DEFAULT_MAX_BYTES);
     const attemptOnce = async (): Promise<HttpAttemptResult> => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -247,7 +250,32 @@ export const http_request = defineTool({
           body: requestBody,
           signal: controller.signal,
         });
-        const responseText = await response.text();
+        // BB4：流式限量读取——超 maxBytes 即中断（防异常/恶意下游撑爆内存）
+        let responseText = '';
+        let totalBytes = 0;
+        const reader = response.body?.getReader();
+        if (reader) {
+          const decoder = new TextDecoder();
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            totalBytes += value.byteLength;
+            if (totalBytes > maxBytes) {
+              controller.abort();
+              return {
+                status: 0,
+                headers: {},
+                body: null,
+                error: `response exceeds maxBytes (${maxBytes} bytes)`,
+                policyBlocked: true,
+              };
+            }
+            responseText += decoder.decode(value, { stream: true });
+          }
+          responseText += decoder.decode();
+        } else {
+          responseText = await response.text();
+        }
         let responseBody: unknown;
         try {
           responseBody = JSON.parse(responseText);
