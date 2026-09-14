@@ -168,6 +168,16 @@ function evaluateExpressionSafe(expr: string, input?: unknown): unknown {
 }
 
 /** 内置脱敏规则（执行规范 §6.7）：绝对路径占位 + 敏感名环境变量值替换为 [ENV_NAME] */
+/** AA3 输入序列化守卫：非有限数值（NaN/Infinity）无法跨 Rust 边界，执行前 fail fast */
+const assertJsonSafeInput = (input: unknown): void => {
+  JSON.stringify(input, (_key, value) => {
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      throw new Error('[zen-udf] input contains a non-finite number (NaN/Infinity)');
+    }
+    return value;
+  });
+};
+
 const sanitizeErrorDefault = (message: string): string => {
   let out = message.replace(/(?:[A-Za-z]:)?(?:[/\\][^\s'"`]+)+/g, '[path]');
   for (const [name, value] of Object.entries(process.env)) {
@@ -393,6 +403,7 @@ class DecisionRuntime {
       span?: { addEvent(name: string, attrs: Record<string, unknown>): void } | undefined,
     ) => {
       DecisionRuntime.requireTenantContext();
+      assertJsonSafeInput(ctx);
       const decision = this.getDecision(key, rev);
       const execCtx = getExecContext();
       // Y2：配置 onDecision 时强制 trace（observed 从节点 traceData 收集）
@@ -428,6 +439,25 @@ class DecisionRuntime {
       );
     }
     return evalInternal();
+  }
+
+  /**
+   * 批量评估（AA4）：同模型多输入并发执行，逐条错误隔离（单条失败不影响他条）。
+   * 每条独立走 evaluateAsync（租户上下文/审计/缓存语义与单请求完全一致）。
+   */
+  async evaluateMany(
+    key: string,
+    jobs: Array<{ input: unknown; options?: unknown; rev?: string }>,
+  ): Promise<Array<{ ok: true; result: EvaluateResponse } | { ok: false; error: string }>> {
+    return Promise.all(
+      jobs.map(async (job) => {
+        try {
+          return { ok: true as const, result: await this.evaluateAsync(key, job.input, job.options, job.rev) };
+        } catch (e) {
+          return { ok: false as const, error: e instanceof Error ? e.message : String(e) };
+        }
+      }),
+    );
   }
 
   /**

@@ -1,6 +1,6 @@
 # zen-udf 开发计划 AA 系列（0.3.x：信任链产品化与发布安全）
 
-状态：plan · 待宿主确认（1 个决策点见文末）
+状态：shipped · AA1–AA5 全部完成（2026-09-14，zen-udf 119/119；D15 按推荐落地：影子侧 act 一律不执行返回 intent 占位）
 上游：U/V/W/X/Y 系列已 shipped；0.3.0 已发布 npm（语义三元/审计/回放/熔断/OTel/夹具全量能力）
 定位：机制仓进入稳态后，本轮把 Y 系列的信任链**产品化**——让"发布安全（影子评估）""客户可验证（回放演示端点）""规模化（批量评估）"从能力变成可交付物。
 
@@ -15,11 +15,11 @@
 
 | 期 | 内容 | 依赖 | 状态 |
 | --- | --- | --- | --- |
-| AA1 | 影子评估（evaluateShadow + diff 报告） | — | 待开发 |
-| AA2 | demo-server `/v1/replay` 端点（信任链可演示闭环） | — | 待开发 |
-| AA3 | 输入预校验（fail-fast） | — | 待开发 |
-| AA4 | 批量评估封装（tenant batch） | Y4 | 待开发 |
-| AA5 | 性能基线基准（cache/limiter/audit 开销） | — | 待开发 |
+| AA1 | 影子评估（evaluateShadow + diff 报告） | — | ✅ 46bcd81e |
+| AA2 | demo-server `/v1/replay` 端点（信任链可演示闭环） | — | ✅ 2256aabc / 3450109d |
+| AA3 | 输入预校验（fail-fast） | — | ✅ assertJsonSafeInput（NaN/Infinity 守卫，实测 serde 崩溃场景） |
+| AA4 | 批量评估封装（tenant batch） | Y4 | ✅ evaluateMany |
+| AA5 | 性能基线基准（cache/limiter/audit 开销） | — | ✅ bench/perf.ts（缓存命中显著优于重建；数字见运行输出） |
 | AA6 | verdict U10 联调支持 | — | 跨仓持续 |
 | — | W4 上游 issue | 宿主 contextvars 总结 | 挂起 |
 | — | Z6 OTel customNode 子 span | 上游修复 | 挂起 |
