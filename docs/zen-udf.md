@@ -71,6 +71,9 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - **批量评估**：`evaluateMany` —— 同模型多输入并发，逐条错误隔离
 - **统一观测 sink**：metrics 回调统一 UDF/熔断/并发闸事件流，verdict 聚合为 Prometheus
 - **L1 缓存空闲 TTL**：`idleTtlMs` 惰性过期，与容量上限叠加
+- **影子评估**：`evaluateShadow` —— 新旧 rev 并行执行 + 字段级 diff（act 影子侧 intent 占位）
+- **批量评估与输入守卫**：`evaluateMany` 并发批量；NaN/Infinity 执行前 fail fast
+- **性能基线**：`bench/perf.ts` —— 重建 vs 缓存 vs 审计 vs 并发闸（µs/op）
 
 ## 深入阅读
 

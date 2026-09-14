@@ -90,6 +90,22 @@ new DecisionRuntime({
 | `EgressGuard`        | http UDF 出口 allowlist（防 SSRF） | 未配置 = 全放行                                                                 |
 | `SecretResolver`     | 图内 `${secret:名称}` 按租户解析   | 未配置 = secret 引用报错                                                        |
 
+## 影子评估与批量评估
+
+````ts
+// 影子评估：新旧 rev 并行执行，act 影子侧返回 intent 占位（不双次处置）
+const shadow = await runtime.evaluateShadow('fraud-model', { prod: 'v2', shadow: 'v3' }, input);
+console.log(shadow.equivalent, shadow.differences); // 不一致率达标后切流
+
+// 批量评估：同模型多输入并发，逐条错误隔离
+const results = await runtime.evaluateMany('fraud-model', [
+  { input: { x: 1 }, rev: 'v2' },
+  { input: { x: 2 }, rev: 'v2' },
+]);
+``
+
+其他 0.4.0 能力：L1 缓存空闲 TTL（`idleTtlMs`）、http UDF 响应体积守卫（`maxBytes`）、统一观测 sink（`metrics`，UDF/熔断/并发闸事件）。
+
 ## 参考函数域（builtin reference）
 
 根导入自动装载 contrib 参考域：`http_request`、`crypto`、`roster`、`custom_list_query`、`rate_1h`、`group_distinct_1h`、`ip_location`、debug 系列。实例隔离用 `new UdfRegistry()` + `loadReferenceInto(registry)` 按需装载。
@@ -113,4 +129,4 @@ new DecisionRuntime({
 
 ```bash
 bun run test   # 114 tests，Bun 工具链（zen-engine 原生绑定）
-```
+````
