@@ -92,6 +92,8 @@ export interface DecisionRuntimeOptions extends ZenEngineOptions {
   cacheCapacity?: number;
   /** 缓存指标 sink（verdict 接 Prometheus 用），每次读写后回调快照 */
   metricsSink?: (snapshot: CacheMetricsSnapshot) => void;
+  /** 空闲 TTL 毫秒（BB3）：条目自 lastAccess 超过该时长即惰性过期；缺省关闭 */
+  idleTtlMs?: number;
   /** per-tenant 并发闸（执行规范 §6.3）；缺省不限并发 */
   limiter?: ConcurrencyLimiter;
   /** 熔断器（Y5）：per tenantId+udfName 故障隔离；缺省无熔断 */
@@ -212,7 +214,11 @@ class DecisionRuntime {
 
   constructor(options: DecisionRuntimeOptions = {}) {
     this.registry = options.registry ?? globalUdfRegistry;
-    this.cache = new DecisionCache({ capacity: options.cacheCapacity, metricsSink: options.metricsSink });
+    this.cache = new DecisionCache({
+      capacity: options.cacheCapacity,
+      metricsSink: options.metricsSink,
+      idleTtlMs: options.idleTtlMs,
+    });
     this.limiter = options.limiter;
     this.breaker = options.breaker;
     this.resultValidation = options.resultValidation ?? 'warn';

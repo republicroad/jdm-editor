@@ -58,6 +58,30 @@ describe('DecisionCache（U4 L1 缓存机制）', () => {
   });
 });
 
+describe('BB3 空闲 TTL', () => {
+  test('空闲超 TTL 惰性过期（计 ttlEvictions）', () => {
+    let now = 1_000_000;
+    const cache = new DecisionCache({ capacity: 10, idleTtlMs: 50, now: () => now });
+    cache.set('k', makeEntry(1));
+    now += 61; // 超过 50ms 空闲期
+    expect(cache.get('k')).toBeUndefined();
+    expect(cache.snapshot().ttlEvictions).toBe(1);
+  });
+
+  test('get 刷新 lastAccess：持续访问不过期', () => {
+    let now = 2_000_000;
+    const cache = new DecisionCache({ capacity: 10, idleTtlMs: 50, now: () => now });
+    cache.set('k', makeEntry(1));
+    now += 30;
+    expect(cache.get('k')?.content).toBe(1); // 命中并刷新 lastAccess → now=+30
+    now += 30; // 距上次访问 30 < 50 → 仍命中
+    expect(cache.get('k')?.content).toBe(1);
+    now += 55; // 距上次访问 55 > 50 → 过期
+    expect(cache.get('k')).toBeUndefined();
+    expect(cache.snapshot().ttlEvictions).toBe(1);
+  });
+});
+
 describe('DecisionRuntime L1 缓存接入（U4）', () => {
   const graph = {
     id: 'g',
