@@ -1,54 +1,119 @@
-# 上游贡献草案：gorules/zen —— AsyncLocalStorage 不跨 customHandler TSFN 边界
+# 上游 issue 跨运行时总结：gorules/zen customNode 回调的执行上下文丢失（Node ALS × Python contextvars）
 
-> 状态：draft · 待宿主审阅后提交至 https://github.com/gorules/zen（issue → PR）
-> 复现包：`packages/zen-udf`（`src/engine-cache-semantics.test.ts` 同型探针；U5 回归测试 `src/decision-runtime.test.ts`）
+> 状态：**总结稿就绪**——宿主手动探索确认后，将 §3 英文正文直接粘贴提交至 https://github.com/gorules/zen
+> 复现探针：`packages/zen-udf/src/decision-runtime.test.ts` + `engine-cache-semantics.test.ts`（JS）· 仓库根 `zen-engine-contextvars-demo.py`（Python，`uv run --with zen-engine python zen-engine-contextvars-demo.py`）
 
-## 标题
+---
 
-AsyncLocalStorage context is lost inside customHandler callbacks (TSFN dispatches on the main event loop without an async context)
+# §1 宿主内部指引（中文）
 
-## 现象
+- **实证覆盖**：JS（zen-engine 2.0.2 + NAPI TSFN，探针+生产回归双验证）与 Python（PyPI zen-engine + cpython-3.14，四场景矩阵实测）双侧均已完成
+- **核心发现**：同一根因（上下文捕获绑定在引擎构造/原生派发，而非调用方）在两个运行时呈现**不对称失败**——Node 全丢，Python 仅异步丢（同步回调天然继承）
+- **提交建议**：英文正文（§3）可直接粘贴；如上游倾向拆分，Node/Python 可拆为两个 issue 并互链
+- 待并入：宿主手动探索的补充结论（contextvars 深层行为）
 
-Node 侧宿主代码：
+---
+
+# §2 英文 issue 正文（paste-ready）
+
+## Title
+
+Async context (Node ALS / Python contextvars) is lost or bound at engine construction inside customNode callbacks — breaks multi-tenant isolation, OTel spans and request-scoped logging
+
+## Summary
+
+In both the Node.js and Python bindings, custom node callbacks run **outside the caller's async execution context**:
+
+- **Node.js**: the customHandler is dispatched via a ThreadsafeFunction as a fresh macrotask — `AsyncLocalStorage#getStore()` returns `undefined` inside the callback, always.
+- **Python**: **sync** handlers see the caller's `contextvars` (the pyo3 `call1` runs on the same thread inside the GIL), but **async** handlers are bound to `TaskLocals` captured **once at `ZenEngine` construction** — per-request `ContextVar.set()` is invisible to the handler, and concurrent evaluations read the same construction-time context.
+
+Multi-tenant services therefore cannot propagate tenant identity/permissions into custom node functions; OpenTelemetry spans break at the customNode segment; request-scoped loggers lose bindings.
+
+## Environment
+
+- Node binding: `@gorules/zen-engine` 2.0.2 (napi-rs TSFN dispatch), Node 22/24
+- Python binding: `zen-engine` (PyPI latest, pyo3), CPython 3.14
+- Graph: minimal `inputNode → customNode → outputNode`
+
+## Reproduction
+
+### Node.js
 
 ```ts
 import { AsyncLocalStorage } from 'node:async_hooks';
 const als = new AsyncLocalStorage();
 
-await als.run({ tenantId: 't-1' }, async () => {
-  await engine.evaluate('decision-key', input, { trace: true });
-  // 在 evaluate 期间，Rust 经 TSFN 回调 customHandler
-});
+// customHandler: (request) => ({ output: { marker: als.getStore()?.marker ?? null } })
+
+await als.run({ marker: 'x' }, () =>
+  engine.create_decision(graph).evaluate({ x: 1 }, { trace: true }),
+);
+// handler sees marker === undefined (expected 'x') — always, sync or async handler
 ```
 
-customHandler 回调体内 `als.getStore()` 返回 **undefined**——回调由 napi ThreadsafeFunction 调度为主线程上的新宏任务，未包装在任何 async context 中。任何依赖 ALS 的生态（OpenTelemetry context、请求作用域日志 pino child、租户隔离）在 customNode 执行期间全部失效。
+### Python
 
-## 根因
+```python
+import asyncio, contextvars
+import zen
 
-`bindings/nodejs/src/custom_node.rs`（及 loader/http_handler 同型）通过 `ThreadsafeFunction::call` 派发回调；napi-rs 的 TSFN 调度不携带 `napi_async_context`，Node 因此无法把回调关联回发起 `evaluate` 时的执行上下文。
+SESSION: contextvars.ContextVar[dict] = contextvars.ContextVar("session", default=None)
 
-## 建议修复（变体 A，零 API 变更）
+async def handler(request):
+    sess = SESSION.get()
+    await asyncio.sleep(0)
+    return {"output": {"seen": sess}}
 
-在 `ZenDecision::evaluate` / `ZenEngine::evaluate_with_opts` 的**同步 JS→Rust 入口**处（此时仍在调用方 async context 内）：
+engine = zen.ZenEngine({"customHandler": handler})
+decision = engine.create_decision(graph_json)
 
-1. `napi_async_init(env, resource, name, &ctx)` 捕获当前 async context（resource 可为 `Object`，name 如 `"zen-engine.evaluate"`）；
-2. customHandler TSFN 派发回调时，改用携带该 context 的 make_callback（`node_api_make_callback` / napi-rs 对应能力），回调即在调用方 ALS zone 内执行；
-3. evaluate 完成后 `napi_async_destroy` 释放。
+async def task(tid: str):
+    token = SESSION.set({"tenant": tid})
+    try:
+        r = await decision.async_evaluate({"x": tid})
+        return tid, r["result"]
+    finally:
+        SESSION.reset(token)
 
-变体 B（显式 API）：`ZenEvaluateOptions` 增加 `asyncResource?: AsyncResource`，由宿主传入，绑定层用它 runInAsyncScope 派发——更显式但增加 API 面。
+# concurrent two tenants on ONE engine instance
+r1, r2 = await asyncio.gather(task("t-alpha"), task("t-beta"))
+# both handlers see the SAME (construction-time) context — per-request set() invisible
+```
 
-两个变体均不影响其它绑定（Python/Go 无 ALS 概念）；JS 侧行为变化为正向（回调内 ALS 可用），建议 changelog 标注。
+## Empirical results
 
-## 影响
+| Case | Node (ALS) | Python (contextvars, sync handler) | Python (contextvars, async handler) |
+| --- | --- | --- | --- |
+| sequential evaluate after `set()` | lost | **visible** ✓ | lost (construction-time context) |
+| concurrent evaluations, per-request `set()` | lost / crossed | n/a (per-thread) | **crossed** — all read the same construction-time context |
+| one engine instance per tenant context | n/a | isolated (thread-local) | **isolated ✓** (construction-time capture = instance-carried session) |
+| workaround in host | embed context in input, re-establish ALS in callback (reserved input key channel) | n/a | multi-instance engines (one per context lifecycle) |
 
-- 多租户服务端无法把租户身份透传进 customNode 的 UDF（当前只能通过在输入里嵌入上下文、回调内重建 ALS 的旁路实现——见宿主仓 `packages/zen-udf/src/engine.ts` 的 `__zen_udf_exec_ctx__` 通道）
-- OpenTelemetry span 在 customNode 段断裂（当前上下文无法跨越 TSFN）：宿主只能在 evaluate 外层建根 span，**customNode 级子 span 无法创建**——实时决策引擎的"每个 customNode/UDF 一个子 span"观测形态被阻断（宿主仓 Y6 OTel 桥因此只做根 span + UdfTrace 事件旁路，子 span 明确 defer 待本修复）
-- 请求作用域日志（pino request-child 等）在 customNode 段丢失绑定
+Node measured with `@gorules/zen-engine` 2.0.2; Python with the PyPI wheel on CPython 3.14.
 
-## 复现要点
+## Root cause
 
-1. 构造含 customNode 的最小图，customHandler 注册探针 UDF；
-2. `als.run({ marker: 'x' }, () => decision.evaluate(...))`；
-3. 探针 UDF 内 `als.getStore()?.marker` → undefined（期望 'x'）。
+- **Node** (`bindings/nodejs/src/custom_node.rs`): the handler is dispatched via `ThreadsafeFunction::call`, which schedules a fresh macrotask **without an `napi_async_context`** — Node cannot associate the callback with the context active at `evaluate()` time.
+- **Python** (`bindings/python/src/engine.rs`): `make_locals()` (TaskLocals + `copy_context`) runs **once in `PyZenEngine::new`**; async handlers are resumed via `into_future_with_locals(task_locals, …)` with that construction-time context. Sync handlers escape the issue because `call1` executes on the calling thread inside the GIL, inheriting the caller's context.
 
-修复验收：同探针 marker === 'x'；并发多 context evaluate 各自不串号；**宿主在 evaluate 内 startActiveSpan 创建的 span，在 customNode 回调内 `trace.getSpan(context.active())` 可见（子 span 正常续接）**。
+Shared root cause: **the context capture/re-attach point is bound to engine construction or native dispatch, not to the caller of `evaluate`**.
+
+## Impact
+
+- Multi-tenant services cannot propagate tenant identity/permissions into custom node UDFs; hosts must resort to embedding context in the evaluation input through reserved keys and re-establishing ALS inside the callback
+- OpenTelemetry: spans break at the customNode segment; **customNode-level child spans cannot be created** (hosts fall back to root span + side-channel events)
+- Request-scoped logging (pino child, contextvars-based formatters) loses bindings inside custom nodes
+
+## Proposed fixes
+
+**Node bindings** (zero-API-change variant): at the synchronous JS→Rust entry of `evaluate`/`async_evaluate` (still inside the caller's async context), capture the context with `napi_async_init`, and dispatch the customHandler TSFN callback via `napi_make_callback` carrying that context; `napi_async_destroy` after evaluate. Alternative: expose an `asyncResource` option on `ZenEvaluateOptions`.
+
+**Python binding**: re-capture `TaskLocals` (running loop + `copy_context`) **inside each `evaluate`/`async_evaluate` call** instead of once at engine construction, so async handlers resume in the caller's context. Alternative: accept an explicit context argument per call.
+
+Both fixes make handler-visible context a per-request concern (what multi-tenant services require) and are backward-compatible positive behavior changes (changelog-worthy).
+
+## Acceptance criteria
+
+1. Sync-path probe: value set via ALS/`ContextVar.set()` before `evaluate` is visible inside the customHandler (Node async path included)
+2. Concurrent evaluations with distinct contexts never cross (each handler sees its own context)
+3. A span started by the host inside `evaluate` (`startActiveSpan`) is visible as `trace.getSpan(context.active())` inside the customHandler (child spans continue)
