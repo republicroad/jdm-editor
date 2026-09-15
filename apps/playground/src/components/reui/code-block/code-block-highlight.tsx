@@ -896,9 +896,8 @@ function ansi256(index: number): string {
   return `#${to(Math.floor(n / 36))}${to(Math.floor(n / 6) % 6)}${to(n % 6)}`;
 }
 
- 
 const SGR_RE = /\x1b\[([0-9;]*)m/g;
- 
+
 /* Everything except SGR (the trailing `m`), which the tokenizer consumes -
    this regex once matched SGR too and silently stripped every colour. */
 const OTHER_ESCAPES_RE = /\x1b(?:\[(?![0-9;]*m)[0-9;?]*[A-Za-z]|\][^\x07]*(?:\x07|\x1b\\)|[()][0-9A-B])/g;
