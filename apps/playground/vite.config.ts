@@ -6,8 +6,24 @@ import { defineConfig } from 'vite';
 // 仓内消费者一律源码直通（两个 workspace 包的 dist 是发布产物，存在 pnpm
 // 硬链接副本陈旧问题——见 docs/troubleshooting 案例 8）；monaco 用宿主安装版。
 // kernel 源码的 tailwind.css 未编译，需 @tailwindcss/vite 处理。
+// Vite MPA：index.html 是目录页，graph/table/grid/reui/trust.html 各为独立实例；
+// 显式列出 input（dev 会自动发现，build 不列会只打 index）。
+const page = (name: string) => fileURLToPath(new URL(`./${name}.html`, import.meta.url));
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      input: {
+        index: page('index'),
+        graph: page('graph'),
+        table: page('table'),
+        grid: page('grid'),
+        reui: page('reui'),
+        trust: page('trust'),
+      },
+    },
+  },
   resolve: {
     // '#' 子路径走 playground/package.json 的 imports 字段（对齐 jdm-editor 的
     // 包级解析方式，作用域限定在本包内，不会劫持 jdm-editor 源码的 #icons 等）

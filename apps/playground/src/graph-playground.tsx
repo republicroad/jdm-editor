@@ -4,68 +4,21 @@ import {
   type SkinDefinition,
   SkinnedDecisionGraph,
   ThemeContextProvider,
-  ThemePreference,
   VersionHistoryPanel,
   createExecuteSimulate,
-  createIndexedDbAdapter,
   restoreVersion,
   useTheme,
 } from '@republicroad/jdm-appshell';
-import { DecisionTable, computeGraphDiff } from '@republicroad/jdm-editor';
+import { computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
-import { DataGridPage } from './data-grid-page';
-import { ReUIShowcasePage } from './reui-showcase';
-import { TrustChainPage } from './trust-chain-page';
+import { GRAPH_ID, graphAdapter } from './shared/fixtures';
+import { ThemeToggle } from './shared/instance-shell';
 
-const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
-const GRAPH_ID = 'playground-graph';
+const adapter: GraphPersistenceAdapter = graphAdapter;
 
-const initialGraph = {
-  id: GRAPH_ID,
-  name: 'playground',
-  nodes: [
-    { id: 'in-1', type: 'inputNode', position: { x: 40, y: 160 }, name: 'Request' },
-    { id: 'out-1', type: 'outputNode', position: { x: 640, y: 160 }, name: 'Response' },
-  ],
-  edges: [],
-};
-
-const initialTable = {
-  hitPolicy: 'first',
-  inputs: [{ id: 'in-tier', name: 'Tier', field: 'customer.tier', fieldType: { type: 'string' } }],
-  outputs: [{ id: 'out-rate', name: 'Rate', field: 'discount.rate', outputFieldType: { type: 'number' } }],
-  rules: [
-    { 'id': 'r1', 'in-tier': '"GOLD"', 'out-rate': '0.85' },
-    { 'id': 'r2', 'in-tier': '"SILVER"', 'out-rate': '0.9' },
-  ],
-};
-
-type Page = 'graph' | 'table' | 'grid' | 'reui' | 'trust';
 type VersionEntry = { revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean };
 type DiffBase = { revision: string; content: unknown };
-
-/** 主题三态循环：auto → dark → light → auto（持久化在 ThemeContextProvider） */
-const ThemeToggle: React.FC = () => {
-  const { themePreference, setThemePreference } = useTheme();
-  const next =
-    themePreference === ThemePreference.Automatic
-      ? ThemePreference.Dark
-      : themePreference === ThemePreference.Dark
-        ? ThemePreference.Light
-        : ThemePreference.Automatic;
-  const label =
-    themePreference === ThemePreference.Automatic
-      ? 'Auto'
-      : themePreference === ThemePreference.Dark
-        ? 'Dark'
-        : 'Light';
-  return (
-    <button onClick={() => setThemePreference(next)} title={`Theme: ${label} (click to switch)`}>
-      ◐ {label}
-    </button>
-  );
-};
 
 /** 皮肤切换（S005 P1 演示：default 无 layout 零注入，ocean 注入 host: 工具栏槽位） */
 const SkinSwitcher: React.FC = () => {
@@ -89,10 +42,17 @@ const SkinSwitcher: React.FC = () => {
   );
 };
 
-export const App: React.FC = () => {
-  const [page, setPage] = useState<Page>('graph');
-  const [graph, setGraph] = useState<any>(initialGraph);
-  const [table, setTable] = useState<any>(initialTable);
+/** Decision Graph 实例（MPA 入口 graph.html）：编辑 + 模拟 + 版本历史 + demo-server 联动 */
+export const GraphPlayground: React.FC = () => {
+  const [graph, setGraph] = useState<any>({
+    id: GRAPH_ID,
+    name: 'playground',
+    nodes: [
+      { id: 'in-1', type: 'inputNode', position: { x: 40, y: 160 }, name: 'Request' },
+      { id: 'out-1', type: 'outputNode', position: { x: 640, y: 160 }, name: 'Response' },
+    ],
+    edges: [],
+  });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [versions, setVersions] = useState<VersionEntry[]>([]);
   const [diffs, setDiffs] = useState<Record<string, GraphDiff>>({});
@@ -190,7 +150,7 @@ export const App: React.FC = () => {
     } catch (err) {
       setStatus(`save failed: ${String(err).slice(0, 80)}`);
     }
-  }, [graph]);
+  }, [graph, currentRevision]);
 
   const refreshVersions = useCallback(async () => {
     const list = (await adapter.listVersions!(GRAPH_ID)) ?? [];
@@ -218,19 +178,22 @@ export const App: React.FC = () => {
     } catch (err) {
       setStatus(`history failed: ${String(err).slice(0, 80)}`);
     }
-  }, []);
+  }, [refreshVersions]);
 
-  const onRestore = useCallback(async (revision: string) => {
-    const saved = await restoreVersion(adapter, GRAPH_ID, revision);
-    const restored = await adapter.load(GRAPH_ID);
-    if (restored?.content) {
-      setGraph({ ...(restored.content as object), id: GRAPH_ID, revision: saved.revision });
-    }
-    setDiffBase(null);
-    setStatus(`restored ${revision} → head ${saved.revision}`);
-    setHistoryOpen(false);
-    void openHistory();
-  }, []);
+  const onRestore = useCallback(
+    async (revision: string) => {
+      const saved = await restoreVersion(adapter, GRAPH_ID, revision);
+      const restored = await adapter.load(GRAPH_ID);
+      if (restored?.content) {
+        setGraph({ ...(restored.content as object), id: GRAPH_ID, revision: saved.revision });
+      }
+      setDiffBase(null);
+      setStatus(`restored ${revision} → head ${saved.revision}`);
+      setHistoryOpen(false);
+      void openHistory();
+    },
+    [openHistory],
+  );
 
   const onCompare = useCallback(async (revision: string | null) => {
     if (revision === null) {
@@ -302,23 +265,11 @@ export const App: React.FC = () => {
     <ThemeContextProvider options={{ skins, defaultSkinId: 'default' }}>
       <div className='pg-root'>
         <header className='pg-header'>
-          <strong>JDM Playground</strong>
-          <nav>
-            {(['graph', 'table', 'grid', 'reui', 'trust'] as Page[]).map((p) => (
-              <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
-                {p === 'graph'
-                  ? 'Decision Graph'
-                  : p === 'grid'
-                    ? 'Data Grid'
-                    : p === 'reui'
-                      ? 'ReUI'
-                      : p === 'trust'
-                        ? 'Trust Chain'
-                        : 'Decision Table'}
-              </button>
-            ))}
-          </nav>
-          {diffBase && page === 'graph' && (
+          <a className='pg-back' href='./index.html'>
+            ← 目录
+          </a>
+          <strong>Decision Graph</strong>
+          {diffBase && (
             <span className='pg-compare-banner'>
               Comparing {diffBase.revision}
               <button onClick={() => void onCompare(null)}>Exit compare</button>
@@ -333,11 +284,9 @@ export const App: React.FC = () => {
               Save (IndexedDB)
             </button>
             <button onClick={() => void openHistory()}>Version history</button>
-            {page === 'graph' && (
-              <button onClick={() => void onServerExecute()} title='POST current graph to apps/demo-server :8787'>
-                Server run
-              </button>
-            )}
+            <button onClick={() => void onServerExecute()} title='POST current graph to apps/demo-server :8787'>
+              Server run
+            </button>
             <SkinSwitcher />
             <ThemeToggle />
             <span className='pg-status'>{status}</span>
@@ -345,23 +294,13 @@ export const App: React.FC = () => {
         </header>
 
         <main className='pg-main'>
-          {page === 'grid' ? (
-            <DataGridPage />
-          ) : page === 'trust' ? (
-            <TrustChainPage model={graph} />
-          ) : page === 'reui' ? (
-            <ReUIShowcasePage graph={graph} />
-          ) : page === 'graph' ? (
-            <SkinnedDecisionGraph
-              value={graph}
-              onChange={setGraph}
-              diffBaseline={diffBase ? (diffBase.content as any) : undefined}
-              disabled={diffBase ? true : undefined}
-              simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
-            />
-          ) : (
-            <DecisionTable value={table} onChange={setTable} mode='business' tableHeight='100%' />
-          )}
+          <SkinnedDecisionGraph
+            value={graph}
+            onChange={setGraph}
+            diffBaseline={diffBase ? (diffBase.content as any) : undefined}
+            disabled={diffBase ? true : undefined}
+            simulateHandler={createExecuteSimulate(import.meta.env.VITE_DEMO_SERVER_URL ?? 'http://localhost:8787')}
+          />
         </main>
 
         <VersionHistoryPanel

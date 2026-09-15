@@ -14,8 +14,29 @@
 
 ```bash
 pnpm install
-pnpm --filter @republicroad/playground dev
+pnpm --filter @republicroad/playground dev   # 或根目录 pnpm dev（同时拉起 demo-server）
 ```
+
+## MPA 结构（Vite 多页应用）
+
+`index.html` 是**目录页**，每个 playground 实例是独立 HTML 入口（独立加载、
+互不拖累；monaco 只进 graph / table 两个入口的共享 chunk）：
+
+| 入口         | 实例           | 内容                                                                |
+| ------------ | -------------- | ------------------------------------------------------------------- |
+| `index.html` | 目录           | 各实例导航卡片                                                      |
+| `graph.html` | Decision Graph | 编辑器 + 模拟执行 + 版本历史 + Server run + ocean 皮肤槽位演示      |
+| `table.html` | Decision Table | business 模式决策表                                                 |
+| `grid.html`  | Data Grid      | ReUI DataGrid（排序 / 过滤 / 列徽标）                               |
+| `reui.html`  | ReUI Showcase  | Timeline / Sortable / 决策模型层级树（读共享 IndexedDB 的已保存图） |
+| `trust.html` | Trust Chain    | 执行 + 审计 → 确定性回放 → 影子对比（需 demo-server :8787）         |
+
+新入口三步：根下加 `<name>.html` → `src/entries/<name>.tsx` 挂载页面组件 →
+`vite.config.ts` 的 `build.rollupOptions.input` 登记该项。
+
+实例间共享面：graph 实例「Save」写 IndexedDB（`playground-graph`），
+trust / reui 实例经 `usePersistedGraph` 读同一份图——跨实例延续编辑成果。
+共享壳与夹具在 `src/shared/`（InstanceShell / ThemeToggle / monaco-setup / fixtures）。
 
 ## 覆盖能力
 
