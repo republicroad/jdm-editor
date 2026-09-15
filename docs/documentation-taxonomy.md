@@ -12,7 +12,7 @@
 
 | 阶段 | 文档形态 | 核心问题 | 仓内位置 | 本仓实例 |
 | --- | --- | --- | --- | --- |
-| **提案** | RFC / PEP | "我们要做 X，为什么、怎么做、大家讨论" | `docs/upstream/`（给上游的 issue 草稿） | gorules-zen-async-context.md |
+| **提案** | RFC / PEP | "我们要做 X，为什么、怎么做、大家讨论" | `docs/rfc/`（给上游的 issue 草稿） | gorules-zen-async-context.md |
 | **计划** | Design Doc / 开发计划 | "怎么建、排期、依赖、门禁" | `docs/design/zen-udf-plan-*.md` | plan-u/v/w/x/y/z/aa/bb/cc/dd |
 | **设计** | Design Doc（架构面） | "架构怎么分层、约束是什么" | `docs/design/zen-udf-multi-tenant.md` 等 | multi-tenant / sync-counting / context-propagation |
 | **决策归档** | **ADR** | "选了什么、为什么、放弃了什么" | `docs/adr/` | 001–005 |
@@ -32,7 +32,7 @@
 
 | 你在做什么 | 写什么 |
 | --- | --- |
-| 提出一个上游（gorules 等）应修的缺陷或特性 | **Upstream Issue Draft** → `docs/upstream/` |
+| 提出一个上游（gorules 等）应修的缺陷或特性 | **Upstream Issue Draft** → `docs/rfc/` |
 | 规划一轮开发（排期/依赖/门禁/决策点） | **开发计划** → `docs/design/zen-udf-plan-*.md` |
 | 设计一个子系统的架构（分层/隔离/端口/约定） | **设计文档** → `docs/design/zen-udf-multi-tenant.md` 等 |
 | 做了一个**不可轻易撤回**的技术选型（换实现需重写或迁移） | **ADR** → `docs/adr/NNN-*.md` |

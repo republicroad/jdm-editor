@@ -82,5 +82,5 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1' }, async () => {
 - [U 系列开发计划（机制与租户契约，已 shipped）](/jdm-editor/docs/design/zen-udf-development-plan)
 - [V 系列开发计划（发布/规范收尾/消费方验证，已 shipped）](/jdm-editor/docs/design/zen-udf-plan-v)
 - [verdict U10 接入指南](/jdm-editor/docs/design/verdict-zen-udf-integration)
-- [上游 issue 草稿（gorules/zen async context）](/jdm-editor/docs/upstream/gorules-zen-async-context)
+- [上游 issue 草稿（gorules/zen async context）](/jdm-editor/docs/rfc/gorules-zen-async-context)
 - 包内命名规范：`packages/zen-udf/docs/naming.md`

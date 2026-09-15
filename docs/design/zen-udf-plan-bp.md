@@ -1,12 +1,12 @@
 # zen-udf 文档最佳实践目录规划
 
 > 目标：把 U–CC 十轮系列中产生的**可复用模式**从设计文档中提取出来，
-> 收录到 `docs/bestpractice/` 作为独立的最佳实践指南。
+> 收录到 `docs/bp/` 作为独立的最佳实践指南。
 > 与 ADR（选型归档）和 Design Doc（排期计划）互补——BP 是**面向未来的操作指南**。
 
 ## 现状
 
-`docs/bestpractice/` 已有两篇高质量 BP（monorepo-app-and-libraries、reui-component-pattern），
+`docs/bp/` 已有两篇高质量 BP（monorepo-app-and-libraries、reui-component-pattern），
 模式成熟：**适用场景 → 核心模型 → 对比表 → 铁律 → 仓内实例交叉引用**。
 
 zen-udf 十轮系列产生了大量可复用模式，但散落在设计文档与计划文档中，
@@ -15,7 +15,7 @@ zen-udf 十轮系列产生了大量可复用模式，但散落在设计文档与
 ## 规划目录结构
 
 ```
-docs/bestpractice/
+docs/bp/
 ├── README.md                              ← 索引（BP 清单 + 选用规则）
 ├── monorepo-app-and-libraries.md          ← 已有
 ├── reui-component-pattern.md              ← 已有

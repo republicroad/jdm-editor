@@ -48,7 +48,7 @@
 
 ## W4 上游 issue 提交（对外动作）
 
-- 草稿：[docs/upstream/gorules-zen-async-context.md](./gorules-zen-async-context.md)
+- 草稿：[docs/rfc/gorules-zen-async-context.md](./gorules-zen-async-context.md)
 - 动作：宿主审阅 → agent 以 gh 提交 issue（可附探针代码块）→ 追踪上游响应
 - 需宿主确认 D7
 

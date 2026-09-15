@@ -14,7 +14,7 @@
 | V3 | UDF 级 trace（§6.6 耗时/错误码入 traceData） | V2 | ✅ 4c29ef29 |
 | V4 | 表达式错误脱敏（§6.7） | — | ✅ 4c29ef29 |
 | V5 | 上下文加固（冻结副本 + 混合租户并发断言） | — | ✅ 94d06e23 |
-| V6 | 上游回馈：gorules/zen 原生传播 issue + 复现 + PR 草案 | — | ✅ 草稿 docs/upstream/gorules-zen-async-context.md |
+| V6 | 上游回馈：gorules/zen 原生传播 issue + 复现 + PR 草案 | — | ✅ 草稿 docs/rfc/gorules-zen-async-context.md |
 | V7 | demo-server 升级消费 zen-udf（真实消费方验证） | V1 | ✅ 208403d9 |
 | V8 | verdict U10 交接包（集成指南 + 端口实现规范） | V1 V2 V3 | ✅ verdict-zen-udf-integration.md |
 
