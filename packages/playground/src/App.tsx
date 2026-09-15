@@ -16,6 +16,7 @@ import React, { useCallback, useState } from 'react';
 
 import { DataGridPage } from './data-grid-page';
 import { ReUIShowcasePage } from './reui-showcase';
+import { TrustChainPage } from './trust-chain-page';
 
 const adapter: GraphPersistenceAdapter = createIndexedDbAdapter();
 const GRAPH_ID = 'playground-graph';
@@ -40,7 +41,7 @@ const initialTable = {
   ],
 };
 
-type Page = 'graph' | 'table' | 'grid' | 'reui';
+type Page = 'graph' | 'table' | 'grid' | 'reui' | 'trust';
 type VersionEntry = { revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean };
 type DiffBase = { revision: string; content: unknown };
 
@@ -303,7 +304,7 @@ export const App: React.FC = () => {
         <header className='pg-header'>
           <strong>JDM Playground</strong>
           <nav>
-            {(['graph', 'table', 'grid', 'reui'] as Page[]).map((p) => (
+            {(['graph', 'table', 'grid', 'reui', 'trust'] as Page[]).map((p) => (
               <button key={p} className={page === p ? 'pg-active' : ''} onClick={() => setPage(p)}>
                 {p === 'graph'
                   ? 'Decision Graph'
@@ -311,7 +312,9 @@ export const App: React.FC = () => {
                     ? 'Data Grid'
                     : p === 'reui'
                       ? 'ReUI'
-                      : 'Decision Table'}
+                      : p === 'trust'
+                        ? 'Trust Chain'
+                        : 'Decision Table'}
               </button>
             ))}
           </nav>
@@ -344,6 +347,8 @@ export const App: React.FC = () => {
         <main className='pg-main'>
           {page === 'grid' ? (
             <DataGridPage />
+          ) : page === 'trust' ? (
+            <TrustChainPage model={graph} />
           ) : page === 'reui' ? (
             <ReUIShowcasePage graph={graph} />
           ) : page === 'graph' ? (

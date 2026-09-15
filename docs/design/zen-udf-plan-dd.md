@@ -1,6 +1,6 @@
 # zen-udf 开发计划 DD 系列（信任链可视化）
 
-状态：plan · 待宿主确认（2 个决策点见文末）
+状态：shipped · D19 裁决：不可达显式提示不 mock；D20 裁决：粘贴候选模型 JSON。DD1–DD3 完成（playground Trust Chain 页签，浏览器冒烟通过）
 上游：U–CC 系列已 shipped；0.4.0 在架；demo-server 四端点齐（execute+audit / validate / replay / shadow）
 定位：**信任链的最后一公里**——机制与端点已完备，本轮把它们变成客户看得见、点得动的产品界面。这是"实时决策引擎真正被客户信任"的最终演示形态。
 
@@ -14,9 +14,9 @@
 
 | 期 | 内容 | 状态 |
 | --- | --- | --- |
-| DD1 | playground 第六页签 "Trust Chain"（执行→审计→回放三步工作流） | 待开发 |
-| DD2 | 影子对比面板（双模型 diff 表 + 等价性标记） | 待开发 |
-| DD3 | 连接态与降级（demo-server 不可达时的显式提示） | 待开发 |
+| DD1 | playground 第六页签 "Trust Chain"（执行→审计→回放三步工作流） | ✅ |
+| DD2 | 影子对比面板（双模型 diff 表 + 等价性标记） | ✅ |
+| DD3 | 连接态与降级（demo-server 不可达时的显式提示） | ✅ |
 | 稳态 | verdict U10 支持 / W4 / Z6 | 跨仓/挂起 |
 
 建议执行序：DD1 → DD2 → DD3（单页签内递进实现）。
