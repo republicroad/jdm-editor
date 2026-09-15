@@ -28,7 +28,15 @@ export {
 } from './exec-context.ts';
 export { InMemoryConcurrencyLimiter, NoopConcurrencyLimiter, type ConcurrencyLimiter } from './limiter.ts';
 export { InMemoryCircuitBreaker, NoopCircuitBreaker, type CircuitBreaker } from './breaker.ts';
-export { registerRoster, listRosters, getRoster, deleteRoster, queryRoster, type Roster } from './roster.ts';
+export {
+  registerRoster,
+  listRosters,
+  getRoster,
+  deleteRoster,
+  queryRoster,
+  type Roster,
+  type RosterScope,
+} from './roster.ts';
 export {
   UdfRegistry,
   globalUdfRegistry,
