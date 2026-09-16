@@ -10,8 +10,8 @@ export interface GraphRecordMeta {
   tags?: string[];
   /** 图+配置打包：宿主可挂载调度、环境绑定等非图数据 */
   extensions?: Record<string, unknown>;
-  /** 当前 head 版本号(宿主生成，单调递增) */
-  revision: string;
+  /** 当前 head 版本号(宿主/适配器生成，单调递增)。save 调用方可省略——由适配器分配新版本号；load/list 场景恒有 */
+  revision?: string;
   /** 自动保存条目（与手动保存区分显示/治理策略），缺省 = 手动 */
   auto?: boolean;
   /**
