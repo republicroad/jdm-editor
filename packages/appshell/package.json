@@ -68,8 +68,8 @@
     "fake-indexeddb": "^6.0.0",
     "jsdom": "^30.0.1",
     "typescript": "^5.9.3",
-    "vite": "catalog:",
     "unplugin-dts": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:"
   },
   "publishConfig": {

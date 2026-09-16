@@ -5,6 +5,20 @@
 - 新家: https://github.com/republicroad/verdict-weave （已创建；`placeholder` 分支携带说明性空提交）
 - 命名定案: 品牌显示名 **Verdict Weave**；仓库名 `verdict-weave`；npm 包名 **β 已定**（§3，分叉后品牌化）
 
+## 追记：rolldown-plugin-dts 试点证伪（2026-09-16）
+
+原计划附带"unplugin-dts → rolldown-plugin-dts"的构建迁移。appshell 试点结果：**构建 OOM，不可用，已回滚**。
+
+- 现象：`vite build` 在 dts 生成阶段堆耗尽崩溃（默认 4GB 与 `--max-old-space-size=8192` 均复现，exit 134）；
+- 根因：appshell tsconfig paths 把 `@republicroad/jdm-editor` 解析到内核 src（源码直通的正当配置），
+  插件的 tsc 程序随之装载**整个内核类型图**（monaco / codemirror / react 全量）用于 dts 打包，
+  内存不可控；插件 0.28.5 **无 external 选项**可把内核声明排除出打包程序；
+- 处置：appshell 还原 unplugin-dts 多文件方案（多文件镜像恰是省内存形态），插件依赖已移除；
+- 重审触发条件（满足其一再议）：
+  1. 插件提供 external/排除语义；
+  2. `tsgo` 生成器（TS7 原生）成熟且内存可控；
+  3. 内核类型图显著收窄（如 monaco 类型外置）。
+
 ## 0. 决策背景（2026-09-16）
 
 1. **jdm-editor 将尝试贡献回 gorules 上游**：当前仓的通用性改进（undo/redo、diff 视图、
