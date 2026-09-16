@@ -2,6 +2,9 @@
 
 - 日期: 2026-09-16
 - 状态: **draft —— 仅规划，未决策、未执行**
+- 时序追注（2026-09-16）：按 [verdict-weave 迁移计划](./verdict-weave-migration-plan.md) §0/§4，
+  本迁移**整体移至 v1.0 分叉后在 verdict-weave 仓执行**——UI 迁移属 verdict 专属演进，
+  不进入上游贡献线；jdm-editor 的 v1.0 贡献态保持 radix 现状
 - 目标: kernel / appshell / playground 的 UI 原语从 radix 全量迁至 Base UI（`@base-ui/react`）
 - 动机: 对齐 ReUI base-nova 主线（未来 UI 全面转 ReUI）；根治 flow 块风格错配（[issue 草稿](./reui-flow-toggle-group-style-mismatch.md)）；收敛依赖为单一引擎
 

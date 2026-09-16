@@ -1,96 +1,103 @@
-# verdict-weave 迁移计划：jdm-editor → republicroad/verdict-weave
+# verdict-weave 迁移计划：v1.0 分叉 → republicroad/verdict-weave
 
 - 日期: 2026-09-16
-- 状态: **draft —— 迁移时点已定（2026-09-16 决策）：v1.0 发布之前执行；当前未启动**
-- 新家: https://github.com/republicroad/verdict-weave （已创建；占位分支 `placeholder` 上有一枚说明性空提交）
-- 命名定案: 品牌显示名 **Verdict Weave**；仓库名 `verdict-weave`（连字符）；npm 包名策略见 §3（D2 待决）
+- 状态: **draft —— 决策背景已定（见 §0）；迁移时点已定（v1.0 分叉时）；执行未启动**
+- 新家: https://github.com/republicroad/verdict-weave （已创建；`placeholder` 分支携带说明性空提交）
+- 命名定案: 品牌显示名 **Verdict Weave**；仓库名 `verdict-weave`；npm 包名 **β 已定**（§3，分叉后品牌化）
 
-## 1. 时点：v1.0 发布之前（2026-09-16 决策）
+## 0. 决策背景（2026-09-16）
 
-1. **1.0.0 直接从新家发布**：npm repository/homepage 元数据天然指向 verdict-weave，无需"迁移后再发补丁刷新"的补救步骤（旧计划 §4 第 8 步作废）；
-2. **v1.0 = API 稳定宣言**：三包（jdm-editor / appshell / zen-udf）公开导出面冻结、Base UI 迁移等大动作收口——v1.0 的开发在迁移后的新仓 main 上进行；
-3. **生态清账**：editor 已切 main + 纯 npm 消费（batch 85），submodule 已移除，迁移无 gitlink 消费方；verdict U10 直接按新坐标接入。
+1. **jdm-editor 将尝试贡献回 gorules 上游**：当前仓的通用性改进（undo/redo、diff 视图、
+   i18n 导出面、theming 引擎、ESM 源码发布模式、键盘 a11y 等）是上游候选；
+2. **v1.0 = 正式硬分叉点**：v1.0 之前的状态即"上游贡献候选态"——antd 已清零、
+   兼容面中性化、API 冻结评审通过的最佳时刻；
+3. **分叉后 verdict-weave 携带 verdict 专属演进**：执行引擎、表达式、UI 三条线都会改，
+   上游大概率不接受——这些改动**只落在 verdict-weave**，不污染贡献线。
 
-> 注意：本文件早版把触发点写作"等 v1.0 之后"，2026-09-16 决策改为 **v1.0 之前**——旧文相关表述以本节为准。
+由此，本次"迁移"实质是**分叉事件**：`jdm-editor` 保留为上游贡献载体，
+`verdict-weave` 承接 v1.0 之后的 verdict 主线。
 
-## 2. 迁移路线二选一（决策点 D1）
+## 1. 时点：v1.0 分叉时（2026-09-16 决策）
 
-### 路线 A：原仓改名（推荐）
+1. v1.0 tag 打在 jdm-editor 的分叉提交上（= 上游贡献候选态 + API 冻结宣言）；
+2. verdict-weave 于 v1.0 tag 处创建分叉，携带完整历史（fork 惯例，溯源清晰）；
+3. **1.0.0 从 verdict-weave 首发**：npm repository/homepage 元数据天然指向新家。
 
-腾出名字 → 原仓 Settings Rename → 全自动重定向。
+> 早版计划把触发点写作"等 v1.0 之后迁移"，2026-09-16 决策改为 **v1.0 分叉时迁移**
+> （分叉即迁移），1.0.0 从新家首发——元数据无需补救步骤。
 
-- 步骤：占位仓删除或改名让位（刚创建、空、无内容）→ `jdm-editor` Rename 为 `verdict-weave` →
-  GitHub 自动：旧 URL（git clone / 网页）**永久重定向**、issues/PRs/star/watcher/secrets/
-  Actions/分支保护**全量保留**；
-- 成本：几乎为零；失去：无（issues 与历史都在）；
-- 与"新仓库"的心理差异仅在于 commit 哈希延续——这恰是资产而非负担。
+## 2. 路线：D1 已定 = 分叉（原 §2 的 A/B 之辨收敛）
 
-### 路线 B：全新仓库 mirror
+背景（§0）确立后，早版的"路线 A 原仓改名 / 路线 B 全新 mirror"之辨收敛为：
 
-- 步骤：`git push --mirror` 全历史 + 全 tag → 旧仓 Settings **Archive**（read-only）+
-  README 顶部指路 → 新仓重建 Actions secrets（NPM_TOKEN / REUI_LICENSE_KEY）、分支保护、
-  Pages/部署 → 消费方更新 remote；
-- 代价：issues/PRs/star 丢失（或手工导入）、密钥与保护规则重配、外部克隆链接失效靠归档兜底；
-- 适用：仅当需要"全新起点"叙事（如彻底切割 GoRules fork 历史出处）。
+- **jdm-editor 仓**：不改名、不腾名。作为上游贡献载体保留（尝试捐赠/PR 给 gorules；
+  若上游接受部分改进，jdm-editor 继续以通用线存在或逐步归档）；
+- **verdict-weave 仓**：v1.0 分叉落点，携带完整历史（mirror push 或 GitHub fork 语义），
+  分叉后发布 verdict 品牌包。
 
-**推荐 A**：获得与 B 相同的新名字/新定位，零生态损失。占位仓删除不影响任何东西。
+分叉 carrying 完整历史是 fork 惯例（溯源与再同步都依赖它），不构成路线瑕疵。
 
-## 3. npm 包名策略（决策点 D2）
+## 3. npm 包名：D2 已定 = β（分叉后品牌化）
 
-| 方案 | 包名 | 成本 | 说明 |
-| --- | --- | --- | --- |
-| α 零迁移 | 保留 `@republicroad/jdm-editor` 等旧名，仅更新 repository 元数据 | 最低 | 包名与品牌名暂不一致（jdm 为 GoRules 格式名遗留） |
-| β 品牌彻底 | 新 scope：`@verdict-weave/core` / `shell` / `udf`（需创建 npm org）或 `@republicroad/verdict-weave-*` | 中 | 新名发布 + 旧名 `npm deprecate -m "renamed to …"` 指路；旧版本永久可用 |
+分叉后 verdict-weave 发布 **verdict 品牌包**，与上游线明确切割：
 
-- 推荐：**v1.x 走 α，v2.0 时再上 β**——把品牌迁移与破坏性大版本对齐，消费者一次升级完成两件事；
-- kernel 是 TS 源码直发包（无构建产物），改名只涉及 `name` 字段与消费方 import spec，无 dist 产物路径问题。
+| 上游线（jdm-editor，贡献候选） | verdict 线（verdict-weave，分叉后） |
+| --- | --- |
+| `@republicroad/jdm-editor` | `@verdict-weave/editor`（或 `@verdict-weave/studio-*`） |
+| `@republicroad/jdm-appshell` | `@verdict-weave/shell` |
+| `@republicroad/zen-udf` | `@verdict-weave/udf` |
 
-## 4. 执行清单（按路线 A 展开）
+- 需创建 npm org `@verdict-weave`（迁移日一次性动作）；
+- editor 宿主等存量消费方**不受影响**：它们钉的是上游线 npm 版本；
+- 分叉线与上游线若互发修复，cherry-pick 双向搬运（git 同源，可行）。
 
-### 阶段一：v1.0 前（reui/main 上收口）
+## 4. 执行清单
 
-1. `reui` → `main` 改名 redo（三步已验证：默认切 reui → 删陈旧 main → rename；
-   editor 已 main + npm 化，无消费方阻塞；陈旧 main 指针原样恢复即可）；
-2. 待办收敛：Base UI 迁移拍板（可选，不阻塞 v1.0）、ReUI style-mismatch issue 提交上游；
-3. v1.0 API 冻结评审：三包导出面 grep 审计（V 系列 exports 审计口径）。
+### 阶段一：v1.0 前（贡献态收口）
 
-### 阶段二：v1.0 发布
+1. `reui` → `main` 改名 redo（editor 已 main + npm 化，无阻塞；三步流程已验证）；
+2. 上游候选整理：把"通用性改进清单"从本计划 §0 展开（S 系列已交付项 + 遗留：
+   Base UI 之前的通用修复、zen-udf 行为契约、ESM 发布模式）；
+3. 向 gorules 发起贡献尝试（PR 或仓库捐赠沟通）——**与分叉并行推进，互不等待**。
 
-4. 三包 1.0.0 齐发（semver 宣言：1.0 起破坏性变更走 2.0）。
+### 阶段二：v1.0 分叉（同一天内完成）
 
-### 阶段三：迁移日（v1.0 发布后择日）
+4. 三包 1.0.0 齐发（jdm-editor / appshell / zen-udf，API 冻结宣言）；
+5. v1.0 tag 打在分叉提交上；由该 tag 创建 verdict-weave 分叉（mirror push 全历史 + tags）；
+6. verdict-weave 内包名品牌化（§3 表）+ 首发分叉版本（如 `@verdict-weave/editor 1.0.0`），
+   并在其 package.json 写入 repository/homepage/bugs → 新家。
 
-5. 占位仓让名：删除 `verdict-weave` 空仓（或改名 `verdict-weave-placeholder` 留档）；
-6. `jdm-editor` Rename → `verdict-weave`；验证旧 URL 重定向（clone + 网页各一次）；
-7. 全仓 grep 操作性引用 `github.com/republicroad/jdm-editor`：
-   各 `package.json` 的 repository/homepage/bugs、README badge、docs 链接 → 批量更新；
-8. 发布 **1.0.1**（patch）：npm registry 元数据指向新家；
-9. 验证：新名下 CI（validate/publish）全绿、`pnpm test:npm-smoke`、playground / editor 消费冒烟。
+### 阶段三：分叉后（verdict 主线）
 
-### 阶段四：收尾
+7. verdict 专属演进落 verdict-weave：执行引擎、表达式、UI（含 **Base UI 全量迁移**——
+   该四批计划整体移至分叉后执行，不再在 jdm-editor 内进行，见
+   [base-ui-migration-plan.md](./base-ui-migration-plan.md) 追注）；
+8. 上游线的后续通用修复：若上游接受贡献 → PR 到 gorules；若上游观望 → 修复留在
+   jdm-editor 并酌情 cherry-pick 到 verdict-weave。
 
-10. 旧重定向长期有效（GitHub 不回收）；对外公告 + boundary/docs 里的仓库坐标更新；
-11. `docs/archive` 追加迁移备案（本文件补执行记录）。
+## 5. 分工表：什么去上游，什么进 verdict-weave
 
-## 5. 路线 B 追加清单（若 D1 选 B）
-
-- mirror：`git push --mirror`（全历史 + 全 tag；含 reui-archive-20260916 / example-submodule-source-direct 见证 tag）；
-- 新仓重建：Actions secrets、分支保护（main 保护规则照抄）、Pages 绑定、代码扫描；
-- 旧仓 Archive + README 指路；消费方（editor / verdict / 协作者克隆）更新 remote；
-- npm 元数据同阶段三第 8 步。
+| 改动 | 去向 | 依据 |
+| --- | --- | --- |
+| 图编辑器通用修复（undo/redo、diff、键盘 a11y、i18n） | 上游贡献候选 | 无 verdict 语义 |
+| zen-udf 行为契约（语义三元、幂等、审计回放） | 上游候选（engine 之外的运行时规范部分） | 通用决策运行时价值 |
+| theming 引擎 | 上游候选（含 antd 派生校准说明——上游最懂这段历史） | 零依赖、通用 |
+| 执行引擎修改、表达式扩展 | **仅 verdict-weave** | verdict 语义，上游不接受 |
+| UI 定制（Base UI 迁移、皮肤深化、verdict 品牌壳） | **仅 verdict-weave** | verdict 语义 |
+| 多租户/名单/频控等业务向 contrib | verdict-weave（或独立私有包） | SaaS 语义 |
 
 ## 6. 风险登记
 
 | 风险 | 缓解 |
 | --- | --- |
-| npm 元数据不随仓库迁移刷新 | 迁移日必发 1.0.1（已入清单第 8 步） |
-| 路线 B 丢 issues/secrets | 推荐 A；选 B 则走本清单 §5 重建项 |
-| 占位仓未让名导致 rename 422 | 清单第 5 步前置处理（本计划撰写时已确认占位仓为空） |
-| 迁移窗口内有人向旧名推送 | 迁移日公告冻结窗口；rename 后旧名重定向会落到新名，推送亦跟随 |
-| 编辑器/文档站域名未定 | 域名决策独立跟进（verdictweave.dev 等），不阻塞仓库迁移 |
+| gorules 拒绝贡献或长期无响应 | 分叉线不受影响（并行推进正是本设计）；jdm-editor 归档或继续通用维护 |
+| 双线 cherry-pick 成本 | 分叉点越晚成本越低（v1.0 API 冻结后仅搬运修复）；语义三元等契约测试套件是搬运的回归保险 |
+| 分叉后 npm 双包名并存困惑 | 命名切割清晰（§3 表）+ 旧名 deprecate 指路 |
+| verdict 专属改动提前混入贡献线 | 上游候选整理（阶段一第 2 步）时以"无 verdict 语义"为唯一准绳 |
 
 ## 7. 决策点汇总
 
-- **D1** 迁移路线：A 原仓改名（推荐）／ B 全新 mirror；
-- **D2** npm 包名：α 保留旧名（推荐 v1.x）／ β 新 scope 品牌化（v2.0）；
-- ~~D3 触发时点~~ **已定（2026-09-16）**：v1.0 发布之前迁移；1.0.0 从新家首发。
+- ~~D1 迁移路线~~ **已定**：分叉（verdict-weave 承接 v1.0 后主线，jdm-editor 留作上游贡献载体）；
+- ~~D2 npm 包名~~ **已定**：β 品牌化（`@verdict-weave/*`）；
+- ~~D3 迁移时点~~ **已定**：v1.0 分叉时；
+- **开放项**：gorules 贡献的形式（PR 流 vs 仓库捐赠）与发起时机——不阻塞分叉。
