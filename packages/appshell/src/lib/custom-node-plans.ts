@@ -1,4 +1,4 @@
-import type { CustomNodeConfig, CustomNodeNamespace } from './custom-node-types';
+import type { CustomFunctionTool, CustomNodeConfig, CustomNodeNamespace } from './custom-node-types';
 
 export const uid = (): string =>
   typeof globalThis.crypto?.randomUUID === 'function'
@@ -27,6 +27,8 @@ export type CustomNodePlan = {
   displayName: string;
   group: string;
   shortDescription?: string;
+  /** 命名空间工具集：存在时节点挂 schema 感知编辑面板（函数下拉 + 位置参数） */
+  tools?: CustomFunctionTool[];
   seed: (params: { index: number }) => { name: string; config: CustomNodeConfig };
 };
 
@@ -38,6 +40,7 @@ export const containerPlan = (namespace: CustomNodeNamespace): CustomNodePlan =>
     displayName: namespace.title || namespace.name,
     group: CUSTOM_FUNCTION_GROUP,
     shortDescription: firstLine(namespace.description) ?? `函数集合(${toolCount})`,
+    tools: namespace.tools ?? [],
     seed: ({ index }) => ({
       name: `${kind}${index}`,
       config: EMPTY_EXPRESSIONS_CONFIG,

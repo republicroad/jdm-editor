@@ -1,6 +1,7 @@
 import { type CustomNodeSpecification, createJdmNode } from '@republicroad/jdm-editor';
 
 import css from '../components/custom-node/custom-node.module.css';
+import { SchemaContainerTab } from '../components/custom-node/schema-container-tab';
 import CodeIcon from '../components/icons/code';
 import FlashCircleIcon from '../components/icons/flash-circle';
 import { type CustomNodePlan, legacyUdfPlan, schemaToNodePlans } from './custom-node-plans';
@@ -39,15 +40,21 @@ export { CUSTOM_FUNCTION_GROUP, LEGACY_UDF_KIND, uid } from './custom-node-plans
 
 export { parseOperatorArgs } from './http-request-protocol';
 
-const planToJdmNode = (plan: CustomNodePlan): ReturnType<typeof createJdmNode> =>
-  createJdmNode({
+const planToJdmNode = (plan: CustomNodePlan): ReturnType<typeof createJdmNode> => {
+  const base = {
     kind: plan.kind,
     displayName: plan.displayName,
     group: plan.group,
     shortDescription: plan.shortDescription,
     icon: kindIcons[plan.kind] ?? defaultIcon,
     generateNode: plan.seed,
-  });
+  };
+  const tools = plan.tools ?? [];
+  // 命名空间带工具集 → 挂 schema 感知编辑面板（key 可编辑 + 函数下拉 + 位置参数）
+  return tools.length > 0
+    ? createSpecNode({ ...base, renderTab: ({ id }) => <SchemaContainerTab id={id} tools={tools} /> })
+    : createJdmNode(base);
+};
 
 /** 每个命名空间生成一个集合容器节点(kind = 命名空间名) */
 export function schemaToCustomNodes(schema: CustomNodeNamespace[]): ReturnType<typeof createJdmNode>[] {
