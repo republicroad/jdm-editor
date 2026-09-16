@@ -18,12 +18,16 @@
     "@republicroad/jdm-appshell": "workspace:*",
     "@republicroad/jdm-editor": "workspace:*",
     "@tanstack/react-table": "^8.21.0",
+    "@xyflow/react": "^12.11.3",
+    "class-variance-authority": "catalog:",
     "clsx": "^2.1.1",
     "cn": "^0.3.0",
+    "lucide-react": "catalog:",
     "radix-ui": "^1.6.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "shiki": "^4.4.3",
+    "sonner": "catalog:",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

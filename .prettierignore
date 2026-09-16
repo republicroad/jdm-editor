@@ -9,3 +9,6 @@ pnpm-lock.yaml
 packages/lezer-zen/src
 packages/lezer-zen-template/src
 doc-out/
+
+# ReUI blocks 保持上游原貌（double quote / no semi），便于后续块升级 diff
+apps/playground/src/components/blocks/**
