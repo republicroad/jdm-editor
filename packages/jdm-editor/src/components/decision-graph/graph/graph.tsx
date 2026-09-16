@@ -40,6 +40,7 @@ import type { MinimalNodeProps } from '../nodes/specifications/specification-typ
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
+import { XYFLOW_THEME } from './xyflow-theme';
 
 export type GraphProps = {
   className?: string;
@@ -346,7 +347,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
             }
           }}
         >
-          <div className={clsx(['react-flow'])} ref={reactFlowWrapper}>
+          <div className={clsx(['react-flow'], XYFLOW_THEME)} ref={reactFlowWrapper}>
             <ReactFlow
               deleteKeyCode={null}
               elevateEdgesOnSelect={false}
