@@ -21,7 +21,8 @@
 - 处置：appshell 还原 unplugin-dts 多文件方案（逐文件 emit、不内联闭包——正是该场景的正确形态），
   插件依赖已移除；
 - 重审触发条件（满足其一再议）：
-  1. 插件提供 external/子图排除语义；
+  1. 插件提供 external/子图排除语义（**issue 草稿已备**：
+     [rolldown-plugin-dts-external-semantics.md](./rolldown-plugin-dts-external-semantics.md)）；
   2. `tsgo` 生成器（TS7 原生）成熟且内存可控；
   3. 内核转为 dist 发布（违背 BP-06 源码直发决策）并配 TS project references（`build: true`）。
 
