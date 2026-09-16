@@ -86,11 +86,11 @@
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "to-json-schema": "^0.2.5",
-    "use-sync-external-store": "^1.6.0",
+    "use-sync-external-store": "catalog:",
     "ts-pattern": "catalog:",
     "use-debounce": "^10.0.4",
     "zod": "4.3.6",
-    "zustand": "^5.0.15"
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.52.3",
