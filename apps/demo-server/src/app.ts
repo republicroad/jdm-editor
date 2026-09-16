@@ -1,4 +1,10 @@
-import { type DecisionAuditEvent, DecisionRuntime, registerRoster, runWithExecContext } from '@republicroad/zen-udf';
+import {
+  type DecisionAuditEvent,
+  DecisionRuntime,
+  listRosters,
+  registerRoster,
+  runWithExecContext,
+} from '@republicroad/zen-udf';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createHash } from 'node:crypto';
@@ -38,6 +44,29 @@ const modelCacheKey = (model: unknown): string =>
 
 /** 请求级审计事件捕获：决策审计事件以 JSON 行输出 stdout（Z4 演示），并按 decisionId 暂存供响应携带 */
 const auditEvents = new Map<string, DecisionAuditEvent>();
+
+// 规则持久化示例（内存态）：/api/graphs 方言（graphs-http-adapter 契约）。
+// 重启即失——演示"服务端持久化"形态；生产由宿主实现真正的存储。
+interface DemoGraph {
+  id: string;
+  name: string;
+  description?: string;
+  revision: string;
+  auto?: boolean;
+  versionName?: string;
+  pinned?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  content: unknown;
+  session?: unknown;
+}
+const graphs = new Map<string, DemoGraph>();
+const nextRevision = (current?: string): string => {
+  if (!current) return 'v1';
+  const n = Number(current.replace(/^v/, ''));
+  return `v${Number.isNaN(n) ? 1 : n + 1}`;
+};
+
 const runtime = new DecisionRuntime({
   onDecision: (event) => {
     console.log('[audit] ' + JSON.stringify(event));
@@ -84,6 +113,137 @@ export const createApp = () => {
   });
 
   app.get('/healthz', (c) => c.json({ ok: true }));
+
+  // 名单列表（appshell query-list 节点的下拉数据源）：demo 租户共享域，{name, size} 形态
+  app.get('/api/rosters', (c) => {
+    const query = c.req.query('q') ?? '';
+    const rosters = listRosters(query, { tenantId: DEMO_TENANT });
+    return c.json(rosters.map((r) => ({ name: r.name, size: r.items.length })));
+  });
+
+  // 模拟会话（appshell authAdapter 演示）：better-auth 兼容形态的固定开发用户
+  app.get('/api/auth/session', (c) =>
+    c.json({ user: { id: 'demo-user', name: 'Demo User', email: 'demo@verdict-weave.dev' } }),
+  );
+
+  // 规则持久化示例（内存态）：/api/graphs 方言（graphs-http-adapter 契约）。
+  // 重启即失——演示"服务端持久化"形态；生产由宿主实现真正的存储。
+  const toGraphJson = (g: DemoGraph) => ({
+    id: g.id,
+    name: g.name,
+    description: g.description,
+    revision: g.revision,
+    auto: g.auto,
+    versionName: g.versionName,
+    pinned: g.pinned,
+    createdAt: g.createdAt,
+    updatedAt: g.updatedAt,
+    content: g.content,
+    ...(g.session !== undefined ? { session: g.session } : {}),
+  });
+
+  app.post('/api/graphs', async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    const id = `g-${createHash('sha1')
+      .update(String(Date.now()) + String(Math.random()))
+      .digest('hex')
+      .slice(0, 8)}`;
+    const graph: DemoGraph = {
+      id,
+      name: String(body.name ?? 'untitled'),
+      description: typeof body.description === 'string' ? body.description : undefined,
+      revision: 'v1',
+      createdAt: now,
+      updatedAt: now,
+      content: body.content ?? { nodes: [], edges: [] },
+    };
+    graphs.set(id, graph);
+    return c.json({ id, revision: graph.revision });
+  });
+
+  app.get('/api/graphs', (c) => {
+    const heads = [...graphs.values()].map(({ content: _content, session: _session, ...meta }) => meta);
+    return c.json(heads);
+  });
+
+  app.get('/api/graphs/:id', (c) => {
+    const graph = graphs.get(c.req.param('id'));
+    if (!graph) return c.json({ error: 'not found' } satisfies ApiError, 404);
+    return c.json(toGraphJson(graph));
+  });
+
+  app.put('/api/graphs/:id', async (c) => {
+    const id = c.req.param('id');
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+    const old = graphs.get(id);
+    const baseRevision = typeof body.baseRevision === 'string' ? body.baseRevision : undefined;
+    if (old && baseRevision && old.revision !== baseRevision) {
+      return c.json({ error: { code: 'CONFLICT' } }, 409);
+    }
+    const now = new Date().toISOString();
+    if (!old) {
+      const graph: DemoGraph = {
+        id,
+        name: String(body.name ?? id),
+        revision: 'v1',
+        createdAt: now,
+        updatedAt: now,
+        content: body.content ?? { nodes: [], edges: [] },
+      };
+      graphs.set(id, graph);
+      return c.json({ id, revision: graph.revision });
+    }
+    // 归档旧 head 后覆盖
+    const updated: DemoGraph = {
+      ...old,
+      name: typeof body.name === 'string' ? body.name : old.name,
+      revision: nextRevision(old.revision),
+      updatedAt: now,
+      content: body.content ?? old.content,
+    };
+    graphs.set(id, updated);
+    return c.json({ id, revision: updated.revision });
+  });
+
+  app.delete('/api/graphs/:id', (c) => {
+    const existed = graphs.delete(c.req.param('id'));
+    return existed ? c.json({ ok: true }) : c.json({ error: 'not found' } satisfies ApiError, 404);
+  });
+
+  app.get('/api/graphs/:id/versions', (c) => {
+    const graph = graphs.get(c.req.param('id'));
+    if (!graph) return c.json({ error: 'not found' } satisfies ApiError, 404);
+    // 内存态演示：仅保留当前 head 一个版本位（历史版本归档需真存储，见 editor 后端）
+    return c.json([
+      {
+        revision: graph.revision,
+        versionName: graph.versionName,
+        pinned: graph.pinned,
+        auto: graph.auto,
+        updatedAt: graph.updatedAt,
+      },
+    ]);
+  });
+
+  app.patch('/api/graphs/:id/versions/:revision', async (c) => {
+    const graph = graphs.get(c.req.param('id'));
+    if (!graph || graph.revision !== c.req.param('revision')) {
+      return c.json({ error: 'not found' } satisfies ApiError, 404);
+    }
+    const meta = (await c.req.json().catch(() => ({}))) as { versionName?: string; pinned?: boolean };
+    if (meta.versionName !== undefined) graph.versionName = meta.versionName;
+    if (meta.pinned !== undefined) graph.pinned = meta.pinned;
+    return c.json({ ok: true });
+  });
+
+  app.get('/api/graphs/:id/versions/:revision', (c) => {
+    const graph = graphs.get(c.req.param('id'));
+    if (!graph || graph.revision !== c.req.param('revision')) {
+      return c.json({ error: 'not found' } satisfies ApiError, 404);
+    }
+    return c.json(toGraphJson(graph));
+  });
 
   // 自定义节点 schema（appshell useCustomNodes 消费）：注册表 → CustomNodeNamespace[]。
   // appshell 侧的专用节点（roster/crypto/http_request/current_date）会在客户端按名去重接管
