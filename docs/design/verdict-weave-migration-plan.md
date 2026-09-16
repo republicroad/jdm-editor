@@ -1,18 +1,17 @@
 # verdict-weave 迁移计划：jdm-editor → republicroad/verdict-weave
 
 - 日期: 2026-09-16
-- 状态: **draft —— 触发条件未满足（等 jdm-editor v1.0），仅规划不执行**
-- 新家: https://github.com/republicroad/verdict-weave （已创建，公开空占位，无默认分支）
+- 状态: **draft —— 迁移时点已定（2026-09-16 决策）：v1.0 发布之前执行；当前未启动**
+- 新家: https://github.com/republicroad/verdict-weave （已创建；占位分支 `placeholder` 上有一枚说明性空提交）
 - 命名定案: 品牌显示名 **Verdict Weave**；仓库名 `verdict-weave`（连字符）；npm 包名策略见 §3（D2 待决）
 
-## 1. 触发条件：为什么等 v1.0
+## 1. 时点：v1.0 发布之前（2026-09-16 决策）
 
-1. **v1.0 = API 稳定宣言**：三包（jdm-editor / appshell / zen-udf）公开导出面冻结，
-   Base UI 迁移等大动作在 v1.0 前收口——迁移落在 API 最稳定的点上，宿主升级零惊吓；
-2. **元数据时机**：npm 的 repository/homepage 元数据只在发布时刷新——v1.0.0 在新仓发布，
-   registry 直接指向新家，无需补丁版本修正；
-3. **生态清账**：editor 已切 main + 纯 npm 消费（batch 85，0.8.1/0.9.1），submodule 已移除，
-   迁移不再有 gitlink 消费方；verdict U10 直接按新坐标接入。
+1. **1.0.0 直接从新家发布**：npm repository/homepage 元数据天然指向 verdict-weave，无需"迁移后再发补丁刷新"的补救步骤（旧计划 §4 第 8 步作废）；
+2. **v1.0 = API 稳定宣言**：三包（jdm-editor / appshell / zen-udf）公开导出面冻结、Base UI 迁移等大动作收口——v1.0 的开发在迁移后的新仓 main 上进行；
+3. **生态清账**：editor 已切 main + 纯 npm 消费（batch 85），submodule 已移除，迁移无 gitlink 消费方；verdict U10 直接按新坐标接入。
+
+> 注意：本文件早版把触发点写作"等 v1.0 之后"，2026-09-16 决策改为 **v1.0 之前**——旧文相关表述以本节为准。
 
 ## 2. 迁移路线二选一（决策点 D1）
 
@@ -94,4 +93,4 @@
 
 - **D1** 迁移路线：A 原仓改名（推荐）／ B 全新 mirror；
 - **D2** npm 包名：α 保留旧名（推荐 v1.x）／ β 新 scope 品牌化（v2.0）；
-- **D3** 触发时点：v1.0.0 发布当日 vs v1.0 后首个稳定补丁（推荐后者——多观察一个补丁周期）。
+- ~~D3 触发时点~~ **已定（2026-09-16）**：v1.0 发布之前迁移；1.0.0 从新家首发。
