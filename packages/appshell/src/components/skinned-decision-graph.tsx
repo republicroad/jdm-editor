@@ -37,7 +37,10 @@ export type SkinnedDecisionGraphProps = DecisionGraphProps & {
  * - 无皮肤 / 皮肤无 layout → 与直接渲染 `<DecisionGraph>` 行为完全一致
  * - ctx.graph 随受控 value 更新；graphRef 惰性挂载（挂载后首次重渲染时注入）
  */
-export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
+// 显式标注 ExoticComponent：推断类型穿过 monaco 依赖时不可命名（dts 产物可移植性）
+export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
+  SkinnedDecisionGraphProps & React.RefAttributes<DecisionGraphRef>
+> = React.forwardRef<DecisionGraphRef, SkinnedDecisionGraphProps>((props, ref) => {
   const { activeSkin } = useTheme();
   const { simulateHandler, ...restProps } = props;
   const internalRef = useRef<DecisionGraphRef | null>(null);

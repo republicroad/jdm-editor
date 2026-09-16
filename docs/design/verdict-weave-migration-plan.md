@@ -20,6 +20,10 @@
   workspace 包"让这个闭包无界（内核全量源码类型）。插件 0.28.5 亦无 external 选项可豁免子图；
 - 处置：appshell 还原 unplugin-dts 多文件方案（逐文件 emit、不内联闭包——正是该场景的正确形态），
   插件依赖已移除；
+- **第二失败模式（对照实验补充）**：paths 改指内核 `dist/index.d.ts` 时，逐文件 d.ts 变空壳 →
+  42 个 MISSING_EXPORT——两种解析端点下 emit 均失败，属插件 per-file emit 内部问题；
+- 保留的修复：`SkinnedDecisionGraph` 公开导出补显式类型标注（TS2742 非可移植类型，
+  对任何 dts 打包器都是必要修复，已入本批提交）；
 - 重审触发条件（满足其一再议）：
   1. 插件提供 external/子图排除语义（**issue 草稿已备**：
      [rolldown-plugin-dts-external-semantics.md](./rolldown-plugin-dts-external-semantics.md)）；
