@@ -8,6 +8,10 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       outDir: 'dist',
+      // 发布契约：保留源码里的包名导入（@republicroad/jdm-editor / react 等），
+      // 不把 tsconfig paths 转写为构建机相对路径——npm 消费方拿到的 d.ts 必须
+      // 只含可解析的包名 specifier（0.9.0 泄漏 ../../../../jdm-editor/src/* 的修复）。
+      pathsToAliases: false,
       // kernel 的 ambient 模块声明（@gorules/lezer-zen 等）必须进 dts 程序，
       // 否则跨包解析 kernel src 时 TS7016（appshell tsconfig 的 include 被
       // 此处覆盖）。
