@@ -1266,7 +1266,7 @@ function CodeBlockSurface({
   toggleLine,
   visibleLines,
   gutterMax,
-  foldable: _,
+  foldable,
   gutterChannel,
   actionsSide,
   foldStarts,

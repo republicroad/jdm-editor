@@ -1,5 +1,4 @@
 import {
-  type GraphDiff,
   type GraphPersistenceAdapter,
   type SkinDefinition,
   SkinnedDecisionGraph,
@@ -9,7 +8,7 @@ import {
   restoreVersion,
   useTheme,
 } from '@republicroad/jdm-appshell';
-import { computeGraphDiff } from '@republicroad/jdm-editor';
+import { type GraphDiff, computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
 import { GRAPH_ID, graphAdapter } from './shared/fixtures';

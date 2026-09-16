@@ -1,4 +1,4 @@
-import { Sortable } from '#components/reui/sortable';
+import { Sortable, SortableItem, SortableItemHandle } from '#components/reui/sortable';
 import {
   Timeline,
   TimelineContent,
@@ -129,25 +129,31 @@ export const ReUIShowcasePage: React.FC<{ graph?: { nodes: any[]; edges: any[] }
         <h3 style={{ margin: 0, fontSize: 14 }}>Sortable（拖拽排序列表）</h3>
         <Sortable
           value={sortableItems}
-          onValueChange={setSortableItems}
-          getItemValue={(item: { id: string }) => item.id}
-          renderItem={(item: { id: string; label: string }) => (
-            <div
+          onValueChange={(value) => setSortableItems(value as { id: string; label: string }[])}
+          getItemValue={(item) => (item as { id: string }).id}
+        >
+          {sortableItems.map((item) => (
+            <SortableItem
               key={item.id}
-              className='flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--border)] bg-card text-[13px] cursor-grab active:cursor-grabbing'
+              value={item.id}
+              className='rounded-md border border-[var(--border)] bg-card text-[13px]'
             >
-              <span className='opacity-40'>⠿</span>
-              {item.label}
-            </div>
-          )}
-        />
+              <div className='flex items-center gap-2 px-3 py-2'>
+                <SortableItemHandle className='px-1 opacity-40 cursor-grab active:cursor-grabbing'>
+                  ⠿
+                </SortableItemHandle>
+                {item.label}
+              </div>
+            </SortableItem>
+          ))}
+        </Sortable>
       </section>
 
       <section className='v-card' style={{ display: 'grid', gap: 12 }}>
         <h3 style={{ margin: 0, fontSize: 14 }}>
           Tree（决策模型层级）
           <span style={{ fontSize: 12, opacity: 0.5, marginLeft: 8 }}>
-            {isLiveTree ? `实时图 · ${graph.nodes.length} 节点` : '示例数据 — 切到 Graph 页签编辑后自动同步'}
+            {isLiveTree ? `实时图 · ${graph?.nodes.length ?? 0} 节点` : '示例数据 — 切到 Graph 页签编辑后自动同步'}
           </span>
         </h3>
         <SimpleTree node={liveTree} />
