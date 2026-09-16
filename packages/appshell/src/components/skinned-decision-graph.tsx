@@ -7,10 +7,11 @@ import {
   type Simulation,
   type ToolbarItem,
 } from '@republicroad/jdm-editor';
-import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
+import { PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
+import PlayCircleIcon from '../reui/icons/animated/outline/play-circle';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinSlotHostContext } from '../skin/types';
@@ -81,7 +82,7 @@ export const SkinnedDecisionGraph = React.forwardRef<DecisionGraphRef, SkinnedDe
     const simulatorPanel: PanelItem = {
       id: 'simulator',
       title: 'Simulator',
-      icon: <FlaskConicalIcon size={16} />,
+      icon: <PlayCircleIcon className='size-4' />,
       hideHeader: true,
       renderPanel: () => (
         <GraphSimulator

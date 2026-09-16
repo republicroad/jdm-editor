@@ -14,6 +14,9 @@
 | [语义三元效果隔离](./semantic-triad-effect-isolation.md) | query/observe/act 副作用分级，运行时强制回放与幂等 | 有副作用的插件/回调系统 |
 | [缓存所有权模式](./cache-ownership-pattern.md) | 引擎无缓存时宿主自管 LRU+TTL+版本键 | 引擎/框架无缓存但高频决策 |
 | [ESM-only 源码发布](./esm-source-publish.md) | TS 源码直发不编译 dist | 内部工具包、消费方可控 |
+| [reui 组件本地化模式](./reui-component-pattern.md) | ReUI registry 组件跨仓本地化的接入与演进 | 跨仓共享 shadcn/ReUI 组件 |
+| [Monorepo App + 多库](./monorepo-app-and-libraries.md) | 一个 app 消费多个同仓库：源码形态 vs 产物形态不互渗 | 仓内 app + libraries 的 pnpm monorepo |
+| [临时跨项目源码直通](./cross-repo-source-bridge.md) | 仓外消费者发版前预览未发布源码：link/portal 桥五步接拆 | 跨仓消费者临时验证（verdict/editor） |
 
 ## 选用规则
 
@@ -25,6 +28,7 @@
 | UDF/插件有不同副作用等级 | BP-04 语义三元效果隔离 |
 | 引擎不缓存需要自管 L1 | BP-05 缓存所有权模式 |
 | 发布 TS 源码包到 npm | BP-06 ESM-only 源码发布 |
+| 仓外应用要在发版前看库的未发布改动 | BP-07 临时跨项目源码直通 |
 
 ## 格式约定
 
