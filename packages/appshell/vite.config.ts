@@ -29,7 +29,17 @@ export default defineConfig({
     },
     rolldownOptions: {
       // 宿主/内核均为外部：appshell 不打包 react 与内核
-      external: ['react', 'react-dom', 'react/jsx-runtime', /^@republicroad\/jdm-editor(\/.*)?$/],
+      // zustand/use-sync-external-store 必须外置（S011）：@xyflow/react 的依赖链
+      // 会把 zustand4 + usese 的 CJS 实现内联进 dist，其中深层 require('react')
+      // 生成运行时垫片，浏览器必炸（kernel vite.config 同款处理）。
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'zustand',
+        /^use-sync-external-store(\/.*)?$/,
+        /^@republicroad\/jdm-editor(\/.*)?$/,
+      ],
       output: {
         // css 统一命名 style.css，与 publishConfig exports("./dist/style.css") 对齐
         assetFileNames: (asset) => (asset.name?.endsWith('.css') ? 'style.css' : (asset.name ?? '[name]')),

@@ -13,6 +13,7 @@ import React, { useEffect, useState } from 'react';
 import { createSpecNode } from '../../lib/custom-node-registry';
 import { parseOperatorArgs, uid } from '../../lib/custom-node-registry';
 import type { CustomNodeConfig, CustomNodeExpression } from '../../lib/custom-node-types';
+import { type RosterOption, getRosterSource } from '../../lib/roster-source';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import ShieldSearchIcon from '../../reui/icons/default/outline/shield-search';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
@@ -30,11 +31,6 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import css from './custom-node.module.css';
 import { LockedCornerBadge } from './locked-corner-badge';
-
-interface RosterOption {
-  name: string;
-  size: number;
-}
 
 const unquote = (value: string): string => {
   const trimmed = value.trim();
@@ -64,22 +60,15 @@ const useRosterOptions = (search: string): { options: RosterOption[]; loading: b
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setLoading(true);
-      fetch(`/api/rosters?q=${encodeURIComponent(search)}`, { signal: controller.signal })
-        .then((response) => response.json())
+      getRosterSource()(search)
         .then((data) => {
-          if (!cancelled && Array.isArray(data)) {
-            setOptions(data as RosterOption[]);
-          }
+          if (!cancelled) setOptions(data);
         })
         .catch(() => {
-          if (!cancelled) {
-            setOptions([]);
-          }
+          if (!cancelled) setOptions([]);
         })
         .finally(() => {
-          if (!cancelled) {
-            setLoading(false);
-          }
+          if (!cancelled) setLoading(false);
         });
     }, 200);
     return () => {

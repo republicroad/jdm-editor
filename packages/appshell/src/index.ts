@@ -21,6 +21,7 @@ export {
   type CustomNodeSchemaSource,
 } from './lib/custom-node-registry';
 export * from './lib/user-resolver';
+export * from './lib/roster-source';
 export * from './lib/http-request-protocol';
 export * from './lib/json-path-protocol';
 export * from './lib/crypto-protocol';
