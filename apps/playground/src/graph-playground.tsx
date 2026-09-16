@@ -5,16 +5,23 @@ import {
   ThemeContextProvider,
   VersionHistoryPanel,
   createExecuteSimulate,
+  createGraphsHttpAdapter,
+  createIndexedDbAdapter,
   restoreVersion,
   useTheme,
 } from '@republicroad/jdm-appshell';
 import { type GraphDiff, computeGraphDiff } from '@republicroad/jdm-editor';
 import React, { useCallback, useState } from 'react';
 
-import { GRAPH_ID, graphAdapter } from './shared/fixtures';
+import { GRAPH_ID } from './shared/fixtures';
 import { ThemeToggle } from './shared/instance-shell';
 
-const adapter: GraphPersistenceAdapter = graphAdapter;
+const DEMO_SERVER = 'http://localhost:8787';
+const STORAGE_MODE = new URLSearchParams(window.location.search).get('storage') === 'http' ? 'http' : 'indexeddb';
+
+/** ?storage=http → demo-server /api/graphs；默认 → IndexedDB（本地优先） */
+const adapter: GraphPersistenceAdapter =
+  STORAGE_MODE === 'http' ? createGraphsHttpAdapter(`${DEMO_SERVER}/api/graphs`) : createIndexedDbAdapter();
 
 type VersionEntry = { revision: string; versionName?: string; pinned?: boolean; updatedAt?: string; auto?: boolean };
 type DiffBase = { revision: string; content: unknown };
@@ -288,6 +295,17 @@ export const GraphPlayground: React.FC = () => {
             </button>
             <SkinSwitcher />
             <ThemeToggle />
+            <span
+              style={{
+                fontSize: 11,
+                padding: '2px 8px',
+                borderRadius: 999,
+                border: '1px solid var(--border)',
+                color: 'var(--muted-foreground)',
+              }}
+            >
+              {STORAGE_MODE === 'http' ? 'storage: HTTP' : 'storage: IndexedDB'}
+            </span>
             <span className='pg-status'>{status}</span>
           </div>
         </header>

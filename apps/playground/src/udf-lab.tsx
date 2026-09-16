@@ -130,8 +130,8 @@ const UdfLabBody: React.FC = () => {
 
 /**
  * Custom Nodes 实例（MPA 入口 udf.html）：editor 项目 decision-simple 页的缩小复刻。
- * EditorShellProvider 三项 options 在仓内的演示消费面：schemaSource（demo-server 端点）、
- * simulate（远程全链路执行）、persistence（IndexedDB）。
+ * EditorShellProvider 四项 options 在仓内的演示消费面：schemaSource（demo-server 端点）、
+ * simulate（远程全链路执行）、persistence（IndexedDB）、authAdapter（固定演示用户）。
  */
 export const UdfLab: React.FC = () => (
   <EditorShellProvider
@@ -139,6 +139,7 @@ export const UdfLab: React.FC = () => (
       schemaSource: `${DEMO_SERVER}/v1/custom-nodes/schema`,
       simulate: createExecuteSimulate(DEMO_SERVER),
       persistence: createIndexedDbAdapter(),
+      authAdapter: async () => ({ userId: 'demo-user', displayName: 'Demo User' }),
     }}
   >
     <UdfLabBody />
