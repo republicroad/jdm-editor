@@ -109,7 +109,7 @@ describe('TimePicker shim', () => {
 });
 
 describe('Input allowClear semantics', () => {
-  it('clear button emits antd-style change event with empty target value', async () => {
+  it('clear button emits compat-style change event with empty target value', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Input allowClear value='abc' onChange={onChange} />);

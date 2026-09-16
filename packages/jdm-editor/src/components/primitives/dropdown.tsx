@@ -20,8 +20,7 @@ import {
 } from '#components/ui/dropdown-menu';
 import * as React from 'react';
 
-/** @deprecated antd-migration compat alias — use {@link MenuItemType} instead. */
-export interface AntdMenuItemType {
+export interface MenuItemType {
   key?: string;
   label?: React.ReactNode;
   icon?: React.ReactNode;
@@ -29,16 +28,13 @@ export interface AntdMenuItemType {
   disabled?: boolean;
   type?: 'divider' | 'group';
   onClick?: (info: { key: string }) => void;
-  children?: AntdMenuItemType[];
+  children?: MenuItemType[];
 }
 
-/** @deprecated antd-migration compat alias — use {@link MenuProps} instead. */
-export interface AntdMenuProps {
-  items?: AntdMenuItemType[];
-  onClick?: AntdMenuItemType['onClick'];
+export interface MenuProps {
+  items?: MenuItemType[];
+  onClick?: MenuItemType['onClick'];
 }
-
-export type MenuProps = AntdMenuProps;
 
 type MenuPrimitiveSet = {
   Item: typeof DropdownMenuItem | typeof ContextMenuItem;
@@ -51,14 +47,14 @@ type MenuPrimitiveSet = {
 };
 
 const renderMenuItems = (
-  items: AntdMenuItemType[] | undefined,
-  onClick: AntdMenuProps['onClick'],
+  items: MenuItemType[] | undefined,
+  onClick: MenuProps['onClick'],
   P: MenuPrimitiveSet,
 ): React.ReactNode =>
   // Callers build item arrays with conditional expressions and may leave null
   // entries behind; drop them before touching item.key.
   (items ?? [])
-    .filter((item): item is AntdMenuItemType => !!item)
+    .filter((item): item is MenuItemType => !!item)
     .map((item, index) => {
       const itemKey = item.key ?? String(index);
       const handleSelect = () => (item.onClick ?? onClick)?.({ key: itemKey });
@@ -102,7 +98,7 @@ const usesContextMenuTrigger = (trigger: Array<'click' | 'hover' | 'contextMenu'
   Array.isArray(trigger) && trigger.includes('contextMenu');
 
 export const Dropdown: React.FC<{
-  menu?: AntdMenuProps;
+  menu?: MenuProps;
   trigger?: Array<'click' | 'hover' | 'contextMenu'>;
   placement?: string;
   arrow?: boolean;
@@ -136,6 +132,3 @@ export const Dropdown: React.FC<{
     </DropdownMenu>
   );
 };
-
-/** Neutral name (antd-migration compat surface). */
-export type MenuItemType = AntdMenuItemType;

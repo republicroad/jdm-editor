@@ -2,12 +2,12 @@
  * Seed-derived theming (roadmap P0, zero-dependency).
  *
  * Architecture agreed 2026-08 ("double track"):
- *  - DEFAULT preset: the hand-calibrated antd tables in `theme.tsx` win
+ *  - DEFAULT preset: the hand-calibrated compat tables in `theme.tsx` win
  *    byte-for-byte. Nothing about existing rendering changes.
  *  - CUSTOM seeds: hosts pass `JdmConfigProvider seeds={{primary, ...}}` and a
  *    linear-light mix ladder derives the brand families in light mode;
  *    dark mode follows seeds via OKLab hue/lightness transforms. Ladder ratios were
- *    reverse-calibrated offline against the antd tables (see golden test);
+ *    reverse-calibrated offline against the compat tables (see golden test);
  *    channels land within a few 1/255 steps of what antd's own algorithm
  *    emits for the default seeds — close enough for re-branded installs,
  *    while the defaults never route through it.
@@ -55,7 +55,7 @@ export const mixLinear = (fromHex: string, toHex: '#000000' | '#ffffff', t: numb
 /**
  * Per-key ladder for LIGHT brand families.
  * Ratios solved offline so that deriving FROM the default seeds reproduces the
- * antd tables within `CALIBRATION_TOLERANCES` (≤ ~30/255 worst-case on one
+ * compat tables within `CALIBRATION_TOLERANCES` (≤ ~30/255 worst-case on one
  * channel — recorded honestly, not hidden behind the helper).
  */
 export const LIGHT_LADDER: Record<string, { anchor: '#ffffff' | '#000000'; t: number }> = {
@@ -92,10 +92,10 @@ export type ThemeSeeds = {
   fieldOutput?: string;
 };
 
-/** antd-calibrated defaults: passing EXACTLY these equals passing nothing,
+/** compat-calibrated defaults: passing EXACTLY these equals passing nothing,
  * keeping the frozen preset byte-identical instead of route-through-derived. */
-/** antd-calibrated LIGHT defaults (families + pill pairs). */
-/** antd-calibrated LIGHT defaults (families + pill pairs). */
+/** compat-calibrated LIGHT defaults (families + pill pairs). */
+/** compat-calibrated LIGHT defaults (families + pill pairs). */
 export const ANTD_DEFAULT_SEEDS: Required<
   Pick<ThemeSeeds, 'primary' | 'success' | 'error' | 'warning' | 'fieldInput' | 'fieldOutput'>
 > = {

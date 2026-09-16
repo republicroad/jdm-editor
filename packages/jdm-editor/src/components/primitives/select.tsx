@@ -10,8 +10,7 @@ import * as React from 'react';
 
 import { borderlessInputClass } from './shared';
 
-/** @deprecated antd-migration compat alias — use {@link SelectOption} instead. */
-export interface AntdSelectOption {
+export interface SelectOption {
   /** Optional metadata used by the excel-import dialogs */
   id?: string;
   type?: string;
@@ -23,16 +22,15 @@ export interface AntdSelectOption {
   disabled?: boolean;
 }
 
-/** @deprecated antd-migration compat alias — use {@link SelectProps} instead. */
-export interface AntdSelectProps {
-  options?: AntdSelectOption[];
+export interface SelectProps {
+  options?: SelectOption[];
   value?: string | number | boolean | Array<string | number>;
   defaultValue?: string | number | boolean | Array<string | number>;
 
-  onChange?: (value: any, option?: AntdSelectOption) => void;
-  onSelect?: (value: string | number | boolean, option: AntdSelectOption) => void;
+  onChange?: (value: any, option?: SelectOption) => void;
+  onSelect?: (value: string | number | boolean, option: SelectOption) => void;
   dropdownRender?: (menu: React.ReactNode) => React.ReactNode;
-  optionRender?: (option: { data: AntdSelectOption }) => React.ReactNode;
+  optionRender?: (option: { data: SelectOption }) => React.ReactNode;
   placeholder?: string;
   disabled?: boolean;
   size?: 'large' | 'middle' | 'small';
@@ -41,7 +39,7 @@ export interface AntdSelectProps {
   optionLabelProp?: string;
   loading?: boolean;
   showSearch?: boolean;
-  filterOption?: boolean | ((input: string, option: AntdSelectOption) => boolean);
+  filterOption?: boolean | ((input: string, option: SelectOption) => boolean);
   mode?: 'multiple' | 'tags';
   variant?: string;
   suffixIcon?: React.ReactNode;
@@ -54,9 +52,7 @@ export interface AntdSelectProps {
   style?: React.CSSProperties;
 }
 
-export type SelectProps = AntdSelectProps;
-
-export const Select: React.FC<AntdSelectProps> = ({
+export const Select: React.FC<SelectProps> = ({
   options,
   value,
   defaultValue,
@@ -124,7 +120,7 @@ export const Select: React.FC<AntdSelectProps> = ({
         defaultValue={defaultValue === undefined ? undefined : String(defaultValue)}
         onValueChange={(next) => {
           if (allowClear && next === current) return;
-          const option = list.find((item) => String(item.value) === next) ?? ({} as AntdSelectOption);
+          const option = list.find((item) => String(item.value) === next) ?? ({} as SelectOption);
           const raw = option.value ?? next;
           onSelect?.(raw, option);
           onChange?.(raw, option);
@@ -136,7 +132,7 @@ export const Select: React.FC<AntdSelectProps> = ({
             'w-full justify-between',
             size === 'large' ? 'h-10 text-base' : size === 'small' ? 'h-8 text-xs' : undefined,
             allowClear && !!current && '[&>svg:last-child]:hidden',
-            // antd semantics: suffixIcon={null} means no trailing icon.
+            // compat semantics: suffixIcon={null} means no trailing icon.
             suffixIcon === null && '[&>svg:last-child]:hidden',
             className,
           )}
@@ -166,6 +162,3 @@ export const Select: React.FC<AntdSelectProps> = ({
     </div>
   );
 };
-
-/** Neutral name (antd-migration compat surface). */
-export type SelectOption = AntdSelectOption;

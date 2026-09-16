@@ -3,7 +3,7 @@
  *
  * Merge order: calibrated preset ← seed derivation ← explicit overrides.
  * The playground story consumes this directly; GlobalCssVariables is a thin
- * renderer over it. Hex values are the per-mode antd-calibrated presets in
+ * renderer over it. Hex values are the per-mode compat-calibrated presets in
  * presets.ts; seeds only overlay brand families (see derive.ts for the
  * ladder / dark limitation notes).
  */

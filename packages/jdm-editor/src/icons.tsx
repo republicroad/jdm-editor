@@ -2,7 +2,7 @@
  * Internal icon layer.
  *
  * Most icons are re-exported from lucide-react under their historical
- * antd names; a few frequent actions use ReUI Motion Icons
+ * names used by the editor surface; a few frequent actions use ReUI Motion Icons
  * (`src/reui/icons/*`) for hover animations. Components migrate by
  * swapping the import path only.
  */

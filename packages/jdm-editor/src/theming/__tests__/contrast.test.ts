@@ -26,13 +26,13 @@ const LIGHT_PAIRS: Pair[] = [
     fg: '--grl-color-primary',
     bg: '--grl-color-bg-container',
     min: 4.0,
-    note: 'links/inline primary text — antd default primary measures 4.10 (AA-large passes; AA-normal narrowly missed, an upstream antd trait kept for brand parity)',
+    note: 'links/inline primary text — compat default primary measures 4.10 (AA-large passes; AA-normal narrowly missed, an upstream antd trait kept for brand parity)',
   },
   {
     fg: '--grl-color-warning-text',
     bg: '--grl-color-warning-bg',
     min: 2.5,
-    note: 'antd default warning pairing measures 2.76 — upstream trait kept for parity; banners pair with icons/controls and are non-body channels',
+    note: 'compat default warning pairing measures 2.76 — upstream trait kept for parity; banners pair with icons/controls and are non-body channels',
   },
   {
     fg: '--grl-color-text-light-solid',

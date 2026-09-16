@@ -243,9 +243,8 @@
  *
  * CodeMirror 6 skin + completion/lint/tooltip hooks (formerly ce.scss).
    * Every target is DOM rendered by CodeMirror itself, so these stay plain
-   * CSS. The SCSS lintRangeImage() helper is inlined as data URIs; the dead
-   * `.grl-ce-preview > .ant-typography` rule (Typography renders plain spans
-   * now) was dropped.
+   * CSS. The SCSS lintRangeImage() helper is inlined as data URIs; obsolete
+   * rules were dropped.
    */
 @layer components {
   /*

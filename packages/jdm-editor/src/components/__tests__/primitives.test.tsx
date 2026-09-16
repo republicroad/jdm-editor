@@ -34,7 +34,7 @@ const pickOption = async (user: ReturnType<typeof userEvent.setup>, label: strin
   await user.click([...document.querySelectorAll('[role="option"]')].find((o) => o.textContent === label)!);
 };
 
-describe('Select shim value semantics (antd contract)', () => {
+describe('Select shim value semantics (compat contract)', () => {
   it('emits the raw boolean option value, not the Radix string', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
@@ -101,7 +101,7 @@ describe('Select shim value semantics (antd contract)', () => {
     expect(onSelect).toHaveBeenCalledWith('Shipped', expect.objectContaining({ value: 'Shipped' }));
   });
 
-  it('clear button emits undefined per antd semantics, not empty string', async () => {
+  it('clear button emits undefined per compat semantics, not empty string', async () => {
     const onClear = vi.fn();
     const onChange = vi.fn();
     const user = userEvent.setup();
@@ -162,7 +162,7 @@ describe('Switch shim', () => {
 });
 
 describe('Checkbox shim', () => {
-  it('emits antd-style change event with target.checked', async () => {
+  it('emits compat-style change event with target.checked', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Checkbox onChange={onChange}>Label</Checkbox>);
@@ -199,7 +199,7 @@ describe('Tabs shim', () => {
 });
 
 describe('Button shim mapping', () => {
-  it('maps antd type to shadcn variant classes', () => {
+  it('maps compat type to shadcn variant classes', () => {
     render(
       <>
         <Button type='dashed'>D</Button>

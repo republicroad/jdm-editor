@@ -5,8 +5,7 @@ import { TabsTrigger as UiTabsTrigger } from '#components/ui/tabs';
 import { cn } from '#lib/utils';
 import * as React from 'react';
 
-/** @deprecated antd-migration compat alias — use {@link TabsItemType} instead. */
-export interface AntdTabsItemType {
+export interface TabsItemType {
   key: string;
   label: React.ReactNode;
   children?: React.ReactNode;
@@ -14,7 +13,7 @@ export interface AntdTabsItemType {
 }
 
 export interface TabsProps {
-  items?: AntdTabsItemType[];
+  items?: TabsItemType[];
   activeKey?: string;
   defaultActiveKey?: string;
   onChange?: (key: string) => void;
@@ -74,7 +73,7 @@ export const Tabs: React.FC<TabsProps> = ({
         <UiTabsContent
           key={item.key}
           value={item.key}
-          // antd semantics: items without children carry no panel content.
+          // compat semantics: items without children carry no panel content.
           // Keep the node mounted (Radix/tests may query it) but hide it so
           // shadcn's `flex gap-2` root injects no phantom gap below a
           // standalone bar.
@@ -86,6 +85,3 @@ export const Tabs: React.FC<TabsProps> = ({
     </UiTabs>
   );
 };
-
-/** Neutral name (antd-migration compat surface). */
-export type TabsItemType = AntdTabsItemType;

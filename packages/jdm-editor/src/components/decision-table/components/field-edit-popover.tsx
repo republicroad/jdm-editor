@@ -71,7 +71,6 @@ export const FieldEditPopover: React.FC<FieldEditPopoverProps> = ({
   >
     {trigger ?? (
       <span
-        /* Tokenized per roadmap P1 (replaces HK-10 antd-era literals). */
         className={clsx(
           'mt-0.5 inline-flex max-w-full cursor-pointer select-none items-center gap-1.5 rounded-md border border-[var(--grl-color-field-input)] bg-[var(--grl-color-field-input)] px-2 py-0.5 text-sm text-black transition-colors hover:border-[var(--grl-color-field-input-hover)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
           triggerClassName,

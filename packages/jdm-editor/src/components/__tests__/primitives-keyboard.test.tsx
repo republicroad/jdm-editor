@@ -15,7 +15,7 @@ beforeAll(() => {
 /**
  * Keyboard/a11y alignment audit for the antd→shadcn shims (roadmap follow-up).
  * Radix gives most of this for free; these tests LOCK it so future shim
- * refactors cannot silently regress keyboard parity with antd semantics.
+ * refactors cannot silently regress keyboard parity with compat semantics.
  *
  * DatePicker is intentionally not covered here (dayjs panel navigation is
  * complex and covered by manual QA); add focused tests when it changes.
@@ -155,7 +155,7 @@ describe('Popconfirm keyboard flow', () => {
 });
 
 describe('Input allowClear reachability', () => {
-  it('clear control is a real button and emits the antd-style empty-target change', async () => {
+  it('clear control is a real button and emits the compat-style empty-target change', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Input allowClear value='abc' onChange={onChange} />);

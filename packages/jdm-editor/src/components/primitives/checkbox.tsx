@@ -2,8 +2,7 @@ import { Checkbox as UiCheckbox } from '#components/ui/checkbox';
 import { cn } from '#lib/utils';
 import * as React from 'react';
 
-/** @deprecated antd-migration compat alias — use {@link CheckboxChangeEvent} instead. */
-export interface AntdCheckboxChangeEvent {
+export interface CheckboxChangeEvent {
   target: { checked: boolean };
   stopPropagation: () => void;
 }
@@ -14,7 +13,7 @@ export const Checkbox: React.FC<{
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
-  onChange?: (event: AntdCheckboxChangeEvent) => void;
+  onChange?: (event: CheckboxChangeEvent) => void;
   children?: React.ReactNode;
 }> = ({ checked, defaultChecked, disabled, className, style, onChange, children }) => (
   <label className={cn('inline-flex cursor-pointer items-center gap-2 text-sm', className)} style={style}>
@@ -27,6 +26,3 @@ export const Checkbox: React.FC<{
     {children ? <span>{children}</span> : null}
   </label>
 );
-
-/** Neutral name (antd-migration compat surface). */
-export type CheckboxChangeEvent = AntdCheckboxChangeEvent;

@@ -96,7 +96,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
         container.style.setProperty(key, exposedTokens[key]);
       }
       // Text color must be scoped alongside the variables: nothing else in the
-      // cascade sets `color` (antd used to do it globally), so in dark mode
+      // cascade sets `color`, so in dark mode
       // every input/editor would inherit UA black-on-dark and go invisible.
       container.style.setProperty('color', 'var(--foreground)');
       return () => {

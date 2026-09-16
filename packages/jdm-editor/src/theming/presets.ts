@@ -12,7 +12,7 @@ export const MODE_EXTRAS: Record<'light' | 'dark', { borderHover: string; border
     dark: { borderHover: '#555555', borderFade: '#333333', primaryBgFade: '#141414' },
   };
 
-/** Golden preset (antd-calibrated). Exported for the derive golden test; do
+/** Golden preset (compat-calibrated). Exported for the derive golden test; do
  * not hand-edit without re-running `src/theme/__tests__/derive.test.ts`. */
 export const lightTokens: Record<string, string | number> = {
   colorPrimary: '#1677ff',

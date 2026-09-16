@@ -11,8 +11,7 @@ import {
 import { cn } from '#lib/utils';
 import * as React from 'react';
 
-/** @deprecated antd-migration compat alias — use {@link ConfirmOptions} instead. */
-export interface AntdConfirmOptions {
+export interface ConfirmOptions {
   icon?: React.ReactNode;
   title?: React.ReactNode;
   content?: React.ReactNode;
@@ -23,7 +22,7 @@ export interface AntdConfirmOptions {
   onCancel?: () => void;
 }
 
-interface ConfirmItem extends AntdConfirmOptions {
+interface ConfirmItem extends ConfirmOptions {
   id: number;
 }
 
@@ -45,7 +44,7 @@ const confirmState = ((globalThis as Record<string, unknown>).__JDM_CONFIRM_STAT
 
 const emitConfirms = () => confirmState.listeners.forEach((listener) => listener(confirmState.items));
 
-const openConfirm = (options: AntdConfirmOptions) => {
+const openConfirm = (options: ConfirmOptions) => {
   confirmState.items = [...confirmState.items, { ...options, id: ++confirmState.seq }];
   emitConfirms();
 };
@@ -56,7 +55,7 @@ const closeConfirm = (id: number) => {
 };
 
 interface AppContextValue {
-  modal: { confirm: (options: AntdConfirmOptions) => void };
+  modal: { confirm: (options: ConfirmOptions) => void };
 }
 
 const AppContext = React.createContext<AppContextValue>({
@@ -127,6 +126,3 @@ const AppProvider: React.FC<{ children?: React.ReactNode; className?: string; st
 export const App = Object.assign(AppProvider, {
   useApp: (): AppContextValue => React.useContext(AppContext),
 });
-
-/** Neutral name (antd-migration compat surface). */
-export type ConfirmOptions = AntdConfirmOptions;

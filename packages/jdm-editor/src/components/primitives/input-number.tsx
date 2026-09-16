@@ -32,7 +32,7 @@ export const InputNumber: React.FC<{
       borderlessInputClass,
       size === 'large' ? 'h-10 text-base' : undefined,
       'w-full rounded-md border border-input shadow-xs focus-visible:border-ring',
-      // antd semantics: controls={false} hides the native spin buttons.
+      // controls={false} hides the native spin buttons.
       controls === false &&
         '[appearance:textfield] [&::-webkit-inner-spin-button]:[-webkit-appearance:none] [&::-webkit-outer-spin-button]:[-webkit-appearance:none]',
       className,

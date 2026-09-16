@@ -3,25 +3,22 @@ import { cn } from '#lib/utils';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
 
-type AntdButtonType = 'primary' | 'default' | 'dashed' | 'text' | 'link';
-type AntdButtonSize = 'large' | 'middle' | 'small';
+type ButtonType = 'primary' | 'default' | 'dashed' | 'text' | 'link';
+type ButtonSize = 'large' | 'middle' | 'small';
 
-/** @deprecated antd-migration compat alias — use {@link ButtonProps} instead. */
-export interface AntdButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
-  type?: AntdButtonType;
+export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
+  type?: ButtonType;
   icon?: React.ReactNode;
   danger?: boolean;
   loading?: boolean;
-  size?: AntdButtonSize;
+  size?: ButtonSize;
   block?: boolean;
   shape?: 'circle' | 'round' | 'default';
   href?: string;
   target?: string;
 }
 
-export type ButtonProps = AntdButtonProps;
-
-export const Button = React.forwardRef<HTMLButtonElement, AntdButtonProps & { ref?: React.Ref<HTMLButtonElement> }>(
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps & { ref?: React.Ref<HTMLButtonElement> }>(
   (
     {
       type = 'default',

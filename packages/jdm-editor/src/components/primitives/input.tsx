@@ -2,9 +2,7 @@ import { Input as UiInput } from '#components/ui/input';
 import { cn } from '#lib/utils';
 import * as React from 'react';
 
-/** @deprecated antd-migration compat alias — use {@link InputProps} instead. */
-export interface AntdInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
   size?: 'large' | 'middle' | 'small';
   allowClear?: boolean;
   bordered?: boolean;
@@ -12,7 +10,7 @@ export interface AntdInputProps
   suffix?: React.ReactNode;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, AntdInputProps>(function Input(
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
   { size, allowClear = false, bordered = true, prefix, suffix, value, onChange, className, disabled, ...rest },
   ref,
 ) {
@@ -64,5 +62,3 @@ export const Input = React.forwardRef<HTMLInputElement, AntdInputProps>(function
 });
 
 export type InputRef = HTMLInputElement;
-
-export type InputProps = React.ComponentProps<typeof Input>;
