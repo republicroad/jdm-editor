@@ -678,3 +678,88 @@ mistake: pnpm peer-variant materialization + build outDir rewrite. All
 in-repo consumers now bypass it via the source passthrough aliases
 (storybook `viteFinal`, appshell vitest, playground vite); a `pnpm
 install` re-materializes the link but it re-freezes on the next build.
+
+---
+
+## 9. Playground tsc: `diffBaseline` does not exist on SkinnedDecisionGraphProps — dual kernel type-graph resolution
+
+**Date:** 2026-09-16 · **Root cause:** dual workspace-vs-store kernel type resolution
+
+### Symptom
+
+`apps/playground/src/graph-playground.tsx(299,13)`:
+`Property 'diffBaseline' does not exist on type 'SkinnedDecisionGraphProps'`.
+Build succeeds at runtime but the type checker reports the property as missing,
+preventing safe refactoring of graph-page props.
+
+### Investigation timeline
+
+1. `SkinnedDecisionGraphProps` in `packages/appshell/src/components/skinned-decision-graph.tsx`
+   is defined as `DecisionGraphProps & { simulateHandler?: SimulateHandler }` —
+   the kernel type, re-exported via the appshell dist d.ts. kernel `DecisionGraphProps`
+   is `{} & DecisionGraphWrapperProps & DecisionGraphContextProps & DecisionGraphEmptyType`,
+   and `DecisionGraphEmptyType` has `diffBaseline?: DecisionGraphType`.
+2. The playground tsc resolves `@republicroad/jdm-editor` via `node_modules/@republicroad/jdm-editor`
+   → `.pnpm/@republicroad+jdm-editor@0._…/node_modules/@republicroad/jdm-editor`
+   → **kernel 0.3.1** dist (predates S004 diff view / kernel 0.5.0).
+   Lacks `diffBaseline` on `DecisionGraphEmptyType` → TS2339.
+3. The appshell's own `node_modules/@republicroad/jdm-editor` also resolves to 0.3.1
+   (pnpm peer resolution locked at install time; `pnpm update` on peers is a no-op
+   without a version-range bump or a workspace protocol link).
+
+### Root cause
+
+The kernel's `package.json` `types` → `./dist/index.d.ts` was regenerated on every
+kernel `vite build`, but the appshell's `node_modules/@republicroad/jdm-editor`
+was a `.pnpm` store copy of kernel **0.3.1** whose `DecisionGraphEmptyType`
+lacked `diffBaseline` (added in kernel 0.5.0). The playground tsc resolved
+kernel types through the appshell's peer chain → 0.3.1 → no `diffBaseline` →
+TS2339. This is distinct from the OOM scenario (rolldown-plugin-dts inlining
+a TS source-published workspace package; see §verdict-weave-migration-plan 追记)
+— here the resolution was a **version skew** between the workspace kernel (0.9.x)
+and the peer-resolved copy (0.3.1).
+
+### Fix
+
+Update the peer resolution to the current workspace kernel version:
+
+```bash
+pnpm --filter @republicroad/jdm-appshell update @republicroad/jdm-editor
+```
+
+After the update, `packages/appshell/node_modules/@republicroad/jdm-editor/package.json`
+version → 0.9.1 (with `diffBaseline` in the dist d.ts), and the playground tsc
+passes with the same property visible through the `SkinnedDecisionGraphProps`
+intersection. `pnpm-lock.yaml` is regenerated to reflect the new resolution.
+
+### Verification
+
+```bash
+# 1. Confirm the resolved kernel version in the appshell's node_modules:
+grep '"version"' packages/appshell/node_modules/@republicroad/jdm-editor/package.json
+#    → ≥ 0.9.0
+
+# 2. Confirm the playground tsc passes:
+cd apps/playground && bunx tsc --noEmit
+#    → 0 errors (excluding vendored blocks)
+
+# 3. Confirm the kernel dist d.ts exports diffBaseline:
+grep -c "diffBaseline" packages/jdm-editor/dist/index.d.ts
+#    → ≥ 1
+```
+
+### Key takeaway
+
+**Workspace peer resolution is locked at install time.** When a workspace package's
+peer dependency is satisfied by an older published version (not the workspace copy),
+subsequent kernel releases won't propagate to that consumer until the peer is
+explicitly updated. In pnpm, peer resolution is separate from dependency resolution:
+`pnpm update <peer>` targets the consumer's own node_modules, not the workspace.
+This is the third instance of "version skew between workspace packages" in this
+repo (after §8's submodule decoupling and the dts migration's OOM experiment).
+
+### See also
+
+- `docs/design/verdict-weave-migration-plan.md` — dual type-graph resolution
+  (workspace-vs-peer chain) was a driver for the verdict-weave migration.
+- §8 above — the sibling symptom (submodule dist copy diverged from workspace).
