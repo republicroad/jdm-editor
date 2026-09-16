@@ -22,14 +22,15 @@ pnpm --filter @republicroad/playground dev   # 或根目录 pnpm dev（同时拉
 `index.html` 是**目录页**，每个 playground 实例是独立 HTML 入口（独立加载、
 互不拖累；monaco 只进 graph / table 两个入口的共享 chunk）：
 
-| 入口         | 实例           | 内容                                                                |
-| ------------ | -------------- | ------------------------------------------------------------------- |
-| `index.html` | 目录           | 各实例导航卡片                                                      |
-| `graph.html` | Decision Graph | 编辑器 + 模拟执行 + 版本历史 + Server run + ocean 皮肤槽位演示      |
-| `table.html` | Decision Table | business 模式决策表                                                 |
-| `grid.html`  | Data Grid      | ReUI DataGrid（排序 / 过滤 / 列徽标）                               |
-| `reui.html`  | ReUI Showcase  | Timeline / Sortable / 决策模型层级树（读共享 IndexedDB 的已保存图） |
-| `trust.html` | Trust Chain    | 执行 + 审计 → 确定性回放 → 影子对比（需 demo-server :8787）         |
+| 入口         | 实例           | 内容                                                                                                                                                                                            |
+| ------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.html` | 目录           | 各实例导航卡片                                                                                                                                                                                  |
+| `graph.html` | Decision Graph | 编辑器 + 模拟执行 + 版本历史 + Server run + ocean 皮肤槽位演示                                                                                                                                  |
+| `table.html` | Decision Table | business 模式决策表                                                                                                                                                                             |
+| `grid.html`  | Data Grid      | ReUI DataGrid（排序 / 过滤 / 列徽标）                                                                                                                                                           |
+| `reui.html`  | ReUI Showcase  | Timeline / Sortable / 决策模型层级树（读共享 IndexedDB 的已保存图）                                                                                                                             |
+| `trust.html` | Trust Chain    | 执行 + 审计 → 确定性回放 → 影子对比（需 demo-server :8787）                                                                                                                                     |
+| `udf.html`   | Custom Nodes   | 节点工作台：自定义节点编排（schema 端点驱动面板）→ simulator 全链路 → Trust Chain 三步；`EditorShellProvider` 接入样例（decision-simple 缩小复刻，见 `docs/design/playground-udf-lab-plan.md`） |
 
 新入口三步：根下加 `<name>.html` → `src/entries/<name>.tsx` 挂载页面组件 →
 `vite.config.ts` 的 `build.rollupOptions.input` 登记该项。

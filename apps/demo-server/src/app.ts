@@ -1,4 +1,4 @@
-import { type DecisionAuditEvent, DecisionRuntime, runWithExecContext } from '@republicroad/zen-udf';
+import { type DecisionAuditEvent, DecisionRuntime, registerRoster, runWithExecContext } from '@republicroad/zen-udf';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createHash } from 'node:crypto';
@@ -45,6 +45,22 @@ const runtime = new DecisionRuntime({
   },
 });
 
+// 演示名单（roster UDF 夹具用）：注册在 demo 租户共享域。
+// roster UDF 按执行上下文 tenantId 取域，故下方 execute/replay/shadow 统一注入 DEMO_TENANT
+const DEMO_TENANT = 'demo';
+registerRoster(
+  { name: 'demo_block', description: '演示封禁名单', items: ['1.2.3.4', '5.6.7.8', 'bad-ip'] },
+  {
+    tenantId: DEMO_TENANT,
+  },
+);
+registerRoster(
+  { name: 'demo_vip', description: '演示VIP名单', items: ['gold-user', 'vip-001'] },
+  {
+    tenantId: DEMO_TENANT,
+  },
+);
+
 /**
  * Stateless demo API over zen-udf（自托管演示，非 SaaS 后端）：
  *   GET  /healthz         存活探针
@@ -68,6 +84,10 @@ export const createApp = () => {
   });
 
   app.get('/healthz', (c) => c.json({ ok: true }));
+
+  // 自定义节点 schema（appshell useCustomNodes 消费）：注册表 → CustomNodeNamespace[]。
+  // appshell 侧的专用节点（roster/crypto/http_request/current_date）会在客户端按名去重接管
+  app.get('/v1/custom-nodes/schema', (c) => c.json(runtime.registry.udfFunctionSchemaNamespaces()));
 
   app.post('/v1/validate', async (c) => {
     const body = await c.req.json().catch(() => null);
@@ -107,7 +127,7 @@ export const createApp = () => {
           .update(JSON.stringify([model, body?.input, Date.now(), Math.random()]))
           .digest('hex')
           .slice(0, 16);
-      const outcome = await runWithExecContext({ tenantExempt: true, decisionId }, async () => {
+      const outcome = await runWithExecContext({ tenantId: DEMO_TENANT, tenantExempt: true, decisionId }, async () => {
         if (!runtime.getDecisionCache(cacheKey)) {
           try {
             runtime.createDecisionWithCacheKey(cacheKey, model);
@@ -154,7 +174,7 @@ export const createApp = () => {
     }
 
     try {
-      const replayed = await runWithExecContext({ tenantExempt: true }, () =>
+      const replayed = await runWithExecContext({ tenantId: DEMO_TENANT, tenantExempt: true }, () =>
         runtime.evaluateReplay(audit as DecisionAuditEvent, body?.input ?? {}),
       );
 
@@ -193,7 +213,7 @@ export const createApp = () => {
       const shadowRev = 's' + createHash('sha256').update(JSON.stringify(shadowModel)).digest('hex').slice(0, 16);
       const input = (body?.input ?? {}) as Record<string, unknown>;
 
-      const shadow = await runWithExecContext({ tenantExempt: true }, async () => {
+      const shadow = await runWithExecContext({ tenantId: DEMO_TENANT, tenantExempt: true }, async () => {
         for (const [rev, model] of [
           [prodRev, prodModel],
           [shadowRev, shadowModel],

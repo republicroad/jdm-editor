@@ -37,6 +37,20 @@ const instances: InstanceCard[] = [
     title: 'Trust Chain',
     description: '信任链演示：执行 + 审计事件 → 确定性回放 → 影子对比（需 demo-server :8787）。',
   },
+  {
+    href: './udf.html',
+    icon: '🧩',
+    title: 'Custom Nodes',
+    description:
+      '节点工作台：自定义节点编排（schema 端点驱动面板）→ simulator 全链路仿真 → Trust Chain 三步（EditorShell 接入样例）。',
+  },
+  {
+    href: './flow.html',
+    icon: '🔀',
+    title: 'Flow Pilot',
+    description:
+      'ReUI flow-1 块试点：自动化工作流画布（xyflow v12 + ReUI 组件），评估 kernel/appshell 的 ReUI 迁移姿势。',
+  },
 ];
 
 /** 目录页（MPA 入口 index.html）：playground 各独立实例的导航 */

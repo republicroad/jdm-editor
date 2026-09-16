@@ -92,6 +92,19 @@ try {
   const health = await fetch(`${BASE}/healthz`);
   check('healthz ok + demo 头', health.ok && health.headers.get('x-jdm-demo') === 'true');
 
+  // 1.5 custom-nodes schema（appshell useCustomNodes 消费）：CustomNodeNamespace[] 且 tools 带 parameters
+  const schema = await fetch(`${BASE}/v1/custom-nodes/schema`);
+  const schemaJson = await schema.json().catch(() => null);
+  check(
+    'custom-nodes schema 数组 + tools 契约',
+    schema.ok &&
+      Array.isArray(schemaJson) &&
+      schemaJson.every(
+        (ns) => typeof ns?.name === 'string' && Array.isArray(ns?.tools) && ns.tools.every((t) => t?.parameters),
+      ),
+    JSON.stringify(schemaJson)?.slice(0, 160),
+  );
+
   // 2. validate：合法图
   const valid = await post('/v1/validate', tableModel);
   check('validate 合法图 200', valid.status === 200 && valid.json?.ok === true);

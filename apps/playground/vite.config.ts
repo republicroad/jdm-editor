@@ -21,6 +21,8 @@ export default defineConfig({
         grid: page('grid'),
         reui: page('reui'),
         trust: page('trust'),
+        udf: page('udf'),
+        flow: page('flow'),
       },
     },
   },
