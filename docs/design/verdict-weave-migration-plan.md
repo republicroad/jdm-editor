@@ -22,6 +22,7 @@
   插件依赖已移除；
 - **第二失败模式（对照实验补充）**：paths 改指内核 `dist/index.d.ts` 时，逐文件 d.ts 变空壳 →
   42 个 MISSING_EXPORT——两种解析端点下 emit 均失败，属插件 per-file emit 内部问题；
+  且 dist 解析暴露 appshell 约 40 处导出推断类型不可命名（TS2742 类），需全量显式标注才可走此路；
 - 保留的修复：`SkinnedDecisionGraph` 公开导出补显式类型标注（TS2742 非可移植类型，
   对任何 dts 打包器都是必要修复，已入本批提交）；
 - 重审触发条件（满足其一再议）：
