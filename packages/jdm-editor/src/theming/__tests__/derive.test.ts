@@ -48,7 +48,7 @@ describe('theme seed derivation (P0)', () => {
     }
   });
 
-  it('light ladder formulas stay within calibration tolerances vs antd frozen', () => {
+  it('light ladder formulas stay within calibration tolerances vs frozen defaults', () => {
     const seedOf: Record<string, string> = {
       primary: '#1677ff',
       success: '#52c41a',

@@ -115,7 +115,7 @@
 
 /*
  * shadcn-style semantic colors. Values resolve from tokens.css, which bridges
- * antd runtime tokens (--grl-*) to generic names; `inline` keeps var()
+ * legacy runtime tokens (--grl-*) to generic names; `inline` keeps var()
  * references verbatim inside generated utilities.
  */
 @theme inline {

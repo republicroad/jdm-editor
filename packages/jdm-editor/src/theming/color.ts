@@ -72,7 +72,7 @@ export const oklchToOkLab = ({ L, C, H }: Oklch): OkLab => {
 /** Convenience: hex → polar form. */
 export const hexToOklch = (hex: string): Oklch => okLabToOklch(hexToOkLab(hex));
 
-/** Polar form → hex. Derived palette colors stay near antd's in-gamut anchors,
+/** Polar form → hex. Derived palette colors stay near the calibrated in-gamut anchors,
  * so no gamut search is needed; CM clamps at conversion time anyway. */
 export const oklchToHex = (c: Oklch): string => okLabToHex(oklchToOkLab(c));
 

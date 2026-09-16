@@ -8,13 +8,13 @@
  *    linear-light mix ladder derives the brand families in light mode;
  *    dark mode follows seeds via OKLab hue/lightness transforms. Ladder ratios were
  *    reverse-calibrated offline against the compat tables (see golden test);
- *    channels land within a few 1/255 steps of what antd's own algorithm
- *    emits for the default seeds — close enough for re-branded installs,
+ *    channels land within a few 1/255 steps of the frozen defaults for the
+ *    default seeds — close enough for re-branded installs,
  *    while the defaults never route through it.
  *
  * Phase-2 (Batch F): DARK brand families follow seeds too, via OKLab
  * hue-rotation + lightness scaling around the calibrated anchors in
- * dark-ops.ts — zero-dependency OKLab math lives in color.ts. surfaces are family-independent navy constants in antd's algorithm and do
+ * dark-ops.ts — zero-dependency OKLab math lives in color.ts. surfaces are family-independent navy constants in the compat tables and do
  * not decompose into seed mixes (offline spread > 0.6). Dark mode therefore
  * keeps its calibrated constants until P0 phase 2 introduces an OKLCH model.
  */
@@ -96,7 +96,7 @@ export type ThemeSeeds = {
  * keeping the frozen preset byte-identical instead of route-through-derived. */
 /** compat-calibrated LIGHT defaults (families + pill pairs). */
 /** compat-calibrated LIGHT defaults (families + pill pairs). */
-export const ANTD_DEFAULT_SEEDS: Required<
+export const DEFAULT_SEEDS: Required<
   Pick<ThemeSeeds, 'primary' | 'success' | 'error' | 'warning' | 'fieldInput' | 'fieldOutput'>
 > = {
   primary: '#1677ff',
@@ -118,7 +118,7 @@ export const DARK_DEF_SEEDS: Record<'primary' | 'success' | 'error' | 'warning',
 /** Family seeds behind the calibrated DARK preset. */
 function isDefaultSeedSet(mode: ThemeModeLite, seeds: ThemeSeeds): boolean {
   const defaults =
-    mode === 'dark' ? (DARK_DEF_SEEDS as Record<string, string>) : (ANTD_DEFAULT_SEEDS as Record<string, string>);
+    mode === 'dark' ? (DARK_DEF_SEEDS as Record<string, string>) : (DEFAULT_SEEDS as Record<string, string>);
   const entries = Object.entries(seeds).filter(([, v]) => v !== undefined);
   if (entries.length === 0) return true;
   if (mode === 'dark') {

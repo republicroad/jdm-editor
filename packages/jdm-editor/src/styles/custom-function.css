@@ -2,7 +2,7 @@
  * Custom function table (T5) — ported from zrule expression.scss into the
  * components layer. Plain-CSS nesting only: every compound BEM selector is
  * written out in full (Sass-style `&__suffix` parses as an element selector
- * under lightningcss). Tokens stay on the --grl-color scale; antd-specific
+ * under lightningcss). Tokens stay on the --grl-color scale; legacy-specific
  * overrides were replaced with their reui equivalents and two dead rules
  * dropped (a dev leftover `:focus { background: red }` and a raw-hex
  * placeholder color, now var(--muted-foreground)).

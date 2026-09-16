@@ -1,7 +1,7 @@
 const fontFamily =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif";
 
-/* Frozen calibrated antd palettes + mode-scoped constants.
+/* Frozen compat-calibrated palettes + mode-scoped constants.
  * Golden-guarded by theming/__tests__/derive.test.ts —
  * do not hand-edit without re-running that suite.
  */

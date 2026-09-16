@@ -26,7 +26,7 @@ const LIGHT_PAIRS: Pair[] = [
     fg: '--grl-color-primary',
     bg: '--grl-color-bg-container',
     min: 4.0,
-    note: 'links/inline primary text — compat default primary measures 4.10 (AA-large passes; AA-normal narrowly missed, an upstream antd trait kept for brand parity)',
+    note: 'links/inline primary text — compat default primary measures 4.10 (AA-large passes; AA-normal narrowly missed, an upstream trait kept for brand parity)',
   },
   {
     fg: '--grl-color-warning-text',

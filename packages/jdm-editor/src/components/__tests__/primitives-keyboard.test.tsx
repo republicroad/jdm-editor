@@ -13,7 +13,7 @@ beforeAll(() => {
 });
 
 /**
- * Keyboard/a11y alignment audit for the antd→shadcn shims (roadmap follow-up).
+ * Keyboard/a11y alignment audit for the compat shims (roadmap follow-up).
  * Radix gives most of this for free; these tests LOCK it so future shim
  * refactors cannot silently regress keyboard parity with compat semantics.
  *
