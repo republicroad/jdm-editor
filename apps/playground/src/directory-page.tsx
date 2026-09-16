@@ -1,52 +1,82 @@
 import { ThemeContextProvider } from '@republicroad/jdm-appshell';
+import { GitBranch, Grid3x3, Puzzle, ShieldCheck, Sparkles, Table as TableIcon, Workflow } from 'lucide-react';
 import React from 'react';
 
+import { IconTile } from './components/reui/icon-tile';
 import { ThemeToggle } from './shared/instance-shell';
 
-type InstanceCard = { href: string; icon: string; title: string; description: string };
+type InstanceCard = { href: string; icon: React.ReactNode; title: string; description: string };
 
 const instances: InstanceCard[] = [
   {
     href: './graph.html',
-    icon: '🕸️',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <Workflow className='size-4' />
+      </IconTile>
+    ),
     title: 'Decision Graph',
     description:
       '决策图编辑器：节点编排、模拟执行、版本历史（IndexedDB）与 diff 对比，可联动 demo-server 执行；含 ocean 皮肤槽位演示。',
   },
   {
     href: './table.html',
-    icon: '▦',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <TableIcon className='size-4' />
+      </IconTile>
+    ),
     title: 'Decision Table',
     description: '决策表业务模式：行列编辑、表达式单元格与命中策略（hit policy）。',
   },
   {
     href: './grid.html',
-    icon: '⌗',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <Grid3x3 className='size-4' />
+      </IconTile>
+    ),
     title: 'Data Grid',
     description: 'ReUI DataGrid 展示：排序、全局过滤与列徽标渲染。',
   },
   {
     href: './reui.html',
-    icon: '✦',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <Sparkles className='size-4' />
+      </IconTile>
+    ),
     title: 'ReUI Showcase',
     description: 'ReUI 组件巡礼：Timeline 执行轨迹、Sortable 规则池与决策模型层级树（读取 graph 实例的已保存图）。',
   },
   {
     href: './trust.html',
-    icon: '🔗',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <ShieldCheck className='size-4' />
+      </IconTile>
+    ),
     title: 'Trust Chain',
     description: '信任链演示：执行 + 审计事件 → 确定性回放 → 影子对比（需 demo-server :8787）。',
   },
   {
     href: './udf.html',
-    icon: '🧩',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <Puzzle className='size-4' />
+      </IconTile>
+    ),
     title: 'Custom Nodes',
     description:
       '节点工作台：自定义节点编排（schema 端点驱动面板）→ simulator 全链路仿真 → Trust Chain 三步（EditorShell 接入样例）。',
   },
   {
     href: './flow.html',
-    icon: '🔀',
+    icon: (
+      <IconTile variant='outline' size='sm'>
+        <GitBranch className='size-4' />
+      </IconTile>
+    ),
     title: 'Flow Pilot',
     description:
       'ReUI flow-1 块试点：自动化工作流画布（xyflow v12 + ReUI 组件），评估 kernel/appshell 的 ReUI 迁移姿势。',
