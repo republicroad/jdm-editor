@@ -6,6 +6,7 @@ import { type CustomFunctionTool, type CustomNodeConfig, type CustomNodeExpressi
 import { parseOperatorArgs } from '../../lib/http-request-protocol';
 import PlusCircleIcon from '../../reui/icons/default/outline/plus-circle';
 import TrashSquareIcon from '../../reui/icons/default/outline/trash-square';
+import { Badge } from '../reui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -162,6 +163,11 @@ export const SchemaContainerTab: React.FC<SchemaContainerTabProps> = ({ id, tool
                 ))}
               </SelectContent>
             </Select>
+            {tool && (
+              <Badge variant='secondary' size='xs' radius='full'>
+                {tool.title || tool.name}
+              </Badge>
+            )}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', minWidth: 0 }}>
               {params.map((param, index) => (
                 <Input
