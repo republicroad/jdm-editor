@@ -26,3 +26,8 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     }),
   });
 }
+
+// Base UI 组件（ScrollArea/Dialog 等）依赖 Web Animations API，jsdom 未实现
+if (typeof Element !== 'undefined' && !Element.prototype.getAnimations) {
+  Element.prototype.getAnimations = () => [];
+}

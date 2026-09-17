@@ -11,9 +11,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import css from './custom-node.module.css';
 
 export const Hint: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => (
-  <TooltipProvider delayDuration={200}>
+  <TooltipProvider delay={200}>
     <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger render={children} />
       <TooltipContent className='max-w-72 break-all text-xs'>{label}</TooltipContent>
     </Tooltip>
   </TooltipProvider>

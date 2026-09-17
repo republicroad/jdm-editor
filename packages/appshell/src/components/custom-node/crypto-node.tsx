@@ -204,15 +204,15 @@ const CryptoInstanceEditor: React.FC<CryptoInstanceEditorProps> = ({ expr, onCha
       )}
       <div className='flex items-center justify-between gap-2'>
         <ToggleGroup
-          type='single'
           variant='outline'
           size='sm'
-          value={fields.encoding}
+          value={fields.encoding ? [fields.encoding] : []}
           aria-label='输出编码'
           className='justify-start gap-0'
           onValueChange={(value) => {
-            if (value) {
-              persistFields({ encoding: value as CryptoEncoding });
+            const next = value[value.length - 1];
+            if (next) {
+              persistFields({ encoding: next as CryptoEncoding });
             }
           }}
         >

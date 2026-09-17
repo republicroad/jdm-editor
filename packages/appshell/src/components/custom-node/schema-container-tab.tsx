@@ -147,6 +147,7 @@ export const SchemaContainerTab: React.FC<SchemaContainerTabProps> = ({ id, tool
             <Select
               value={func}
               onValueChange={(next) => {
+                if (next == null) return;
                 const nextTool = toolByName(next);
                 const argCount = nextTool ? Object.keys(nextTool.parameters?.properties ?? {}).length : 0;
                 patchExpr(expr.id, { func: next, args: Array.from({ length: argCount }, () => '') });
