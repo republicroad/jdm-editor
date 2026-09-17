@@ -25,6 +25,14 @@ export const configureHttpUdf = (options: { egressGuard?: EgressGuard; secretRes
 
 const SECRET_REF_PATTERN = /^\$\{secret:([^}]+)\}$/;
 
+/** notify 等其他出网 contrib 复用同一出口/凭证配置面（configureHttpUdf 单一入口） */
+export const currentEgressPolicy = (): { egressGuard?: EgressGuard; secretResolver?: SecretResolver } => ({
+  egressGuard,
+  secretResolver,
+});
+
+export { SECRET_REF_PATTERN };
+
 const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MIN_TIMEOUT_MS = 100;

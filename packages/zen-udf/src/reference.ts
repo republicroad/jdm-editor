@@ -8,6 +8,7 @@ import debugTools from './contrib/debug.ts';
 import debuguiTools from './contrib/debugui.ts';
 import httpTools from './contrib/http.ts';
 import ipLocationTools from './contrib/ip-location.ts';
+import notifyTools from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
 import rosterTools from './contrib/roster.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
@@ -20,6 +21,7 @@ export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['debugui', debuguiTools],
   ['http', httpTools],
   ['ip-location', ipLocationTools],
+  ['notify', notifyTools],
   ['rate-window', rateWindowTools],
   ['roster', rosterTools],
 ];
