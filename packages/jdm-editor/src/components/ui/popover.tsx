@@ -1,5 +1,5 @@
 import { cn } from '#lib/utils';
-import { Popover as PopoverPrimitive } from 'radix-ui';
+import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import * as React from 'react';
 
 import { useGrlPortalContainer } from '../../theming/portal-context';
@@ -15,29 +15,28 @@ function PopoverTrigger({ ...props }: React.ComponentProps<typeof PopoverPrimiti
 function PopoverContent({
   className,
   align = 'center',
+  alignOffset,
+  side = 'bottom',
   sideOffset = 4,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: React.ComponentProps<typeof PopoverPrimitive.Popup> &
+  Pick<PopoverPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
   const grlContainer = useGrlPortalContainer();
   return (
     <PopoverPrimitive.Portal container={grlContainer}>
-      <PopoverPrimitive.Content
-        data-slot='popover-content'
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
-          'box-border z-50 w-fit min-w-[18rem] origin-(--radix-popover-content-transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-          className,
-        )}
-        {...props}
-      />
+      <PopoverPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+        <PopoverPrimitive.Popup
+          data-slot='popover-content'
+          className={cn(
+            // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+            'box-border z-50 w-fit min-w-[18rem] origin-(--transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+            className,
+          )}
+          {...props}
+        />
+      </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   );
-}
-
-function PopoverAnchor({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-  return <PopoverPrimitive.Anchor data-slot='popover-anchor' {...props} />;
 }
 
 function PopoverHeader({ className, ...props }: React.ComponentProps<'div'>) {
@@ -52,4 +51,4 @@ function PopoverDescription({ className, ...props }: React.ComponentProps<'p'>) 
   return <p data-slot='popover-description' className={cn('text-muted-foreground', className)} {...props} />;
 }
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor, PopoverHeader, PopoverTitle, PopoverDescription };
+export { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription };

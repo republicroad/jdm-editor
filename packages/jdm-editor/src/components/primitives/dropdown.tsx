@@ -116,8 +116,8 @@ export const Dropdown: React.FC<{
 
   if (usesContextMenuTrigger(trigger)) {
     return (
-      <ContextMenu modal={false}>
-        <ContextMenuTrigger asChild>{wrappedChildren}</ContextMenuTrigger>
+      <ContextMenu>
+        <ContextMenuTrigger render={wrappedChildren} />
         <ContextMenuContent>{renderMenuItems(menu?.items, menu?.onClick, contextMenuPrimitives)}</ContextMenuContent>
       </ContextMenu>
     );
@@ -125,7 +125,7 @@ export const Dropdown: React.FC<{
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>{wrappedChildren}</DropdownMenuTrigger>
+      <DropdownMenuTrigger render={wrappedChildren} />
       <DropdownMenuContent align='start'>
         {renderMenuItems(menu?.items, menu?.onClick, dropdownPrimitives)}
       </DropdownMenuContent>

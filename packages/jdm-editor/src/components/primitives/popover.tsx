@@ -23,15 +23,12 @@ export interface PopoverProps {
 export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, children }) => (
   <UiPopover open={open} onOpenChange={onOpenChange}>
     {/*
-     * Wrap the child in a real DOM element unconditionally: Radix `asChild`
-     * (Slot) clones its handlers onto its DIRECT child only. When callers pass
-     * a non-DOM subtree (e.g. a Tooltip context provider wrapping a Button —
-     * see ImportColumnRow in dt-excel-dialog), handlers were silently dropped
-     * and the popover never opened.
+     * Wrap the child in a real DOM element unconditionally: Base UI
+     * `render` merges its handlers into the rendered element, and cloning
+     * through a non-DOM subtree (e.g. a Tooltip context provider wrapping a
+     * Button — see ImportColumnRow in dt-excel-dialog) silently drops them.
      */}
-    <UiPopoverTrigger asChild>
-      <span className='inline-flex'>{children}</span>
-    </UiPopoverTrigger>
+    <UiPopoverTrigger render={<span className='inline-flex'>{children}</span>} />
     <UiPopoverContent>{content}</UiPopoverContent>
   </UiPopover>
 );

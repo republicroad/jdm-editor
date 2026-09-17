@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '#lib/utils';
-import { ContextMenu as ContextMenuPrimitive } from 'radix-ui';
+import { ContextMenu as ContextMenuPrimitive } from '@base-ui/react/context-menu';
 import * as React from 'react';
 
 import { useGrlPortalContainer } from '../../theming/portal-context';
@@ -20,29 +20,32 @@ function ContextMenuPortal(props: React.ComponentProps<typeof ContextMenuPrimiti
 }
 
 const ContextMenuContent = React.forwardRef<
-  React.ElementRef<typeof ContextMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
->(({ className, ...props }, ref) => {
+  React.ComponentRef<typeof ContextMenuPrimitive.Popup>,
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Popup> &
+    Pick<ContextMenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
+>(({ className, side, sideOffset = 0, align, alignOffset, ...props }, ref) => {
   const grlContainer = useGrlPortalContainer();
   return (
     <ContextMenuPrimitive.Portal container={grlContainer}>
-      <ContextMenuPrimitive.Content
-        ref={ref}
-        data-slot='context-menu-content'
-        className={cn(
-          // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
-          'box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-          className,
-        )}
-        {...props}
-      />
+      <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+        <ContextMenuPrimitive.Popup
+          ref={ref}
+          data-slot='context-menu-content'
+          className={cn(
+            // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+            'box-border z-50 min-w-[8rem] origin-(--transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+            className,
+          )}
+          {...props}
+        />
+      </ContextMenuPrimitive.Positioner>
     </ContextMenuPrimitive.Portal>
   );
 });
 ContextMenuContent.displayName = 'ContextMenuContent';
 
 const ContextMenuItem = React.forwardRef<
-  React.ElementRef<typeof ContextMenuPrimitive.Item>,
+  React.ComponentRef<typeof ContextMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item> & {
     variant?: 'default' | 'destructive';
   }
@@ -52,8 +55,9 @@ const ContextMenuItem = React.forwardRef<
     data-slot='context-menu-item'
     data-variant={variant}
     className={cn(
-      "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-      variant === 'destructive' && 'text-destructive focus:bg-destructive/10 focus:text-destructive',
+      "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-accent data-highlighted:text-accent-foreground data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+      variant === 'destructive' &&
+        'text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive',
       className,
     )}
     {...props}
@@ -71,44 +75,52 @@ function ContextMenuSeparator({ className, ...props }: React.ComponentProps<type
   );
 }
 
-// Radix Menu `Sub` is a context provider without a DOM ref.
-function ContextMenuSub(props: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
-  return <ContextMenuPrimitive.Sub data-slot='context-menu-sub' {...props} />;
+// Base Menu `SubmenuRoot` is a context provider without a DOM ref.
+function ContextMenuSub(props: React.ComponentProps<typeof ContextMenuPrimitive.SubmenuRoot>) {
+  return <ContextMenuPrimitive.SubmenuRoot data-slot='context-menu-sub' {...props} />;
 }
 ContextMenuSub.displayName = 'ContextMenuSub';
 
 const ContextMenuSubTrigger = React.forwardRef<
-  React.ElementRef<typeof ContextMenuPrimitive.SubTrigger>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubTrigger>
+  React.ComponentRef<typeof ContextMenuPrimitive.SubmenuTrigger>,
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubmenuTrigger>
 >(({ className, children, ...props }, ref) => (
-  <ContextMenuPrimitive.SubTrigger
+  <ContextMenuPrimitive.SubmenuTrigger
     ref={ref}
     data-slot='context-menu-sub-trigger'
     className={cn(
-      'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
+      'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-popup-open:bg-accent data-popup-open:text-accent-foreground',
       className,
     )}
     {...props}
   >
     {children}
-  </ContextMenuPrimitive.SubTrigger>
+  </ContextMenuPrimitive.SubmenuTrigger>
 ));
 ContextMenuSubTrigger.displayName = 'ContextMenuSubTrigger';
 
 const ContextMenuSubContent = React.forwardRef<
-  React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent>
->(({ className, ...props }, ref) => (
-  <ContextMenuPrimitive.SubContent
-    ref={ref}
-    data-slot='context-menu-sub-content'
-    className={cn(
-      'box-border z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg',
-      className,
-    )}
-    {...props}
-  />
-));
+  React.ComponentRef<typeof ContextMenuPrimitive.Popup>,
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Popup> &
+    Pick<ContextMenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
+>(({ className, side = 'right', sideOffset = 0, align, alignOffset, ...props }, ref) => {
+  const grlContainer = useGrlPortalContainer();
+  return (
+    <ContextMenuPrimitive.Portal container={grlContainer}>
+      <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
+        <ContextMenuPrimitive.Popup
+          ref={ref}
+          data-slot='context-menu-sub-content'
+          className={cn(
+            'box-border z-50 min-w-[8rem] origin-(--transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
+            className,
+          )}
+          {...props}
+        />
+      </ContextMenuPrimitive.Positioner>
+    </ContextMenuPrimitive.Portal>
+  );
+});
 ContextMenuSubContent.displayName = 'ContextMenuSubContent';
 
 export {

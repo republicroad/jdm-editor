@@ -49,10 +49,14 @@ export default defineConfig({
       // Dependencies AND peerDependencies stay external: hosts provide them.
       // (peerDependencies alone proved insufficient — moving monaco-editor
       // out of dependencies silently inlined the whole monaco bundle.)
+      // use-sync-external-store arrives transitively via @base-ui/react
+      // (Base UI keeps the shim for React 17); inlined, its require('react')
+      // breaks in the browser — same S011 crash pattern as zustand/traditional.
       external: [
         'react/jsx-runtime',
         'react',
         'react-dom',
+        /^use-sync-external-store(\/.*)?$/,
         ...Object.keys(packageJson.dependencies),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ],

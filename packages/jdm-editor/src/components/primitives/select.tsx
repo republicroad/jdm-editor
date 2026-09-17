@@ -138,11 +138,12 @@ export const Select: React.FC<SelectProps> = ({
           )}
           style={style}
         >
-          <SelectPrimitiveValue>
-            {selected?.label ?? (placeholder ? <span className='text-muted-foreground'>{placeholder}</span> : null)}
-          </SelectPrimitiveValue>
+          {/* Base UI Value renders children unconditionally (radix gated them
+              on a selected value), so the never-reached placeholder-span
+              fallback is intentionally dropped — behavior preserved. */}
+          <SelectPrimitiveValue>{selected?.label}</SelectPrimitiveValue>
         </SelectPrimitiveTrigger>
-        <SelectPrimitiveContent position='popper'>
+        <SelectPrimitiveContent alignItemWithTrigger={false}>
           {dropdownRender ? dropdownRender(menu) : menu}
         </SelectPrimitiveContent>
       </SelectPrimitiveRoot>

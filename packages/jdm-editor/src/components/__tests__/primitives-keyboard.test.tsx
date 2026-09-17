@@ -105,7 +105,8 @@ describe('Select keyboard flow', () => {
     await user.keyboard('{ArrowDown}');
     await screen.findByRole('listbox');
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    // Base UI 在退场过渡结束后才卸载弹层，断言需等待其移除
+    await vi.waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
     expect(onChange).not.toHaveBeenCalled();
   });
 });

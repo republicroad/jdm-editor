@@ -29,11 +29,11 @@ export const Tooltip: React.FC<
     return <>{children}</>;
   }
   return (
-    <UiTooltipProvider delayDuration={200}>
+    <UiTooltipProvider delay={200}>
       <UiTooltipRoot>
-        <UiTooltipTrigger asChild>
-          {React.isValidElement(children) ? children : <span className='inline-flex'>{children}</span>}
-        </UiTooltipTrigger>
+        <UiTooltipTrigger
+          render={React.isValidElement(children) ? children : <span className='inline-flex'>{children}</span>}
+        />
         <UiTooltipContent side={placementSideMap[placement] ?? 'top'}>{title}</UiTooltipContent>
       </UiTooltipRoot>
     </UiTooltipProvider>

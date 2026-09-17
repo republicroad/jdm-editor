@@ -324,6 +324,9 @@ importers:
 
   packages/jdm-editor:
     dependencies:
+      '@base-ui/react':
+        specifier: 'catalog:'
+        version: 1.8.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@codemirror/autocomplete':
         specifier: ^6.20.3
         version: 6.20.3
