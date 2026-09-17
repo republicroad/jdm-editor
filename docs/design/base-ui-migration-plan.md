@@ -1,8 +1,13 @@
 # Base UI 全量迁移计划（v2）
 
 - 日期: 2026-09-16（v1）→ **2026-09-17（v2 实测刷新）**
-- 状态: **draft —— 已规划，执行时机待决策**（v1 裁决：整体移至 v1.0 分叉后在 verdict-weave 仓执行，jdm-editor v1.0 贡献态保持 radix 现状，见 [verdict-weave 迁移计划](./verdict-weave-migration-plan.md) §0/§4）
+- 状态: **approved —— 全量提前至本仓执行（宿主裁决 2026-09-17：v1.0 之前完成迁移，
+  推翻 v1「分叉后执行」裁决）**；批 0 起逐批落地，每批一 commit 可独立回退
 - v2 刷新动机: 迁移面单日增长实测（158→239）；Base UI 1.8.0 发布；usese 依赖链定论（ADR-006）
+- 决策追记（2026-09-17，宿主）: §5 决策 1 选 **c（全量在本仓执行）**；决策 2 选**逐批
+  minor 发布**（0.x 语义允许 minor 携带破坏面；下游 editor reui 分支拉新版时需自补
+  `@base-ui/react` peer）；shadcn 官方迁移 skill（`pnpm dlx skills add shadcn/ui`）
+  作为批 1–3 的对照知识源试点，验证后调整估时
 - 目标: kernel / appshell / playground 的 UI 原语从 radix 全量迁至 Base UI（`@base-ui/react`）
 - 动机: 对齐 ReUI base-nova 主线；根治 flow 块风格错配（[issue 草稿](./reui-flow-toggle-group-style-mismatch.md)）；收敛依赖为单一引擎
 
