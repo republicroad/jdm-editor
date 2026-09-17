@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '#components/ui/button.tsx';
+import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog';
 import { cn } from 'cn';
-import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
@@ -17,12 +17,12 @@ function AlertDialogPortal({ ...props }: React.ComponentProps<typeof AlertDialog
   return <AlertDialogPrimitive.Portal data-slot='alert-dialog-portal' {...props} />;
 }
 
-function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
+function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Backdrop>) {
   return (
-    <AlertDialogPrimitive.Overlay
+    <AlertDialogPrimitive.Backdrop
       data-slot='alert-dialog-overlay'
       className={cn(
-        'fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+        'fixed inset-0 z-50 bg-black/50 transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0',
         className,
       )}
       {...props}
@@ -34,17 +34,17 @@ function AlertDialogContent({
   className,
   size = 'default',
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Popup> & {
   size?: 'default' | 'sm';
 }) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
-      <AlertDialogPrimitive.Content
+      <AlertDialogPrimitive.Popup
         data-slot='alert-dialog-content'
         data-size={size}
         className={cn(
-          'group/alert-dialog-content fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[size=sm]:max-w-xs data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[size=default]:sm:max-w-lg',
+          'group/alert-dialog-content fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none transition-[opacity,transform] duration-200 data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-lg data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
           className,
         )}
         {...props}
@@ -123,12 +123,13 @@ function AlertDialogAction({
   variant = 'default',
   size = 'default',
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Action> &
+}: React.ComponentProps<typeof AlertDialogPrimitive.Close> &
   Pick<React.ComponentProps<typeof Button>, 'variant' | 'size'>) {
   return (
-    <Button variant={variant} size={size} asChild>
-      <AlertDialogPrimitive.Action data-slot='alert-dialog-action' className={cn(className)} {...props} />
-    </Button>
+    <AlertDialogPrimitive.Close
+      data-slot='alert-dialog-action'
+      render={<Button variant={variant} size={size} className={cn(className)} {...props} />}
+    />
   );
 }
 
@@ -137,12 +138,13 @@ function AlertDialogCancel({
   variant = 'outline',
   size = 'default',
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Cancel> &
+}: React.ComponentProps<typeof AlertDialogPrimitive.Close> &
   Pick<React.ComponentProps<typeof Button>, 'variant' | 'size'>) {
   return (
-    <Button variant={variant} size={size} asChild>
-      <AlertDialogPrimitive.Cancel data-slot='alert-dialog-cancel' className={cn(className)} {...props} />
-    </Button>
+    <AlertDialogPrimitive.Close
+      data-slot='alert-dialog-cancel'
+      render={<Button variant={variant} size={size} className={cn(className)} {...props} />}
+    />
   );
 }
 

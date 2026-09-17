@@ -78,7 +78,6 @@
     "lucide-react": "catalog:",
     "@base-ui/react": "catalog:",
     "next-themes": "^0.4.6",
-    "radix-ui": "^1.6.7",
     "re-resizable": "^6.11.2",
     "react-hook-form": "^7.86.0",
     "react-intersection-observer": "^9.16.0",

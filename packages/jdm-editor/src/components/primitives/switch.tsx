@@ -28,7 +28,7 @@ export const Switch: React.FC<SwitchProps> = ({
     defaultChecked={defaultChecked}
     disabled={disabled}
     onCheckedChange={(next) => onChange?.(next === true)}
-    className={cn(size === 'small' && 'data-[state=checked]:translate-x-3.5 h-4 w-7 [&_span]:size-3', className)}
+    className={cn(size === 'small' && 'data-checked:translate-x-3.5 h-4 w-7 [&_span]:size-3', className)}
     style={style}
   />
 );
