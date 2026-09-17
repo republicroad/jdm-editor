@@ -763,3 +763,18 @@ repo (after §8's submodule decoupling and the dts migration's OOM experiment).
 - `docs/design/verdict-weave-migration-plan.md` — dual type-graph resolution
   (workspace-vs-peer chain) was a driver for the verdict-weave migration.
 - §8 above — the sibling symptom (submodule dist copy diverged from workspace).
+
+## 10. Base UI 迁移后的两个测试环境陷阱（2026-09-17）
+
+**现象 A**：jsdom 测试报 `Uncaught Exception: viewport.getAnimations is not a function`。
+**原因**：Base UI 组件（ScrollArea/Dialog 等）依赖 Web Animations API，jsdom 未实现。
+**处理**：kernel/appshell 的 setupTests 已加 `Element.prototype.getAnimations = () => []` 桩。
+
+**现象 B**：断言弹层「关闭后不在文档中」的同步断言失败（listbox/dialog 仍在 DOM）。
+**原因**：Base UI 走 `data-ending-style` 退场过渡，过渡结束后才卸载节点（radix 是同步卸载）。
+**处理**：断言包 `await vi.waitFor(...)`；这是迁移的预期行为变化，不是缺陷。
+
+**现象 C**：`getByRole('switch').toHaveAttribute('data-state', 'checked')` 类断言失败。
+**原因**：Base UI 不发 `data-state="checked|open|active"` 值域属性，改发 presence 属性
+（`data-checked`/`data-open`/`data-active`）。
+**处理**：断言改用 `toHaveAttribute('data-checked')` 形式；样式选择器同理。
