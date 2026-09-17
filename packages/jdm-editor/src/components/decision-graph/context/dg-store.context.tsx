@@ -7,9 +7,9 @@ import { produce } from 'immer';
 import React, { type MutableRefObject, createRef, useMemo, useRef } from 'react';
 import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
-import { create } from 'zustand';
-import { useStoreWithEqualityFn } from 'zustand/traditional';
+import { create, useStore } from 'zustand';
 
+import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
 import type { CodeEditorProps } from '../../code-editor';
@@ -751,21 +751,21 @@ export function useDecisionGraphState<T>(
   selector: (state: DecisionGraphStoreType['state']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(DecisionGraphStoreContext).stateStore, selector, equals);
+  return useStore(React.useContext(DecisionGraphStoreContext).stateStore, useMemoEquality(selector, equals));
 }
 
 export function useDecisionGraphListeners<T>(
   selector: (state: DecisionGraphStoreType['listeners']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(DecisionGraphStoreContext).listenerStore, selector, equals);
+  return useStore(React.useContext(DecisionGraphStoreContext).listenerStore, useMemoEquality(selector, equals));
 }
 
 export function useDecisionGraphReferences<T>(
   selector: (state: DecisionGraphStoreType['references']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(DecisionGraphStoreContext).referenceStore, selector, equals);
+  return useStore(React.useContext(DecisionGraphStoreContext).referenceStore, useMemoEquality(selector, equals));
 }
 
 export function useDecisionGraphActions(): DecisionGraphStoreType['actions'] {

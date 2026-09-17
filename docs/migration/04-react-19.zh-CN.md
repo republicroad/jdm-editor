@@ -68,3 +68,9 @@
 3. React 19 类型把若干过去静默的模式变成硬错误(FC 可异步返回、ref 回调返回值、全局 JSX
    命名空间);只要代码库本就规避 `findDOMNode`/字符串 ref/`defaultProps`,剩余就是少量机械性
    TS 收尾而非运行时意外。
+
+## 后记(2026-09)
+
+`zustand/traditional`(及其底层的 `use-sync-external-store` 垫片)已被本地深比较
+memoizer 取代——见 [ADR-006](../adr/006-zustand-selector-equality.md) 与
+[BP-08](../bp/zustand-selector-equality.md)。

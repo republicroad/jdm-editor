@@ -12,6 +12,7 @@
 | [ADR-003](./003-zen-udf-cache-ownership.md) | L1 决策缓存责任归宿主（zen-engine 函数 loader 无引擎级缓存） | accepted | 2026-09 |
 | [ADR-004](./004-source-direct-consumption.md) | workspace 包消费方源码直通（不经 dist 副本） | accepted | 2025-01 |
 | [ADR-005](./005-zen-udf-esm-source-publish.md) | zen-udf 以 TS 源码发布（main = src/index.ts，不编译 dist） | accepted | 2026-09 |
+| [ADR-006](./006-zustand-selector-equality.md) | zustand 选择器相等性：弃用 zustand/traditional，本地深比较 memoizer 取代 | accepted | 2026-09 |
 
 ## 状态定义
 

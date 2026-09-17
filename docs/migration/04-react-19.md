@@ -74,3 +74,9 @@ Note: `@types/react-dom` was already `^19.x` before this migration (pre-existing
 3. React 19 types turn several previously-silent patterns into hard errors (async-capable FC
    returns, ref-callback returns, global JSX namespace); expect a small, mechanical TS tail rather
    than runtime surprises when the codebase already avoids `findDOMNode`/string refs/defaultProps.
+
+## Postscript (2026-09)
+
+`zustand/traditional` (and its `use-sync-external-store` shim) has since been retired in favor
+of a local deep-equality memoizer — see [ADR-006](../adr/006-zustand-selector-equality.md)
+and [BP-08](../bp/zustand-selector-equality.md).

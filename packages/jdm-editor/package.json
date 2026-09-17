@@ -86,7 +86,6 @@
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "to-json-schema": "^0.2.5",
-    "use-sync-external-store": "catalog:",
     "ts-pattern": "catalog:",
     "use-debounce": "^10.0.4",
     "zod": "4.3.6",

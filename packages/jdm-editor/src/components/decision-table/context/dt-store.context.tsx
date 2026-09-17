@@ -4,12 +4,12 @@ import { produce } from 'immer';
 import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
-import { create } from 'zustand';
-import { useStoreWithEqualityFn } from 'zustand/traditional';
+import { create, useStore } from 'zustand';
 
 import type { SchemaSelectProps } from '../../../helpers/components';
 import { type GetNodeDataResult } from '../../../helpers/node-data';
 import type { ColumnFieldType, OutputFieldType } from '../../../helpers/schema';
+import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import type { DictionaryMap } from '../../../theme';
 import type { SimulationTrace, SimulationTraceDataTable } from '../../decision-graph';
 import type { Diff, DiffMetadata } from '../../decision-graph/dg-types';
@@ -436,14 +436,14 @@ export function useDecisionTableState<T>(
   selector: (state: DecisionTableStoreType['state']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(DecisionTableStoreContext).stateStore, selector, equals);
+  return useStore(React.useContext(DecisionTableStoreContext).stateStore, useMemoEquality(selector, equals));
 }
 
 export function useDecisionTableListeners<T>(
   selector: (state: DecisionTableStoreType['listeners']) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(DecisionTableStoreContext).listenerStore, selector, equals);
+  return useStore(React.useContext(DecisionTableStoreContext).listenerStore, useMemoEquality(selector, equals));
 }
 
 export function useDecisionTableActions(): DecisionTableStoreType['actions'] {

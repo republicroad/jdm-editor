@@ -4,11 +4,11 @@ import { produce } from 'immer';
 import React, { useMemo } from 'react';
 import type { z } from 'zod';
 import type { StoreApi, UseBoundStore } from 'zustand';
-import { create } from 'zustand';
-import { useStoreWithEqualityFn } from 'zustand/traditional';
+import { create, useStore } from 'zustand';
 
 import { type GetNodeDataResult } from '../../../helpers/node-data';
 import type { expressionNodeSchema } from '../../../helpers/schema';
+import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import type { SimulationTrace, SimulationTraceDataExpression } from '../../decision-graph';
 import type { DiffMetadata } from '../../decision-graph/dg-types';
 
@@ -145,7 +145,7 @@ export function useExpressionStore<T>(
   selector: (state: ExpressionStore) => T,
   equals: (a: any, b: any) => boolean = equal,
 ): T {
-  return useStoreWithEqualityFn(React.useContext(ExpressionStoreContext), selector, equals);
+  return useStore(React.useContext(ExpressionStoreContext), useMemoEquality(selector, equals));
 }
 
 export const useExpressionStoreRaw = () => React.useContext(ExpressionStoreContext);

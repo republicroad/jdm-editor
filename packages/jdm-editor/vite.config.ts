@@ -49,15 +49,10 @@ export default defineConfig({
       // Dependencies AND peerDependencies stay external: hosts provide them.
       // (peerDependencies alone proved insufficient — moving monaco-editor
       // out of dependencies silently inlined the whole monaco bundle.)
-      // use-sync-external-store (CJS, reached via zustand/traditional's
-      // subpath import) must stay external too: bundled, its require('react')
-      // survives rolldown's CJS interop and crashes in the browser. The
-      // regex covers subpaths.
       external: [
         'react/jsx-runtime',
         'react',
         'react-dom',
-        /^use-sync-external-store(\/.*)?$/,
         ...Object.keys(packageJson.dependencies),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ],

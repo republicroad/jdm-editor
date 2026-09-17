@@ -29,9 +29,11 @@ export default defineConfig({
     },
     rolldownOptions: {
       // 宿主/内核均为外部：appshell 不打包 react 与内核
-      // zustand/use-sync-external-store 必须外置（S011）：@xyflow/react 的依赖链
-      // 会把 zustand4 + usese 的 CJS 实现内联进 dist，其中深层 require('react')
-      // 生成运行时垫片，浏览器必炸（kernel vite.config 同款处理）。
+      // zustand 外置（S011）：@xyflow/react 的依赖链会把 zustand4 的 CJS
+      // 实现内联进 dist，深层 require('react') 生成运行时垫片，浏览器必炸
+      // （kernel vite.config 同款处理）。kernel 已迁深比较 memoizer，
+      // 不再经过 zustand/traditional，但 appshell 自带 @base-ui/react
+      // 依赖链仍引用 use-sync-external-store shim，内联同样会炸，保持外置。
       external: [
         'react',
         'react-dom',
