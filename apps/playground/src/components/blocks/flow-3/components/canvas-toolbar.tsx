@@ -139,14 +139,12 @@ export function CanvasToolbar({
         size="sm"
         className="flex-row items-center gap-1 p-1"
       >
-        {/* playground 适配：radix 系 toggle-group（同 flow-1 补丁，见
-            docs/design/reui-flow-toggle-group-style-mismatch.md） */}
         <ToggleGroup
-          type="single"
-          value={tool}
+          value={[tool]}
           onValueChange={(next) => {
-            if (isCanvasTool(next)) {
-              onToolChange(next)
+            const selected = next[next.length - 1]
+            if (selected && isCanvasTool(selected)) {
+              onToolChange(selected)
             }
           }}
           size="sm"

@@ -179,14 +179,12 @@ export function CanvasToolbar({
         className="flex-row items-center gap-1 p-1"
       >
         {/* A locked canvas pans on any drag, so Pan reads as the tool in force. */}
-        {/* playground 适配：宿主解析出的 toggle-group 为 radix 系（type + 单值 API），
-            块上游按 Base UI 数组值 API 书写——此处就地翻译，块其余部分保持上游原貌 */}
         <ToggleGroup
-          type="single"
-          value={locked ? "hand" : tool}
+          value={locked ? ["hand"] : [tool]}
           onValueChange={(value) => {
-            if (isCanvasTool(value)) {
-              onToolChange(value)
+            const next = value[value.length - 1]
+            if (next && isCanvasTool(next)) {
+              onToolChange(next)
             }
           }}
           size="sm"
