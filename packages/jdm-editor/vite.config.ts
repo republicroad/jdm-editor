@@ -57,6 +57,10 @@ export default defineConfig({
         'react',
         'react-dom',
         /^use-sync-external-store(\/.*)?$/,
+        // Base UI is imported via subpaths (@base-ui/react/switch etc.); a
+        // bare-name entry only matches the root, which silently inlined the
+        // whole library (+315kB) in the 0.10.0 release.
+        /^@base-ui\/react(\/.*)?$/,
         ...Object.keys(packageJson.dependencies),
         ...Object.keys(packageJson.peerDependencies ?? {}),
       ],
