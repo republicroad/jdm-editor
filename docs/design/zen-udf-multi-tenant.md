@@ -85,6 +85,19 @@ L3 数据面 UDF roster / rate-window / http / custom-list-query（按 L2 隔离
 - 编译缓存（L1）进程内即可——内容中心化（L0）保证副本间一致性，无需分布式缓存
 - 有状态 UDF（rate-window 运行时写入、roster 运行时写入）→ Redis 化（L3 接口化后由宿主注入）
 - 扩容：无状态副本直接加；发布失效事件广播各副本 delete 旧键
+- **失效广播契约（2026-09-17 补设计）**：广播是**宿主职责**，本仓不定义 broadcaster 端口——
+  与 RateStore/Redis 实现不住本仓的机制/策略分界一致（D1 同款裁决）。宿主在模型发布
+  成功后自行向所有副本投递失效事件（Redis pub/sub 或等效），副本收到后调用本仓已有的
+  `decisionCache.delete(tenantId, key, rev)`。本仓的义务仅是：delete 必须是幂等、
+  并发安全、且失效前后读均不产生脏命中（已由 decision-cache 哨兵测试钉住）。
+
+## 7.1 实例隔离边界（显式非目标，2026-09-17 补记）
+
+当前设计是**进程级全局注册 + 数据面按租户隔离**：packs / UdfRegistry 所有租户共享，
+租户边界只存在于 ExecContext.tenantId 驱动的数据面（缓存键、roster 可见性、rate 窗口、
+并发闸、出口白名单、secret 解析）。**「每租户可见不同 UDF 函数域」是显式非目标**——
+若 verdict 未来出现按租户下发函数域的产品需求，需要补充设计 UdfRegistry 的租户视图
+（schema 下发按租户过滤 + 注册期归属校验），当前无此需求，不预做机制。
 
 ## 8. 与 verdict 的衔接
 
@@ -96,7 +109,10 @@ L3 数据面 UDF roster / rate-window / http / custom-list-query（按 L2 隔离
 
 | 期 | 内容 | 状态 |
 | --- | --- | --- |
-| M1 | 包名 zen-rule → zen-udf；缓存语义哨兵测试；本设计 | 本次 |
-| M2 | ExecContext 加 tenantId；L1 缓存 LRU + 指标；roster 租户化 | 待开发 |
-| M3 | RateStore 接口 + Redis 宿主实现；规范清单 §6.1–§6.4 | 待开发 |
-| M4 | verdict model execute 接入（facade 定型） | 待开发 |
+| M1 | 包名 zen-rule → zen-udf；缓存语义哨兵测试；本设计 | ✅ 完成 |
+| M2 | ExecContext 加 tenantId；L1 缓存 LRU + 指标；roster 租户化 | ✅ 完成（exec-context/decision-cache/metrics/roster 均已落地并有测试） |
+| M3 | RateStore 接口 + Redis 宿主实现；规范清单 §6.1–§6.4 | ✅ 机制面完成（RateStore + conformance 套件、INVALID_PARAM、UDF_TIMEOUT、ConcurrencyLimiter、EgressGuard/SecretResolver 已实现）；Redis 宿主实现按 D1 住 verdict 仓 |
+| M4 | verdict model execute 接入（facade 定型） | 待 verdict 仓（U10） |
+
+> 状态对齐（2026-09-17）：实现已跑在本表前面——U5–U9 全部落地（含 breaker/audit/sanitize/
+> otel/shadow 加固套件），剩余工作全部在 verdict 仓侧（U10）。
