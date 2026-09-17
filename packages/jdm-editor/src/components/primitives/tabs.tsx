@@ -55,7 +55,9 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <UiTabs value={current} onValueChange={select} style={style} className={cn(rootClassName, className)}>
       <div className='flex w-full items-center justify-between gap-2'>
-        <UiTabsList className={cn(size === 'small' && 'h-8', compact && 'm-0 p-0!')}>
+        {/* compat semantics: antd-era tabs activate on arrow-key focus;
+            Base UI defaults to manual activation, so re-enable it here. */}
+        <UiTabsList activateOnFocus className={cn(size === 'small' && 'h-8', compact && 'm-0 p-0!')}>
           {list.map((item) => (
             <UiTabsTrigger
               key={item.key}

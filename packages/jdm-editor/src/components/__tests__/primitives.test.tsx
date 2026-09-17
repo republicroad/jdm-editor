@@ -154,10 +154,10 @@ describe('Switch shim', () => {
 
   it('respects controlled checked state', () => {
     const { rerender } = render(<Switch checked={false} />);
-    expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'unchecked');
+    expect(screen.getByRole('switch')).toHaveAttribute('data-unchecked');
 
     rerender(<Switch checked />);
-    expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByRole('switch')).toHaveAttribute('data-checked');
   });
 });
 
@@ -189,12 +189,12 @@ describe('Tabs shim', () => {
       />,
     );
 
-    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('data-state', 'active');
+    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('data-active');
 
     await user.click(screen.getByRole('tab', { name: 'Alpha' }));
     expect(onChange).toHaveBeenCalledWith('a');
     // Controlled: activeKey wins over the click.
-    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('data-state', 'active');
+    expect(screen.getByRole('tab', { name: 'Beta' })).toHaveAttribute('data-active');
   });
 });
 

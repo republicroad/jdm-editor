@@ -78,11 +78,7 @@ const ConfirmHost: React.FC = () => {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{item.title}</AlertDialogTitle>
-              {item.content ? (
-                <AlertDialogDescription asChild>
-                  <div>{item.content}</div>
-                </AlertDialogDescription>
-              ) : null}
+              {item.content ? <AlertDialogDescription render={<div>{item.content}</div>} /> : null}
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel
