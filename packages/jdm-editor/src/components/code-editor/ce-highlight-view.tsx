@@ -7,7 +7,7 @@ import { type DisplayType, useRecycledEditorView } from './cell-view-pool';
  * Read-only display surface backed by a RECYCLED EditorView from the
  * Table-scope CellViewPool (roadmap §3.6 revival, Phase 1). Falls back to
  * standalone create/destroy when no pool provider is present.
- * Still OFF by default — enable with localStorage.gru-hl-view='1'.
+ * Default ON since the V batch (a7d9c719) — opt out with gru-hl-view='0'.
  */
 export type CodeHighlighterViewProps = {
   value: string;

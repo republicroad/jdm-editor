@@ -217,3 +217,19 @@ Heap (gced) delta 5.9%, FPS tie with baseline.
 Release strategy (as decided): **flag-grayscale** — `gru-hl-view` stays
 default-off for one host-regression cycle, flips default at the next major.
 The D3 definitive note is recorded in the GRL-LAYER-GUARD block.
+
+### 3.8 Phase-2a executed (2026-08-28, V batch `a7d9c719`) — pooled path is DEFAULT ON
+
+V2 flipped the flag: the pooled display path is now the default (opt-out via
+`localStorage.gru-hl-view = '0'`, escape hatch only). Shipped default-on
+through the 0.9.x line and the Base UI releases (0.10.0/0.10.1); the
+storybook interaction suite (70/70, incl. ce/expression-builder geometry
+parity guards) exercises the pooled path on every run. Grayscale period
+complete.
+
+What remains (phase-2b, gated on a post-v1.0 cleanup window): delete the
+manual `CodeHighlighter` + PARITY block + `.grl-ce-highlighter` section
+after the flipped default soaks one release cycle in the wild, then close
+HK-03/HK-07 and burn the remaining CM-family `!important` declarations
+(~6 of the current 12), lowering the style-debt constant accordingly.
+Until then the legacy highlighter stays under test guard (LazyParity).
