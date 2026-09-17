@@ -35,6 +35,10 @@ tooltip、toast、toolbar、field）——**零缺口**。上游发版节奏约�
   React 17，正则长期保留。
 - React 19 运行时无感知：shim 检测版本后委托原生 API；多副本无害（无单例语义，lockfile
   已 1.2.2/1.6.0/1.7.0 三版共存）。
+- 对照：**radix 全系（统一包 + 全部 `@radix-ui/react-*`）零 usese 依赖**（dist 实测无引用）——
+  其状态模型是受控/非受控组件态，不走外部 store 订阅。推论：radix→Base UI 迁移会把 usese 链
+  **新引入 kernel**，届时 kernel vite.config 需补 `/^use-sync-external-store(\/.*)?$/`
+  external（appshell 已有，kernel 现无——批 2/3 的验收清单加此项）。
 
 ## 2. 对照表与 API 差异点
 
