@@ -20,7 +20,7 @@ const CUSTOM_HANDLER_META = '__meta__';
 interface ExprAstItem {
   id: string;
   key: string;
-  value: string | string[];
+  value: string | string[] | Record<string, unknown>;
 }
 
 /** UDF 函数粒度执行轨迹（执行规范 §6.6）：经 customHandler 的 traceData 下发 */
@@ -602,7 +602,7 @@ class DecisionRuntime {
         const exprAsts: ExprAstItem[] = [];
         for (const funcItem of customExpressions) {
           const item = { ...funcItem };
-          item.value = DecisionRuntime.parseOperatorExpr(funcItem.value);
+          item.value = DecisionRuntime.normalizeOperatorCall(funcItem.value);
           exprAsts.push(item);
         }
         config['expr_asts'] = exprAsts;
@@ -619,6 +619,19 @@ class DecisionRuntime {
     const pattern = /;;(?=(?:[^"'`]*["'`][^"'`]*["'`])*[^"'`]*$)/;
     const parts = expr.split(pattern).map((s) => s.trim());
     return parts;
+  }
+
+  /**
+   * 调用形态归一（JSON-RPC 式类型判别）：字符串 = legacy `;;`、数组 = 位置、
+   * 对象 = 命名（`$call` 保留键 + 具名实参）。对象形态原样透传，执行期判别。
+   */
+  static normalizeOperatorCall(
+    value: string | string[] | Record<string, unknown>,
+  ): string | string[] | Record<string, unknown> {
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      return value;
+    }
+    return DecisionRuntime.parseOperatorExpr(value as string | string[]);
   }
 
   /** customNode 执行器（实例绑定：经 this.registry 解析 UDF，多运行时互不串扰） */
@@ -699,9 +712,36 @@ class DecisionRuntime {
       const exprId = execExpr.id;
       const exprAst = execExpr.value;
 
-      const ast = Array.isArray(exprAst) ? exprAst : DecisionRuntime.parseOperatorExpr(exprAst);
-      const funcName = ast[0] as string;
-      const opArgExpressions = ast.slice(1);
+      // 调用形态判别：对象 = 命名（$call 保留键 + 具名实参，值可为 zen 表达式串或字面量）；
+      // 字符串/数组 = 位置（`;;` legacy / 数组默认）
+      const isNamedCall = exprAst !== null && typeof exprAst === 'object' && !Array.isArray(exprAst);
+      let funcName: string;
+      let opArgExpressions: string[] = [];
+      let namedArgs: Record<string, unknown> | null = null;
+      if (isNamedCall) {
+        const callSpec = exprAst as Record<string, unknown>;
+        funcName = String(callSpec['$call'] ?? '');
+        if (!funcName) {
+          const badOutcome = { error: { code: 'INVALID_PARAM', issues: ['named call requires a string "$call" key'] } };
+          traces.push({
+            key: execExpr.key,
+            name: '(unnamed)',
+            micros: 0,
+            code: 'INVALID_PARAM',
+            semantics: 'query' as UdfSemantics,
+            outcome: badOutcome,
+          });
+          return badOutcome;
+        }
+        namedArgs = {};
+        for (const [k, v] of Object.entries(callSpec)) {
+          if (k !== '$call') namedArgs[k] = v;
+        }
+      } else {
+        const ast = Array.isArray(exprAst) ? exprAst : DecisionRuntime.parseOperatorExpr(exprAst as string);
+        funcName = ast[0] as string;
+        opArgExpressions = ast.slice(1);
+      }
 
       const inputField = context['inputField'] as string | null;
       const fSchema = this.registry.udfFunctionSchema(funcName);
@@ -748,28 +788,52 @@ class DecisionRuntime {
       }
 
       if (fSchema) {
-        const args = opArgExpressions.map((i: string) => {
-          const expr = inputField ? `${inputField}.${i}` : i;
-          return evaluateExpressionSafe(expr, nodeInput);
-        });
-
-        // 执行规范 §6.1：位置参数必填项前置校验
-        const paramIssues = this.registry.validatePositionalArgs(funcName, args);
-        if (paramIssues.length > 0) {
-          const invalidParamOutcome = { error: { code: 'INVALID_PARAM', issues: paramIssues } };
-          traces.push({
-            key: execExpr.key,
-            name: funcName,
-            micros: 0,
-            code: 'INVALID_PARAM',
-            issues: paramIssues,
-            semantics,
-            outcome: invalidParamOutcome,
+        let operatorKwargs: Record<string, unknown>;
+        if (namedArgs) {
+          // 命名形态：字符串值 = zen 表达式（按 inputField 前缀求值），非字符串 = 字面量
+          const evaluated: Record<string, unknown> = {};
+          for (const [k, v] of Object.entries(namedArgs)) {
+            evaluated[k] =
+              typeof v === 'string' ? evaluateExpressionSafe(inputField ? `${inputField}.${v}` : v, nodeInput) : v;
+          }
+          const bind = this.registry.bindNamedArgs(funcName, evaluated);
+          if (bind.issues.length > 0) {
+            const invalidParamOutcome = { error: { code: 'INVALID_PARAM', issues: bind.issues } };
+            traces.push({
+              key: execExpr.key,
+              name: funcName,
+              micros: 0,
+              code: 'INVALID_PARAM',
+              semantics,
+              outcome: invalidParamOutcome,
+            });
+            return invalidParamOutcome;
+          }
+          operatorKwargs = bind.kwargs;
+        } else {
+          const args = opArgExpressions.map((i: string) => {
+            const expr = inputField ? `${inputField}.${i}` : i;
+            return evaluateExpressionSafe(expr, nodeInput);
           });
-          return invalidParamOutcome;
-        }
 
-        const operatorKwargs = this.registry.funcBindParams(funcName, args);
+          // 执行规范 §6.1：位置参数必填项前置校验
+          const paramIssues = this.registry.validatePositionalArgs(funcName, args);
+          if (paramIssues.length > 0) {
+            const invalidParamOutcome = { error: { code: 'INVALID_PARAM', issues: paramIssues } };
+            traces.push({
+              key: execExpr.key,
+              name: funcName,
+              micros: 0,
+              code: 'INVALID_PARAM',
+              issues: paramIssues,
+              semantics,
+              outcome: invalidParamOutcome,
+            });
+            return invalidParamOutcome;
+          }
+
+          operatorKwargs = this.registry.funcBindParams(funcName, args);
+        }
         const kwargs: Record<string, unknown> = {
           ...operatorKwargs,
           ...context,

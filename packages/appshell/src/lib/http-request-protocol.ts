@@ -205,7 +205,8 @@ export const serializeObjectLiteralRows = (rows: KeyValueRow[]): string => {
 };
 
 export const parseHttpRequest = (expr?: CustomNodeExpression): HttpRequestFields => {
-  const args = expr ? parseOperatorArgs(expr.value) : [];
+  const args =
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板 // 命名形态无位置语义，回退空面板
   return {
     urlExpr: args[1] ?? '',
     method: normalizeMethod(unquote(args[2] ?? '')),

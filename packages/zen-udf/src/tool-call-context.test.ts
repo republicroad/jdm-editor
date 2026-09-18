@@ -211,3 +211,67 @@ describe('数组调用模式（默认；;; 为旧图兼容）', () => {
     });
   });
 });
+
+describe('命名调用形态（$call 保留键 + 具名实参）', () => {
+  const setup = () => {
+    const registry = new UdfRegistry();
+    registry.registerFunction(
+      function pair(kwargs: Record<string, unknown>) {
+        return { a: kwargs.a, b: kwargs.b };
+      },
+      'probe',
+      { parameters: { a: { type: 'integer' }, b: { type: 'integer', default: 5 } } },
+    );
+    const runtime = new DecisionRuntime({ registry });
+    return { registry, runtime };
+  };
+
+  const namedGraph = (value: Record<string, unknown>) => ({
+    id: 'gn',
+    nodes: [
+      { id: 'in', type: 'inputNode', name: 'Request' },
+      {
+        id: 'c1',
+        type: 'customNode',
+        name: 'custom',
+        content: { kind: 'UDF', config: { expressions: [{ id: 'e1', key: 'out', value }] } },
+      },
+      { id: 'out', type: 'outputNode', name: 'Response' },
+    ],
+    edges: [
+      { id: 'ed1', sourceId: 'in', targetId: 'c1', type: 'edge' },
+      { id: 'ed2', sourceId: 'c1', targetId: 'out', type: 'edge' },
+    ],
+  });
+
+  test('具名实参（表达式串与字面量混用）+ 可选参数缺省回退', async () => {
+    const { runtime } = setup();
+    await runWithExecContext({ tenantId: 'demo' }, async () => {
+      runtime.createDecisionWithCacheKey('k', namedGraph({ $call: 'pair', a: '1' }) as never);
+      const r = (await runtime.evaluateAsync('k', {})) as { result?: { out?: { a?: unknown; b?: unknown } } };
+      expect(r.result?.out?.a).toBe(1);
+      expect(r.result?.out?.b).toBe(5); // 缺省回退 schema default
+    });
+  });
+
+  test('字段名笔误 → INVALID_PARAM unknown argument', async () => {
+    const { runtime } = setup();
+    await runWithExecContext({ tenantId: 'demo' }, async () => {
+      runtime.createDecisionWithCacheKey('k', namedGraph({ $call: 'pair', aa: '1' }) as never);
+      const r = (await runtime.evaluateAsync('k', {})) as {
+        result?: { out?: { error?: { code?: string; issues?: string[] } } };
+      };
+      expect(r.result?.out?.error?.code).toBe('INVALID_PARAM');
+      expect(r.result?.out?.error?.issues?.[0]).toContain('unknown argument');
+    });
+  });
+
+  test('缺 $call → INVALID_PARAM 结构化报错', async () => {
+    const { runtime } = setup();
+    await runWithExecContext({ tenantId: 'demo' }, async () => {
+      runtime.createDecisionWithCacheKey('k', namedGraph({ a: '1' }) as never);
+      const r = (await runtime.evaluateAsync('k', {})) as { result?: { out?: { error?: { code?: string } } } };
+      expect(r.result?.out?.error?.code).toBe('INVALID_PARAM');
+    });
+  });
+});

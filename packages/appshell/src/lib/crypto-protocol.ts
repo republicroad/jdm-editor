@@ -42,7 +42,8 @@ export const normalizeEncoding = (value: string): CryptoEncoding => {
 export const isUpperChecked = (expr: string): boolean => expr.trim() === 'true';
 
 export const parseCrypto = (expr?: CustomNodeExpression): CryptoFields => {
-  const args = expr ? parseOperatorArgs(expr.value) : [];
+  const args =
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板 // 命名形态无位置语义，回退空面板
   return {
     inputExpr: args[1] ?? '',
     algorithm: normalizeAlgorithm(unquote(args[2] ?? '')),

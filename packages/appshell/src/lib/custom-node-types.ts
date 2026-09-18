@@ -58,7 +58,13 @@ export interface CustomNodeNamespace {
 export type CustomNodeExpression = {
   id: string;
   key: string;
-  value: string | string[];
+  /**
+   * 调用形态三模（JSON-RPC 式类型判别）：
+   * - 数组（默认）= 位置调用 [fn, arg1, ..., argn]
+   * - 字符串 = legacy `;;` 拼接（旧图兼容）
+   * - 对象 = 命名调用 { $call: fn, ...具名实参 }（实参值为 zen 表达式或字面量）
+   */
+  value: string | string[] | Record<string, unknown>;
 };
 
 export type CustomNodeConfig = {

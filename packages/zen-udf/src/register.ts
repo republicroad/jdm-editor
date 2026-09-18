@@ -368,6 +368,39 @@ class UdfRegistry {
     return bound;
   }
 
+  /**
+   * 命名形态绑定（调用形态第三种：对象 = $call + 具名实参）：按名字绑定，
+   * 与位置语义共享 required/default/type 转换规则；未知参数名报错（手写图防笔误）。
+   */
+  bindNamedArgs(name: string, named: Record<string, unknown>): { kwargs: Record<string, unknown>; issues: string[] } {
+    const schema = this.udfFunctionSchema(name);
+    if (!schema?.parameters) {
+      return { kwargs: { ...named }, issues: [] };
+    }
+    const issues: string[] = [];
+    const known = new Set(Object.keys(schema.parameters));
+    for (const key of Object.keys(named)) {
+      if (!known.has(key)) {
+        issues.push(`unknown argument '${key}'`);
+      }
+    }
+    const kwargs: Record<string, unknown> = {};
+    for (const [paramName, paramSchema] of Object.entries(schema.parameters)) {
+      const provided = paramName in named;
+      const raw = provided ? named[paramName] : undefined;
+      if (!provided || raw === undefined || raw === null) {
+        if (paramSchema.default === undefined) {
+          issues.push(`${paramName} is required`);
+        } else {
+          kwargs[paramName] = paramSchema.default;
+        }
+        continue;
+      }
+      kwargs[paramName] = jsonT2pyT(paramSchema.type ?? 'null')(raw);
+    }
+    return { kwargs, issues };
+  }
+
   async call(udfName: string, kwargs?: Record<string, unknown>, callCtx?: ToolCallContext): Promise<unknown> {
     const entry = this.functions.get(udfName);
     if (!entry) {

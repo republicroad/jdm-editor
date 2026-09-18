@@ -18,7 +18,8 @@ export const normalizeJsonPath = (value: string): string => {
 };
 
 export const parseJsonPath = (expr?: CustomNodeExpression): JsonPathFields => {
-  const args = expr ? parseOperatorArgs(expr.value) : [];
+  const args =
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板 // 命名形态无位置语义，回退空面板
   return {
     inputExpr: args[1] ?? '',
     pathExpr: unquote(args[2] ?? ''),

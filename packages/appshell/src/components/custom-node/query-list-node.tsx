@@ -81,7 +81,9 @@ const useRosterOptions = (search: string): { options: RosterOption[]; loading: b
 };
 
 const parseExpr = (expr?: CustomNodeExpression): { roster: string; valueExpr: string } => {
-  const args = expr ? parseOperatorArgs(expr.value) : [];
+  // legacy `;;`/数组形态按序取参；命名形态（对象）无位置语义，回退空面板待用户重选
+  const args =
+    expr && (typeof expr.value !== 'object' || Array.isArray(expr.value)) ? parseOperatorArgs(expr.value) : []; // 仅命名形态（对象）无位置语义，回退空面板
   return {
     roster: args[1] ? unquote(args[1]) : '',
     valueExpr: args[2] ?? '',
