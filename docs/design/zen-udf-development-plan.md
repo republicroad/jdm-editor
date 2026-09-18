@@ -102,3 +102,33 @@
 - **D1** ✅：Redis RateStore 实现住 **verdict 仓**——本仓只出接口 + conformance 测试套件，ioredis 等存储依赖不进 jdm-editor
 - **D2** ✅：zen-udf 0.2.0 **发布 npm 公开仓**（纯机制无业务；contrib 参考域随包发布）
 - **D3** ✅：contrib 参考域**暂时保留**为 `builtin: 'reference'`，M3 后拆出独立私有包
+
+## 场景节点路线图（宿主裁决 2026-09-17）
+
+**裁决**：LLM 不进高频决策路径（延迟/成本/非确定性）。分期：**先高频决策件 →
+再 durable 任务 → 最后 LLM**。
+
+落位规则：零场景语义的通用件落 zen-udf contrib；业务语义件落各场景 UdfPack（verdict 仓）；
+端口类先定 conformance 契约、实现住宿主（D1 同款分界）。
+
+### P1 高频决策件（当前优先）
+
+| 件 | 落点 | 场景 |
+| --- | --- | --- |
+| validate_cn / geo_distance / template / datetime（规格已对齐） | contrib | 全场景 |
+| **velocity**（多事件滑窗聚合，rate-window 泛化） | contrib | 风控/营销/支付共用底座 |
+| ab_bucket（哈希分桶） | contrib | 营销，零成本 |
+| audience_match（人群包 = roster 复用） | roster 复用 | 营销 |
+| id2/bank4 核验、ip_risk、device_fp、case_write | fraudPack（verdict） | 风控 |
+| coupon_validate/issue（act+幂等）、price_calc | marketingPack（verdict） | 营销 |
+
+### P2 durable 任务（异步/长时副作用）
+
+act 类副作用（通知补发、报表拉取、外部 API 重试）从同步路径剥离为持久化任务。
+已有地基：act 语义 + 审计 journal（Y2/Y3）+ decisionId 幂等去重——durable 化本质是
+给 journal 补一个"待执行队列"投影。设计待 P1 稳定后展开。
+
+### P3 LLM（最后）
+
+天然归宿是 P2 的 durable 路径（异步分类/抽取/审核），而非高频决策同步链。
+节点形态届时按 durable 接口适配。
