@@ -13,6 +13,7 @@ import ipLocationTools from './contrib/ip-location.ts';
 import notifyTools from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
 import rosterTools from './contrib/roster.ts';
+import validateCnTools from './contrib/validate-cn.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
 
 /** 参考域清单：[namespace, tools]——namespace 与 contrib 文件名约定一致 */
@@ -28,6 +29,7 @@ export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['notify', notifyTools],
   ['rate-window', rateWindowTools],
   ['roster', rosterTools],
+  ['validate', validateCnTools],
 ];
 
 /** 将参考函数域注册到任意注册表（实例隔离场景用；global 的注册由 import 副作用完成） */
