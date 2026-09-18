@@ -807,16 +807,30 @@ class DecisionRuntime {
         }
         let result: unknown;
         const startedAt = process.hrtime.bigint();
+        // 执行规范 §6.2：kwargs.timeout 约定（毫秒）——运行时级超时兜底，超时返回结构化错误；
+        // 同时经 ToolCallContext.signal 向 fn 传播取消（重 I/O 函数应把 signal 传给底层客户端）
+        const timeoutMs = typeof kwargs.timeout === 'number' && kwargs.timeout > 0 ? kwargs.timeout : null;
+        const execCtx = getExecContext();
+        const callController = new AbortController();
+        let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
         try {
-          // 执行规范 §6.2：kwargs.timeout 约定（毫秒）——运行时级超时兜底，超时返回结构化错误
-          const timeoutMs = typeof kwargs.timeout === 'number' && kwargs.timeout > 0 ? kwargs.timeout : null;
-          const call = this.registry.call(funcName, kwargs);
+          const call = this.registry.call(funcName, kwargs, {
+            name: funcName,
+            tenantId: execCtx?.tenantId,
+            userId: execCtx?.userId,
+            requestId: execCtx?.requestId,
+            signal: callController.signal,
+            deadlineAt: timeoutMs ? Date.now() + timeoutMs : null,
+          });
           result = timeoutMs
             ? await Promise.race([
                 call,
-                new Promise((_resolve, reject) =>
-                  setTimeout(() => reject(new Error('udf timeout after ' + timeoutMs + 'ms')), timeoutMs),
-                ),
+                new Promise((_resolve, reject) => {
+                  timeoutTimer = setTimeout(() => {
+                    callController.abort();
+                    reject(new Error('udf timeout after ' + timeoutMs + 'ms'));
+                  }, timeoutMs);
+                }),
               ])
             : await call;
           this.breaker?.recordSuccess(breakerKey);
@@ -837,6 +851,9 @@ class DecisionRuntime {
           }
           throw timeoutError;
         } finally {
+          if (timeoutTimer !== undefined) {
+            clearTimeout(timeoutTimer);
+          }
           release?.();
         }
         const micros = Number(process.hrtime.bigint() - startedAt) / 1000;

@@ -1,6 +1,6 @@
 // http 域(http_request 函数，有专属 UI 设计，文件名即 namespace)
 import { getExecContext } from '../exec-context.ts';
-import { defineContrib, defineTool } from '../register.ts';
+import { type ToolCallContext, defineContrib, defineTool } from '../register.ts';
 
 /**
  * 出口防护端口（执行规范 §6.3，U9）：按租户校验出口 URL，拒绝时抛错。
@@ -171,7 +171,7 @@ export const http_request = defineTool({
     type: 'object',
   },
   returnsSchema: { type: 'object', title: 'http_request 函数返回', properties: {} },
-  fn: async function httpRequestUdf(kwargs: Record<string, unknown>) {
+  fn: async function httpRequestUdf(kwargs: Record<string, unknown>, call?: ToolCallContext) {
     const rawUrl = String(kwargs?.url ?? '').trim();
     const method =
       String(kwargs?.method ?? 'GET')
@@ -250,13 +250,18 @@ export const http_request = defineTool({
     const maxBytes = coerceCount(kwargs?.maxBytes, 1024, 64 * 1024 * 1024, DEFAULT_MAX_BYTES);
     const attemptOnce = async (): Promise<HttpAttemptResult> => {
       const controller = new AbortController();
+      // 运行时取消（UDF_TIMEOUT/上游中断）与节点自身超时合并传播
+      const signal =
+        call?.signal && typeof AbortSignal.any === 'function'
+          ? AbortSignal.any([controller.signal, call.signal])
+          : controller.signal;
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await fetch(url, {
           method,
           headers: requestHeaders,
           body: requestBody,
-          signal: controller.signal,
+          signal,
         });
         // BB4：流式限量读取——超 maxBytes 即中断（防异常/恶意下游撑爆内存）
         let responseText = '';

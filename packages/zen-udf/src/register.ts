@@ -100,8 +100,24 @@ interface UdfEntry {
   schema: UdfSchema;
 }
 
-/** 可注册的 UDF 函数签名(动态注册表，运行时统一以单个 kwargs 对象调用) */
-type UdfFunction = (kwargs: Record<string, unknown>) => unknown;
+/**
+ * 单次工具调用的执行上下文（fn 的第二参数）：租户身份 + 取消信号。
+ * signal 在 kwargs.timeout 到点或上游取消时 abort——重 I/O 函数（Redis/DB/HTTP）
+ * 必须把它传给底层客户端，否则超时返回后底层调用仍占着连接继续执行。
+ */
+export interface ToolCallContext {
+  namespace?: string;
+  name: string;
+  tenantId?: string;
+  userId?: string;
+  requestId?: string;
+  signal: AbortSignal;
+  /** 绝对截止时间（epoch ms）；kwargs.timeout 缺省时为 null */
+  deadlineAt: number | null;
+}
+
+/** 可注册的 UDF 函数签名(动态注册表，运行时统一以单个 kwargs 对象调用；第二参为调用上下文) */
+type UdfFunction = (kwargs: Record<string, unknown>, call?: ToolCallContext) => unknown;
 
 /** JSON Schema type 语义匹配（校验用；'any'/'null' 恒真，未知类型不判违例） */
 function matchJsonType(value: unknown, type: string): boolean {
@@ -352,13 +368,12 @@ class UdfRegistry {
     return bound;
   }
 
-  async call(udfName: string, ...args: unknown[]): Promise<unknown> {
+  async call(udfName: string, kwargs?: Record<string, unknown>, callCtx?: ToolCallContext): Promise<unknown> {
     const entry = this.functions.get(udfName);
     if (!entry) {
       throw new Error(`Function '${udfName}' is not registered in UdfRegistry`);
     }
-    const kwargs = (args[0] as Record<string, unknown> | undefined) ?? {};
-    const result = entry.fn(kwargs);
+    const result = entry.fn(kwargs ?? {}, callCtx && { ...callCtx, namespace: entry.schema.namespace ?? 'default' });
     return result instanceof Promise ? await result : result;
   }
 
@@ -471,6 +486,19 @@ export function defineContrib(importMetaUrl: string, def: ContribDef): ContribTo
 export const defineTool = (tool: ContribToolDef): ContribToolDef => tool;
 
 /**
+ * 泛型变体：宿主为 fn 的 kwargs 声明类型，获得参数补全与静态检查
+ * （schema 仍是运行时唯一权威——类型只是它的开发态影子）。
+ * @example
+ * defineTool<{ key: string }>({
+ *   name: 'get',
+ *   fn: async (kwargs) => pool.get(kwargs.key),  // kwargs: { key: string }
+ * })
+ */
+export const defineToolFor = <TParams extends Record<string, unknown>>(
+  tool: Omit<ContribToolDef, 'fn'> & { fn: (kwargs: TParams, call?: ToolCallContext) => unknown },
+): ContribToolDef => tool as unknown as ContribToolDef;
+
+/**
  * UdfPack：宿主业务函数包契约（verdict 等仓以纯数据 + 处理器形态注入）。
  * namespace 对应编辑器侧边栏 group 与 customNode 的 kind 域；注册是 deploy-time
  * 静态行为，租户差异在调用时经 ExecContext/端口解析，禁止 per-tenant 注册。
@@ -494,6 +522,66 @@ export function packWarnings(pack: UdfPack): string[] {
     }
   }
   return warnings;
+}
+
+export interface PackQualityIssue {
+  check: string;
+  tool?: string;
+  severity: 'error' | 'warning';
+  detail: string;
+}
+
+/**
+ * 宿主包质量检查（validatePack 硬门禁之上的软层，C 项）：编辑器展示与执行规范
+ * 约定的结构质量——description 非空、returnsSchema 存在（§6.5 前提）、
+ * required ⊆ properties、timeout 属性形状（§6.2）、act 幂等声明（Z1，warning）。
+ * 注册前的形状硬校验仍由 validatePack 独立承担；本函数供宿主 CI 与 verdict 登记页使用。
+ */
+export function packChecks(pack: UdfPack): PackQualityIssue[] {
+  const issues: PackQualityIssue[] = [];
+  if (!/^[a-z][a-z0-9_-]*$/.test(pack.namespace)) {
+    issues.push({
+      check: 'namespace-convention',
+      severity: 'warning',
+      detail: `namespace '${pack.namespace}' deviates from the lowercase kebab/snake convention`,
+    });
+  }
+  for (const tool of pack.tools) {
+    const at = (check: string, severity: 'error' | 'warning', detail: string): PackQualityIssue => ({
+      check,
+      tool: tool.name,
+      severity,
+      detail,
+    });
+    if (!tool.description || !tool.description.trim()) {
+      issues.push(at('description-required', 'error', 'description is empty — the editor node panel renders it'));
+    }
+    if (!tool.returnsSchema) {
+      issues.push(at('returns-schema-required', 'error', 'returnsSchema is required (§6.5 result contract premise)'));
+    }
+    const props = tool.parametersSchema?.properties;
+    if (tool.parametersSchema?.required && props) {
+      for (const key of tool.parametersSchema.required) {
+        if (!(key in props)) {
+          issues.push(at('required-mismatch', 'error', `required key '${key}' has no entry in properties`));
+        }
+      }
+    }
+    const timeoutProp = props?.timeout;
+    if (timeoutProp && timeoutProp.type !== 'integer') {
+      issues.push(
+        at(
+          'timeout-shape',
+          'warning',
+          `timeout property type '${String(timeoutProp.type)}' should be 'integer' (§6.2)`,
+        ),
+      );
+    }
+    if (tool.semantics === 'act' && tool.idempotent !== true) {
+      issues.push(at('act-idempotent', 'warning', 'act tool without idempotent declaration (Z1)'));
+    }
+  }
+  return issues;
 }
 
 /** 校验 UdfPack 形状，返回错误清单（空数组 = 通过）。createUdfRegistry 注册前自动调用 */

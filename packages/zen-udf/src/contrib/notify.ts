@@ -1,7 +1,7 @@
 // notify 域(notify_webhook 函数):面向 IM 机器人的轻量出站通知。
 // 与 http 域共享同一出口防护/密钥解析配置面(configureHttpUdf 单一入口)。
 import { getExecContext } from '../exec-context.ts';
-import { defineContrib, defineTool } from '../register.ts';
+import { type ToolCallContext, defineContrib, defineTool } from '../register.ts';
 import { SECRET_REF_PATTERN, currentEgressPolicy } from './http.ts';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -98,7 +98,7 @@ export const notify_webhook = defineTool({
       error: { type: 'string', description: '失败原因(ok=false 时存在)' },
     },
   },
-  fn: async function notifyWebhookUdf(kwargs: Record<string, unknown>) {
+  fn: async function notifyWebhookUdf(kwargs: Record<string, unknown>, call?: ToolCallContext) {
     const channel = String(kwargs?.channel ?? 'feishu').trim();
     const rawWebhook = String(kwargs?.webhook ?? '').trim();
     const message = String(kwargs?.message ?? '');
@@ -156,13 +156,18 @@ export const notify_webhook = defineTool({
 
     const attemptOnce = async (): Promise<{ ok: boolean; status: number; body: unknown; error?: string }> => {
       const controller = new AbortController();
+      // 运行时取消（UDF_TIMEOUT/上游中断）与节点自身超时合并传播
+      const signal =
+        call?.signal && typeof AbortSignal.any === 'function'
+          ? AbortSignal.any([controller.signal, call.signal])
+          : controller.signal;
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: requestBody,
-          signal: controller.signal,
+          signal,
         });
         const responseText = await response.text();
         let body: unknown;
