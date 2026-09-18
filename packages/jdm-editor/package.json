@@ -11,7 +11,8 @@
     "#icons": "./src/icons.tsx",
     "#components/ui/*": "./src/components/ui/*.tsx",
     "#lib/*": "./src/lib/*.ts",
-    "#reui/icons/*": "./src/reui/icons/*.tsx"
+    "#reui/icons/*": "./src/reui/icons/*.tsx",
+    "#reui/*": "./src/reui/*"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

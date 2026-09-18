@@ -1,4 +1,6 @@
 import { CloseOutlined, MoreOutlined } from '#icons';
+import { Badge } from '#reui/badge';
+import { IconTile } from '#reui/icon-tile';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { match } from 'ts-pattern';
@@ -35,6 +37,7 @@ export type DecisionNodeProps = {
 export const DecisionNode: React.FC<DecisionNodeProps> = ({
   icon,
   name,
+  type,
   children,
   actions = [],
   disabled = false,
@@ -118,14 +121,18 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
           )}
           <DiffIcon status={diffStatus} style={{ fontSize: 16 }} />
         </div>
-        <div className={'grid p-2 gap-0 grid-cols-[min-content_1fr_min-content] items-center box-border h-10'}>
-          <div
-            data-dn-icon
-            className='flex justify-center items-center w-6 h-6 text-base rounded mr-0.5 text-white bg-[var(--node-color)]'
-          >
+        <div className={'grid p-2 gap-1.5 grid-cols-[min-content_1fr_min-content] items-center box-border min-h-10'}>
+          <IconTile variant='solid' size='xs' className='bg-[var(--node-color)] text-white' aria-hidden>
             {icon}
+          </IconTile>
+          <div className='flex min-w-0 flex-col gap-0.5'>
+            <TextEdit onChange={onNameChange} disabled={disabled} value={name} />
+            {type != null && type !== '' && (
+              <Badge variant='secondary' size='xs' className='w-fit max-w-full truncate'>
+                {type}
+              </Badge>
+            )}
           </div>
-          <TextEdit onChange={onNameChange} disabled={disabled} value={name} />
           {menuItems.length > 0 && (
             <div className={clsx('nodrag')}>
               <Dropdown trigger={['click']} overlayStyle={{ minWidth: 250 }} menu={{ items: menuItems }}>
