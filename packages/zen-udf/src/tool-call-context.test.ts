@@ -152,3 +152,62 @@ describe('packChecks 质量层', () => {
     expect(issues[0].severity).toBe('warning');
   });
 });
+
+describe('数组调用模式（默认；;; 为旧图兼容）', () => {
+  test('expressions.value 为数组 [fn, ...args] 时与 ;; 字符串等价', async () => {
+    const registry = new UdfRegistry();
+    registry.registerFunction(
+      async function echo_add(kwargs: Record<string, unknown>) {
+        return { sum: (kwargs.a as number) + (kwargs.b as number) };
+      },
+      'math',
+      { parameters: { a: { type: 'integer' }, b: { type: 'integer' } } },
+    );
+    const runtime = new DecisionRuntime({ registry });
+    await runWithExecContext({ tenantId: 'demo' }, async () => {
+      // 数组形态（默认）
+      runtime.createDecisionWithCacheKey('ka', {
+        id: 'ga',
+        nodes: [
+          { id: 'in', type: 'inputNode', name: 'Request' },
+          {
+            id: 'c1',
+            type: 'customNode',
+            name: 'custom',
+            content: {
+              kind: 'UDF',
+              config: { expressions: [{ id: 'e1', key: 'out', value: ['echo_add', '1', '2'] }] },
+            },
+          },
+          { id: 'out', type: 'outputNode', name: 'Response' },
+        ],
+        edges: [
+          { id: 'ed1', sourceId: 'in', targetId: 'c1', type: 'edge' },
+          { id: 'ed2', sourceId: 'c1', targetId: 'out', type: 'edge' },
+        ],
+      } as never);
+      const ra = (await runtime.evaluateAsync('ka', {})) as { result?: { out?: { sum?: number } } };
+      expect(ra.result?.out?.sum).toBe(3);
+      // ;; 字符串形态（旧图兼容）——同参等价
+      runtime.createDecisionWithCacheKey('ks', {
+        id: 'gs',
+        nodes: [
+          { id: 'in', type: 'inputNode', name: 'Request' },
+          {
+            id: 'c1',
+            type: 'customNode',
+            name: 'custom',
+            content: { kind: 'UDF', config: { expressions: [{ id: 'e1', key: 'out', value: 'echo_add;;1;;2' }] } },
+          },
+          { id: 'out', type: 'outputNode', name: 'Response' },
+        ],
+        edges: [
+          { id: 'ed1', sourceId: 'in', targetId: 'c1', type: 'edge' },
+          { id: 'ed2', sourceId: 'c1', targetId: 'out', type: 'edge' },
+        ],
+      } as never);
+      const rs = (await runtime.evaluateAsync('ks', {})) as { result?: { out?: { sum?: number } } };
+      expect(rs.result?.out?.sum).toBe(3);
+    });
+  });
+});

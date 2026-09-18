@@ -26,7 +26,8 @@ const toolParams = (tool: CustomFunctionTool): ToolParam[] => {
   }));
 };
 
-const serializeExpr = (func: string, args: string[]): string => [func, ...args].join(';;');
+/** 表达式序列化：数组形态为默认（裁决 2026-09-17）；;; 字符串仅旧图兼容（引擎读取侧双模） */
+const serializeExpr = (func: string, args: string[]): string[] => [func, ...args];
 
 /** 尾部空参截断（引擎侧缺省回退声明默认值）；中段空串占位保留 */
 const trimTrailingEmpty = (args: string[]): string[] => {
@@ -91,7 +92,7 @@ export const SchemaContainerTab: React.FC<SchemaContainerTabProps> = ({ id, tool
       {
         id: uid(),
         key: nextExprKey(expressions),
-        value: firstTool ? serializeExpr(firstTool.name, []) : '',
+        value: firstTool ? serializeExpr(firstTool.name, []) : [],
       },
     ];
     persistExpressions(next);
