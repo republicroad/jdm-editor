@@ -40,6 +40,7 @@ import type { MinimalNodeProps } from '../nodes/specifications/specification-typ
 import { NodeKind } from '../nodes/specifications/specification-types';
 import { nodeSpecification } from '../nodes/specifications/specifications';
 import { GraphComponents } from './graph-components';
+import { NodeInspector } from './node-inspector';
 import { XYFLOW_THEME } from './xyflow-theme';
 
 export type GraphProps = {
@@ -397,6 +398,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
               </Controls>
               <MiniMap pannable zoomable position='bottom-left' />
               <Background id={id} color='var(--border)' gap={20} />
+              <NodeInspector />
             </ReactFlow>
           </div>
         </div>
