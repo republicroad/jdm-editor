@@ -1,6 +1,6 @@
-import { BookOutlined } from '#icons';
+import { BookOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '#icons';
 import type { HandleProps } from '@xyflow/react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, NodeToolbar, Position } from '@xyflow/react';
 import clsx from 'clsx';
 import React from 'react';
 import { P, match } from 'ts-pattern';
@@ -39,6 +39,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       specification,
       name,
       displayError,
+      isSelected,
       helper,
       actions,
       ...decisionNodeProps
@@ -46,6 +47,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     ref,
   ) => {
     const t = useT();
+    const [hovered, setHovered] = React.useState(false);
     const [currentDetails, setCurrentDetails] = usePersistentState<Details>(`node:details:${id}`, Details.Settings);
     const [detailsOpen, setDetailsOpen] = usePersistentState<boolean>(`node:detailsOpen:${id}`, false);
     const graphActions = useDecisionGraphActions();
@@ -66,6 +68,24 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
     const { diff } = useNodeDiff(id);
 
     const Settings = specification.renderSettings;
+
+    const openSettings = () => {
+      setDetailsOpen(currentDetails === Details.Settings ? !detailsOpen : true);
+      setCurrentDetails(Details.Settings);
+    };
+
+    const confirmDelete = () =>
+      modal.confirm({
+        icon: null,
+        title: t('dg.node.deleteNode'),
+        content: (
+          <Typography.Text>
+            Are you sure you want to delete <Typography.Text strong>{name}</Typography.Text> node.
+          </Typography.Text>
+        ),
+        okButtonProps: { danger: true },
+        onOk: () => graphActions.removeNodes([id]),
+      });
 
     const menuItems = [
       specification.documentationUrl
@@ -93,18 +113,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         danger: true,
         label: <SpacedText left={t('common.delete')} right={platform.shortcut('Backspace')} />,
         disabled,
-        onClick: () =>
-          modal.confirm({
-            icon: null,
-            title: t('dg.node.deleteNode'),
-            content: (
-              <Typography.Text>
-                Are you sure you want to delete <Typography.Text strong>{name}</Typography.Text> node.
-              </Typography.Text>
-            ),
-            okButtonProps: { danger: true },
-            onOk: () => graphActions.removeNodes([id]),
-          }),
+        onClick: confirmDelete,
       },
     ].filter((i) => i !== null && i !== false);
 
@@ -113,6 +122,8 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         className={clsx('grl-graph-node', className)}
         style={{ minWidth: 220, maxWidth: 220 }}
         ref={ref}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         onClick={(event) => {
           const isToggle = match(navigator.platform.includes('Mac'))
             .with(true, () => event.metaKey)
@@ -121,6 +132,47 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
           graphActions.triggerNodeSelect(id, isToggle ? 'toggle' : 'only');
         }}
       >
+        {/* WS1-R2：悬停/选中显现的快捷工具栏（flow-1 node toolbar 模式） */}
+        <NodeToolbar isVisible={isSelected || hovered} position={Position.Top} offset={10}>
+          <div className='nodrag nopan flex items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--grl-color-bg-container)] p-0.5 shadow-md'>
+            {Settings && (
+              <Button
+                type='text'
+                size='small'
+                className='h-6 w-6 p-0'
+                aria-label='Settings'
+                icon={<EditOutlined />}
+                onClick={openSettings}
+              />
+            )}
+            <Button
+              type='text'
+              size='small'
+              className='h-6 w-6 p-0'
+              aria-label='Copy'
+              icon={<CopyOutlined />}
+              onClick={() => graphActions.copyNodes([id])}
+            />
+            <Button
+              type='text'
+              size='small'
+              className='h-6 w-6 p-0'
+              aria-label='Duplicate'
+              disabled={disabled}
+              icon={<PlusOutlined />}
+              onClick={() => graphActions.duplicateNodes([id])}
+            />
+            <Button
+              type='text'
+              size='small'
+              className='h-6 w-6 p-0 text-[var(--destructive)]'
+              aria-label='Delete'
+              disabled={disabled}
+              icon={<DeleteOutlined />}
+              onClick={confirmDelete}
+            />
+          </div>
+        </NodeToolbar>
         {handleLeft && (
           <Handle
             className={clsx('grl-graph-node__handle-left', compactMode && 'compact')}
@@ -149,15 +201,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
               ? actions
               : [
                   ...(actions ?? []),
-                  <Button
-                    key='settings'
-                    type='text'
-                    style={{ marginLeft: 'auto' }}
-                    onClick={() => {
-                      setDetailsOpen(currentDetails === Details.Settings ? !detailsOpen : true);
-                      setCurrentDetails(Details.Settings);
-                    }}
-                  >
+                  <Button key='settings' type='text' style={{ marginLeft: 'auto' }} onClick={openSettings}>
                     Settings
                   </Button>,
                 ]
