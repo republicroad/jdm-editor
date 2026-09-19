@@ -13,6 +13,7 @@ import ipLocationTools from './contrib/ip-location.ts';
 import notifyTools from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
 import rosterTools from './contrib/roster.ts';
+import templateTools from './contrib/template.ts';
 import validateCnTools from './contrib/validate-cn.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
 
@@ -29,6 +30,7 @@ export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['notify', notifyTools],
   ['rate-window', rateWindowTools],
   ['roster', rosterTools],
+  ['template', templateTools],
   ['validate', validateCnTools],
 ];
 
