@@ -5,6 +5,7 @@
 import abBucketTools from './contrib/ab-bucket.ts';
 import cryptoTools from './contrib/crypto.ts';
 import customListQueryTools from './contrib/custom-list-query.ts';
+import datetimeTools from './contrib/datetime.ts';
 import debugTools from './contrib/debug.ts';
 import debuguiTools from './contrib/debugui.ts';
 import geoTools from './contrib/geo.ts';
@@ -21,6 +22,7 @@ import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './regi
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['ab', abBucketTools],
   ['crypto', cryptoTools],
+  ['dt', datetimeTools],
   ['custom-list-query', customListQueryTools],
   ['debug', debugTools],
   ['debugui', debuguiTools],
