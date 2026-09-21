@@ -33,9 +33,10 @@ storybook 交互用例。
   - ✅ 已落地（zen-udf contrib）：`ab.bucket`（FNV-1a 分桶）、`geo.distance`/`geo.fence`
     （Haversine + 射线法围栏）、`validate` 四件（id_card/mobile/uscc/bank_card，合成向量
     测试）、**`template`**（mustache 子集栈式解析 + DoS 三上限，84b65e78）
-  - ⬜ 待实现（收官两件）：**datetime**（Intl 时区转换 + 营业日/节假日表参数化 + 日期差）、
-    **velocity**（rate-window 泛化，多事件滑窗聚合）
-  - P1 全部落地后发 `zen-udf@0.6.0`
+  - ⬜ **velocity：转移到 saas 平台实现**（宿主裁决 2026-09-17）——对照本仓
+    `contrib/rate-window.ts` 的 RateStore 接口细节在 saas/verdict 侧落地，
+    **稳定后再开源**回流；本仓不实现
+  - P1 全部落地后发 `zen-udf@0.6.0`（本仓五域：ab/geo/validate/template/dt）
 - P2：durable 任务（act 类异步副作用；journal 待执行队列投影）。
 - P3：LLM 审批流双模式（同内核，节点目录与画布隔离；前置约束 = 引擎无中途暂停，
   两路径决策点已记录）。
