@@ -56,11 +56,12 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
 
 ## WS5 · v1.0 硬分叉（N3）
 
-前置 checklist：
-- [ ] WS1 切片 R1–R5 完成（R6/R7 可带入分叉后）
-- [ ] WS2 P1 全部落地并发版
-- [ ] WS3 + WS4 完成（下游已在新版本线上）
-- [ ] verdict-weave 仓迁移 + 品牌化 + 断上游（按 verdict-weave-migration-plan）
+前置 checklist（2026-09-17 清点）：
+- [x] WS1 切片 R1–R5 完成（R4/R6/R7 带入分叉后）
+- [x] WS2 P1 全部落地并发版（五域随 zen-udf 0.6.0 发布；velocity 转 saas，见 04dd1ba3）
+- [x] WS3 + WS4 完成（三包 npm 就绪；editor 仓 8651cb7 已升级：tsc 零错、86/86 测试）
+- [ ] verdict-weave 仓迁移 + 品牌化 + 断上游——唯一剩余项；此前 editor 引用 reui 分支不可迁移
+  的约束已随 editor 切 npm 版本（8651cb7）自然解除，品牌名一经宿主确认即可执行迁移
 
 分叉后即启动：P2 durable 设计展开、flow 块 base 重装（若上游已发布）。
 
