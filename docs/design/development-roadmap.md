@@ -70,15 +70,17 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
 | --- | --- |
 | CM phase-2b（删 PARITY 块 + 旧高亮器，烧 ~6 处 !important，下调 style-debt 常量） | v1.0 发布后第一个清债窗口（池化默认态浸泡一周期） |
 | N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
+| **N5：ip-location 接入 ip2region xdb**（2026-09-17 实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`，上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）——机制面只收 xdb 路径/字节并暴露查询 API（全量缓存 ~15MB 换微秒查询），数据下载管道归宿主；中国城市级+运营商精度补路线 A，海外可叠 geoip-lite | 下一窗口可做（机制面半天） |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
 | HK-09 Excel wizard | 组件重构窗口 |
 
 ## 排序建议
 
 ```
-✅ WS1(R2,R3,R5) → ✅ WS3 发版 → ⬜ WS2 P1(template,datetime,velocity)
-→ ⬜ WS4 editor 升级 → ⬜ v1.0 checklist 清点 → N3 分叉
-→ 分叉后: P2 durable 设计 → WS1(R4,R6,R7) → P3 双模式设计
+✅ WS1(R2,R3,R5) → ✅ WS3 发版 → ✅ WS2 P1 五域(ab/geo/validate/template/dt)
+→ ⬜ zen-udf 0.6.0 发版（五域全量）→ ⬜ WS4 editor 升级
+→ ⬜ v1.0 checklist 清点 → N3 分叉
+→ 分叉后: P2 durable 设计 → WS1(R4,R6,R7) → N5 ip2region 接入 → P3 双模式设计
 ```
 
 依据：发版越早，下游（editor/verdict）集成越早开始消化破坏面；R5（docked
