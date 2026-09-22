@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/zen-udf",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "zen-engine custom-node UDF runtime: multi-function execution spec, UdfPack registry, L1 decision cache, multi-tenant context & data-plane ports",
   "type": "module",
   "main": "src/index.ts",
