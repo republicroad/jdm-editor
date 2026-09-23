@@ -1,5 +1,7 @@
 ## JDM Editor
 
+> **[归档说明]** 本仓已转入维护态：品牌续作迁移至 [republicroad/seal-editor](https://github.com/republicroad/seal-editor)（npm: @republicroad/seal-editor）。各分支保留可用——reui 为活跃开发见证，其他分支服务现有使用者；未来创新实验仍可能回到本仓与 editor 仓尝试。
+
 JDM Editor is an open-source React component for crafting and designing JDM (JSON Decision model) files.
 Whether you’re a developer, data analyst, or decision model expert, JDM Editor can help you harness the full potential of decision modeling, making it more accessible and manageable than ever before
 

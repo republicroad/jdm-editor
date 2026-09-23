@@ -73,6 +73,14 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
 
 分叉后即启动：P2 durable 设计展开、flow 块 base 重装（若上游已发布）。
 
+## fork 双仓定位（宿主裁决 2026-09-23）
+
+- **jdm-editor 与 editor 仓保留为上游 fork 形态**：未来创新功能仍可在这两仓尝试；
+  完整历史用于培养人才梯队；
+- **seal-demo**（宿主自建）：基于 editor 项目创建，用于验证 npm 包（seal-editor 1.0.0）；
+- npm 旧包 @republicroad/jdm-editor 的 deprecate 指引需 npm 授权，由宿主执行：
+  `npm deprecate @republicroad/jdm-editor "renamed to @republicroad/seal-editor — use that instead"`。
+
 ## 部署形态（宿主裁决 2026-09-17）
 
 verdict 上 ECS：**Docker Engine + compose**（Linux 服务器版免费，Docker Desktop 授权条款不涉及；
