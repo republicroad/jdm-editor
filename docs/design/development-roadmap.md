@@ -64,6 +64,12 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
   的约束已随 editor 切 npm 版本（8651cb7）自然解除
 - [x] 品牌名：**seal-editor**（宿主提议 2026-09-17，待最终确认）——verdict 裁决 + seal 用印定案，
   语义自洽；产品族可延展（seal-editor 编辑器 / seal-engine 执行服务）；机制包 zen-udf 保持通用名不品牌化
+- [x] 迁移方式（宿主裁决 2026-09-17）：**新建 republicroad/seal-editor 仓、只推 main**——
+  现有仓其他分支仍有人使用，rename 会把全部分支与使用者一并卷入新品牌；执行序列：
+  ① 新建空仓（非 fork）→ ② push main（全量 main 历史）→ ③ v1.0 tag 作为新仓首个 release →
+  ④ CI secrets 重配（npm token / REUI_LICENSE_KEY）→ ⑤ npm 换名 @republicroad/seal-editor
+  （旧包 deprecated 指引）→ ⑥ editor 仓依赖与文档链接更新。旧仓原状保留：继续服务其他
+  分支使用者 + 两个月工作见证存档，可加一条 README 归档指引（保留分支不受影响）
 
 分叉后即启动：P2 durable 设计展开、flow 块 base 重装（若上游已发布）。
 
