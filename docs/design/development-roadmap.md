@@ -61,7 +61,9 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
 - [x] WS2 P1 全部落地并发版（五域随 zen-udf 0.6.0 发布；velocity 转 saas，见 04dd1ba3）
 - [x] WS3 + WS4 完成（三包 npm 就绪；editor 仓 8651cb7 已升级：tsc 零错、86/86 测试）
 - [ ] verdict-weave 仓迁移 + 品牌化 + 断上游——唯一剩余项；此前 editor 引用 reui 分支不可迁移
-  的约束已随 editor 切 npm 版本（8651cb7）自然解除，品牌名一经宿主确认即可执行迁移
+  的约束已随 editor 切 npm 版本（8651cb7）自然解除
+- [x] 品牌名：**seal-editor**（宿主提议 2026-09-17，待最终确认）——verdict 裁决 + seal 用印定案，
+  语义自洽；产品族可延展（seal-editor 编辑器 / seal-engine 执行服务）；机制包 zen-udf 保持通用名不品牌化
 
 分叉后即启动：P2 durable 设计展开、flow 块 base 重装（若上游已发布）。
 
