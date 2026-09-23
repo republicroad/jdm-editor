@@ -65,6 +65,14 @@ asChild → render、data-[state=*] → presence 选择器、delayDuration → d
 
 分叉后即启动：P2 durable 设计展开、flow 块 base 重装（若上游已发布）。
 
+## 部署形态（宿主裁决 2026-09-17）
+
+verdict 上 ECS：**Docker Engine + compose**（Linux 服务器版免费，Docker Desktop 授权条款不涉及；
+Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆分：model-execute / postgres / redis，
+`restart: unless-stopped`；镜像由 CI buildx 构建、ECS 只拉取运行。数据文件（xdb/节假日表）
+一律 **volume 挂载**进容器——更新数据不重建镜像。Podman 6.1.2 compose 兼容（官方客户端 + socket
+路径）已评估可用，作为 rootless/K8s（ACK）阶段的备选，镜像层 OCI 通用无锁定。
+
 ## WS6 · 清债与跟踪
 
 | 项 | 触发/窗口 |
