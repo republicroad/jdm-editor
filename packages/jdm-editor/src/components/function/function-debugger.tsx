@@ -9,6 +9,7 @@ import type { SimulationTrace, SimulationTraceDataFunction } from '../decision-g
 import { Button, Tabs, Tooltip, Typography } from '../primitives';
 import { FunctionDebuggerLog } from './function-debugger-log';
 import { type FunctionLibrary } from './helpers/libs';
+import { IoInspector } from './io-inspector';
 
 enum TabKey {
   Console = 'Console',
@@ -64,6 +65,7 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
           {match(activeTab)
             .with(TabKey.Console, () => (
               <>
+                {trace && <IoInspector input={trace.input} output={trace.output} />}
                 {traceLog.length === 0 && (
                   <FunctionDebuggerLog
                     lines={['"Info: Use console.log and run simulation to debug your code."']}
