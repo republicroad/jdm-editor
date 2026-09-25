@@ -13,7 +13,7 @@ import { P, match } from 'ts-pattern';
 import type { ParsedExcelData } from '../../helpers/excel';
 import { exportDecisionTable, getExcelData } from '../../helpers/excel';
 import { useT } from '../../theming/i18n';
-import { Button, Divider, Popconfirm, Select, Tooltip, Typography } from '../primitives';
+import { Button, Divider, Select, Tooltip, Typography } from '../primitives';
 import { Stack } from '../stack';
 import type { MappedExcelData } from './components/dt-excel-dialog';
 import { DtExcelDialog } from './components/dt-excel-dialog';
@@ -234,14 +234,14 @@ export const DecisionTableCommandBar: React.FC = () => {
                   onClick={() => tableActions.addRowAbove(cursor?.y)}
                 />
               </Tooltip>
-              <Tooltip>
-                <Popconfirm
-                  title={t('dt.toolbar.removeRowConfirm')}
-                  okText={t('common.remove')}
-                  onConfirm={() => tableActions.removeRow(cursor?.y)}
-                >
-                  <Button type='text' danger size={'small'} icon={<DeleteOutlined />} />
-                </Popconfirm>
+              <Tooltip title={t('dt.toolbar.removeRow')}>
+                <Button
+                  type='text'
+                  danger
+                  size={'small'}
+                  icon={<DeleteOutlined />}
+                  onClick={() => tableActions.removeRowWithUndo(cursor?.y)}
+                />
               </Tooltip>
               <Button type='text' size={'small'} icon={<CloseOutlined />} onClick={() => tableActions.setCursor(null)}>
                 Deselect

@@ -46,7 +46,7 @@ const ContextMenu: React.FC<React.PropsWithChildren> = (props) => {
             key: 'remove',
             label: <SpacedText left={t('dt.toolbar.removeRow')} />,
             onClick: () => {
-              if (cursor) tableActions.removeRow(cursor?.y);
+              if (cursor) tableActions.removeRowWithUndo(cursor?.y);
             },
           },
         ],
