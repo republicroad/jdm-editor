@@ -60,13 +60,28 @@ export const SimulatorNodesPanel: React.FC<SimulatorNodesPanelProps> = ({
   return (
     <React.Fragment>
       <div className='flex items-center justify-between gap-2 border-b border-border px-3 py-2'>
-        <input
-          className='h-7 w-full min-w-0 rounded-md border border-border bg-muted/40 px-2 text-xs outline-none focus:border-primary/50'
-          type='text'
-          placeholder={t('simulator.searchPlaceholder')}
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-        />
+        <div className='relative w-full min-w-0'>
+          <svg
+            className='pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z'
+            />
+          </svg>
+          <input
+            className='h-7 w-full min-w-0 rounded-md border border-border bg-muted/40 pl-7 pr-2 text-xs outline-none transition-colors focus:border-primary/50'
+            type='text'
+            placeholder={t('simulator.searchPlaceholder')}
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+        </div>
         <div className='flex shrink-0 items-center gap-1'>
           {onClear && (
             <Tooltip title={t('simulator.clear')} placement='bottomRight'>
@@ -122,7 +137,7 @@ export const SimulatorNodesPanel: React.FC<SimulatorNodesPanelProps> = ({
               <div
                 key={trace.nodeId}
                 className={clsx(
-                  'flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60',
+                  'flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted/60',
                   trace.nodeId === selectedNode && 'bg-primary/10',
                 )}
                 onClick={() => onSelectNode(trace.nodeId)}
@@ -130,13 +145,13 @@ export const SimulatorNodesPanel: React.FC<SimulatorNodesPanelProps> = ({
               >
                 <Typography.Text
                   data-role='name'
-                  className='flex min-w-0 items-center [&>svg]:align-[-3px]'
+                  className='flex min-w-0 items-center gap-1.5 [&>svg]:align-[-3px]'
                   title={trace.name}
                 >
                   <StatusIcon status={trace.nodeId === simulate?.error?.data?.nodeId ? 'error' : 'success'} />
                   <span className='truncate'>{trace.name}</span>
                 </Typography.Text>
-                <Typography.Text type='secondary' data-role='performance'>
+                <Typography.Text type='secondary' data-role='performance' className='shrink-0 text-[10px] tabular-nums'>
                   {trace.performance}
                 </Typography.Text>
               </div>
