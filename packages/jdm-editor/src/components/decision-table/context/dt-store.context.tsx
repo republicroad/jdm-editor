@@ -2,6 +2,7 @@ import type { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import { produce } from 'immer';
 import React, { useMemo } from 'react';
+import { toast } from 'sonner';
 import { P, match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create, useStore } from 'zustand';
@@ -11,6 +12,7 @@ import { type GetNodeDataResult } from '../../../helpers/node-data';
 import type { ColumnFieldType, OutputFieldType } from '../../../helpers/schema';
 import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import type { DictionaryMap } from '../../../theme';
+import { createT } from '../../../theming/i18n';
 import type { SimulationTrace, SimulationTraceDataTable } from '../../decision-graph';
 import type { Diff, DiffMetadata } from '../../decision-graph/dg-types';
 import type { TableCellProps } from '../table/table-default-cell';
@@ -178,6 +180,7 @@ export type DecisionTableStoreType = {
     addRowAbove: (target?: number) => void;
     addRowBelow: (target?: number) => void;
     removeRow: (target?: number) => void;
+    removeRowWithUndo: (target?: number) => void;
     addColumn: (type: ColumnType, column: TableSchemaItem) => void;
     updateColumn: (type: ColumnType, id: string, column: TableSchemaItem) => void;
     removeColumn: (type: ColumnType, id: string) => void;
@@ -340,6 +343,38 @@ export const DecisionTableProvider: React.FC<React.PropsWithChildren<DecisionTab
         });
 
         stateStore.setState({ decisionTable: updatedDecisionTable });
+        listenerStore.getState().onChange?.(updatedDecisionTable);
+      },
+      removeRowWithUndo: (target?: number) => {
+        const { decisionTable } = stateStore.getState();
+        const removedIndex = target ?? (decisionTable?.rules?.length || 0);
+        const removedRule = decisionTable?.rules?.[removedIndex];
+
+        const updatedDecisionTable = produce(decisionTable, (draft) => {
+          draft.rules.splice(removedIndex, 1);
+          return draft;
+        });
+
+        stateStore.setState({ decisionTable: updatedDecisionTable });
+
+        // 免确认 + Undo toast（业界免确认删除模式）：5 秒内可撤销
+        const t = createT('en');
+        toast.info(t('dt.toolbar.rowRemoved'), {
+          action: {
+            label: t('common.undo'),
+            onClick: () => {
+              const current = stateStore.getState().decisionTable;
+              const restored = produce(current, (draft) => {
+                if (removedRule) {
+                  draft.rules.splice(Math.min(removedIndex, draft.rules.length), 0, removedRule);
+                }
+              });
+              stateStore.setState({ decisionTable: restored });
+              listenerStore.getState().onChange?.(restored);
+            },
+          },
+        });
+
         listenerStore.getState().onChange?.(updatedDecisionTable);
       },
       addColumn: (type: ColumnType, column: TableSchemaItem) => {

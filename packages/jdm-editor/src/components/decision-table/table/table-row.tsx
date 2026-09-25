@@ -11,6 +11,7 @@ import { getDropDirection } from '../../../helpers/dnd';
 import type { DiffMetadata } from '../../decision-graph';
 import { Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableState } from '../context/dt-store.context';
+import { TableRowHoverActions } from './table-row-hover-actions';
 
 export const TableRow: React.FC<{
   ref?: React.Ref<HTMLTableRowElement>;
@@ -20,6 +21,7 @@ export const TableRow: React.FC<{
   onResize?: (node: HTMLElement) => void;
 }> = ({ ref, row, disabled, virtualItem, onResize }) => {
   const trRef = useRef<HTMLTableRowElement>(null);
+  const [rowHover, setRowHover] = React.useState(false);
   const tableActions = useDecisionTableActions();
   const { cursor, isActive } = useDecisionTableState(({ cursor, debug, debugIndex }) => ({
     cursor,
@@ -115,7 +117,10 @@ export const TableRow: React.FC<{
         opacity: isDragging ? 0.5 : 1,
       }}
       data-virtual-index={virtualItem.index}
+      onMouseEnter={() => setRowHover(true)}
+      onMouseLeave={() => setRowHover(false)}
     >
+      <TableRowHoverActions rowIndex={virtualItem.index} visible={rowHover && !disabled} disabled={disabled} />
       <td
         className={clsx(
           'py-[2px] px-[14px] shadow-[inset_0_0_0_0.3px_var(--border)] outline-[1.5px] outline-transparent -outline-offset-[1.5px]',
