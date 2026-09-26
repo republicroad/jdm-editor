@@ -4,7 +4,6 @@
  * 范围（Y6 最小面）：evaluate 根 span（含模型/租户/审计属性）+ UdfTrace 作为 span events；
  * customNode 子 span 需解决 TSFN 边界的 OTel context 重附着，暂缓。
  */
- 
 
 let apiPromise: Promise<any | undefined> | undefined;
 

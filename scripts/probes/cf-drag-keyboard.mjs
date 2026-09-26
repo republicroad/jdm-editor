@@ -10,8 +10,7 @@ import { chromium } from 'playwright';
  * the final key order is exactly predictable per arrow sequence. The story is
  * reloaded between scenarios to keep them independent.
  */
-const STORY_URL =
-  'http://127.0.0.1:9010/iframe.html?id=custom-function-table--with-rows&viewMode=story';
+const STORY_URL = 'http://127.0.0.1:9010/iframe.html?id=custom-function-table--with-rows&viewMode=story';
 
 (async () => {
   const browser = await chromium.launch();
