@@ -324,6 +324,12 @@ export const edgeSchema = z.object({
   targetId: z.string(),
   sourceHandle: z.string().nullish(),
   type: z.enum(['edge']),
+  // WS1-R4：分支路径标签数据源（mapToGraphEdge label ← edge.name）。
+  // 不声明它，JSON 上传路径（safeParse）会剥掉所有边名——芯片上传后全部消失。
+  name: z
+    .string()
+    .nullish()
+    .transform((val) => (val && val.trim() !== '' ? val : undefined)),
 });
 
 export const validationSchema = z.object({

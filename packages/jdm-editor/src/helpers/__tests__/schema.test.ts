@@ -109,6 +109,132 @@ describe('schema', () => {
     expect(result.content.statements[1].name).toBeUndefined();
   });
 
+  it('preserves every model field through a full parse round-trip (upload fidelity)', () => {
+    // The JSON upload path safeParses the whole model; zod strips any key not
+    // declared in the schemas (the statements[].name and edge.name bugs were
+    // both this class). This fixture fills EVERY declared field of every
+    // builtin node with canonical (post-transform) values — parse output must
+    // deep-equal the input, so any future undeclared-key strip fails here.
+    // Note: model `settings` is intentionally absent — the upload handler
+    // passes it into safeParse but no schema declares it and nothing in the
+    // editor consumes it.
+    const model = {
+      nodes: [
+        {
+          id: 'in-1',
+          type: NodeKind.Input,
+          name: 'Request',
+          position: { x: 1, y: 2 },
+          content: {
+            schema: '{"type":"object"}',
+            expressions: [{ id: 'ie-1', key: 'k', value: 'v', type: 'string' }],
+            inputField: 'req',
+            outputPath: 'res',
+          },
+        },
+        {
+          id: 'out-1',
+          type: NodeKind.Output,
+          name: 'Response',
+          position: { x: 3, y: 4 },
+          content: { schema: '{"type":"object"}' },
+        },
+        {
+          id: 'dt-1',
+          type: NodeKind.DecisionTable,
+          name: 'Table',
+          position: { x: 5, y: 6 },
+          content: {
+            hitPolicy: 'collect',
+            passThrough: true,
+            inputField: 't-in',
+            outputPath: 't-out',
+            executionMode: 'loop',
+            inputs: [
+              {
+                id: 'dti-1',
+                name: 'Risk',
+                field: 'customer.risk',
+                defaultValue: '10',
+                fieldType: {
+                  type: 'string',
+                  enum: { type: 'inline', values: [{ label: 'L', value: 'V' }], loose: true },
+                },
+              },
+              { id: 'dti-2', name: 'Age', field: 'customer.age', defaultValue: null, fieldType: { type: 'number' } },
+            ],
+            outputs: [
+              {
+                id: 'dto-1',
+                name: 'Discount',
+                field: 'discount',
+                defaultValue: '0',
+                outputFieldType: { type: 'string', enum: { type: 'ref', ref: 'dic-1', loose: false } },
+              },
+              { id: 'dto-2', name: 'Fee', field: 'fee', defaultValue: null, outputFieldType: { type: 'auto' } },
+            ],
+            rules: [{ _id: 'r1', _description: 'desc', dti_1: '> 90', dti_2: '< 40', dto_1: '"Y"', dto_2: '5' }],
+          },
+        },
+        {
+          id: 'fn-1',
+          type: NodeKind.Function,
+          name: 'Function',
+          position: { x: 7, y: 8 },
+          content: { source: 'return 1;' },
+        },
+        {
+          id: 'ex-1',
+          type: NodeKind.Expression,
+          name: 'Expression',
+          position: { x: 9, y: 10 },
+          content: {
+            expressions: [{ id: 'ee-1', key: 'out', value: '1 + 1' }],
+            passThrough: true,
+            inputField: 'e-in',
+            outputPath: 'e-out',
+            executionMode: 'loop',
+          },
+        },
+        {
+          id: 'de-1',
+          type: NodeKind.Decision,
+          name: 'Decision',
+          position: { x: 11, y: 12 },
+          content: { key: 'sub', passThrough: true, inputField: 'd-in', outputPath: 'd-out', executionMode: 'single' },
+        },
+        {
+          id: 'sw-1',
+          type: NodeKind.Switch,
+          name: 'Switch',
+          position: { x: 13, y: 14 },
+          content: {
+            hitPolicy: 'first',
+            statements: [
+              { id: 'st-1', condition: 'a > 1', isDefault: false, name: 'highRisk' },
+              { id: 'st-2', condition: '', isDefault: true },
+            ],
+          },
+        },
+        {
+          id: 'cn-1',
+          type: CustomKind,
+          name: 'Custom',
+          position: { x: 15, y: 16 },
+          content: { kind: 'http.request', config: { url: 'https://x', nested: { deep: [1, 2] } } },
+        },
+      ],
+      edges: [
+        { id: 'ed-1', sourceId: 'sw-1', targetId: 'dt-1', sourceHandle: 'st-1', type: 'edge', name: 'highRisk' },
+        { id: 'ed-2', sourceId: 'in-1', targetId: 'sw-1', type: 'edge' },
+      ],
+    };
+
+    const result = decisionModelSchema.parse(JSON.parse(JSON.stringify(model)));
+
+    expect(result).toEqual(model);
+  });
+
   it('requires a key for decision nodes and normalizes options', () => {
     const result = nodeSchema.parse({
       id: 'd1',
