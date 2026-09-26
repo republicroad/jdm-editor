@@ -8,6 +8,7 @@ import type { RequestDefinition, RequestDefinitionType, RequestExampleSource } f
 import { useT } from '../../../theming/i18n';
 import { AutosizeTextArea } from '../../autosize-text-area';
 import { Button, Card, Popconfirm, Tooltip, Typography } from '../../primitives';
+import { PanelEmpty } from '../../shared/panel-empty';
 import { BlurCommitInput } from './blur-commit-input';
 import { RequestExampleSummary, type RequestExampleSummaryData } from './request-example-summary';
 import { registerJsonInlayHintsProvider } from './request-inlay-hints';
@@ -117,12 +118,14 @@ export const RequestExamples: React.FC<RequestExamplesProps> = ({
     return (
       <div className='flex h-full min-h-0 flex-col'>
         <Card className='rounded-xl'>
-          <div className='flex flex-col items-center gap-3 py-10 text-xs text-muted-foreground'>
-            <span>{t('request.noDataSources')}</span>
-            <Button type='primary' icon={<PlusOutlined />} disabled={disabled} onClick={onSourceAdd}>
-              {t('request.createDataSource')}
-            </Button>
-          </div>
+          <PanelEmpty
+            message={t('request.noDataSources')}
+            action={
+              <Button type='primary' icon={<PlusOutlined />} disabled={disabled} onClick={onSourceAdd}>
+                {t('request.createDataSource')}
+              </Button>
+            }
+          />
         </Card>
       </div>
     );

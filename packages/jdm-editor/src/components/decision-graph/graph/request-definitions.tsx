@@ -4,6 +4,7 @@ import React from 'react';
 import type { RequestDefinition, RequestDefinitionType } from '../../../helpers/request-schema';
 import { useT } from '../../../theming/i18n';
 import { Button, Popconfirm, Select, Tooltip } from '../../primitives';
+import { PanelEmpty } from '../../shared/panel-empty';
 import { BlurCommitInput } from './blur-commit-input';
 
 export type RequestDefinitionsProps = {
@@ -201,9 +202,7 @@ export const RequestDefinitions: React.FC<RequestDefinitionsProps> = ({
         </div>
 
         {rootDefinitions.length === 0 ? (
-          <div className='flex flex-col items-center gap-1 py-10 text-xs text-muted-foreground'>
-            <span>{t('request.noDefinitions')}</span>
-          </div>
+          <PanelEmpty message={t('request.noDefinitions')} />
         ) : (
           rootDefinitions.map((definition) => (
             <DefinitionCard
