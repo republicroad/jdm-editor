@@ -44,10 +44,28 @@
 - 开放问题 1–4 逐项定案
 - 测试补强：行拖拽 → `swapRows` 断言、`__index` 列交互（hover 钮/右键 cursor）用例
 
-## Phase 2（独立决策点）
+## Phase 2（✅ 已裁决 2026-09-26：维持现状，A' 记为推荐备选）
 
-grid `cellSelection`（多选/剪贴板/填充）vs dt cursor（单格 + `commitData`）对齐评估，
-默认不迁，结论回写本档。
+**裁决**：dt 编辑契约维持 `cursor/commitData`（单格焦点 + 逐格提交 + 宿主受控）不变，
+不采纳 grid `cellSelection` 的 range 模式（3–5 天 + CodeMirror 格内文本选区与框选
+手势根本冲突 + 高回归风险）。`cursor/commitData` 记为 dt 的长期编辑契约。
+
+**推荐备选 A'（~1 天，日后按需立项）**：启用 cell-selection 的**单格聚焦模式**——
+
+```ts
+tableLayout: { cellSelection: true, cellSelectionMode: 'single' }
+```
+
+`'single'` 档只留单格聚焦（无范围/剪贴板/填充），回避 CodeMirror 格内文本选区与
+框选手势的根本冲突。真实增益 = **方向键在格间移动焦点的电子表格导航** +
+`aria-activedescendant` 焦点跟踪（dt 现都没有）。落地要点：
+
+1. 焦点变化同步回 dt-store 的 cursor（命令栏/快捷键契约零改动）；
+2. 视觉二选一：grid 焦点铬（`td[data-cell-focused]`）或现有 `getCellClassName`
+   自绘描边，取一去一避免双高亮；
+3. 三点语义差需裁决：grid 按 `(row.id, column.id)` 定位（行重排跟随行），dt cursor
+   按 `(columnId, rowIndex)`（跟随位置）；dt 有 `'id'` 伪列（行号右键 → 行级操作），
+   grid focus 纯格级；grid focus 是内部状态，需桥接回 dt-store 才对宿主可见。
 
 ## Phase 3 清债（✅ 2026-09-26 已完成）
 
@@ -59,4 +77,4 @@ DecisionTableDnd（DndContext + DragOverlay 行预览）退役；style-debt 复�
 ## 明确不动
 
 `TableProps` API、localStorage 列宽键、`TableDefaultCell`（contenteditable 行为）、
-CodeMirror 单元格池、`dt-store` cursor/commitData 契约（Phase 2 决策前）。
+CodeMirror 单元格池、`dt-store` cursor/commitData 契约（Phase 2 已裁决：长期编辑契约）。
