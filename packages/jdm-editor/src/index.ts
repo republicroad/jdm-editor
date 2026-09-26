@@ -1,3 +1,6 @@
+// Ported from seal-editor (ADR-007): entry-first guard polyfill
+// (randomUUID in non-secure contexts) — must precede every component import.
+import './polyfills';
 import './styles/tailwind.css';
 import './styles/tokens.css';
 
