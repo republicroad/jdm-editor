@@ -29,14 +29,15 @@ storybook 交互用例。
 
 详见 [zen-udf-development-plan.md](./zen-udf-development-plan.md) 场景节点路线图节。
 
-- **P1（进行中，4/6）**：
+- **P1（✅ 五域已落地，`zen-udf@0.6.0` 已发 3c2e94cd）**：
   - ✅ 已落地（zen-udf contrib）：`ab.bucket`（FNV-1a 分桶）、`geo.distance`/`geo.fence`
     （Haversine + 射线法围栏）、`validate` 四件（id_card/mobile/uscc/bank_card，合成向量
-    测试）、**`template`**（mustache 子集栈式解析 + DoS 三上限，84b65e78）
+    测试）、`template`（mustache 子集栈式解析 + DoS 三上限，84b65e78）、
+    `dt` 三件（convert/business_day/diff，a758ca9c）；另有 notify 域（f38cc991）、
+    三种调用形态（e97f88e1/65d1903c）、宿主扩展面 ToolCallContext/packChecks（ac782d07）
   - ⬜ **velocity：转移到 saas 平台实现**（宿主裁决 2026-09-17）——对照本仓
     `contrib/rate-window.ts` 的 RateStore 接口细节在 saas/verdict 侧落地，
     **稳定后再开源**回流；本仓不实现
-  - P1 全部落地后发 `zen-udf@0.6.0`（本仓五域：ab/geo/validate/template/dt）
 - P2：durable 任务（act 类异步副作用；journal 待执行队列投影）。
 - P3：LLM 审批流双模式（同内核，节点目录与画布隔离；前置约束 = 引擎无中途暂停，
   两路径决策点已记录）。
@@ -97,15 +98,18 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 | N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
-| HK-09 Excel wizard | 组件重构窗口 |
+| HK-09 Excel wizard | ✅ 2026-09-26 已完成（ReUI data-grid 改造三批：65e63217 地基——TanStack v8→9 统一 + vendored grid 套件；2b7c3101 双对话框改造——dt 行拖拽/启用/逐行控制进 grid 单元格、graph Steps+映射行进 grid，手搓 ExcelDnd/ImportColumnRow 删除；4bc3c2e2 只读数据预览——行虚拟化，映射前可见实际数据行。index.js 累计 +71kB raw，预算校准至 760000/187000） |
 
 ## 排序建议
 
 ```
 ✅ WS1(R2,R3,R5) → ✅ WS3 发版 → ✅ WS2 P1 五域(ab/geo/validate/template/dt)
-→ ⬜ zen-udf 0.6.0 发版（五域全量）→ ⬜ WS4 editor 升级
+→ ✅ zen-udf 0.6.0 发版（五域全量，3c2e94cd）→ ⬜ WS4 editor 升级
 → ⬜ v1.0 checklist 清点 → N3 分叉
-→ 分叉后: P2 durable 设计 → WS1(R4,R6,R7) → P3 双模式设计（N5 ip2region 与 velocity 同在 verdict 侧）
+→ 分叉后: ✅ WS1(R4,R6,R7)（R4/R6/R7 已于 da694165/be972983 落地）
+→ ✅ HK-09 Excel data-grid 改造（65e63217/2b7c3101/4bc3c2e2）
+→ ⬜ 自定义节点函数生态（入口=playground UDF Lab，[plan](./playground-udf-lab-plan.md)）
+→ P2 durable 设计 → P3 双模式设计（N5 ip2region 与 velocity 同在 verdict 侧）
 ```
 
 依据：发版越早，下游（editor/verdict）集成越早开始消化破坏面；R5（docked
