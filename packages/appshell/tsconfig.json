@@ -15,6 +15,7 @@
     "types": ["vite/client", "bun"],
     "paths": {
       "@republicroad/jdm-editor": ["../jdm-editor/src/index.ts"],
+      "#*": ["../jdm-editor/src/*"],
       "react": [
         "./node_modules/@types/react",
         "../../node_modules/@types/react",
