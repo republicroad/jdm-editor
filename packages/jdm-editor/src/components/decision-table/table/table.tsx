@@ -246,6 +246,22 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       ),
     [cursor?.y, activeRuleId, disabled],
   );
+  // 字段级 diff 着色 + cursor 格描边（旧 TableRow td 语义的 cell 级移植）
+  const getCellClassName = useCallback(
+    (rowOriginal: any, columnId: string, rowIndex: number | undefined) => {
+      const fieldStatus = rowOriginal?._diff?.fields?.[columnId]?.status;
+      return clsx(
+        fieldStatus === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
+        fieldStatus === 'added' && 'bg-[var(--seal-color-success-bg)]',
+        fieldStatus === 'removed' && 'bg-[var(--seal-color-error-bg)]',
+        !disabled &&
+          cursor?.x === columnId &&
+          cursor?.y === rowIndex &&
+          'outline-[var(--border)] outline-1 -outline-offset-1',
+      );
+    },
+    [cursor?.x, cursor?.y, disabled],
+  );
 
   const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -265,13 +281,36 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     localStorage.setItem(columnSizeKey(id), JSON.stringify(columnSizing));
   }, [columnSizing]);
 
-  // scrollApiRef 近似实现：行高均值 38px（动态行高的精确换算留 Phase 1，
-  // grid 虚拟器实例的透传口待评估）
+  // scrollApiRef：DOM 精确定位（grid 行携带 data-index；行高随内容变化，
+  // 38px 均值近似不可靠，直接按行元素几何换算）
   useEffect(() => {
     if (!scrollApiRef) return;
+    const topOfRow = (index: number): number | null => {
+      const el = tableContainerRef.current;
+      const row = el?.querySelector<HTMLElement>(`[data-index="${index}"]`);
+      if (!el || !row) return null;
+      return row.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+    };
     setRefValue(scrollApiRef, {
-      getTopRowIndex: () => Math.floor((tableContainerRef.current?.scrollTop ?? 0) / 38),
-      scrollToRowIndex: (index) => tableContainerRef.current?.scrollTo({ top: index * 38, behavior: 'smooth' }),
+      getTopRowIndex: () => {
+        const el = tableContainerRef.current;
+        if (!el) return 0;
+        let top = 0;
+        for (const row of el.querySelectorAll<HTMLElement>('[data-index]')) {
+          const index = Number(row.dataset.index);
+          if (!Number.isFinite(index)) continue;
+          if (row.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop > el.scrollTop) break;
+          top = index;
+        }
+        return top;
+      },
+      scrollToRowIndex: (index) => {
+        const el = tableContainerRef.current;
+        const top = topOfRow(index);
+        if (el && top != null) {
+          el.scrollTo({ top, behavior: 'smooth' });
+        }
+      },
     });
     return () => {
       setRefValue(scrollApiRef, null);
@@ -316,12 +355,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         recordCount={rules.length}
         getRowStatus={getRowStatus}
         getRowClassName={getRowClassName}
+        getCellClassName={getCellClassName}
         tableLayout={{
           columnsResizable: true,
           rowBorder: false,
           cellBorder: true,
           stripped: false,
           rowsDraggable: true,
+          headerSticky: true,
         }}
       >
         <TableContextMenu>

@@ -720,6 +720,12 @@ export interface DataGridProps<TFeatures extends TableFeatures, TData extends ob
    * consumer tracks as edited or invalid.
    */
   getCellStatus?: (row: TData, columnId: string) => DataGridCellStatus | undefined;
+  /**
+   * Optional per-cell class names for stateful tints/outlines the status
+   * corner-mark slot does not cover (field-level diff coloring, transient
+   * cursor highlight, …). Concatenated into the body cell's className.
+   */
+  getCellClassName?: (row: TData, columnId: string, rowIndex: number | undefined) => string | undefined;
   isLoading?: boolean;
   /**
    * Overrides for every built-in string: menu items, aria labels,

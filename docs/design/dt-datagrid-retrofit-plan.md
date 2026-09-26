@@ -13,6 +13,18 @@
 | 2 | 行级语义注入路径 | ✅ 成立。diff 三态 1:1 映射 `getRowStatus`（added→new / modified→dirty / removed→deleted）；cursor 行 + simulator 命中行走 **`getRowClassName` 扩展**（已入 vendored grid，props getter 穿线镜像 getRowStatus，可反哺上游） |
 | 3 | 悬停操作/右键/拖拽挂载点 | ✅ 成立。右键 `TableContextMenu` 包裹层不变；hover 操作迁入 `__index` 列的 cell（`TableRowHoverActions` 锚点不变）；行拖拽换 grid 原生 `DataGridTableDndRows`（落点仍是 `swapRows`），`dt.tsx` 外层 DndContext/DragOverlay 退役 |
 
+## Phase 1 落地记录（2026-09-26）
+
+- **字段级 diff tint**：✅ 已修——vendored grid 新增 `getCellClassName(row, columnId, rowIndex)`
+  （镜像 getRowClassName 穿线），dt 接线字段三态底色 + cursor 格描边（旧 TableRow td 语义移植）。
+- **scrollApiRef**：✅ 已精确化——按行元素几何换算（grid 行带 data-index），替代 38px 均值近似。
+- **headerSticky**：✅ 已开启（tableLayout.headerSticky），浏览器走查双行表头吸顶确认。
+- **行拖拽定案**：grid 原生 DndRows + 把手列，落点 swapRows；index-cell 拖拽语义退役。
+- **像素走查结论**：结构/吸顶/编辑/hover 钮（程序化验证 Add above/below/Remove 全浮现）/
+  浅色主题渲染全部正确。**环境注意事项**：IAB 截图管线在同标签页多次导航后存在陈旧瓦片
+  合成伪影（旧实现 DOM 无把手也会画出把手）——DOM 几何与 elementsFromPoint 命中测试为准，
+  两者已全部验证正确；最终人眼复检建议在本地干净会话进行。
+
 ## 开放问题（Phase 1 定案）
 
 1. **DndRows 与 Virtual 不共存**（vendored 套件现状）：决策表以中小规则表为主，spike 取
