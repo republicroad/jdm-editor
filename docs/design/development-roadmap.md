@@ -98,7 +98,7 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 | N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |
-| HK-09 Excel wizard | ✅ 2026-09-26 已完成（ReUI data-grid 改造三批：65e63217 地基——TanStack v8→9 统一 + vendored grid 套件；2b7c3101 双对话框改造——dt 行拖拽/启用/逐行控制进 grid 单元格、graph Steps+映射行进 grid，手搓 ExcelDnd/ImportColumnRow 删除；4bc3c2e2 只读数据预览——行虚拟化，映射前可见实际数据行。index.js 累计 +71kB raw，预算校准至 760000/187000） |
+| HK-09 Excel wizard | ✅ 2026-09-26 已完成（ReUI data-grid 改造三批：05e1b716 地基——TanStack v8→9 统一 + vendored grid 套件；f3eaeab3 双对话框改造——dt 行拖拽/启用/逐行控制进 grid 单元格、graph Steps+映射行进 grid，手搓 ExcelDnd/ImportColumnRow 删除；a21b4ba6 只读数据预览——行虚拟化，映射前可见实际数据行。index.js 累计 +71kB raw，预算校准至 760000/187000） |
 
 ## 排序建议
 
@@ -106,8 +106,8 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 ✅ WS1(R2,R3,R5) → ✅ WS3 发版 → ✅ WS2 P1 五域(ab/geo/validate/template/dt)
 → ✅ zen-udf 0.6.0 发版（五域全量，3c2e94cd）→ ⬜ WS4 editor 升级
 → ⬜ v1.0 checklist 清点 → N3 分叉
-→ 分叉后: ✅ WS1(R4,R6,R7)（R4/R6/R7 已于 da694165/be972983 落地）
-→ ✅ HK-09 Excel data-grid 改造（65e63217/2b7c3101/4bc3c2e2）
+→ 分叉后: ✅ WS1(R4,R6,R7)（R4/R6/R7 已于 18e7c53e/05980f16 落地）
+→ ✅ HK-09 Excel data-grid 改造（05e1b716/f3eaeab3/a21b4ba6）
 → ⬜ 自定义节点函数生态（入口=playground UDF Lab，[plan](./playground-udf-lab-plan.md)）
 → P2 durable 设计 → P3 双模式设计（N5 ip2region 与 velocity 同在 verdict 侧）
 ```

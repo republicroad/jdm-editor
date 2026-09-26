@@ -1,14 +1,14 @@
 # ReUI 改造参考（供 seal-editor 移植/对照）：dt-command-bar · switch 节点面板 · function 调试器
 
 - 日期：2026-09-26
-- 来源：jdm-editor 仓 `reui` 分支（HEAD `69e93e4a`）
+- 来源：jdm-editor 仓 `reui` 分支（HEAD `5818f085`）
 - 用途：seal-editor 会话做三区改造对照/移植时的提交级参考。seal-editor 侧已有等价功能的，
   本文可作为实现差异的对照清单（细节差异见各节"对照点"）。
 
 ## 0. 移植纪律（两仓既定先例）
 
 1. **按意图移植，不 cherry-pick**：下列提交全部早于 jdm-editor 的品牌清扫
-   （`00c4360c`），内容中 token/类名为 `grl-*`。移植时直接以 `seal-*` 落地，
+   （`223a99c5`），内容中 token/类名为 `grl-*`。移植时直接以 `seal-*` 落地，
    勿原样照搬再二次替换（R4/R6/R7 反向移植即此做法）。
 2. 提交号用于在 jdm-editor 仓定位 diff（`git show <hash>`），不代表 seal-editor
    侧应保留其提交消息。
@@ -49,7 +49,7 @@
 
 | 提交 | 内容 | 文件 |
 | --- | --- | --- |
-| `b2b6039b` feat(function): IoInspector — collapsible Input/Output inspection panel | 控制台新增可折叠 Input/Output 检查区 | 新建 `function/io-inspector.tsx`（80 行）；`function/function-debugger.tsx`（+2 接线） |
+| `dc78930b` feat(function): IoInspector — collapsible Input/Output inspection panel | 控制台新增可折叠 Input/Output 检查区 | 新建 `function/io-inspector.tsx`（80 行）；`function/function-debugger.tsx`（+2 接线） |
 
 **关键实现语义（对照点）**：
 
@@ -65,5 +65,5 @@
 
 ## 验证基线
 
-三区改造落地时的门禁基线：kernel 447/447、tsc 干净（`b2b6039b` 时点）；
+三区改造落地时的门禁基线：kernel 447/447、tsc 干净（`dc78930b` 时点）；
 当前仓门禁水位：kernel 459/459、storybook 76/76。
