@@ -49,11 +49,12 @@
 grid `cellSelection`（多选/剪贴板/填充）vs dt cursor（单格 + `commitData`）对齐评估，
 默认不迁，结论回写本档。
 
-## Phase 3 清债（0.5 天）
+## Phase 3 清债（✅ 2026-09-26 已完成）
 
-退役件删除：`table-row.tsx`（手绘行渲染 + 手搓虚拟化接线，含 ResizeObserver 流程）、
-`table-head-row.tsx`（72px 前导列由 `__index` 列头自然承担）、`dt.tsx` 外层
-DndContext/DragOverlay；`!important` 债务复盘；size 预算复核。
+✅ 已完成：`table-row.tsx`、`table-head-row.tsx` 删除；`dt.tsx` 外层
+DecisionTableDnd（DndContext + DragOverlay 行预览）退役；style-debt 复盘
+（12/18 全部为 xyflow/monaco 关联，dt 侧无可烧项）；size 复核：index.js 累计
+**-7.5kB** vs 换装前基线（745.1 → 737.7kB）——删手搓代码超过新增 grid 组合。
 
 ## 明确不动
 
