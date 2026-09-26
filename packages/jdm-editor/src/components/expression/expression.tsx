@@ -2,12 +2,13 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import { Variable, VariableType } from '@gorules/zen-engine-wasm';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useEffect, useRef, useState } from 'react';
+import { P, match } from 'ts-pattern';
 
 import { DragOverlayCard, OverlayChip, OverlayIndexChip } from '../../helpers/dnd-overlay';
 import { isWasmAvailable } from '../../helpers/wasm';
 import { SafeBoundary } from '../safe-boundary';
 import type { ExpressionDebug } from './context/expression-store.context';
-import { ExpressionStoreProvider, useExpressionStoreRaw } from './context/expression-store.context';
+import { ExpressionStoreProvider, useExpressionStore, useExpressionStoreRaw } from './context/expression-store.context';
 import { ExpressionCommandBar } from './expression-command-bar';
 import type { ExpressionControllerProps } from './expression-controller';
 import { ExpressionController } from './expression-controller';
@@ -34,7 +35,7 @@ export const Expression: React.FC<ExpressionProps> = ({ debug, hideCommandBar, i
           <ExpressionStoreProvider>
             <ExpressionDnd>
               <ExpressionController {...props} />
-              {!hideCommandBar && <ExpressionCommandBar />}
+              {!hideCommandBar && <ExpressionCommandBarWithStore />}
               <ExpressionList />
               <SimulateDataSync debug={debug} inputVariableType={inputVariableType} />
             </ExpressionDnd>
@@ -42,6 +43,26 @@ export const Expression: React.FC<ExpressionProps> = ({ debug, hideCommandBar, i
         )}
       </div>
     </SafeBoundary>
+  );
+};
+
+/** Wires the decision-table expression store into the shared command bar. */
+const ExpressionCommandBarWithStore: React.FC = () => {
+  const expressionStore = useExpressionStoreRaw();
+  const debugIndex = useExpressionStore((state) => state.debugIndex);
+  const traceCount = useExpressionStore((state) =>
+    match(state.debug?.trace?.traceData)
+      .with(P.array(), (some) => some.length)
+      .otherwise(() => null),
+  );
+
+  return (
+    <ExpressionCommandBar
+      className={'p-[7px] box-border border-b border-[var(--border)]'}
+      debugIndex={debugIndex}
+      traceCount={traceCount}
+      onDebugIndexChange={(debugIndex: number) => expressionStore.setState({ debugIndex })}
+    />
   );
 };
 

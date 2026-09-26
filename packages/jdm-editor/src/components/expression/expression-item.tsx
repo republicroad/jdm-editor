@@ -27,12 +27,14 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   const [isFocused, setIsFocused] = useState(false);
   const t = useT();
   const expressionRef = useRef<HTMLDivElement | null>(null);
-  const { updateRow, removeRow, disabled, permission } = useExpressionStore(
-    ({ updateRow, removeRow, disabled, permission }) => ({
+  const { updateRow, removeRow, disabled, permission, addRowAbove, addRowBelow } = useExpressionStore(
+    ({ updateRow, removeRow, disabled, permission, addRowAbove, addRowBelow }) => ({
       updateRow,
       removeRow,
       disabled,
       permission,
+      addRowAbove,
+      addRowBelow,
     }),
   );
 
@@ -115,7 +117,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         </div>
       </div>
       <div className='box-border h-full border-r border-[var(--seal-color-border-fade)]'>
-        <ExpressionItemContextMenu index={index}>
+        <ExpressionItemContextMenu
+          index={index}
+          disabled={disabled}
+          addRowAbove={addRowAbove}
+          addRowBelow={addRowBelow}
+        >
           <DiffAutosizeTextArea
             noStyle
             className='min-h-full py-3 px-3 text-[13px] leading-[1.5em] [font-family:var(--mono-font-family)] focus:shadow-none'
@@ -130,7 +137,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         </ExpressionItemContextMenu>
       </div>
       <div className='relative box-border h-full text-[13px]'>
-        <ExpressionItemContextMenu index={index}>
+        <ExpressionItemContextMenu
+          index={index}
+          disabled={disabled}
+          addRowAbove={addRowAbove}
+          addRowBelow={addRowBelow}
+        >
           <div>
             <DiffCodeEditor
               // Consolidated on --ce-* tokens (HK-13): geometry now flows through

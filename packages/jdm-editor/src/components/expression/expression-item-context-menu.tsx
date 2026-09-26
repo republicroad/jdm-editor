@@ -3,19 +3,28 @@ import React from 'react';
 import { useT } from '../../theming/i18n';
 import { Dropdown } from '../primitives';
 import { SpacedText } from '../spaced-text';
-import { useExpressionStore } from './context/expression-store.context';
 
 type ExpressionItemContextMenuProps = {
   index: number;
+  disabled?: boolean;
+  addRowAbove: (index: number) => void;
+  addRowBelow: (index: number) => void;
   children: React.ReactNode;
 };
 
-export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps> = ({ index, children }) => {
-  const { addRowAbove, addRowBelow, disabled } = useExpressionStore(({ addRowBelow, addRowAbove, disabled }) => ({
-    addRowBelow,
-    addRowAbove,
-    disabled,
-  }));
+/**
+ * Store-agnostic context menu shared by the decision-table and
+ * custom-function-table expression lists. The two expression stores are
+ * separate modules with divergent entry types, so callers wire their own
+ * store actions through props instead of this component reading a context.
+ */
+export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps> = ({
+  index,
+  disabled,
+  addRowAbove,
+  addRowBelow,
+  children,
+}) => {
   const t = useT();
 
   return (

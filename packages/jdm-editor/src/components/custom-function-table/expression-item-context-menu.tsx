@@ -1,8 +1,6 @@
 import React from 'react';
 
-import { useT } from '../../theming/i18n';
-import { Dropdown } from '../primitives';
-import { SpacedText } from '../spaced-text';
+import { ExpressionItemContextMenu as SharedContextMenu } from '../expression/expression-item-context-menu';
 import { useExpressionStore } from './context/expression-store.context';
 
 type ExpressionItemContextMenuProps = {
@@ -10,8 +8,8 @@ type ExpressionItemContextMenuProps = {
   children: React.ReactNode;
 };
 
+/** Thin adapter: wires the custom-function expression store into the shared menu. */
 export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps> = ({ index, children }) => {
-  const t = useT();
   const { addRowAbove, addRowBelow, disabled } = useExpressionStore(({ addRowBelow, addRowAbove, disabled }) => ({
     addRowBelow,
     addRowAbove,
@@ -19,32 +17,8 @@ export const ExpressionItemContextMenu: React.FC<ExpressionItemContextMenuProps>
   }));
 
   return (
-    <Dropdown
-      destroyPopupOnHide
-      transitionName=''
-      disabled={disabled}
-      overlayStyle={{ minWidth: 200 }}
-      trigger={['contextMenu']}
-      menu={{
-        items: [
-          {
-            key: 'addRowAbove',
-            label: <SpacedText left={t('expression.addRowAbove')} />,
-            onClick: () => {
-              addRowAbove(index);
-            },
-          },
-          {
-            key: 'addRowBelow',
-            label: <SpacedText left={t('expression.addRowBelow')} />,
-            onClick: () => {
-              addRowBelow(index);
-            },
-          },
-        ],
-      }}
-    >
+    <SharedContextMenu index={index} disabled={disabled} addRowAbove={addRowAbove} addRowBelow={addRowBelow}>
       {children}
-    </Dropdown>
+    </SharedContextMenu>
   );
 };

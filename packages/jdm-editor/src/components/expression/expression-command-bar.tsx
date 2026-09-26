@@ -1,18 +1,29 @@
 import React, { useMemo } from 'react';
-import { P, match } from 'ts-pattern';
 
+import { useT } from '../../theming/i18n';
 import { Select, Typography } from '../primitives';
 import { Stack } from '../stack';
-import { useExpressionStoreRaw } from './context/expression-store.context';
 
-export const ExpressionCommandBar: React.FC = () => {
-  const expressionStore = useExpressionStoreRaw();
-  const debugIndex = expressionStore((state) => state.debugIndex);
-  const traceCount = expressionStore((state) =>
-    match(state.debug?.trace?.traceData)
-      .with(P.array(), (some) => some.length)
-      .otherwise(() => null),
-  );
+type ExpressionCommandBarProps = {
+  debugIndex: number;
+  /** null/undefined hides the bar entirely — no trace has been recorded yet */
+  traceCount: number | null;
+  onDebugIndexChange: (index: number) => void;
+  className?: string;
+};
+
+/**
+ * Presentational trace-index picker shared by the decision-table and
+ * custom-function-table expression surfaces. Store-agnostic: callers read
+ * their own expression store and pass the debug slice in.
+ */
+export const ExpressionCommandBar: React.FC<ExpressionCommandBarProps> = ({
+  debugIndex,
+  traceCount,
+  onDebugIndexChange,
+  className,
+}) => {
+  const t = useT();
 
   const traceIndexOptions = useMemo(() => {
     if (!traceCount) {
@@ -23,29 +34,24 @@ export const ExpressionCommandBar: React.FC = () => {
       label: String(i),
       value: i,
     }));
-  }, [debugIndex, traceCount]);
+  }, [traceCount]);
 
   if (!traceIndexOptions) {
     return null;
   }
 
   return (
-    <Stack
-      horizontal
-      horizontalAlign={'space-between'}
-      verticalAlign={'center'}
-      className={'p-[7px] box-border border-b border-[var(--border)]'}
-    >
+    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={className}>
       <Stack gap={8} horizontal className='w-full' />
       {traceIndexOptions && (
         <Stack horizontal verticalAlign='center' horizontalAlign='end'>
-          <Typography.Text style={{ fontSize: 12 }}>Simulation index:</Typography.Text>
+          <Typography.Text style={{ fontSize: 12 }}>{t('dt.toolbar.simulationIndex')}</Typography.Text>
           <Select
             size='small'
             style={{ fontSize: 12, minWidth: 60 }}
             options={traceIndexOptions}
-            onChange={(debugIndex: number) => expressionStore.setState({ debugIndex })}
-            value={traceIndexOptions.some((t) => t.value === debugIndex) ? debugIndex : 0}
+            onChange={onDebugIndexChange}
+            value={traceIndexOptions.some((option) => option.value === debugIndex) ? debugIndex : 0}
           />
         </Stack>
       )}
