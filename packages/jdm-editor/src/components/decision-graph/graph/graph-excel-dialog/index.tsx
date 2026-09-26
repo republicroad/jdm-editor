@@ -21,6 +21,7 @@ import {
   Tooltip,
   Typography,
 } from '../../../primitives';
+import { ExcelPreviewGrid } from '../../../shared/excel-preview-grid';
 import { assembleMergedData, buildAutoSelection, buildMergedItems } from './merge-data';
 import type { GraphExcelDialogProps, ItemValue, SelectedItems } from './types';
 
@@ -394,6 +395,15 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
           </DataGridContainer>
         </DataGrid>
       </div>
+      {/* WS2-B3：当前 sheet 的实际数据行预览（行虚拟化） */}
+      {excelData?.[currentStep] && (
+        <div className='pt-2'>
+          <Typography.Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+            Preview
+          </Typography.Text>
+          <ExcelPreviewGrid sheet={excelData[currentStep]} />
+        </div>
+      )}
       <div style={{ marginTop: 24 }}>
         {currentStep < (excelData || []).length - 1 && (
           <Button

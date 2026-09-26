@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
 import { useT } from '../../../../theming/i18n';
 import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
+import { ExcelPreviewGrid } from '../../../shared/excel-preview-grid';
 import { useDecisionTableDialog } from '../../context/dt-dialog.context';
 import { useDecisionTableState } from '../../context/dt-store.context';
 import { InputFieldEdit } from '../input-field-edit';
@@ -513,6 +514,20 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
             />
           </div>
         </div>
+
+        {/* Preview Section — WS2-B3：映射前先看到实际数据行 */}
+        {spreadSheetData && (
+          <>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 8px' }}
+            >
+              <Typography.Text strong style={{ fontSize: 13 }}>
+                Preview
+              </Typography.Text>
+            </div>
+            <ExcelPreviewGrid sheet={spreadSheetData} />
+          </>
+        )}
       </div>
     </Modal>
   );
