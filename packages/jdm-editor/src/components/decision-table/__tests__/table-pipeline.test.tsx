@@ -59,7 +59,7 @@ const mountCell = (permission?: DecisionTablePermission, opts: { disabled?: bool
 };
 
 const editor = (editable: boolean) =>
-  document.querySelector<HTMLElement>(`[data-cell-wrapper] .grl-textarea-input[contenteditable="${editable}"]`);
+  document.querySelector<HTMLElement>(`[data-cell-wrapper] .seal-textarea-input[contenteditable="${editable}"]`);
 
 /**
  * jsdom + React 19 event delegation does not deliver synthesized `input`

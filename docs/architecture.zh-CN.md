@@ -16,7 +16,7 @@ JDM Editor 是一个 React 组件库,用于构建与编辑 **JDM(JSON Decision M
 - **Store 优先的状态管理**:zustand(配合 immer)持有编辑器状态;视图库(reactflow、TanStack Table)
   严格作为视图层使用。
 - **语言智能在 WASM**:表达式校验、AST、补全、类型推断均来自编译为 WASM 的 Rust `zen-expression` crate。
-- **样式自包含**:SCSS + CSS 自定义属性(`--grl-*`),运行时切换亮/暗主题。
+- **样式自包含**:SCSS + CSS 自定义属性(`--seal-*`),运行时切换亮/暗主题。
 
 ## 2. 仓库结构
 
@@ -144,9 +144,9 @@ store/规格中的类型推断。
 1. 用本地 `App` 原语(`components/primitives.tsx`,基于 shadcn/ui `AlertDialog`)包裹子组件,
    提供命令式 `modal.confirm`;`mode: 'light' | 'dark'` 选择内置亮/暗两套静态 token 调色板。
 2. 将用户 token 覆写合并进调色板,注入 `:root` `<style>` 块,暴露约 40 个
-   **`--grl-*` CSS 自定义属性**(颜色、字体、圆角、决策表专属色)。
+   **`--seal-*` CSS 自定义属性**(颜色、字体、圆角、决策表专属色)。
 3. 全部组件 SCSS(`src/` 下 10 个文件)只消费这些变量——即主题层早已与具体 UI 库实现解耦,
-   收敛于 `--grl-*` 契约,该契约同时承载 Tailwind 类消费的 shadcn/ui token。
+   收敛于 `--seal-*` 契约,该契约同时承载 Tailwind 类消费的 shadcn/ui token。
 4. 同文件还托管 `DictionaryProvider`/`useDictionaries`,为下拉框提供枚举 label/value 字典。
 
 ## 7. 构建、测试与发布
@@ -177,7 +177,7 @@ GitHub 工作流(`.github/workflows/`):
 
 - 编译包:`main/module/types → dist/`,导出 `.`、`./dist/schema`、`./dist/style.css`。
 - 运行时:基于 React 19 开发与验证;Peer 依赖保持 `react >= 18`、`react-dom >= 18`(由消费者冒烟脚本在 React 18/19 双版本下验证)。
-- 宿主接入约定:消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Radix Dialog/Alert/Toaster 等逃逸出 `.grl-root` 作用域的元素)。
+- 宿主接入约定:消费方在最外层容器挂 `seal-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类与 Tailwind 工具类天然胜出,不会泄漏到宿主文档。`ui/button.tsx` 另带基类归一化作为兜底,覆盖 portal 到 body 的弹层按钮(Radix Dialog/Alert/Toaster 等逃逸出 `.seal-root` 作用域的元素)。
 - 消费方接入说明(Monaco worker 自托管)见根 README。
 
 ### 8.1 导入契约(方案 D)

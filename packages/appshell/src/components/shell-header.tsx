@@ -50,7 +50,7 @@ export const ShellHeader: React.FC<ShellHeaderProps> = ({ graph, disabled, graph
     <header
       className={
         className ??
-        'flex h-12 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--grl-color-bg-container)] px-4'
+        'flex h-12 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--seal-color-bg-container)] px-4'
       }
     >
       <div className='flex min-w-0 items-center gap-3'>{slots.left?.(ctx)}</div>

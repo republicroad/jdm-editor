@@ -2,7 +2,7 @@ import { cn } from '#lib/utils';
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
   return <PopoverPrimitive.Root data-slot='popover' {...props} />;
@@ -21,14 +21,14 @@ function PopoverContent({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Popup> &
   Pick<PopoverPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <PopoverPrimitive.Portal container={grlContainer}>
+    <PopoverPrimitive.Portal container={sealContainer}>
       <PopoverPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
         <PopoverPrimitive.Popup
           data-slot='popover-content'
           className={cn(
-            // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+            // box-border: portaled nodes live outside .seal-root preflight scope (HK-14).
             'box-border z-50 w-fit min-w-[18rem] origin-(--transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
             className,
           )}

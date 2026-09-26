@@ -14,7 +14,7 @@ export const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'rounded-(--grl-border-radius) border bg-card text-card-foreground shadow-xs',
+        'rounded-(--seal-border-radius) border bg-card text-card-foreground shadow-xs',
         hoverable && 'cursor-pointer transition-colors hover:border-primary/50',
         className,
       )}

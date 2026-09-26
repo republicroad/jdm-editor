@@ -109,7 +109,7 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
       style={
         {
           'height': '100%',
-          '--color-text': 'var(--grl-color-text-base)',
+          '--color-text': 'var(--seal-color-text-base)',
           '--color-background-elevated': 'var(--card)',
           '--color-border': 'var(--border)',
           '--line-height': 1.5,
@@ -119,9 +119,9 @@ export const TabJsonSchema: React.FC<TabJsonSchemaProps> = ({ id, type = 'input'
       <PanelGroup className='flex-1' direction='horizontal' autoSaveId={`jdm-editor:${type}:schema:layout`}>
         <div className='h-full w-full'>
           <div className='flex h-full flex-col overflow-hidden bg-[var(--card)]'>
-            <div className='flex shrink-0 items-center border-b border-b-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'>
+            <div className='flex shrink-0 items-center border-b border-b-[var(--border)] bg-[var(--seal-color-primary-bg-fade)]'>
               <Tabs
-                rootClassName='grl-inline-tabs'
+                rootClassName='seal-inline-tabs'
                 size='small'
                 style={{ width: '100%' }}
                 items={Object.values(TabKey).map((t) => ({

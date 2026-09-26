@@ -9,17 +9,17 @@
 ### 现状（已核实）
 
 - kernel 画布在 `graph.tsx:347` 的 `<div className="react-flow">` 内渲染 `<ReactFlow>`；
-- xyflow 外观目前靠 `styles/tailwind.css` 的 `.grl-dg .react-flow__*` 逐元素手写（handle/edge-interaction 等），
+- xyflow 外观目前靠 `styles/tailwind.css` 的 `.seal-dg .react-flow__*` 逐元素手写（handle/edge-interaction 等），
   **没有 `--xy-*` 变量层**——controls/minimap/连线/选区/归因底色全部是 xyflow 出厂默认，不随主题；
 - kernel token（`styles/tokens.css`）与 FLOW_THEME 的映射目标**同名同体系**：
-  `--card/--primary/--muted-foreground/--border`（别名到 `--grl-color-*`，含暗色块）。
+  `--card/--primary/--muted-foreground/--border`（别名到 `--seal-color-*`，含暗色块）。
 
 ### 改动
 
 1. 在 kernel 新增常量模块（建议 `components/decision-graph/graph/xyflow-theme.ts`），
    承载 FLOW_THEME 的 22 条 Tailwind 任意属性类（flow-1 的 flow-canvas.tsx 原样移植，注释注明出处）；
 2. 应用于 `graph.tsx` 的画布 wrapper：`<div className={clsx(['react-flow'], XYFLOW_THEME)}>`；
-3. 保留既有 `.grl-dg .react-flow__*` 覆盖——变量层给默认色，元素级 CSS 仍可覆盖具体部件，二者正交；
+3. 保留既有 `.seal-dg .react-flow__*` 覆盖——变量层给默认色，元素级 CSS 仍可覆盖具体部件，二者正交；
 4. 归因底色 `[--xy-attribution-background-color:transparent]` 一并吸收（宿主传 `proOptions` 隐藏归因时不生效也无害）。
 
 ### 验收

@@ -84,7 +84,7 @@ describe('mapToolbarSlots', () => {
 describe('SkinnedDecisionGraph', () => {
   it('无皮肤：行为等价直渲染 DecisionGraph（无注入锚点）', async () => {
     const { container } = renderSkinned();
-    await waitFor(() => expect(container.querySelector('.grl-graph, .react-flow')).toBeTruthy());
+    await waitFor(() => expect(container.querySelector('.seal-graph, .react-flow')).toBeTruthy());
     expect(container.querySelector('[aria-label="toolbar-items"]')).toBeNull();
   });
 

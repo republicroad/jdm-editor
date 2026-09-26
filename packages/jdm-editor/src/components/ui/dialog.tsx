@@ -6,7 +6,7 @@ import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot='dialog' {...props} />;
@@ -17,8 +17,8 @@ function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive
 }
 
 function DialogPortal({ ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  const grlContainer = useGrlPortalContainer();
-  return <DialogPrimitive.Portal data-slot='dialog-portal' container={grlContainer} {...props} />;
+  const sealContainer = useSealPortalContainer();
+  return <DialogPrimitive.Portal data-slot='dialog-portal' container={sealContainer} {...props} />;
 }
 
 function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.Close>) {
@@ -52,7 +52,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot='dialog-content'
         className={cn(
-          // box-border: portal mounts under <body>, outside .grl-root, so
+          // box-border: portal mounts under <body>, outside .seal-root, so
           // the scoped preflight's border-box never applies here (HK-14).
           'box-border fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none transition-[opacity,transform] duration-200 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 sm:max-w-lg',
           className,

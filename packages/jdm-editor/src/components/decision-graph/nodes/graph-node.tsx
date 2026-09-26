@@ -119,7 +119,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
 
     return (
       <div
-        className={clsx('grl-graph-node', className)}
+        className={clsx('seal-graph-node', className)}
         style={{ minWidth: 220, maxWidth: 220 }}
         ref={ref}
         onMouseEnter={() => setHovered(true)}
@@ -134,7 +134,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
       >
         {/* WS1-R2：悬停/选中显现的快捷工具栏（flow-1 node toolbar 模式） */}
         <NodeToolbar isVisible={isSelected || hovered} position={Position.Top} offset={10}>
-          <div className='nodrag nopan flex items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--grl-color-bg-container)] p-0.5 shadow-md'>
+          <div className='nodrag nopan flex items-center gap-0.5 rounded-md border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-0.5 shadow-md'>
             {Settings && (
               <Button
                 type='text'
@@ -175,7 +175,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         </NodeToolbar>
         {handleLeft && (
           <Handle
-            className={clsx('grl-graph-node__handle-left', compactMode && 'compact')}
+            className={clsx('seal-graph-node__handle-left', compactMode && 'compact')}
             type='target'
             position={Position.Left}
             {...(typeof handleLeft !== 'boolean' ? handleLeft : {})}
@@ -227,7 +227,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         />
         {handleRight && (
           <Handle
-            className={clsx('grl-graph-node__handle-right', compactMode && 'compact')}
+            className={clsx('seal-graph-node__handle-right', compactMode && 'compact')}
             type='source'
             position={Position.Right}
             {...(typeof handleRight !== 'boolean' ? handleRight : {})}

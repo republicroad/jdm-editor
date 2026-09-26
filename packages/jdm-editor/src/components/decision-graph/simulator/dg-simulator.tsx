@@ -62,7 +62,7 @@ export const GraphSimulator: React.FC<GraphSimulatorProps> = ({
 
   return (
     <PanelGroup
-      className='h-full w-full bg-[var(--grl-color-primary-bg-fade)]'
+      className='h-full w-full bg-[var(--seal-color-primary-bg-fade)]'
       direction='horizontal'
       autoSaveId='jdm-editor:simulator:layout'
     >

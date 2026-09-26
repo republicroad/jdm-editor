@@ -8,8 +8,8 @@ export const GraphCard: React.FC<GraphCardProps> = ({ className, ...props }) => 
     <div
       className={cn(
         'relative flex flex-col border border-[var(--border)] bg-[var(--node-background)]',
-        'cursor-grab rounded-[var(--node-border-radius)] [transition:var(--grl-transition)]',
-        'group-hover/dn:border-[var(--grl-color-border-hover)]',
+        'cursor-grab rounded-[var(--node-border-radius)] [transition:var(--seal-transition)]',
+        'group-hover/dn:border-[var(--seal-color-border-hover)]',
         className,
       )}
       {...props}

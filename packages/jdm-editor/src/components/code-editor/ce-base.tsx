@@ -299,7 +299,7 @@ export const CodeEditorBase = React.forwardRef<CodeEditorBaseRef, CodeEditorBase
       <div
         ref={composeRefs(container, ref)}
         className={clsx(
-          'grl-ce',
+          'seal-ce',
           maxRows && !fullHeight && 'max-rows',
           fullHeight && 'full-height',
           noStyle && 'no-style',

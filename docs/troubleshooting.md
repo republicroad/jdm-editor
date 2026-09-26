@@ -49,7 +49,7 @@ The story wrapped `<DecisionTable tableHeight='100%'>` inside
 ```
 #storybook-root      height: unset
 └─ wrapper div       height: 100% of auto  → auto
-   └─ .grl-dt        (no height)
+   └─ .seal-dt        (no height)
       └─ container   maxHeight: '100%' against an auto-height parent
                      → percentage resolves to none → NO constraint
 ```
@@ -240,7 +240,7 @@ unaffected.
    `DiffAutosizeTextArea`. In `diff-text-area.tsx`, `noStyle` is destructured
    out of props but **never forwarded** to `AutosizeTextArea` in the
    non-diff path (line 42). So `AutosizeTextArea` always receives the
-   `grl-textarea-input` class, which adds `border: 1px solid`,
+   `seal-textarea-input` class, which adds `border: 1px solid`,
    `padding: 4px 11px`, `font-size: 14px` — different dimensions from the
    old SCSS.
 3. **Compare the two bugs.** The `noStyle` passthrough was one problem (wrong
@@ -254,7 +254,7 @@ Two layered issues:
 
 | Layer | Problem |
 | --- | --- |
-| `diff-text-area.tsx:42` | `noStyle` destructured but not forwarded to `AutosizeTextArea` in non-diff path → `grl-textarea-input` always applied |
+| `diff-text-area.tsx:42` | `noStyle` destructured but not forwarded to `AutosizeTextArea` in non-diff path → `seal-textarea-input` always applied |
 | `expression-item.tsx:117` | Even with `noStyle` working, the bare `contentEditable` has no padding/height/font styling → collapses on focus |
 
 The old SCSS `[contenteditable]` rule provided all sizing. The Tailwind
@@ -267,8 +267,8 @@ was broken, so no replacement styling was ever applied.
 passthrough, squashed into `d7a89d6`):
 
 - `AutosizeTextAreaProps` gains `noStyle?: boolean`.
-- `AutosizeTextArea` conditionally applies `grl-textarea-input`:
-  `className={clsx(!noStyle && 'grl-textarea-input', className)}`.
+- `AutosizeTextArea` conditionally applies `seal-textarea-input`:
+  `className={clsx(!noStyle && 'seal-textarea-input', className)}`.
 - `DiffAutosizeTextArea` non-diff path forwards `noStyle` to
   `AutosizeTextArea`.
 
@@ -316,7 +316,7 @@ This restores the old SCSS dimensions as Tailwind utilities:
 
 ## 4. Map Excel Data panel: row Edit/Delete buttons dead + dialog overflows both viewport edges
 
-**Date:** 2026-08 · **Fixed in:** working tree (`primitives/popover.tsx`, `primitives/popconfirm.tsx`, `primitives/modal.tsx`) · Registered as **GRL-STYLE-HACK[HK-14]**
+**Date:** 2026-08 · **Fixed in:** working tree (`primitives/popover.tsx`, `primitives/popconfirm.tsx`, `primitives/modal.tsx`) · Registered as **SEAL-STYLE-HACK[HK-14]**
 
 ### Symptom
 
@@ -357,7 +357,7 @@ Two independent migration-era defects:
 | Defect | Mechanism |
 | --- | --- |
 | Dead triggers | Radix `asChild` (`Slot`) clones its props/handlers onto its **direct child only**. Both rows wrapped their Buttons as `<TooltipTrigger asChild><Button/></Tooltip>` inside `<PopoverTrigger asChild>` / `<AlertDialogTrigger asChild>`. `Tooltip.Root` is a context provider — no DOM node, no event forwarding — so the outer Slot's cloned handler landed on nothing that could receive events. |
-| Dialog overflow | Radix DialogContent is fixed-centered with no height contract. Tall content overflowed both viewport edges with no scrolling. On top of that: the fix's `maxHeight` initially *didn't bind*, because **Radix portals mount under `<body>`, outside `.grl-root`**, so the library's scoped mini-preflight (`:where(*) { box-sizing: border-box }`) never reaches portaled nodes and the shadcn template defaults back to UA `content-box` — `maxHeight` excluded the dialog's own padding (+48px). |
+| Dialog overflow | Radix DialogContent is fixed-centered with no height contract. Tall content overflowed both viewport edges with no scrolling. On top of that: the fix's `maxHeight` initially *didn't bind*, because **Radix portals mount under `<body>`, outside `.seal-root`**, so the library's scoped mini-preflight (`:where(*) { box-sizing: border-box }`) never reaches portaled nodes and the shadcn template defaults back to UA `content-box` — `maxHeight` excluded the dialog's own padding (+48px). |
 
 ### Fix
 
@@ -391,10 +391,10 @@ Two independent migration-era defects:
   (Tooltip.Root, etc.) between the Slot and the Button silently eats
   handlers. Library shims should guarantee a DOM element themselves
   (that's what F1/F2 do) instead of trusting call sites.
-- **Portaled nodes live outside `.grl-root`.** All library styling that the
+- **Portaled nodes live outside `.seal-root`.** All library styling that the
   scoped preflight normally provides (box-sizing first) must be re-declared
   explicitly inside portaled primitives — or portals must target a
-  container carrying `.grl-root` (roadmap §P3 makes this systemic).
+  container carrying `.seal-root` (roadmap §P3 makes this systemic).
 - **Dialog needs a height contract, not page scroll.** Fixed-centered
   overlays clip both ends simultaneously; cap them and scroll the body.
 - **Isolation ladder saves hours:** default-trigger works vs custom-trigger
@@ -416,7 +416,7 @@ introduced (see also Appendix A of `shadcn-theming-roadmap.zh-CN.md`):
 
 ## 6. consumer-smoke host build fails: code-split chunk deleted by the cleanup script
 
-**Date:** 2026-08 · **Fix location:** `scripts/clean-dist.mjs` · Not registered as GRL-STYLE-HACK (build issue)
+**Date:** 2026-08 · **Fix location:** `scripts/clean-dist.mjs` · Not registered as SEAL-STYLE-HACK (build issue)
 
 ### Symptom
 
@@ -462,7 +462,7 @@ removes only non-artifact `.d.ts` files. Hashed pointed chunks survive.
 
 ## 7. Consumer host build fails: `Invalid qualified rule` from lightningcss on dist/style.css
 
-**Date:** 2026-09 · **Fix location:** `src/styles/custom-function.css` · Not a GRL-STYLE-HACK (build/tooling issue)
+**Date:** 2026-09 · **Fix location:** `src/styles/custom-function.css` · Not a SEAL-STYLE-HACK (build/tooling issue)
 
 ### Symptom
 

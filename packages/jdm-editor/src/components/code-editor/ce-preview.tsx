@@ -49,7 +49,7 @@ export const CodeEditorPreview: React.FC<CodeEditorPreviewProps> = ({
       <Typography.Text style={{ fontSize: 12, display: 'block' }} type='secondary'>
         {preview?.type === 'initial' ? 'Based on simulation data' : 'Based on live calculation'}
       </Typography.Text>
-      <div className='grl-ce-preview'>
+      <div className='seal-ce-preview'>
         {(preview?.type === 'success' || preview?.type === 'initial') && (
           <CodeEditor value={preview.value} disabled noStyle maxRows={3} />
         )}

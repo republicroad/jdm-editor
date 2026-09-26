@@ -23,7 +23,7 @@ export const DiffIcon: React.FC<{
       <PlusSquareOutlined
         className={className}
         style={{
-          color: 'var(--grl-color-success)',
+          color: 'var(--seal-color-success)',
           ...(style || {}),
         }}
       />
@@ -34,7 +34,7 @@ export const DiffIcon: React.FC<{
         style={{
           width: style?.fontSize ?? 14,
           height: style?.fontSize ?? 14,
-          border: '1.5px solid var(--grl-color-warning)',
+          border: '1.5px solid var(--seal-color-warning)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -47,7 +47,7 @@ export const DiffIcon: React.FC<{
           style={{
             width: 3,
             height: 3,
-            backgroundColor: 'var(--grl-color-warning)',
+            backgroundColor: 'var(--seal-color-warning)',
             borderRadius: '50%',
           }}
         />
@@ -57,7 +57,7 @@ export const DiffIcon: React.FC<{
       <DragOutlined
         className={className}
         style={{
-          color: 'var(--grl-color-info)',
+          color: 'var(--seal-color-info)',
           ...(style || {}),
         }}
       />

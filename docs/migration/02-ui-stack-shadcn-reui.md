@@ -12,7 +12,7 @@
 | Toast / Dialog | ReUI patterns — `sonner` toaster + shadcn/ReUI dialog & alert-dialog |
 | Icons | ReUI Icons first (`REUI_LICENSE_KEY`, Ultimate) behind a unified export layer `src/components/ui/icons.tsx`; lucide-react as fallback; business code never imports an icon lib directly |
 | Styling | Tailwind CSS v4 compiled into `dist/style.css` with **prefix** and **preflight disabled** (library-safe) |
-| Theming | Rewrite `JdmConfigProvider` to emit shadcn-style tokens; keep `--grl-*` aliases as a bridge during transition |
+| Theming | Rewrite `JdmConfigProvider` to emit shadcn-style tokens; keep `--seal-*` aliases as a bridge during transition |
 | Distribution | Keep compiled-npm-package model (not a source registry); ship precompiled Tailwind output in `dist/style.css` |
 
 ## Current-state metrics (measured at baseline `283bb11`)
@@ -22,18 +22,18 @@
   Form/Modal/Tabs/App ×4, Popconfirm ×3, plus DatePicker/Card/Switch/Radio/Popover/Steps/Tag/Avatar/
   InputNumber/TimePicker/notification/ConfigProvider.
 - `@ant-design/icons` in **27 files** (lucide-react already co-exists in 11 files).
-- 10 SCSS files consume only `--grl-*` variables (theming already token-decoupled).
+- 10 SCSS files consume only `--seal-*` variables (theming already token-decoupled).
 
 ## Stage plan
 
 ### Stage A — Foundation
 
 1. Install Tailwind v4 (`@tailwindcss/vite`) with build config:
-   - `prefix: 'grl-'` on all utilities, `preflight: false`;
+   - `prefix: 'seal-'` on all utilities, `preflight: false`;
    - content scan limited to `src/**`; output merged into `dist/style.css`.
 2. Token bridge: extend `theme.tsx` to map a single internal palette into both
    - shadcn variables (`--background`, `--foreground`, `--primary`, `--border`, `--radius`, …), and
-   - legacy `--grl-*` aliases (existing SCSS keeps working unchanged);
+   - legacy `--seal-*` aliases (existing SCSS keeps working unchanged);
    dark mode via `.dark` class or `[data-mode='dark']` instead of antd algorithms.
 3. Acceptance: visual parity snapshot of all Storybook stories; zero antd removal yet.
 

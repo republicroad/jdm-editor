@@ -20,7 +20,7 @@ Key architectural properties:
   TanStack Table) are treated strictly as view layers.
 - **Language intelligence in WASM**: expression validation, AST, completions, and type inference come from
   the Rust `zen-expression` crate compiled to WebAssembly.
-- **Self-contained styling**: SCSS + CSS custom properties (`--grl-*`), themed light/dark at runtime.
+- **Self-contained styling**: SCSS + CSS custom properties (`--seal-*`), themed light/dark at runtime.
 
 ## 2. Repository layout
 
@@ -148,9 +148,9 @@ Consumers of the binding (~30 call sites): linting, completions, `VariableType` 
 
 PLACEHOLDER-NOPE
 2. Merges user token overrides into the static palette and injects a `:root` `<style>` block exposing ~40
-   **`--grl-*` CSS custom properties** (colors, fonts, radii, table-specific colors).
+   **`--seal-*` CSS custom properties** (colors, fonts, radii, table-specific colors).
 3. All component SCSS (10 files under `src/`) consumes only these variables — i.e., theming is already
-   decoupled behind the `--grl-*` contract, which also carries the shadcn/ui tokens consumed by Tailwind classes.
+   decoupled behind the `--seal-*` contract, which also carries the shadcn/ui tokens consumed by Tailwind classes.
 4. Also hosts `DictionaryProvider`/`useDictionaries` for enum label/value dictionaries used by selects.
 
 ## 7. Build, test & release
@@ -215,10 +215,10 @@ hosting (six nodes + composition hook), skin overrides, the
 `GraphPersistenceAdapter` persistence contract and its HTTP implementation,
 and the shell UI kit. See [`docs/appshell.md`](./appshell.md) for the full
 responsibility map and host wiring.
-- Host integration: consumers wrap their app in an element with class `grl-root` to opt in to the
+- Host integration: consumers wrap their app in an element with class `seal-root` to opt in to the
   scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses
   `:where()` (zero specificity) so component classes and Tailwind utilities always win, and it
   never leaks into the host document. `ui/button.tsx` also carries its own base normalization as
   a fallback for portal-rendered buttons (Radix dialogs/alerts/toasters) which escape the
-  `.grl-root` wrapper.
+  `.seal-root` wrapper.
 - Consumer setup notes (Monaco workers self-hosting) live in the root README.

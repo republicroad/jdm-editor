@@ -87,7 +87,7 @@ const ExpressionDnd: React.FC<React.PropsWithChildren> = ({ children }) => {
             {activeEntry.key ? <OverlayChip width={140}>{activeEntry.key}</OverlayChip> : null}
             {activeEntry.value ? (
               <OverlayChip width={180}>
-                <span style={{ color: 'var(--grl-color-text-tertiary)' }}>{activeEntry.value}</span>
+                <span style={{ color: 'var(--seal-color-text-tertiary)' }}>{activeEntry.value}</span>
               </OverlayChip>
             ) : null}
           </DragOverlayCard>

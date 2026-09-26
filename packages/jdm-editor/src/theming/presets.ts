@@ -38,7 +38,7 @@ export const lightTokens: Record<string, string | number> = {
   colorInfoBorder: '#91caff',
   colorInfoText: '#1677ff',
   /* Field pills / excel column chips (P1 tokenized literals, formerly
-   * inline #acccec family — see GRL-STYLE-HACK HK-10..12). */
+   * inline #acccec family — see SEAL-STYLE-HACK HK-10..12). */
   colorFieldInput: '#acccec',
   colorFieldInputHover: '#8ab8de',
   colorFieldOutput: '#c7e0ba',

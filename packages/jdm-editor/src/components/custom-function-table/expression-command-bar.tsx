@@ -32,7 +32,7 @@ export const ExpressionCommandBar: React.FC = () => {
   }
 
   return (
-    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'grl-dt__command-bar'}>
+    <Stack horizontal horizontalAlign={'space-between'} verticalAlign={'center'} className={'seal-dt__command-bar'}>
       <Stack gap={8} horizontal className='full-width' />
       {traceIndexOptions && (
         <Stack horizontal verticalAlign='center' horizontalAlign='end'>

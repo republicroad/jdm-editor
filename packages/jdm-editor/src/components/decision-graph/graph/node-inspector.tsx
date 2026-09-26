@@ -55,7 +55,7 @@ export const NodeInspector: React.FC = () => {
   return (
     <Panel position='top-right' style={{ margin: 10, maxWidth: 320, width: 'max-content' }}>
       <div
-        className='nodrag nopan flex max-h-[60vh] w-72 flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--grl-color-bg-container)] shadow-md'
+        className='nodrag nopan flex max-h-[60vh] w-72 flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--seal-color-bg-container)] shadow-md'
         data-slot='node-inspector'
       >
         <div className='flex items-center gap-2 border-b border-b-[var(--border)] p-2'>
@@ -79,7 +79,7 @@ export const NodeInspector: React.FC = () => {
             onClick={() => setClosed(true)}
           />
         </div>
-        <div className='flex flex-col gap-1 overflow-y-auto p-2.5 [&_.settings-form_.grl-ce]:text-xs'>
+        <div className='flex flex-col gap-1 overflow-y-auto p-2.5 [&_.settings-form_.seal-ce]:text-xs'>
           <Settings id={selected.id} />
         </div>
       </div>

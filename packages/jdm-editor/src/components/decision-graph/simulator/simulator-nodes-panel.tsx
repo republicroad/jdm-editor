@@ -169,8 +169,8 @@ const StatusIcon: React.FC<{ status: SimulatorNodesPanelStatus }> = ({ status })
   }
 
   if (status === 'success') {
-    return <CheckCircleIcon className='mr-1.5 size-3 shrink-0 text-[var(--grl-color-success)] opacity-60' />;
+    return <CheckCircleIcon className='mr-1.5 size-3 shrink-0 text-[var(--seal-color-success)] opacity-60' />;
   }
 
-  return <CrossCircleIcon className='mr-1 size-3 shrink-0 text-[var(--grl-color-error)]' />;
+  return <CrossCircleIcon className='mr-1 size-3 shrink-0 text-[var(--seal-color-error)]' />;
 };

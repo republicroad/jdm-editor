@@ -184,9 +184,9 @@ const ChipInput: React.FC<SimpleInputProps & { options: { v: number; l: string }
         <span
           key={o.v}
           className={clsx(
-            'cursor-pointer select-none rounded-full border border-border bg-transparent px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors [font-family:var(--grl-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:border-[var(--grl-color-primary-border)] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-active)] [&:hover:not(.active):not(.disabled)]:text-[var(--color-active-text)]',
+            'cursor-pointer select-none rounded-full border border-border bg-transparent px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors [font-family:var(--seal-font-family),sans-serif] [&:hover:not(.active):not(.disabled)]:border-[var(--seal-color-primary-border)] [&:hover:not(.active):not(.disabled)]:bg-[var(--bg-active)] [&:hover:not(.active):not(.disabled)]:text-[var(--color-active-text)]',
             sel.includes(o.v) &&
-              'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
+              'border-[var(--seal-color-primary-border)] bg-[var(--bg-active)] text-[var(--color-active-text)]',
             disabled && 'cursor-not-allowed opacity-50',
           )}
           onClick={() => toggle(o.v)}

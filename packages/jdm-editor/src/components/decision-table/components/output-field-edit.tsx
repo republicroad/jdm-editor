@@ -124,7 +124,7 @@ export const OutputFieldEdit: React.FC<OutputFieldEditProps> = ({
       onOpenChange={setOpen}
       triggerClassName={
         mode === 'edit'
-          ? 'border-[var(--grl-color-field-output)] bg-[var(--grl-color-field-output)] text-black hover:border-[var(--grl-color-field-output-hover)]'
+          ? 'border-[var(--seal-color-field-output)] bg-[var(--seal-color-field-output)] text-black hover:border-[var(--seal-color-field-output-hover)]'
           : undefined
       }
       mode={mode}

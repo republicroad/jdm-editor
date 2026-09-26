@@ -31,11 +31,11 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 
 ### `.storybook/preview.tsx`
 
-全局装饰器实现了**规范宿主形态**:`.grl-root` 包裹 `JdmConfigProvider`,再包裹 story。这意味着:
+全局装饰器实现了**规范宿主形态**:`.seal-root` 包裹 `JdmConfigProvider`,再包裹 story。这意味着:
 
 - 每个 story 走的是**作用域注入路径**(P3)——变量以内联属性设置在岛容器上,`data-mode` 也挂在那里。
-- 所有 Radix portal 挂载在岛**内部**(经 `GrlContainerProvider`)。
-- `storybook-dark-mode` 插件的暗色切换会翻转 Provider 的 `mode`,沿 `--grl-*` → 语义变量链级联生效。
+- 所有 Radix portal 挂载在岛**内部**(经 `SealContainerProvider`)。
+- `storybook-dark-mode` 插件的暗色切换会翻转 Provider 的 `mode`,沿 `--seal-*` → 语义变量链级联生效。
 - 装饰器注入 `<style>` 设置 `html` 背景色(随模式切换)并将 `body`/`#storybook-root` 固定为 `height: 100vh/100%`——虚拟化表格与全高代码编辑器必需(见 [`storybook-height-chain.md`](./storybook-height-chain.md))。
 
 ### `.storybook/preview-head.html`
@@ -57,7 +57,7 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 | `components/function/function.stories.tsx` | Uncontrolled, Controlled, WithError | |
 | `components/code-editor/business/expression-builder.stories.tsx` | 15 个(auto-type, string-type, number-type, boolean-type, date-type, enum-type, dictionary-enum 等) | |
 | `components/code-editor/business/standard-expression-builder.stories.tsx` | (1 个) | |
-| `components/theming.stories.tsx` | **SeedsPlayground** | 交互式种子→派生 token 可视化器,带 `--grl-*` JSON 复制功能 |
+| `components/theming.stories.tsx` | **SeedsPlayground** | 交互式种子→派生 token 可视化器,带 `--seal-*` JSON 复制功能 |
 | `components/isolation.stories.tsx` | **Isolation** | 双岛隔离验证台(Batch S4):明色默认岛与暗色紫种子岛并排 + 岛外宿主样式探针 |
 
 ### Story ID 参考
@@ -106,11 +106,11 @@ pnpm --filter @republicroad/jdm-editor test:storybook
 
 百分比高度链(`height: 100%`)在 Storybook iframe 内部会静默失效,除非每个祖先都有显式高度。装饰器固定了 `#storybook-root { height: 100% }`,StressTest story 使用 `90vh`。完整调查:[`storybook-height-chain.md`](./storybook-height-chain.md)。
 
-## 作用域注入(.grl-root)在 Stories 中的表现
+## 作用域注入(.seal-root)在 Stories 中的表现
 
-装饰器的 `.grl-root` 包裹使每个 story 走**作用域注入路径**(P3):`--grl-*` 变量以内联属性设置在岛容器上,`data-mode` 挂在那里,Radix portal 经 `GrlContainerProvider` 定位到岛内。
+装饰器的 `.seal-root` 包裹使每个 story 走**作用域注入路径**(P3):`--seal-*` 变量以内联属性设置在岛容器上,`data-mode` 挂在那里,Radix portal 经 `SealContainerProvider` 定位到岛内。
 
-**多岛测试**:要验证岛隔离,在 story 内渲染自己的 `.grl-root` + `JdmConfigProvider`(`Isolation` story 即是)。最内层 `.grl-root` 在作用域解析中获胜。**不要在没有自己的 `.grl-root` 包裹的情况下嵌套 Provider**——那样内层 Provider 会把外层岛解析为容器。
+**多岛测试**:要验证岛隔离,在 story 内渲染自己的 `.seal-root` + `JdmConfigProvider`(`Isolation` story 即是)。最内层 `.seal-root` 在作用域解析中获胜。**不要在没有自己的 `.seal-root` 包裹的情况下嵌套 Provider**——那样内层 Provider 会把外层岛解析为容器。
 
 ## 暗色模式
 

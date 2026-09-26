@@ -4,21 +4,21 @@ import { EditorView } from '@codemirror/view';
 /**
  * CodeMirror SKIN as an EditorView.theme() extension (roadmap P2 / Batch D).
  *
- * Everything here used to live as CSS in `tailwind.css` under `.grl-ce …`.
+ * Everything here used to live as CSS in `tailwind.css` under `.seal-ce …`.
  * That lost the cascade war against CM's runtime-injected unlayered
  * baseTheme and needed !important band-aids (HK-03..07). Inside theme()
  * the declarations ride CodeMirror's own precedence — strictly above
  * baseTheme — so every !important drops away legitimately.
  *
  * Values deliberately reference the SAME custom properties the old CSS did
- * (--grl-* palette + --ce-* rhythm vars). Variable resolution happens at
+ * (--seal-* palette + --ce-* rhythm vars). Variable resolution happens at
  * computed-value time on each consumer node, independent of stylesheet
  * layering, which preserves:
  *   • data-mode flipping without re-registering anything,
  *   • per-instance overrides via [--ce-*] utilities on the host container.
  *
  * Component-owned layout classes (.max-rows/.full-height/.no-style/
- * .grl-ce-single) and the manual CodeHighlighter skeleton remain plain CSS
+ * .seal-ce-single) and the manual CodeHighlighter skeleton remain plain CSS
  * on purpose — see shadcn-theming-roadmap Appendix A, HK-03.
  *
  * Shared skin extension (module-level singleton).
@@ -31,7 +31,7 @@ import { EditorView } from '@codemirror/view';
 export const ZEN_SKIN: Extension = EditorView.theme({
   // ── editor shell ────────────────────────────────────────────────────────
   '&': {
-    background: 'var(--grl-color-bg-container)',
+    background: 'var(--seal-color-bg-container)',
     width: '100%',
     maxWidth: '100%',
     border: '1px solid var(--border)',
@@ -41,25 +41,25 @@ export const ZEN_SKIN: Extension = EditorView.theme({
   },
   '&.cm-focused': {
     outline: 'none',
-    boxShadow: '0 0 0 2px var(--grl-control-outline)',
-    borderColor: 'var(--grl-color-primary-hover)',
+    boxShadow: '0 0 0 2px var(--seal-control-outline)',
+    borderColor: 'var(--seal-color-primary-hover)',
   },
   '&:hover': {
-    borderColor: 'var(--grl-color-primary-hover)',
+    borderColor: 'var(--seal-color-primary-hover)',
     borderInlineEndWidth: '1px',
   },
 
   '&[data-severity="error"]': {
-    background: 'var(--grl-color-error-bg)',
-    borderColor: 'var(--grl-color-error-border)',
+    background: 'var(--seal-color-error-bg)',
+    borderColor: 'var(--seal-color-error-border)',
   },
   '&[data-severity="warning"]': {
-    background: 'var(--grl-color-warning-bg)',
-    borderColor: 'var(--grl-color-warning-border)',
+    background: 'var(--seal-color-warning-bg)',
+    borderColor: 'var(--seal-color-warning-border)',
   },
   '&[data-severity="info"]': {
-    background: 'var(--grl-color-info-bg)',
-    borderColor: 'var(--grl-color-info-border)',
+    background: 'var(--seal-color-info-bg)',
+    borderColor: 'var(--seal-color-info-border)',
   },
 
   // lint underline strips (Images stay in CSS alongside highlighter variants)
@@ -76,8 +76,8 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     backgroundImage:
       'url(\'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>\')',
   },
-  '& .grl-ce-hover-tooltip': {
-    fontFamily: 'var(--grl-font-family)',
+  '& .seal-ce-hover-tooltip': {
+    fontFamily: 'var(--seal-font-family)',
     fontSize: '13px',
     background: 'var(--card)',
     border: 'none',
@@ -115,7 +115,7 @@ export const ZEN_SKIN: Extension = EditorView.theme({
 
   // ── tooltips / completion / lint popovers ───────────────────────────────
   '& .cm-tooltip': {
-    fontFamily: 'var(--grl-font-family)',
+    fontFamily: 'var(--seal-font-family)',
     fontSize: '13px',
     background: 'var(--card)',
     border: 'none',
@@ -128,13 +128,13 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     borderRadius: '6px',
   },
   '& .cm-tooltip > ul li[aria-selected]': {
-    background: 'var(--grl-color-primary-hover)',
+    background: 'var(--seal-color-primary-hover)',
     color: 'white',
   },
   '& .cm-tooltip > ul li[aria-selected] .cm-completionDetail': { color: 'white' },
   '& .cm-tooltip .cm-completionMatchedText': {
     textDecoration: 'none',
-    color: 'var(--grl-color-primary-hover)',
+    color: 'var(--seal-color-primary-hover)',
   },
   '& .cm-tooltip .cm-completionDetail': {
     fontStyle: 'normal',
@@ -152,10 +152,10 @@ export const ZEN_SKIN: Extension = EditorView.theme({
   },
   '& .cm-tooltip .cm-tooltip-lint .cm-diagnostic:not(:last-of-type)': { marginBottom: '4px' },
   '& .cm-tooltip .cm-tooltip-lint .cm-diagnostic-error': {
-    borderLeftColor: 'var(--grl-color-error-border)',
+    borderLeftColor: 'var(--seal-color-error-border)',
   },
   '& .cm-tooltip .cm-tooltip-lint .cm-diagnostic-warning': {
-    borderLeftColor: 'var(--grl-color-warning-border)',
+    borderLeftColor: 'var(--seal-color-warning-border)',
   },
   '& .cm-tooltip .cm-diagnosticSource': { fontSize: '75%' },
 
@@ -164,7 +164,7 @@ export const ZEN_SKIN: Extension = EditorView.theme({
     padding: '4px 4px',
     display: 'flex',
     fontSize: '12px',
-    color: 'var(--grl-color-text-base)',
+    color: 'var(--seal-color-text-base)',
     borderRadius: '4px',
   },
   '& .cm-tooltip-autocomplete li[aria-selected="true"]': {
@@ -187,62 +187,62 @@ export const ZEN_SKIN: Extension = EditorView.theme({
   '& .cm-completionIcon-function::after': {
     'content': "'f'",
     '--icon-primary': 'var(--destructive)',
-    '--icon-secondary': 'var(--grl-color-error-bg)',
+    '--icon-secondary': 'var(--seal-color-error-bg)',
   },
   '& .cm-completionIcon-method::after': {
     'content': "'m'",
     '--icon-primary': 'var(--destructive)',
-    '--icon-secondary': 'var(--grl-color-error-bg)',
+    '--icon-secondary': 'var(--seal-color-error-bg)',
   },
   '& .cm-completionIcon-class::after': {
     'content': "'C'",
     '--icon-primary': 'var(--primary)',
-    '--icon-secondary': 'var(--grl-color-primary-bg)',
+    '--icon-secondary': 'var(--seal-color-primary-bg)',
   },
   '& .cm-completionIcon-interface::after': {
     'content': "'I'",
-    '--icon-primary': 'var(--grl-color-success)',
-    '--icon-secondary': 'var(--grl-color-success-bg)',
+    '--icon-primary': 'var(--seal-color-success)',
+    '--icon-secondary': 'var(--seal-color-success-bg)',
   },
   '& .cm-completionIcon-type::after': {
     'content': "'I'",
-    '--icon-primary': 'var(--grl-color-success)',
-    '--icon-secondary': 'var(--grl-color-success-bg)',
+    '--icon-primary': 'var(--seal-color-success)',
+    '--icon-secondary': 'var(--seal-color-success-bg)',
   },
   '& .cm-completionIcon-variable::after': {
     'content': "'v'",
-    '--icon-primary': 'var(--grl-color-warning)',
-    '--icon-secondary': 'var(--grl-color-warning-bg)',
+    '--icon-primary': 'var(--seal-color-warning)',
+    '--icon-secondary': 'var(--seal-color-warning-bg)',
     'filter': 'hue-rotate(-20deg)',
   },
   '& .cm-completionIcon-constant::after': {
     'content': "'v'",
-    '--icon-primary': 'var(--grl-color-warning)',
-    '--icon-secondary': 'var(--grl-color-warning-bg)',
+    '--icon-primary': 'var(--seal-color-warning)',
+    '--icon-secondary': 'var(--seal-color-warning-bg)',
     'filter': 'hue-rotate(-20deg)',
   },
   '& .cm-completionIcon-enum::after': {
     'content': "'E'",
     '--icon-primary': 'var(--primary)',
-    '--icon-secondary': 'var(--grl-color-primary-bg)',
+    '--icon-secondary': 'var(--seal-color-primary-bg)',
     'filter': 'hue-rotate(35deg)',
   },
   '& .cm-completionIcon-property::after': {
     'content': "'P'",
     '--icon-primary': 'var(--primary)',
-    '--icon-secondary': 'var(--grl-color-primary-bg)',
+    '--icon-secondary': 'var(--seal-color-primary-bg)',
     'filter': 'hue-rotate(40deg)',
   },
   '& .cm-completionIcon-keyword::after': {
     'content': "'k'",
-    '--icon-primary': 'var(--grl-color-warning)',
-    '--icon-secondary': 'var(--grl-color-warning-bg)',
+    '--icon-primary': 'var(--seal-color-warning)',
+    '--icon-secondary': 'var(--seal-color-warning-bg)',
     'filter': 'hue-rotate(-20deg)',
   },
   '& .cm-completionIcon-namespace::after': {
     'content': "'n'",
-    '--icon-primary': 'var(--grl-color-success)',
-    '--icon-secondary': 'var(--grl-color-success-bg)',
+    '--icon-primary': 'var(--seal-color-success)',
+    '--icon-secondary': 'var(--seal-color-success-bg)',
   },
   '& .cm-completionIcon-text::after': {
     content: "'abc'",

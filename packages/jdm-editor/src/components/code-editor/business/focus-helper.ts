@@ -4,7 +4,7 @@ export type BuilderRef = { focus: () => void };
 
 export const focusBuilderRoot = (el: HTMLElement | null) => {
   if (!el) return;
-  const ceEl = el.querySelector<CodeEditorBaseRef>('.grl-ce');
+  const ceEl = el.querySelector<CodeEditorBaseRef>('.seal-ce');
   if (ceEl?.codeMirror) {
     const view = ceEl.codeMirror;
     view.focus();

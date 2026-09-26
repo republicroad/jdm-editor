@@ -2,7 +2,7 @@
  * Custom function table (T5) — ported from zrule expression.scss into the
  * components layer. Plain-CSS nesting only: every compound BEM selector is
  * written out in full (Sass-style `&__suffix` parses as an element selector
- * under lightningcss). Tokens stay on the --grl-color scale; legacy-specific
+ * under lightningcss). Tokens stay on the --seal-color scale; legacy-specific
  * overrides were replaced with their reui equivalents and two dead rules
  * dropped (a dev leftover `:focus { background: red }` and a raw-hex
  * placeholder color, now var(--muted-foreground)).
@@ -14,20 +14,20 @@
     box-sizing: border-box;
     gap: 1px;
     padding-bottom: 1px;
-    --border-color: var(--grl-color-border-fade);
+    --border-color: var(--seal-color-border-fade);
     background: var(--border-color);
   }
 
   .expression-list__item {
     position: relative;
     display: grid;
-    background: var(--grl-color-bg-container);
+    background: var(--seal-color-bg-container);
     grid-auto-flow: column;
     align-items: flex-start;
     grid-template-columns: 40px minmax(240px, 1.1fr) 3fr 40px;
 
     &:focus-within {
-      box-shadow: 0 0 0 1px var(--grl-color-border);
+      box-shadow: 0 0 0 1px var(--seal-color-border);
     }
   }
 
@@ -54,7 +54,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    background: var(--grl-color-primary);
+    background: var(--seal-color-primary);
   }
 
   .expression-list__item.dropping-up:after {
@@ -68,15 +68,15 @@
   }
 
   .expression-list__item--added {
-    background-color: var(--grl-color-success-bg);
+    background-color: var(--seal-color-success-bg);
   }
 
   .expression-list__item--removed {
-    background-color: var(--grl-color-error-bg);
+    background-color: var(--seal-color-error-bg);
   }
 
   .expression-list__item--modified {
-    background-color: var(--grl-color-warning-bg);
+    background-color: var(--seal-color-warning-bg);
   }
 
   .expression-list__button-wrapper {
@@ -98,7 +98,7 @@
   }
 
   .expression-list-item__drag {
-    color: var(--grl-color-text-secondary);
+    color: var(--seal-color-text-secondary);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -192,13 +192,13 @@
     width: 120px;
     padding-top: 5px;
     font-size: 12px;
-    color: var(--grl-color-text-secondary);
+    color: var(--seal-color-text-secondary);
     cursor: default;
   }
 
   .expression-list-item__code .function-arg-row__required {
     margin-left: 2px;
-    color: var(--grl-color-error);
+    color: var(--seal-color-error);
   }
 
   .expression-list-item__code .function-arg-row__editor {
@@ -210,21 +210,21 @@
     flex: 1;
     min-width: 0;
     max-width: 420px;
-    border: 1px solid var(--grl-color-border);
+    border: 1px solid var(--seal-color-border);
     border-radius: 6px;
-    background: var(--grl-color-bg-container);
+    background: var(--seal-color-bg-container);
     transition:
       border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1),
       box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
 
-  .expression-list-item__code .function-arg-code-editor.grl-ce {
+  .expression-list-item__code .function-arg-code-editor.seal-ce {
     --ce-verticalPadding: 4px;
     --ce-horizontalPadding: 8px;
   }
 
   .expression-list-item__code .function-arg-code-editor .cm-editor,
-  .expression-list-item__code .function-arg-code-editor.grl-ce-highlighter {
+  .expression-list-item__code .function-arg-code-editor.seal-ce-highlighter {
     min-height: 30px;
   }
 
@@ -233,12 +233,12 @@
   }
 
   .expression-list-item__code .function-arg-code-editor:hover {
-    border-color: var(--grl-color-primary-hover);
+    border-color: var(--seal-color-primary-hover);
   }
 
   .expression-list-item__code .function-arg-code-editor:focus-within {
-    border-color: var(--grl-color-primary);
-    box-shadow: 0 0 0 2px var(--grl-color-primary-bg);
+    border-color: var(--seal-color-primary);
+    box-shadow: 0 0 0 2px var(--seal-color-primary-bg);
   }
 
   .expression-list-item__code .code-mode-container {
@@ -273,8 +273,8 @@
     transform: translateY(-50%);
     padding: 2px 6px;
     border-radius: 4px;
-    background: var(--grl-color-success-bg);
-    border: 1px solid var(--grl-color-success-border);
+    background: var(--seal-color-success-bg);
+    border: 1px solid var(--seal-color-success-border);
     max-height: calc(100% - 5px);
     max-width: 50%;
     white-space: nowrap;
@@ -313,12 +313,12 @@
     top: 100%;
     right: 0;
     padding: 8px;
-    border-top: 1px solid var(--grl-color-bg-layout);
+    border-top: 1px solid var(--seal-color-bg-layout);
     border-right: none;
     border-radius: 0 0 8px 0;
     width: 400px;
     max-width: 50%;
-    background: var(--grl-color-bg-layout);
+    background: var(--seal-color-bg-layout);
     white-space: nowrap;
     overflow-x: auto;
     z-index: 5;
@@ -326,7 +326,7 @@
     pointer-events: bounding-box;
   }
 
-  .expression-list-item__livePreview .grl-ce-preview {
+  .expression-list-item__livePreview .seal-ce-preview {
     background: var(--card);
   }
 

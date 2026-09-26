@@ -62,7 +62,7 @@ export const GraphNodes: React.FC<GraphComponentsProps> = React.memo(({ classNam
     return (
       <div
         className={clsx(
-          'cursor-pointer rounded-(--grl-border-radius) border bg-card text-card-foreground shadow-xs transition-colors hover:border-primary/50',
+          'cursor-pointer rounded-(--seal-border-radius) border bg-card text-card-foreground shadow-xs transition-colors hover:border-primary/50',
           node?._diff?.status,
         )}
         onClick={() => openTab(node.id)}

@@ -18,13 +18,13 @@
 
 ### 1. Node color variables lost in theme rewrite (`7dc1add`)
 
-`.grl-dn__header__icon` renders white glyphs over `background: var(--node-color)`. The spec layer
+`.seal-dn__header__icon` renders white glyphs over `background: var(--node-color)`. The spec layer
 (`nodes/specifications/colors.ts`) maps node kinds to `var(--node-color-blue|purple|orange|green)`.
 Under antd these were injected by the old theme provider; the static-palette rewrite dropped them,
 so chips rendered transparent → white-on-white invisibility. Restored values:
 
 ```ts
-'--node-color-blue': 'var(--grl-color-primary)',
+'--node-color-blue': 'var(--seal-color-primary)',
 '--node-color-purple': '#7c4dff',
 '--node-color-orange': '#f76d40',
 '--node-color-green': '#10ac84',

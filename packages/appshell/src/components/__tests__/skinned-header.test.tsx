@@ -66,7 +66,7 @@ describe('ShellHeader', () => {
 describe('SkinnedDecisionGraph header', () => {
   it('无 header 槽位：不渲染 ShellHeader（零注入）', async () => {
     const { container } = renderSkinned();
-    await waitFor(() => expect(container.querySelector('.grl-dg')).toBeTruthy());
+    await waitFor(() => expect(container.querySelector('.seal-dg')).toBeTruthy());
     expect(container.querySelector('header')).toBeNull();
   });
 
@@ -79,7 +79,7 @@ describe('SkinnedDecisionGraph header', () => {
       return header;
     });
     expect(header.textContent).toContain('OCEAN · 1 nodes');
-    expect(container.querySelector('.grl-dg')).toBeTruthy();
+    expect(container.querySelector('.seal-dg')).toBeTruthy();
   });
 
   it('header + right panels 组合：头部与右缘轨道共存', async () => {

@@ -4,13 +4,13 @@
  * - Global Tailwind preflight is NOT imported: this is a distributed library
  *   whose `dist/style.css` is injected into host apps, and a global reset
  *   would clobber the host's own element styles.
- * - Instead, a scoped mini-preflight is provided under `.grl-root` (see the
- *   `@layer base` block below). Hosts wrap their app in a `.grl-root` element
+ * - Instead, a scoped mini-preflight is provided under `.seal-root` (see the
+ *   `@layer base` block below). Hosts wrap their app in a `.seal-root` element
  *   to opt in; the reset normalizes UA styles for form controls, tables,
  *   headings, lists, and images without leaking outside the wrapper.
  * - ui/button.tsx also carries its own base normalization as a fallback for
  *   portal-rendered buttons (Radix dialogs/alerts/toasters) which escape the
- *   `.grl-root` wrapper.
+ *   `.seal-root` wrapper.
  * - No utility prefix: keeps stock shadcn/ReUI components drop-in compatible;
  *   name collisions with a host app's own Tailwind are benign.
  * - The dark variant follows [data-mode='dark'] set by JdmConfigProvider,
@@ -24,42 +24,42 @@
 @import 'tailwindcss/utilities.css' layer(utilities) source(none);
 @import './custom-function.css' layer(components);
 
-/* Dark variant, island-boundary isolated (Batch S2): a `.grl-root` island
+/* Dark variant, island-boundary isolated (Batch S2): a `.seal-root` island
    declaring light EXEMPTS its subtree from a host page's own dark scope, and
    the exclusion respects nesting — a light island that CONTAINS a dark island
    does not suppress the inner dark scope (nearest island wins). Non-island
    elements and true dark islands behave exactly as before. */
-@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *):not(:where(.grl-root[data-mode='light']:not(:has(.grl-root[data-mode='dark'])), .grl-root[data-mode='light']:not(:has(.grl-root[data-mode='dark'])) *)));
+@custom-variant dark (&:where([data-mode='dark'], [data-mode='dark'] *):not(:where(.seal-root[data-mode='light']:not(:has(.seal-root[data-mode='dark'])), .seal-root[data-mode='light']:not(:has(.seal-root[data-mode='dark'])) *)));
 
 /* Global tokens (formerly styles.scss :root). */
 :root {
   --mono-font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
-  --grl-transition: 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-  --grl-transition-quick: 0.1s cubic-bezier(0.645, 0.045, 0.355, 1);
+  --seal-transition: 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  --seal-transition-quick: 0.1s cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 /*
  * Scoped mini-preflight. Hosts wrap their app in an element with class
- * `grl-root` to opt in. Every rule uses `:where()` (zero specificity) so
+ * `seal-root` to opt in. Every rule uses `:where()` (zero specificity) so
  * component classes and Tailwind utilities always win. This mirrors the
  * subset of Tailwind's own preflight the library relies on, without
  * leaking resets into the host document.
  */
 @layer base {
   /*
-   * ⚠️ GRL-STYLE-HACK[HK-14](boundary): this scoped preflight stops at
-   * `.grl-root`. Radix PORTALS mount under <body>, so every portaled
+   * ⚠️ SEAL-STYLE-HACK[HK-14](boundary): this scoped preflight stops at
+   * `.seal-root`. Radix PORTALS mount under <body>, so every portaled
    * primitive (Dialog/AlertDialog/Popover/Select/Tooltip) silently misses the
    * border-box reset and reverts to UA content-box — Modal sized itself past
    * its own maxHeight by exactly its padding before getting an explicit fix.
    * Systemic remedy (portal targeting / container-scoped theming) tracks
    * docs/shadcn-theming-roadmap.zh-CN.md §P3.
    */
-  .grl-root :where(*, *::before, *::after) {
+  .seal-root :where(*, *::before, *::after) {
     box-sizing: border-box;
   }
 
-  .grl-root :where(button, input, optgroup, select, textarea) {
+  .seal-root :where(button, input, optgroup, select, textarea) {
     font: inherit;
     color: inherit;
     letter-spacing: inherit;
@@ -69,38 +69,38 @@
     border: 0 solid;
   }
 
-  .grl-root :where(input, textarea)::placeholder {
+  .seal-root :where(input, textarea)::placeholder {
     opacity: 1;
-    color: var(--grl-color-text-placeholder, #bfbfbf);
+    color: var(--seal-color-text-placeholder, #bfbfbf);
   }
 
-  .grl-root :where(table) {
+  .seal-root :where(table) {
     border-collapse: collapse;
     border-spacing: 0;
   }
 
-  .grl-root :where(th, td) {
+  .seal-root :where(th, td) {
     padding: 0;
     text-align: left;
     font-weight: inherit;
   }
 
-  .grl-root :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) {
+  .seal-root :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) {
     margin: 0;
   }
 
-  .grl-root :where(ul, ol) {
+  .seal-root :where(ul, ol) {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .grl-root :where(img, svg, video) {
+  .seal-root :where(img, svg, video) {
     display: block;
     vertical-align: middle;
   }
 
-  .grl-root :where(hr) {
+  .seal-root :where(hr) {
     height: 0;
     color: inherit;
     border-top-width: 1px;
@@ -111,11 +111,11 @@
 @source '../';
 
 /* Force-include the scoped preflight class even though it's only used by hosts. */
-@source inline('.grl-root');
+@source inline('.seal-root');
 
 /*
  * shadcn-style semantic colors. Values resolve from tokens.css, which bridges
- * legacy runtime tokens (--grl-*) to generic names; `inline` keeps var()
+ * legacy runtime tokens (--seal-*) to generic names; `inline` keeps var()
  * references verbatim inside generated utilities.
  */
 @theme inline {
@@ -138,8 +138,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-success: var(--grl-color-success);
-  --color-info: var(--grl-color-info);
+  --color-success: var(--seal-color-success);
+  --color-info: var(--seal-color-info);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -157,7 +157,7 @@
  */
 @layer components {
   /* Monaco error-line decoration (function editor); mode-aware via tokens.css */
-  .grl-function__errorLineContent {
+  .seal-function__errorLineContent {
     background: var(--error-line-bg);
   }
 
@@ -165,12 +165,12 @@
      Batch G) — no stylesheet counter-war needed anymore. */
 
   /*
-   * Shared textarea skin (formerly styles.scss .grl-textarea-input). Kept as
+   * Shared textarea skin (formerly styles.scss .seal-textarea-input). Kept as
    * plain CSS because of its var-driven max-height calc chain and the
    * `:empty::before` placeholder pseudo-element.
    */
-  .grl-textarea-input {
-    --textarea-line-height: var(--grl-line-height, 1.5715);
+  .seal-textarea-input {
+    --textarea-line-height: var(--seal-line-height, 1.5715);
     --textarea-padding: 4px;
 
     line-height: var(--textarea-line-height);
@@ -178,10 +178,10 @@
     resize: none;
     width: 100%;
     box-sizing: border-box;
-    font-family: var(--grl-font-family);
-    border-radius: var(--grl-border-radius);
+    font-family: var(--seal-font-family);
+    border-radius: var(--seal-border-radius);
     border: 1px solid var(--border);
-    background: var(--grl-color-bg-container);
+    background: var(--seal-color-bg-container);
     padding: var(--textarea-padding) 11px;
     font-size: 14px;
     overflow-y: auto;
@@ -189,29 +189,29 @@
     word-break: break-word;
     max-height: calc(var(--textarea-max-rows, 10) * 1em * var(--textarea-line-height) + 2 * var(--textarea-padding));
 
-    transition: var(--grl-transition);
+    transition: var(--seal-transition);
 
     &:focus {
       outline: none;
-      box-shadow: 0 0 0 2px var(--grl-control-outline);
-      border-color: var(--grl-color-primary-hover);
+      box-shadow: 0 0 0 2px var(--seal-control-outline);
+      border-color: var(--seal-color-primary-hover);
     }
 
     &:hover {
-      border-color: var(--grl-color-primary-hover);
+      border-color: var(--seal-color-primary-hover);
       border-inline-end-width: 1px;
     }
 
     &:empty::before {
       content: attr(data-placeholder);
-      color: var(--grl-color-text-placeholder);
+      color: var(--seal-color-text-placeholder);
       pointer-events: none;
     }
 
     &[aria-disabled='true'] {
       cursor: not-allowed;
       background-color: var(--muted);
-      color: var(--grl-color-text-disabled);
+      color: var(--seal-color-text-disabled);
       border-color: var(--border);
       box-shadow: none;
     }
@@ -219,7 +219,7 @@
 }
 
 /*
- * ⚠️ GRL-STYLE-HACK[HK-03](cascade-layer) — scope REDUCED by Batch D phase-1:
+ * ⚠️ SEAL-STYLE-HACK[HK-03](cascade-layer) — scope REDUCED by Batch D phase-1:
  * the CodeMirror skin now lives in code-editor/theme.ts (EditorView.theme())
  * and wins legitimately without !important. What remains unlayered below is:
  *   • component-owned layout classes (.max-rows/.full-height/.no-style/etc.)
@@ -248,7 +248,7 @@
    */
 @layer components {
   /*
-   * GRL-LAYER-GUARD — DO NOT MOVE out of this layer. These are token DEFAULTS,
+   * SEAL-LAYER-GUARD — DO NOT MOVE out of this layer. These are token DEFAULTS,
    * intentionally layered while the rest of the skin is unlayered:
    * instances override these tokens via arbitrary-property utilities
    * ([--ce-verticalPadding:9px] etc., see table-default-cell.tsx) which live
@@ -259,14 +259,14 @@
    * per-instance token channel (theme() consumes them via var(), proven by
    * Batch D probes) — this channel will NOT be migrated to props.
    */
-  .grl-ce {
+  .seal-ce {
     --ce-lineHeight: 1.5em;
     --ce-verticalPadding: 4px;
     --ce-horizontalPadding: 11px;
   }
 }
 
-.grl-ce.grl-ce-single .cm-editor {
+.seal-ce.seal-ce-single .cm-editor {
   height: 100%;
 }
 
@@ -277,42 +277,42 @@
 /* Highlighter PARITY ONLY — the live editor gets these through
    code-editor/theme.ts now; the manual DOM still needs plain CSS so its
    geometry keeps matching the editor it hands off to. */
-.grl-ce-highlighter {
+.seal-ce-highlighter {
   line-height: var(--ce-lineHeight);
 }
 
-.grl-ce-highlighter .cm-editor {
+.seal-ce-highlighter .cm-editor {
   border: 1px solid var(--border);
 }
 
-.grl-ce-highlighter .cm-scroller {
+.seal-ce-highlighter .cm-scroller {
   font-family: monospace;
   line-height: inherit;
 }
 
-.grl-ce-highlighter .cm-content {
+.seal-ce-highlighter .cm-content {
   padding: var(--ce-verticalPadding) var(--ce-horizontalPadding);
 }
 
-.grl-ce-highlighter .cm-line {
+.seal-ce-highlighter .cm-line {
   padding: 0;
 }
 
-.grl-ce-preview {
+.seal-ce-preview {
   border-radius: 8px;
   padding: 8px;
   background: var(--muted);
 }
 
-.grl-ce-preview .grl-ce.no-style .cm-editor {
+.seal-ce-preview .seal-ce.no-style .cm-editor {
   background: transparent;
 }
 
-.grl-ce-preview .grl-ce.no-style .cm-content {
+.seal-ce-preview .seal-ce.no-style .cm-content {
   padding: 0 !important;
 }
 
-.grl-ce-highlighter .cm-scroller {
+.seal-ce-highlighter .cm-scroller {
   display: flex !important;
   align-items: flex-start !important;
   font-family: monospace;
@@ -323,27 +323,27 @@
   overflow-anchor: none;
 }
 
-.grl-ce-highlighter .cm-lintRange {
+.seal-ce-highlighter .cm-lintRange {
   background-position: left bottom;
   background-repeat: repeat-x;
 }
 
-.grl-ce-highlighter .cm-tooltip {
+.seal-ce-highlighter .cm-tooltip {
   z-index: 999;
 }
 
-.grl-ce-highlighter .cm-tooltip ul {
+.seal-ce-highlighter .cm-tooltip ul {
   margin: 0;
 }
 
-.grl-ce-highlighter .cm-diagnostic {
+.seal-ce-highlighter .cm-diagnostic {
   border-left: 5px solid;
   padding: 3px 6px 3px 8px;
   display: block;
   white-space: pre-wrap;
 }
 
-.grl-ce-highlighter .cm-content {
+.seal-ce-highlighter .cm-content {
   flex-grow: 2;
   flex-shrink: 1;
   white-space: break-spaces;
@@ -351,30 +351,30 @@
   overflow-wrap: anywhere;
 }
 
-.grl-ce-highlighter .cm-placeholder {
-  color: var(--grl-color-text-placeholder);
+.seal-ce-highlighter .cm-placeholder {
+  color: var(--seal-color-text-placeholder);
 }
 
-.grl-ce-highlighter .cm-line {
+.seal-ce-highlighter .cm-line {
   display: block;
 }
 
-.grl-ce-highlighter .cm-editor {
+.seal-ce-highlighter .cm-editor {
   display: flex;
   flex-direction: column;
   position: static;
   box-sizing: border-box;
 }
 
-.grl-ce-highlighter .cm-editor[data-severity='warning'] .cm-lintRange {
+.seal-ce-highlighter .cm-editor[data-severity='warning'] .cm-lintRange {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FFA500%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
 }
 
-.grl-ce-highlighter .cm-editor[data-severity='error'] .cm-lintRange {
+.seal-ce-highlighter .cm-editor[data-severity='error'] .cm-lintRange {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3">%3Cpath%20d%3D%22m0%202.5%20l2%20-1.5%20l1%200%20l2%201.5%20l1%200%22%20stroke%3D%22%23FF0000%22%20fill%3D%22none%22%20stroke-width%3D%221.2%22%2F%3E</svg>');
 }
 
-/* ⚠️ GRL-STYLE-HACK[HK-08](cascade-layer) — scope REDUCED (Batch HK-08 shrink):
+/* ⚠️ SEAL-STYLE-HACK[HK-08](cascade-layer) — scope REDUCED (Batch HK-08 shrink):
  * only rules fighting React Flow's runtime-injected styles remain unlayered
  * (edge interaction/hit paths, panels, controls, attribution, container,
  * nodrag, node visibility + handle offsets). Own-DOM blocks (edge delete
@@ -385,8 +385,8 @@
  * covering them. */
 
 /* Decision graph shell: grid layout areas */
-.grl-dg {
-  font-family: var(--grl-font-family);
+.seal-dg {
+  font-family: var(--seal-font-family);
   height: 100%;
   display: grid;
   grid-template-areas:
@@ -396,7 +396,7 @@
   grid-template-rows: 1fr auto;
 }
 
-.grl-dg.hidden-left-toolbar {
+.seal-dg.hidden-left-toolbar {
   grid-template-areas:
     'graph component'
     'bottom component';
@@ -404,19 +404,19 @@
 }
 
 /* React Flow internals (third-party DOM, not utility-reachable) */
-.grl-dg .react-flow__handle {
+.seal-dg .react-flow__handle {
   cursor: crosshair !important;
   transition: 0.2s all;
   transform-origin: 50% calc(50% + 3.5px);
   opacity: 0.75;
-  border: 1px solid var(--grl-color-primary-border);
-  background-color: var(--grl-color-primary-bg);
+  border: 1px solid var(--seal-color-primary-border);
+  background-color: var(--seal-color-primary-bg);
   height: 7px;
   width: 7px;
   border-radius: 50% !important;
 }
 
-.grl-dg .react-flow__handle::after {
+.seal-dg .react-flow__handle::after {
   position: absolute;
   content: '';
   display: block;
@@ -427,95 +427,95 @@
   border-radius: 50%;
 }
 
-.grl-dg .react-flow__handle-connecting,
-.grl-dg .react-flow__handle:hover {
+.seal-dg .react-flow__handle-connecting,
+.seal-dg .react-flow__handle:hover {
   transform: scale(2);
-  background-color: var(--grl-color-primary-bg-hover);
+  background-color: var(--seal-color-primary-bg-hover);
   opacity: 1;
 }
 
-.grl-dg .react-flow__handle-left {
+.seal-dg .react-flow__handle-left {
   left: -3px !important;
 }
 
-.grl-dg .react-flow__handle-left::after {
+.seal-dg .react-flow__handle-left::after {
   transform: translate(-80%, -50%);
   width: 36px;
   height: 36px;
 }
 
-.grl-dg .react-flow__handle-right {
+.seal-dg .react-flow__handle-right {
   right: -3px !important;
 }
 
-.grl-dg .react-flow__handle-right::after {
+.seal-dg .react-flow__handle-right::after {
   transform: translate(-20%, -50%);
   width: 36px;
   height: 36px;
 }
 
-.grl-dg .switchNode .react-flow__handle {
+.seal-dg .switchNode .react-flow__handle {
   z-index: 20;
   top: calc(50% - 1px);
   right: -4px !important;
 }
 
-.grl-dg .react-flow__edge-interaction {
+.seal-dg .react-flow__edge-interaction {
   stroke-width: 50;
 }
 
-.grl-dg .react-flow__edge-path-selector {
+.seal-dg .react-flow__edge-path-selector {
   fill: none;
   stroke: transparent;
   stroke-width: 15;
 }
 
-.grl-dg .react-flow__edge-path-selector:hover {
+.seal-dg .react-flow__edge-path-selector:hover {
   cursor: pointer;
 }
 
-.grl-dg .react-flow__edge-path-selector:hover + .react-flow__edge-path,
-.grl-dg .react-flow__edge-path:hover {
-  stroke: var(--grl-color-primary-border-hover);
+.seal-dg .react-flow__edge-path-selector:hover + .react-flow__edge-path,
+.seal-dg .react-flow__edge-path:hover {
+  stroke: var(--seal-color-primary-border-hover);
   cursor: pointer;
 }
 
-.grl-dg .react-flow__panel {
+.seal-dg .react-flow__panel {
   box-shadow: none;
   border: 1px solid var(--border);
 }
 
-.grl-dg .react-flow__controls-button {
+.seal-dg .react-flow__controls-button {
   background: var(--card);
   color: var(--foreground);
   border-color: var(--border);
-  transition: var(--grl-transition);
+  transition: var(--seal-transition);
   height: 24px;
   width: 24px;
 }
 
-.grl-dg .react-flow__controls-button:hover {
-  background: var(--grl-color-primary-hover);
+.seal-dg .react-flow__controls-button:hover {
+  background: var(--seal-color-primary-hover);
 }
 
-.grl-dg .react-flow__controls-button svg {
+.seal-dg .react-flow__controls-button svg {
   fill: currentColor;
 }
 
-.grl-dg .react-flow__attribution {
+.seal-dg .react-flow__attribution {
   color: var(--foreground);
   border: none;
   background: transparent;
 }
 
-.grl-dg .react-flow {
+.seal-dg .react-flow {
   flex: 1;
   height: 100%;
   width: 100%;
   background-color: var(--background);
 }
 
-.grl-dg .nodrag {
+.seal-dg .nodrag {
   cursor: initial;
 }
 
@@ -525,10 +525,10 @@
    div/button are OURS and nothing third-party fights them, so component-layer
    placement is safe; !importants still beat the Button's utility padding. */
 @layer components {
-  .grl-edge-delete-button {
+  .seal-edge-delete-button {
     opacity: 0;
     pointer-events: none;
-    transition: var(--grl-transition);
+    transition: var(--seal-transition);
     padding: 0 !important;
     width: 32px !important;
     height: 32px;
@@ -537,7 +537,7 @@
     align-items: center;
   }
 
-  .grl-edge-delete-button[data-visible='true'] {
+  .seal-edge-delete-button[data-visible='true'] {
     opacity: 1;
     pointer-events: all;
   }
@@ -549,7 +549,7 @@
   }
 
   .draggable-component[draggable='false'] [data-dn-icon],
-  .draggable-component[draggable='false'] .grl-dn {
+  .draggable-component[draggable='false'] .seal-dn {
     color: var(--muted);
   }
 
@@ -558,7 +558,7 @@
   }
 
   .draggable-component [data-dn-icon] {
-    transition: var(--grl-transition);
+    transition: var(--seal-transition);
     filter: opacity(0.5) grayscale(0.3);
   }
 
@@ -570,56 +570,56 @@
 
 /* Graph node handles — these DO fight xyflow's own injected handle styles
    (ties broken by document order), so they intentionally stay unlayered.
-   .grl-graph-node visibility also guards against xyflow base hiding. */
-.grl-graph-node {
+   .seal-graph-node visibility also guards against xyflow base hiding. */
+.seal-graph-node {
   visibility: visible !important;
 }
 
-.grl-graph-node__handle-left,
-.grl-graph-node__handle-right {
+.seal-graph-node__handle-left,
+.seal-graph-node__handle-right {
   z-index: 20;
   top: 20px;
 }
 
 /*
- * GRL-STYLE-HACK[HK-09](cascade-layer + hardcoded-color): Excel mapping wizard
+ * SEAL-STYLE-HACK[HK-09](cascade-layer + hardcoded-color): Excel mapping wizard
  * control alignment injected via scoped selectors instead of component props.
  * Two problems: (a) unlayered rules outrank utilities; (b) `color: #fff` on the
  * active radio is a hardcoded literal outside the token system.
  * replace-with: props/className on the dialog components +
- *   --grl-*-foreground tokens — docs/shadcn-theming-roadmap.zh-CN.md §P1/§P2.
+ *   --seal-*-foreground tokens — docs/shadcn-theming-roadmap.zh-CN.md §P1/§P2.
  */
 /* ── Excel mapping wizard (graph-excel-dialog): align controls to design rhythm ── */
-.grl-graph-excel-dialog [data-slot='select-trigger'] {
+.seal-graph-excel-dialog [data-slot='select-trigger'] {
   height: 36px;
-  background: var(--grl-color-bg-container);
+  background: var(--seal-color-bg-container);
   border-color: var(--border);
   color: var(--foreground);
 }
 
-.grl-graph-excel-dialog [role='radiogroup'] {
+.seal-graph-excel-dialog [role='radiogroup'] {
   height: 36px;
   padding: 0;
-  background: var(--grl-color-bg-container);
+  background: var(--seal-color-bg-container);
   border: 1px solid var(--border);
   border-radius: var(--radius, 8px);
   overflow: hidden;
 }
 
-.grl-graph-excel-dialog [role='radiogroup'] button {
+.seal-graph-excel-dialog [role='radiogroup'] button {
   flex: 1 1 0%;
   height: 100%;
   border-radius: 0;
   font-size: 13px;
   color: var(--muted-foreground);
-  background: var(--grl-color-bg-container);
+  background: var(--seal-color-bg-container);
 }
 
-.grl-graph-excel-dialog [role='radiogroup'] button + button {
+.seal-graph-excel-dialog [role='radiogroup'] button + button {
   border-left: 1px solid var(--border);
 }
 
-.grl-graph-excel-dialog [role='radiogroup'] button.bg-background {
+.seal-graph-excel-dialog [role='radiogroup'] button.bg-background {
   background: var(--primary);
-  color: var(--grl-color-text-light-solid);
+  color: var(--seal-color-text-light-solid);
 }

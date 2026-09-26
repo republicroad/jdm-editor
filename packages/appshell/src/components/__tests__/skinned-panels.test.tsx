@@ -60,7 +60,7 @@ describe('mapPanelSlotIds', () => {
 describe('SkinnedDecisionGraph right panels', () => {
   it('无 right 槽位：无轨道 DOM（零注入）', async () => {
     const { container } = renderSkinned();
-    await waitFor(() => expect(container.querySelector('.react-flow, .grl-dg')).toBeTruthy());
+    await waitFor(() => expect(container.querySelector('.react-flow, .seal-dg')).toBeTruthy());
     expect(container.querySelector('[aria-label="skin-panel-rail"]')).toBeNull();
   });
 

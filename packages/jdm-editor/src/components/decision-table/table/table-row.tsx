@@ -102,16 +102,16 @@ export const TableRow: React.FC<{
         "after:content-[''] after:absolute after:left-0 after:right-0 after:bg-[var(--primary)]",
         isOver && direction === 'down' && 'after:bottom-0 after:h-[2px]',
         isOver && direction === 'up' && 'after:top-0 after:h-[2px]',
-        !diffStatus && isActive && 'bg-[var(--grl-color-success-bg)]',
+        !diffStatus && isActive && 'bg-[var(--seal-color-success-bg)]',
         !diffStatus &&
           disabled &&
           'bg-black/[0.02] [&_[contenteditable]]:bg-transparent [&_[contenteditable]]:text-[var(--muted-foreground)]',
         !diffStatus &&
           cursor?.y === virtualItem.index &&
           !disabled &&
-          'selected bg-[var(--grl-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--grl-color-primary-bg-fade)]',
-        diffStatus === 'added' && 'bg-[var(--grl-color-success-bg)]',
-        diffStatus === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+          'selected bg-[var(--seal-color-primary-bg-fade)] [&>td:first-of-type]:bg-[var(--seal-color-primary-bg-fade)]',
+        diffStatus === 'added' && 'bg-[var(--seal-color-success-bg)]',
+        diffStatus === 'removed' && 'bg-[var(--seal-color-error-bg)]',
       )}
       style={{
         opacity: isDragging ? 0.5 : 1,
@@ -142,9 +142,9 @@ export const TableRow: React.FC<{
           className={clsx(
             'min-h-[36px] p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]',
             !disabled && cursor?.x === cell.column.id && cursor?.y === virtualItem.index && 'outline-[var(--border)]',
-            diff?.fields?.[cell?.column?.id]?.status === 'modified' && 'bg-[var(--grl-color-warning-bg)]',
-            diff?.fields?.[cell?.column?.id]?.status === 'added' && 'bg-[var(--grl-color-success-bg)]',
-            diff?.fields?.[cell?.column?.id]?.status === 'removed' && 'bg-[var(--grl-color-error-bg)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'modified' && 'bg-[var(--seal-color-warning-bg)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'added' && 'bg-[var(--seal-color-success-bg)]',
+            diff?.fields?.[cell?.column?.id]?.status === 'removed' && 'bg-[var(--seal-color-error-bg)]',
           )}
           style={{ width: cell.column.getSize() }}
         >

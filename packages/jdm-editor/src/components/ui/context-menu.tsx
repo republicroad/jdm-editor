@@ -4,7 +4,7 @@ import { cn } from '#lib/utils';
 import { ContextMenu as ContextMenuPrimitive } from '@base-ui/react/context-menu';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function ContextMenu(props: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
   return <ContextMenuPrimitive.Root data-slot='context-menu' {...props} />;
@@ -15,8 +15,8 @@ function ContextMenuTrigger(props: React.ComponentProps<typeof ContextMenuPrimit
 }
 
 function ContextMenuPortal(props: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
-  const grlContainer = useGrlPortalContainer();
-  return <ContextMenuPrimitive.Portal data-slot='context-menu-portal' container={grlContainer} {...props} />;
+  const sealContainer = useSealPortalContainer();
+  return <ContextMenuPrimitive.Portal data-slot='context-menu-portal' container={sealContainer} {...props} />;
 }
 
 const ContextMenuContent = React.forwardRef<
@@ -24,15 +24,15 @@ const ContextMenuContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Popup> &
     Pick<ContextMenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
 >(({ className, side, sideOffset = 0, align, alignOffset, ...props }, ref) => {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <ContextMenuPrimitive.Portal container={grlContainer}>
+    <ContextMenuPrimitive.Portal container={sealContainer}>
       <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
         <ContextMenuPrimitive.Popup
           ref={ref}
           data-slot='context-menu-content'
           className={cn(
-            // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+            // box-border: portaled nodes live outside .seal-root preflight scope (HK-14).
             'box-border z-50 min-w-[8rem] origin-(--transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
             className,
           )}
@@ -104,9 +104,9 @@ const ContextMenuSubContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Popup> &
     Pick<ContextMenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>
 >(({ className, side = 'right', sideOffset = 0, align, alignOffset, ...props }, ref) => {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <ContextMenuPrimitive.Portal container={grlContainer}>
+    <ContextMenuPrimitive.Portal container={sealContainer}>
       <ContextMenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
         <ContextMenuPrimitive.Popup
           ref={ref}

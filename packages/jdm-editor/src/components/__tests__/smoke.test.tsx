@@ -23,7 +23,7 @@ describe('component smoke rendering', () => {
     const onChange = vi.fn();
     const { container } = render(<DecisionGraph value={{ nodes: [], edges: [] }} onChange={onChange} />);
 
-    expect(container.querySelector('.grl-dg')).toBeInTheDocument();
+    expect(container.querySelector('.seal-dg')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(container.querySelector('.react-flow')).toBeInTheDocument();

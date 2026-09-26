@@ -35,23 +35,23 @@
 | [`codemirror-theme-migration.md`](./codemirror-theme-migration.md) | EN | CodeMirror skin cascade-layer debt: root cause of display↔edit cursor drift, the accepted CSS workaround, the EditorView.theme() migration (Batch D log + iteration trajectory), the Spike-A reject memo, and the archived pooled-revival path |
 | [`codemirror-theme-migration.zh-CN.md`](./codemirror-theme-migration.zh-CN.md) | 中文 | CodeMirror 皮肤层叠债(中文对照):光标漂移根因、已接受 workaround、theme() 迁移实录与迭代轨迹、Spike-A 否决备忘、池化复活路径归档 |
 | [`shadcn-theming-roadmap.md`](./shadcn-theming-roadmap.md) | EN | One-click retheming roadmap: acceptance criteria, token pipeline review, P0–P4 phases (seed derivation incl. OKLab dark, hardcoded closure, cascade cleanup incl. Spike-A verdict, scoped injection deferred, CI guards), double-layer decision record, style-debt registry |
-| [`shadcn-theming-roadmap.zh-CN.md`](./shadcn-theming-roadmap.zh-CN.md) | 中文 | 一键换肤长期路线图(中文对照):验收标准、token 管道、P0–P4 阶段计划、双层结构决策记录、样式债务注册表(GRL-STYLE-HACK 索引) |
+| [`shadcn-theming-roadmap.zh-CN.md`](./shadcn-theming-roadmap.zh-CN.md) | 中文 | 一键换肤长期路线图(中文对照):验收标准、token 管道、P0–P4 阶段计划、双层结构决策记录、样式债务注册表(SEAL-STYLE-HACK 索引) |
 | [`editor-engines.md`](./editor-engines.md) | EN | CodeMirror 6 vs Monaco: usage matrix (table cells / expressions / function body / simulator / JSON schema), the four decisive selection dimensions, and the shared token-theming contract |
 | [`editor-engines.zh-CN.md`](./editor-engines.zh-CN.md) | 中文 | 编辑器引擎选型说明(中文对照):CodeMirror 6 与 Monaco 的场景矩阵、四个决定性选型维度、共享 token 主题契约 |
-| [`storybook.md`](./storybook.md) | EN | Storybook guide: configuration (main.ts/preview.tsx), decorator setup (.grl-root scoped injection), story inventory (57 stories), interaction test pipeline (test:storybook), height chain, multi-island testing |
-| [`storybook.zh-CN.md`](./storybook.zh-CN.md) | 中文 | Storybook 指南(中文对照):配置(main.ts/preview.tsx)、装饰器设置(.grl-root 作用域注入)、story 清单(57 个)、交互测试流水线(test:storybook)、高度链、多岛测试 |
+| [`storybook.md`](./storybook.md) | EN | Storybook guide: configuration (main.ts/preview.tsx), decorator setup (.seal-root scoped injection), story inventory (57 stories), interaction test pipeline (test:storybook), height chain, multi-island testing |
+| [`storybook.zh-CN.md`](./storybook.zh-CN.md) | 中文 | Storybook 指南(中文对照):配置(main.ts/preview.tsx)、装饰器设置(.seal-root 作用域注入)、story 清单(57 个)、交互测试流水线(test:storybook)、高度链、多岛测试 |
 | [`i18n.md`](./i18n.md) | EN | i18n guide: provider setup via JdmConfigProvider, useT/createT, en+zh-CN catalogs, fallback chain, interpolation, coverage and known limitation (renderNode specs) |
 | [`i18n.zh-CN.md`](./i18n.zh-CN.md) | 中文 | 国际化指南(中文对照):Provider 接入、useT/createT、en+zh-CN 词条表、回退链、插值、覆盖范围与已知限制(renderNode 规格回调) |
 | [`troubleshooting.md`](./troubleshooting.md) | EN | Debugging case log: symptom → investigation → root cause → fix → verification |
 | [`troubleshooting.zh-CN.md`](./troubleshooting.zh-CN.md) | 中文 | 排查案例记录(中文对照):压力测试冻结渲染进程的高度链问题、布尔下拉静默失效的 Radix 字符串强转问题、`asChild`+Tooltip 组合吞掉弹层事件与 Portal 逃逸作用域 preflight(Map Excel Data 按钮失效/弹窗溢出)、自定义节点按钮消失的三层叠加根因等 |
 | [`pnpm-workspace-linking.md`](./pnpm-workspace-linking.md) | EN | pnpm workspace linking: direct symlink vs peer-variant physical clone, hardlink freeze cycle, source-passthrough policy, forensics one-liners |
 | [`pnpm-workspace-linking.zh-CN.md`](./pnpm-workspace-linking.zh-CN.md) | 中文 | pnpm workspace 链接机制(中文对照):直连 symlink 与 peer-variant 物理克隆、硬链接冻结循环、源码直通策略与取证单行命令 |
-| [`host-migration-guide.md`](./host-migration-guide.md) | EN | Host migration guide: @gorules → @republicroad quick switch, breaking changes, --grl-* contract, 0.2.x additions (new exports, DecisionGraph props, custom node authoring, i18n increments), 0.3.0 heads-up |
-| [`host-migration-guide.zh-CN.md`](./host-migration-guide.zh-CN.md) | 中文 | 宿主迁移指南(中文对照):快速切换、破坏性变更、--grl-* 契约、0.2.x 新增(导出、DecisionGraph 属性、自定义节点开发、i18n 增量)、0.3.0 预告 |
+| [`host-migration-guide.md`](./host-migration-guide.md) | EN | Host migration guide: @gorules → @republicroad quick switch, breaking changes, --seal-* contract, 0.2.x additions (new exports, DecisionGraph props, custom node authoring, i18n increments), 0.3.0 heads-up |
+| [`host-migration-guide.zh-CN.md`](./host-migration-guide.zh-CN.md) | 中文 | 宿主迁移指南(中文对照):快速切换、破坏性变更、--seal-* 契约、0.2.x 新增(导出、DecisionGraph 属性、自定义节点开发、i18n 增量)、0.3.0 预告 |
 | [`appshell.md`](./appshell.md) | EN | @republicroad/jdm-appshell — the scheme D reference consumer shell: custom node hosting (six nodes), registry and protocols, skin system, GraphPersistenceAdapter persistence contract, host wiring |
 | [`appshell.zh-CN.md`](./appshell.zh-CN.md) | 中文 | appshell 参考消费者壳(中文对照):自定义节点托管(六节点)、registry 与协议、皮肤系统、持久化契约、宿主接线 |
-| [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) | EN | 0.3.0 draft roadmap: monaco peer move (staged), trigger-gated majors (pooled flag, L2 sweep, --grl-* deprecation), new candidates (code splitting, drag keyboard support) |
-| [`roadmap-0.3.0.zh-CN.md`](./roadmap-0.3.0.zh-CN.md) | 中文 | 0.3.0 路线草案(中文对照):monaco peer 化(已就位)、触发门控 major 项(池化开关、L2 清扫、--grl-* 废弃)、新候选(代码分割、拖拽键盘支持) |
+| [`roadmap-0.3.0.md`](./roadmap-0.3.0.md) | EN | 0.3.0 draft roadmap: monaco peer move (staged), trigger-gated majors (pooled flag, L2 sweep, --seal-* deprecation), new candidates (code splitting, drag keyboard support) |
+| [`roadmap-0.3.0.zh-CN.md`](./roadmap-0.3.0.zh-CN.md) | 中文 | 0.3.0 路线草案(中文对照):monaco peer 化(已就位)、触发门控 major 项(池化开关、L2 清扫、--seal-* 废弃)、新候选(代码分割、拖拽键盘支持) |
 
 English files are canonical; `.zh-CN.md` files are translations kept in sync.
 英文文档为准,`.zh-CN.md` 为同步维护的译文。
@@ -81,5 +81,5 @@ English files are canonical; `.zh-CN.md` files are translations kept in sync.
   are consumed **from npm**, not from this repository.
   支撑包(`@gorules/lezer-zen`、`@gorules/lezer-zen-template`、`@gorules/zen-engine-wasm`)直接取自 npm,不在本仓库内维护。
 - Stack / 技术栈:React 19 (peer `>=18`) · Tailwind CSS + shadcn/ui primitives · zustand 5 · reactflow → @xyflow/react · CodeMirror 6 · Monaco · TanStack Table · Vite 8 (Rolldown) · Storybook 10 · Rust/WASM engine bindings.
-- Host integration / 宿主接入:Consumers wrap their app in a `.grl-root` container to opt in to the scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses `:where()` (zero specificity) so component classes always win and never leak into the host document.
-  消费方在最外层容器挂 `grl-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类天然胜出,不会泄漏到宿主文档。
+- Host integration / 宿主接入:Consumers wrap their app in a `.seal-root` container to opt in to the scoped mini-preflight (form controls, tables, headings, lists, images). The reset uses `:where()` (zero specificity) so component classes always win and never leak into the host document.
+  消费方在最外层容器挂 `seal-root` 类以启用库作用域 mini-preflight(表单控件、表格、标题、列表、图片)。重置规则全部使用 `:where()`(零特异性),组件类天然胜出,不会泄漏到宿主文档。

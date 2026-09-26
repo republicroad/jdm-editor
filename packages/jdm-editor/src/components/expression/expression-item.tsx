@@ -71,12 +71,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
   const diffStatus = expression?._diff?.status;
   const diffBg =
     diffStatus === 'added'
-      ? 'bg-[var(--grl-color-success-bg)]'
+      ? 'bg-[var(--seal-color-success-bg)]'
       : diffStatus === 'removed'
-        ? 'bg-[var(--grl-color-error-bg)]'
+        ? 'bg-[var(--seal-color-error-bg)]'
         : diffStatus === 'modified'
-          ? 'bg-[var(--grl-color-warning-bg)]'
-          : 'bg-[var(--grl-color-bg-container)]';
+          ? 'bg-[var(--seal-color-warning-bg)]'
+          : 'bg-[var(--seal-color-bg-container)]';
 
   return (
     <div
@@ -98,7 +98,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
         ref={setActivatorNodeRef}
         {...listeners}
         {...attributes}
-        className='box-border flex h-full items-start justify-center border-r border-[var(--grl-color-border-fade)] pt-[15px] text-[var(--muted-foreground)] cursor-grab aria-disabled:cursor-not-allowed'
+        className='box-border flex h-full items-start justify-center border-r border-[var(--seal-color-border-fade)] pt-[15px] text-[var(--muted-foreground)] cursor-grab aria-disabled:cursor-not-allowed'
         aria-disabled={actionDisabled}
       >
         <div className='flex content-center gap-[3px] opacity-50 [&>span]:leading-[1.4]'>
@@ -114,7 +114,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
           )}
         </div>
       </div>
-      <div className='box-border h-full border-r border-[var(--grl-color-border-fade)]'>
+      <div className='box-border h-full border-r border-[var(--seal-color-border-fade)]'>
         <ExpressionItemContextMenu index={index}>
           <DiffAutosizeTextArea
             noStyle
@@ -137,7 +137,7 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({ expression, inde
               // the same custom properties decision-table cells use (12px rhythm),
               // placeholder via the semantic token. pr-[60px] stays — reserved
               // right gutter for item controls.
-              className='[--ce-verticalPadding:12px] [--ce-horizontalPadding:12px] [&_.cm-content]:pr-[60px]! [&_.cm-placeholder]:text-[color:var(--grl-color-text-placeholder)]!'
+              className='[--ce-verticalPadding:12px] [--ce-horizontalPadding:12px] [&_.cm-content]:pr-[60px]! [&_.cm-placeholder]:text-[color:var(--seal-color-text-placeholder)]!'
               placeholder={t('expression.placeholder')}
               maxRows={9}
               disabled={disabled}
@@ -174,7 +174,7 @@ const LivePreview = React.memo<{ id: string; value: string }>(({ id, value }) =>
   });
 
   return (
-    <div className='absolute top-full right-0 z-[5] rounded-br-lg border-t border-[var(--background)] bg-[var(--background)] p-2 w-[400px] max-w-[50%] overflow-x-auto whitespace-nowrap opacity-100 [pointer-events:bounding-box] hover:opacity-50 [&_.grl-ce-preview]:bg-white'>
+    <div className='absolute top-full right-0 z-[5] rounded-br-lg border-t border-[var(--background)] bg-[var(--background)] p-2 w-[400px] max-w-[50%] overflow-x-auto whitespace-nowrap opacity-100 [pointer-events:bounding-box] hover:opacity-50 [&_.seal-ce-preview]:bg-white'>
       <CodeEditorPreview expression={value} inputData={inputData} initial={initial} />
     </div>
   );
@@ -189,7 +189,7 @@ const ResultOverlay: React.FC<{ expression: ExpressionEntry }> = ({ expression }
   }
 
   return (
-    <div className='absolute top-1/2 right-[3px] -translate-y-1/2 rounded border border-[var(--grl-color-success-border)] bg-[var(--grl-color-success-bg)] px-1.5 py-0.5 max-h-[calc(100%-5px)] max-w-[50%] overflow-x-auto whitespace-nowrap [&>span]:text-xs [&>span]:[font-family:var(--mono-font-family)]'>
+    <div className='absolute top-1/2 right-[3px] -translate-y-1/2 rounded border border-[var(--seal-color-success-border)] bg-[var(--seal-color-success-bg)] px-1.5 py-0.5 max-h-[calc(100%-5px)] max-w-[50%] overflow-x-auto whitespace-nowrap [&>span]:text-xs [&>span]:[font-family:var(--mono-font-family)]'>
       <Typography.Text
         ellipsis={{ tooltip: (trace ?? undefined) as React.ReactNode }}
         style={{ maxWidth: 60, overflow: 'hidden' }}

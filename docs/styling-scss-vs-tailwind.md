@@ -11,7 +11,7 @@
 The fork vendors **two parallel styling systems**:
 
 - A global `src/styles/tailwind.css` (Tailwind v4 via `@tailwindcss/vite`), plus `tokens.css` which
-  bridges the live antd-derived runtime tokens (`--grl-*`) to generic names (`--border`, `--primary`,
+  bridges the live antd-derived runtime tokens (`--seal-*`) to generic names (`--border`, `--primary`,
   …). All shadcn/ui and ReUI components are styled with Tailwind utilities.
 - ~2 700 lines of hand-written SCSS (`dg.scss`, `dt.scss`, `ce.scss`, `expression.scss`,
   `function.scss`, `_builder-base.scss` + builders, `decision-node.scss`, `styles.scss`), compiled by
@@ -25,7 +25,7 @@ drop the `sass` dependency without losing styling capability.
 > CodeMirror tooltips (`--tooltip-bg`), diagnostic chips (`--diagnostic-chip-bg`) and the Monaco
 > error-line decoration (`--error-line-bg`) — live in `tokens.css` with explicit
 > `[data-mode='light']` / `[data-mode='dark']` blocks. Define new editor-surface colors there (not
-> in `tailwind.css` and not under the runtime-injected `--grl-*` namespace) so dark mode keeps
+> in `tailwind.css` and not under the runtime-injected `--seal-*` namespace) so dark mode keeps
 > working; see §8.
 
 ## 2. What a "utility class" is
@@ -61,7 +61,7 @@ The real boundary is **utility vs plain CSS**, **not SCSS vs Tailwind**. Three c
 plain-CSS side and never need Sass:
 
 1. **Third-party DOM hooks.** Monaco line decorations apply a class *name* to DOM Monaco creates
-   (`function.tsx` passes `className: 'grl-function__errorLineContent'` to
+   (`function.tsx` passes `className: 'seal-function__errorLineContent'` to
    `createDecorationsCollection`). A utility cannot be attached — a real CSS rule keyed by that class
    is required. Same for `react-json-tree` internals in `function-debugger-log.tsx`
    (`li > div + label + span`, `.log__values > ul:first-of-type > li:first-of-type`).
@@ -86,8 +86,8 @@ available:
 <BaseEdge style={{
   ...(style || {}),
   stroke: match(diff)
-    .with({ status: 'added' }, () => 'var(--grl-color-success)')
-    .with({ status: 'removed' }, () => 'var(--grl-color-error)')
+    .with({ status: 'added' }, () => 'var(--seal-color-success)')
+    .with({ status: 'removed' }, () => 'var(--seal-color-error)')
     .otherwise(() => undefined),
 }} />
 

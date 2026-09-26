@@ -19,36 +19,36 @@ import { computeTheme } from '../compute';
 type Pair = { fg: string; bg: string; min: number; note?: string };
 
 const LIGHT_PAIRS: Pair[] = [
-  { fg: '--grl-color-text', bg: '--grl-color-bg-container', min: 4.5 },
-  { fg: '--grl-color-text', bg: '--grl-color-bg-layout', min: 4.5 },
-  { fg: '--grl-color-text-secondary', bg: '--grl-color-bg-container', min: 4.5 },
+  { fg: '--seal-color-text', bg: '--seal-color-bg-container', min: 4.5 },
+  { fg: '--seal-color-text', bg: '--seal-color-bg-layout', min: 4.5 },
+  { fg: '--seal-color-text-secondary', bg: '--seal-color-bg-container', min: 4.5 },
   {
-    fg: '--grl-color-primary',
-    bg: '--grl-color-bg-container',
+    fg: '--seal-color-primary',
+    bg: '--seal-color-bg-container',
     min: 4.0,
     note: 'links/inline primary text — compat default primary measures 4.10 (AA-large passes; AA-normal narrowly missed, an upstream trait kept for brand parity)',
   },
   {
-    fg: '--grl-color-warning-text',
-    bg: '--grl-color-warning-bg',
+    fg: '--seal-color-warning-text',
+    bg: '--seal-color-warning-bg',
     min: 2.5,
     note: 'compat default warning pairing measures 2.76 — upstream trait kept for parity; banners pair with icons/controls and are non-body channels',
   },
   {
-    fg: '--grl-color-text-light-solid',
-    bg: '--grl-color-primary',
+    fg: '--seal-color-text-light-solid',
+    bg: '--seal-color-primary',
     min: 3.0,
     note: 'solid button foreground (large AA)',
   },
 ];
 
 const DARK_PAIRS: Pair[] = [
-  { fg: '--grl-color-text', bg: '--grl-color-bg-container', min: 4.5 },
-  { fg: '--grl-color-text-secondary', bg: '--grl-color-bg-container', min: 4.5 },
-  { fg: '--grl-color-text-light-solid', bg: '--grl-color-primary', min: 3.0, note: 'solid button foreground' },
+  { fg: '--seal-color-text', bg: '--seal-color-bg-container', min: 4.5 },
+  { fg: '--seal-color-text-secondary', bg: '--seal-color-bg-container', min: 4.5 },
+  { fg: '--seal-color-text-light-solid', bg: '--seal-color-primary', min: 3.0, note: 'solid button foreground' },
   {
-    fg: '--grl-color-primary',
-    bg: '--grl-color-bg-container',
+    fg: '--seal-color-primary',
+    bg: '--seal-color-bg-container',
     min: 3.0,
     note: 'primary as large/link text on dark container',
   },
@@ -84,7 +84,7 @@ describe('token contrast assertions (WCAG 2.x, P4 guard)', () => {
   });
 
   it('SAMPLE custom seed (violet) keeps derivation accessible in both modes', () => {
-    assertPair('light', { fg: '--grl-color-primary', bg: '--grl-color-bg-container', min: 4.5 }, SAMPLE_SEED);
-    assertPair('dark', { fg: '--grl-color-primary', bg: '--grl-color-bg-container', min: 3.0 }, SAMPLE_SEED);
+    assertPair('light', { fg: '--seal-color-primary', bg: '--seal-color-bg-container', min: 4.5 }, SAMPLE_SEED);
+    assertPair('dark', { fg: '--seal-color-primary', bg: '--seal-color-bg-container', min: 3.0 }, SAMPLE_SEED);
   });
 });

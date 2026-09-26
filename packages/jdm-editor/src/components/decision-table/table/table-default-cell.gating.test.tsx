@@ -70,9 +70,9 @@ describe('business-mode cell gating on wasm readiness', () => {
     const { container, unmount } = renderCell();
 
     // Typed control (number input) instead of a code cell; the lazy dev
-    // highlighter (.grl-ce) must not appear.
+    // highlighter (.seal-ce) must not appear.
     expect(container.querySelector('input')).not.toBeNull();
-    expect(container.querySelector('.grl-ce')).toBeNull();
+    expect(container.querySelector('.seal-ce')).toBeNull();
     unmount();
   });
 
@@ -81,7 +81,7 @@ describe('business-mode cell gating on wasm readiness', () => {
     const { container, unmount } = renderCell();
 
     // Dev cells render the (lazy) highlighter/editor root, not builder controls.
-    expect(container.querySelector('.grl-ce')).not.toBeNull();
+    expect(container.querySelector('.seal-ce')).not.toBeNull();
     unmount();
   });
 });

@@ -18,13 +18,13 @@
 
 ### 1. 主题重写丢失节点色变量(`7dc1add`)
 
-`.grl-dn__header__icon` 是"白字形 + `background: var(--node-color)` 彩色底"。规格层
+`.seal-dn__header__icon` 是"白字形 + `background: var(--node-color)` 彩色底"。规格层
 (`nodes/specifications/colors.ts`)把节点类型映射到
 `var(--node-color-blue|purple|orange|green)`。旧主题提供器负责注入这些变量,静态色板重写时被
 遗漏 → 底色透明 → 白底白字隐形。恢复值:
 
 ```ts
-'--node-color-blue': 'var(--grl-color-primary)',
+'--node-color-blue': 'var(--seal-color-primary)',
 '--node-color-purple': '#7c4dff',
 '--node-color-orange': '#f76d40',
 '--node-color-green': '#10ac84',

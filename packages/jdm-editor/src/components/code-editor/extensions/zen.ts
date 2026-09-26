@@ -187,7 +187,7 @@ export const hoverExtension = () => {
           above: true,
           create() {
             const dom = document.createElement('div');
-            dom.classList.add('grl-ce-hover-tooltip');
+            dom.classList.add('seal-ce-hover-tooltip');
             dom.style.whiteSpace = 'pre';
             dom.innerHTML = renderDiagnosticMessage({
               text: `<span style="font-size: 12px">${details.info}</span>\n${details.label}: ${details.detail}\n`,
@@ -213,7 +213,7 @@ export const hoverExtension = () => {
           above: true,
           create() {
             const dom = document.createElement('div');
-            dom.classList.add('grl-ce-hover-tooltip');
+            dom.classList.add('seal-ce-hover-tooltip');
             dom.style.whiteSpace = 'pre';
             dom.innerHTML = renderDiagnosticMessage({
               text: `${source.slice(tBase[0], tBase[1])}: \`${zenKindToString(targetType.kind)}\``,

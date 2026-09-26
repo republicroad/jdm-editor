@@ -2,7 +2,7 @@
  * React Flow 以自有 --xy-* 变量绘制画布部件（controls/minimap/连线/选区/归因等）；
  * 将变量映射到设计 token（--border/--primary/--card/…，见 styles/tokens.css）后，
  * 画布外观随主题与暗色模式联动，而非停留在 xyflow 出厂默认。
- * 移植自 ReUI flow-1 块（flow-canvas.tsx 的 FLOW_THEME）。与 .grl-dg .react-flow__*
+ * 移植自 ReUI flow-1 块（flow-canvas.tsx 的 FLOW_THEME）。与 .seal-dg .react-flow__*
  * 元素级覆盖正交：变量层给默认色，元素层仍可覆盖具体部件。
  */
 export const XYFLOW_THEME = [

@@ -39,7 +39,7 @@ export const ExcelDnd: React.FC<
             <OverlayChip width={160}>{activeColumn.name}</OverlayChip>
             {activeColumn.field ? (
               <OverlayChip width={140}>
-                <span style={{ color: 'var(--grl-color-text-tertiary)' }}>{activeColumn.field}</span>
+                <span style={{ color: 'var(--seal-color-text-tertiary)' }}>{activeColumn.field}</span>
               </OverlayChip>
             ) : null}
           </DragOverlayCard>

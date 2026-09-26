@@ -20,7 +20,7 @@ export const DiffRadio: React.FC<DiffRadioProps> = ({ displayDiff, previousValue
             displayDiff &&
               option.value === previousValue &&
               'text-[var(--destructive)] line-through decoration-[var(--destructive)]',
-            displayDiff && option.value === rest.value && 'text-[var(--grl-color-success)]',
+            displayDiff && option.value === rest.value && 'text-[var(--seal-color-success)]',
           ])}
         >
           {option.label}

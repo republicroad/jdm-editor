@@ -3,12 +3,12 @@
  * roadmap Batch S (lexical-scope hardening).
  *
  * Two resolution regimes:
- *  1. ISLAND (recommended): hosts wrap their app in `.grl-root`. The provider
- *     (theme.tsx) injects `--grl-*` inline on that container, so the bridge
+ *  1. ISLAND (recommended): hosts wrap their app in `.seal-root`. The provider
+ *     (theme.tsx) injects `--seal-*` inline on that container, so the bridge
  *     below maps them to shadcn semantic names with NO mode variants needed —
- *     every `--grl-*` upstream is already mode-correct, and fallbacks are
+ *     every `--seal-*` upstream is already mode-correct, and fallbacks are
  *     unreachable by construction.
- *  2. LEGACY fallback: pages without any `.grl-root` (:root:not(:has(...)))
+ *  2. LEGACY fallback: pages without any `.seal-root` (:root:not(:has(...)))
  *     keep the historical global injection + mode-split static fallbacks.
  *
  * Design note: scoping this bridge is what keeps hosts running their own
@@ -16,28 +16,28 @@
  */
 
 /* ── ISLAND scope ──────────────────────────────────────────────────────── */
-.grl-root {
+.seal-root {
   --radius: 0.5rem;
 
-  --background: var(--grl-color-bg-layout, #f5f5f5);
-  --foreground: var(--grl-color-text, rgba(0, 0, 0, 0.88));
-  --card: var(--grl-color-bg-elevated, #ffffff);
+  --background: var(--seal-color-bg-layout, #f5f5f5);
+  --foreground: var(--seal-color-text, rgba(0, 0, 0, 0.88));
+  --card: var(--seal-color-bg-elevated, #ffffff);
   --card-foreground: var(--foreground);
-  --popover: var(--grl-color-bg-elevated, #ffffff);
+  --popover: var(--seal-color-bg-elevated, #ffffff);
   --popover-foreground: var(--foreground);
-  --primary: var(--grl-color-primary, #1677ff);
+  --primary: var(--seal-color-primary, #1677ff);
   --primary-foreground: #ffffff;
-  --secondary: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --secondary: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
   --secondary-foreground: var(--foreground);
-  --muted: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
-  --muted-foreground: var(--grl-color-text-secondary, rgba(0, 0, 0, 0.65));
-  --accent: var(--grl-color-bg-text-hover, rgba(0, 0, 0, 0.06));
+  --muted: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --muted-foreground: var(--seal-color-text-secondary, rgba(0, 0, 0, 0.65));
+  --accent: var(--seal-color-bg-text-hover, rgba(0, 0, 0, 0.06));
   --accent-foreground: var(--foreground);
-  --destructive: var(--grl-color-error, #ff4d4f);
+  --destructive: var(--seal-color-error, #ff4d4f);
   --destructive-foreground: #ffffff;
-  --border: var(--grl-color-border, #d9d9d9);
-  --input: var(--grl-color-border, #d9d9d9);
-  --ring: var(--grl-color-primary, #1677ff);
+  --border: var(--seal-color-border, #d9d9d9);
+  --input: var(--seal-color-border, #d9d9d9);
+  --ring: var(--seal-color-primary, #1677ff);
 
   /* Editor chrome surfaces (CodeMirror/Monaco) with no legacy counterpart */
   --tooltip-bg: #f5f5f5;
@@ -45,26 +45,26 @@
   --error-line-bg: #fff1f0;
 }
 
-.grl-root[data-mode='dark'] {
-  --background: var(--grl-color-bg-layout, #000000);
-  --foreground: var(--grl-color-text, rgba(255, 255, 255, 0.85));
-  --card: var(--grl-color-bg-elevated, #1f1f1f);
+.seal-root[data-mode='dark'] {
+  --background: var(--seal-color-bg-layout, #000000);
+  --foreground: var(--seal-color-text, rgba(255, 255, 255, 0.85));
+  --card: var(--seal-color-bg-elevated, #1f1f1f);
   --card-foreground: var(--foreground);
-  --popover: var(--grl-color-bg-elevated, #1f1f1f);
+  --popover: var(--seal-color-bg-elevated, #1f1f1f);
   --popover-foreground: var(--foreground);
-  --primary: var(--grl-color-primary, #1668dc);
+  --primary: var(--seal-color-primary, #1668dc);
   --primary-foreground: #ffffff;
-  --secondary: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --secondary: var(--seal-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
   --secondary-foreground: var(--foreground);
-  --muted: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
-  --muted-foreground: var(--grl-color-text-secondary, rgba(255, 255, 255, 0.65));
-  --accent: var(--grl-color-bg-text-hover, rgba(255, 255, 255, 0.1));
+  --muted: var(--seal-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --muted-foreground: var(--seal-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --accent: var(--seal-color-bg-text-hover, rgba(255, 255, 255, 0.1));
   --accent-foreground: var(--foreground);
-  --destructive: var(--grl-color-error, #dc4446);
+  --destructive: var(--seal-color-error, #dc4446);
   --destructive-foreground: #ffffff;
-  --border: var(--grl-color-border, #424242);
-  --input: var(--grl-color-border, #424242);
-  --ring: var(--grl-color-primary, #1668dc);
+  --border: var(--seal-color-border, #424242);
+  --input: var(--seal-color-border, #424242);
+  --ring: var(--seal-color-primary, #1668dc);
 
   /* Editor chrome surfaces (CodeMirror/Monaco) with no legacy counterpart */
   --tooltip-bg: #1f1f1f;
@@ -73,29 +73,29 @@
 }
 
 /* ── LEGACY fallback (no island on the page) ───────────────────────────── */
-:root:not(:has(.grl-root)),
-[data-mode='light']:not(:has(.grl-root)) {
+:root:not(:has(.seal-root)),
+[data-mode='light']:not(:has(.seal-root)) {
   --radius: 0.5rem;
 
-  --background: var(--grl-color-bg-layout, #f5f5f5);
-  --foreground: var(--grl-color-text, rgba(0, 0, 0, 0.88));
-  --card: var(--grl-color-bg-elevated, #ffffff);
+  --background: var(--seal-color-bg-layout, #f5f5f5);
+  --foreground: var(--seal-color-text, rgba(0, 0, 0, 0.88));
+  --card: var(--seal-color-bg-elevated, #ffffff);
   --card-foreground: var(--foreground);
-  --popover: var(--grl-color-bg-elevated, #ffffff);
+  --popover: var(--seal-color-bg-elevated, #ffffff);
   --popover-foreground: var(--foreground);
-  --primary: var(--grl-color-primary, #1677ff);
+  --primary: var(--seal-color-primary, #1677ff);
   --primary-foreground: #ffffff;
-  --secondary: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --secondary: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
   --secondary-foreground: var(--foreground);
-  --muted: var(--grl-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
-  --muted-foreground: var(--grl-color-text-secondary, rgba(0, 0, 0, 0.65));
-  --accent: var(--grl-color-bg-text-hover, rgba(0, 0, 0, 0.06));
+  --muted: var(--seal-color-bg-container-disabled, rgba(0, 0, 0, 0.04));
+  --muted-foreground: var(--seal-color-text-secondary, rgba(0, 0, 0, 0.65));
+  --accent: var(--seal-color-bg-text-hover, rgba(0, 0, 0, 0.06));
   --accent-foreground: var(--foreground);
-  --destructive: var(--grl-color-error, #ff4d4f);
+  --destructive: var(--seal-color-error, #ff4d4f);
   --destructive-foreground: #ffffff;
-  --border: var(--grl-color-border, #d9d9d9);
-  --input: var(--grl-color-border, #d9d9d9);
-  --ring: var(--grl-color-primary, #1677ff);
+  --border: var(--seal-color-border, #d9d9d9);
+  --input: var(--seal-color-border, #d9d9d9);
+  --ring: var(--seal-color-primary, #1677ff);
 
   /* Editor chrome surfaces (CodeMirror/Monaco) with no legacy counterpart */
   --tooltip-bg: #f5f5f5;
@@ -103,28 +103,28 @@
   --error-line-bg: #fff1f0;
 }
 
-[data-mode='dark']:not(:has(.grl-root)) {
+[data-mode='dark']:not(:has(.seal-root)) {
   --radius: 0.5rem;
 
-  --background: var(--grl-color-bg-layout, #000000);
-  --foreground: var(--grl-color-text, rgba(255, 255, 255, 0.85));
-  --card: var(--grl-color-bg-elevated, #1f1f1f);
+  --background: var(--seal-color-bg-layout, #000000);
+  --foreground: var(--seal-color-text, rgba(255, 255, 255, 0.85));
+  --card: var(--seal-color-bg-elevated, #1f1f1f);
   --card-foreground: var(--foreground);
-  --popover: var(--grl-color-bg-elevated, #1f1f1f);
+  --popover: var(--seal-color-bg-elevated, #1f1f1f);
   --popover-foreground: var(--foreground);
-  --primary: var(--grl-color-primary, #1668dc);
+  --primary: var(--seal-color-primary, #1668dc);
   --primary-foreground: #ffffff;
-  --secondary: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --secondary: var(--seal-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
   --secondary-foreground: var(--foreground);
-  --muted: var(--grl-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
-  --muted-foreground: var(--grl-color-text-secondary, rgba(255, 255, 255, 0.65));
-  --accent: var(--grl-color-bg-text-hover, rgba(255, 255, 255, 0.1));
+  --muted: var(--seal-color-bg-container-disabled, rgba(255, 255, 255, 0.08));
+  --muted-foreground: var(--seal-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --accent: var(--seal-color-bg-text-hover, rgba(255, 255, 255, 0.1));
   --accent-foreground: var(--foreground);
-  --destructive: var(--grl-color-error, #dc4446);
+  --destructive: var(--seal-color-error, #dc4446);
   --destructive-foreground: #ffffff;
-  --border: var(--grl-color-border, #424242);
-  --input: var(--grl-color-border, #424242);
-  --ring: var(--grl-color-primary, #1668dc);
+  --border: var(--seal-color-border, #424242);
+  --input: var(--seal-color-border, #424242);
+  --ring: var(--seal-color-primary, #1668dc);
 
   /* Editor chrome surfaces (CodeMirror/Monaco) with no legacy counterpart */
   --tooltip-bg: #1f1f1f;

@@ -35,7 +35,7 @@ import '@republicroad/jdm-editor/dist/style.css';
 </JdmConfigProvider>;
 ```
 
-Wrap any subtree in `.grl-root` to scope the theme island; multiple islands
+Wrap any subtree in `.seal-root` to scope the theme island; multiple islands
 can coexist with independent themes.
 
 ## What's inside

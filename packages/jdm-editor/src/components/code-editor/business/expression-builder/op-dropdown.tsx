@@ -46,7 +46,7 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
       style={
         {
           '--bg-light': 'var(--muted)',
-          '--bg-active': 'var(--grl-color-primary-bg)',
+          '--bg-active': 'var(--seal-color-primary-bg)',
           '--color-active-text': 'var(--primary)',
         } as React.CSSProperties
       }
@@ -76,8 +76,8 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
               <button
                 key={o.type}
                 className={clsx(
-                  'flex h-[72px] w-[92px] cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-card transition-all hover:border-[var(--grl-color-primary-border)] hover:bg-[var(--bg-active)]',
-                  isSel && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)]',
+                  'flex h-[72px] w-[92px] cursor-pointer flex-col items-center justify-center rounded-xl border border-border bg-card transition-all hover:border-[var(--seal-color-primary-border)] hover:bg-[var(--bg-active)]',
+                  isSel && 'border-[var(--seal-color-primary-border)] bg-[var(--bg-active)]',
                 )}
                 onClick={() => pick(o.type)}
               >
@@ -100,8 +100,8 @@ export const OpDropdown: React.FC<OpDropdownProps> = ({
           {onCustomToggle && (
             <button
               className={clsx(
-                'col-span-2 flex h-12 w-auto cursor-pointer flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card transition-all hover:border-[var(--grl-color-primary-border)] hover:bg-[var(--bg-active)]',
-                isCustom && 'border-[var(--grl-color-primary-border)] bg-[var(--bg-active)]',
+                'col-span-2 flex h-12 w-auto cursor-pointer flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card transition-all hover:border-[var(--seal-color-primary-border)] hover:bg-[var(--bg-active)]',
+                isCustom && 'border-[var(--seal-color-primary-border)] bg-[var(--bg-active)]',
               )}
               onClick={() => {
                 onCustomToggle();

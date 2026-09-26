@@ -58,7 +58,7 @@
 
 ## Theming integration (shared contract)
 
-Both engines consume the same `--grl-*` token layer: Monaco through the
+Both engines consume the same `--seal-*` token layer: Monaco through the
 light/dark theme definitions in `helpers/monaco.ts`, CodeMirror through the
 `EditorView.theme()` skin (`code-editor/theme.ts`, Batch D). Neither engine
 hardcodes palette literals.

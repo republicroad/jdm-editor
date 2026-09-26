@@ -3,8 +3,8 @@ import * as React from 'react';
 
 const typoColorClass: Record<string, string> = {
   secondary: 'text-muted-foreground',
-  success: 'text-[var(--grl-color-success)]',
-  warning: 'text-[var(--grl-color-warning)]',
+  success: 'text-[var(--seal-color-success)]',
+  warning: 'text-[var(--seal-color-warning)]',
   danger: 'text-[var(--destructive)]',
 };
 

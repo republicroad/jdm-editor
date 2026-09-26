@@ -162,7 +162,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
   const railNode = hasRail ? (
     <div
       aria-label='skin-panel-rail'
-      className='flex w-12 shrink-0 flex-col items-center gap-2 border-l border-[var(--border)] bg-[var(--grl-color-bg-container)] py-2'
+      className='flex w-12 shrink-0 flex-col items-center gap-2 border-l border-[var(--border)] bg-[var(--seal-color-bg-container)] py-2'
     >
       {rightSlots.map((slotId) => (
         <button

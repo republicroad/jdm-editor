@@ -40,12 +40,12 @@ export const Tabs: React.FC<TabsProps> = ({
   const [uncontrolled, setUncontrolled] = React.useState<string>(defaultActiveKey ?? list[0]?.key ?? '');
   const current = activeKey ?? uncontrolled;
   /*
-   * Compact inline-tab rhythm (formerly .grl-inline-tabs in tailwind.css,
+   * Compact inline-tab rhythm (formerly .seal-inline-tabs in tailwind.css,
    * HK-02): expressed as utilities on the DOM we own instead of `!important`
    * overrides fighting injected styles. Transitional detection keeps the
    * three call sites unchanged; prefer passing explicit props going forward.
    */
-  const compact = rootClassName?.includes('grl-inline-tabs') ?? false;
+  const compact = rootClassName?.includes('seal-inline-tabs') ?? false;
 
   const select = (key: string) => {
     if (activeKey === undefined) setUncontrolled(key);

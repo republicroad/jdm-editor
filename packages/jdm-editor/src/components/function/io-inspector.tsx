@@ -7,15 +7,15 @@ import { useThemeMode } from '../../theme';
 const themes = {
   dark: {
     base00: 'var(--card)',
-    base03: 'var(--grl-color-text-base)',
-    base0B: 'var(--grl-color-text-base)',
-    base0D: 'var(--grl-color-text-base)',
+    base03: 'var(--seal-color-text-base)',
+    base0B: 'var(--seal-color-text-base)',
+    base0D: 'var(--seal-color-text-base)',
   },
   light: {
     base00: 'var(--card)',
-    base03: 'var(--grl-color-text-base)',
-    base0B: 'var(--grl-color-text-base)',
-    base0D: 'var(--grl-color-text-base)',
+    base03: 'var(--seal-color-text-base)',
+    base0B: 'var(--seal-color-text-base)',
+    base0D: 'var(--seal-color-text-base)',
   },
 } as const;
 
@@ -23,9 +23,9 @@ const treeTheme = (mode: 'dark' | 'light') =>
   ({
     ...themes[mode],
     base00: 'var(--card)',
-    base03: 'var(--grl-color-text-base)',
-    base0B: 'var(--grl-color-text-base)',
-    base0D: 'var(--grl-color-text-base)',
+    base03: 'var(--seal-color-text-base)',
+    base0B: 'var(--seal-color-text-base)',
+    base0D: 'var(--seal-color-text-base)',
     tree: { display: 'inline-block' },
   }) as React.ComponentProps<typeof JSONTree>['theme'];
 
@@ -48,12 +48,12 @@ export const IoInspector: React.FC<{
   ];
 
   return (
-    <div className='border-b border-[var(--grl-color-border-fade)] text-xs [font-family:var(--mono-font-family)]'>
+    <div className='border-b border-[var(--seal-color-border-fade)] text-xs [font-family:var(--mono-font-family)]'>
       {sections.map(({ key, label, data }) => {
         if (data == null) return null;
         const isOpen = open === key;
         return (
-          <div key={key} className='border-b border-[var(--grl-color-border-fade)] last:border-b-0'>
+          <div key={key} className='border-b border-[var(--seal-color-border-fade)] last:border-b-0'>
             <button
               type='button'
               className='flex w-full items-center gap-1.5 px-4 py-1 text-left text-[10px] font-medium uppercase tracking-wide text-[var(--muted-foreground)] hover:bg-muted/40'

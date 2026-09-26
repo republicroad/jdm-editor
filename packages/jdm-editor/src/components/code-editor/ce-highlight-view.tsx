@@ -44,8 +44,8 @@ export const CodeHighlighterView = forwardRef<HTMLDivElement, CodeHighlighterVie
       }}
       {...handlers}
       className={clsx(
-        'grl-ce',
-        'grl-ce-highlighter-view',
+        'seal-ce',
+        'seal-ce-highlighter-view',
         noStyle && 'no-style',
         maxRows && !fullHeight && 'max-rows',
         fullHeight && 'full-height',

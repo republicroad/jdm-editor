@@ -3,7 +3,7 @@ import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot='select' {...props} />;
@@ -52,9 +52,9 @@ function SelectContent({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Popup> &
   Pick<SelectPrimitive.Positioner.Props, 'alignItemWithTrigger' | 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <SelectPrimitive.Portal container={grlContainer}>
+    <SelectPrimitive.Portal container={sealContainer}>
       <SelectPrimitive.Positioner
         alignItemWithTrigger={alignItemWithTrigger}
         side={side}
@@ -65,7 +65,7 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot='select-content'
           className={cn(
-            // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+            // box-border: portaled nodes live outside .seal-root preflight scope (HK-14).
             'box-border relative z-50 max-h-(--available-height) min-w-[8rem] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
             className,
           )}

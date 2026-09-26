@@ -129,7 +129,7 @@ const DecisionTableDnd: React.FC<React.PropsWithChildren> = ({ children }) => {
             ))}
             {activeRule._description ? (
               <OverlayChip width={160}>
-                <span style={{ color: 'var(--grl-color-text-tertiary)' }}>{activeRule._description}</span>
+                <span style={{ color: 'var(--seal-color-text-tertiary)' }}>{activeRule._description}</span>
               </OverlayChip>
             ) : null}
           </DragOverlayCard>

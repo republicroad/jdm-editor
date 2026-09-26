@@ -16,7 +16,7 @@ export const DiffCodeEditor = React.forwardRef<CodeEditorRef, DiffCodeEditorProp
       return (
         <div
           className={clsx(
-            'w-full overflow-hidden border border-[var(--border)] rounded-[var(--grl-border-radius)]',
+            'w-full overflow-hidden border border-[var(--border)] rounded-[var(--seal-border-radius)]',
             noStyle && 'border-0 rounded-none',
           )}
         >

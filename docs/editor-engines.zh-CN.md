@@ -40,7 +40,7 @@
 
 ## 主题接入（共享契约）
 
-两个引擎消费同一层 `--grl-*` token：Monaco 经 `helpers/monaco.ts` 的明暗主题定义，CodeMirror 经 `EditorView.theme()` 皮肤（`code-editor/theme.ts`，Batch D）。两者都不硬编码色板字面量。
+两个引擎消费同一层 `--seal-*` token：Monaco 经 `helpers/monaco.ts` 的明暗主题定义，CodeMirror 经 `EditorView.theme()` 皮肤（`code-editor/theme.ts`，Batch D）。两者都不硬编码色板字面量。
 
 ## 一句话总结
 

@@ -46,7 +46,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
   const jsonTheme = themes[mode ?? 'light'];
 
   return (
-    <div className='flex items-start justify-between border-b border-[var(--grl-color-border-fade)] pl-4 pr-6 text-xs leading-[var(--grl-line-height)] text-[var(--grl-color-text-base)] [font-family:var(--mono-font-family)]'>
+    <div className='flex items-start justify-between border-b border-[var(--seal-color-border-fade)] pl-4 pr-6 text-xs leading-[var(--seal-line-height)] text-[var(--seal-color-text-base)] [font-family:var(--mono-font-family)]'>
       <Dropdown
         trigger={['contextMenu']}
         menu={{
@@ -62,7 +62,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
           ],
         }}
       >
-        <div className='grl-function__debugger__log__values'>
+        <div className='seal-function__debugger__log__values'>
           {lines.map((line, i) => {
             const data = safeParseJson(line);
 
@@ -98,12 +98,12 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
                 theme={
                   {
                     base00: 'var(--card)',
-                    base03: 'var(--grl-color-text-base)',
-                    base0B: 'var(--grl-color-text-base)',
-                    base0D: 'var(--grl-color-text-base)',
+                    base03: 'var(--seal-color-text-base)',
+                    base0B: 'var(--seal-color-text-base)',
+                    base0D: 'var(--seal-color-text-base)',
                     /*
                      * Inline-tab flow + zero root indent — replaces the former
-                     * .grl-function__debugger__log__values !important stylesheet
+                     * .seal-function__debugger__log__values !important stylesheet
                      * war (HK-01). `value` stylable replicates library defaults
                      * for deeper levels; only top-level roots collapse
                      * flush-left like before. Escape-hatch cast: react-json-tree's

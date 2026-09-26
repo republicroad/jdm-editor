@@ -25,8 +25,8 @@ export type { MergedDataItem } from './types';
 // Column chip colors share the field-pill tokens (roadmap P1, replaces HK-12
 // literals; CSS var() keeps runtime retheming live).
 const dataTypeConfig = {
-  ['input']: { label: 'Input', color: 'var(--grl-color-field-input)' },
-  ['output']: { label: 'Output', color: 'var(--grl-color-field-output)' },
+  ['input']: { label: 'Input', color: 'var(--seal-color-field-input)' },
+  ['output']: { label: 'Output', color: 'var(--seal-color-field-output)' },
 };
 
 const stepKeyOf = (step: number) => `step${step}`;
@@ -96,7 +96,7 @@ export const GraphExcelDialog: React.FC<GraphExcelDialogProps> = ({ excelData, h
 
   return (
     <Modal
-      className='grl-graph-excel-dialog'
+      className='seal-graph-excel-dialog'
       title='Map Excel data'
       closable={{ 'aria-label': 'Custom Close Button' }}
       centered

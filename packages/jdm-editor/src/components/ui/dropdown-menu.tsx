@@ -3,7 +3,7 @@ import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function DropdownMenu({ ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
   return <MenuPrimitive.Root data-slot='dropdown-menu' {...props} />;
@@ -26,9 +26,9 @@ function DropdownMenuContent({
   ...props
 }: React.ComponentProps<typeof MenuPrimitive.Popup> &
   Pick<MenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <MenuPrimitive.Portal container={grlContainer}>
+    <MenuPrimitive.Portal container={sealContainer}>
       <MenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
         <MenuPrimitive.Popup
           data-slot='dropdown-menu-content'
@@ -198,9 +198,9 @@ function DropdownMenuSubContent({
   ...props
 }: React.ComponentProps<typeof MenuPrimitive.Popup> &
   Pick<MenuPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align' | 'alignOffset'>) {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <MenuPrimitive.Portal container={grlContainer}>
+    <MenuPrimitive.Portal container={sealContainer}>
       <MenuPrimitive.Positioner side={side} sideOffset={sideOffset} align={align} alignOffset={alignOffset}>
         <MenuPrimitive.Popup
           data-slot='dropdown-menu-sub-content'

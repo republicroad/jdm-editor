@@ -39,9 +39,9 @@ export const FunctionDebugger: React.FC<FunctionDebuggerProps> = ({
   return (
     <div className='h-full border-l border-[var(--border)]'>
       <div className='flex h-full flex-col overflow-hidden bg-[var(--card)]'>
-        <div className='flex shrink-0 items-center border-b border-[var(--border)] bg-[var(--grl-color-primary-bg-fade)]'>
+        <div className='flex shrink-0 items-center border-b border-[var(--border)] bg-[var(--seal-color-primary-bg-fade)]'>
           <Tabs
-            rootClassName='grl-inline-tabs'
+            rootClassName='seal-inline-tabs'
             size='small'
             style={{ width: '100%' }}
             items={Object.values(TabKey).map((t) => ({ key: t, label: t }))}
@@ -123,7 +123,7 @@ const FunctionLibraryItem: React.FC<{
   return (
     <div
       key={lib.name}
-      className='flex items-center gap-2 border-b border-[var(--grl-color-border-fade)] p-2 no-underline'
+      className='flex items-center gap-2 border-b border-[var(--seal-color-border-fade)] p-2 no-underline'
     >
       <img alt='TypeScript Library' src={typeScriptIcon} height={18} />
       <Typography.Text strong>{lib.name}</Typography.Text>

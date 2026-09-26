@@ -6,7 +6,7 @@ import { useWasmReady } from './helpers/wasm';
 import { computeTheme } from './theming/compute';
 import type { ThemeSeeds } from './theming/derive';
 import { I18nProvider } from './theming/i18n';
-import { GrlContainerProvider } from './theming/portal-context';
+import { SealContainerProvider } from './theming/portal-context';
 
 export { MODE_EXTRAS, darkTokens, lightTokens } from './theming/presets';
 
@@ -61,12 +61,12 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   const dicts = useMemo(() => dictionaries ?? {}, [dictionaries]);
 
   /* ── Scoped injection (roadmap P3) ─────────────────────────────────────────
-   * When the provider mounts inside a `.grl-root` island, tokens become inline
+   * When the provider mounts inside a `.seal-root` island, tokens become inline
    * properties on THAT container and `data-mode` lives there too — multiple
    * independently-themed islands can coexist, and Radix portals (via
-   * GrlContainerProvider) stay inside the island's variable scope, which also
+   * SealContainerProvider) stay inside the island's variable scope, which also
    * brings the scoped preflight over portaled nodes (HK-14).
-   * Legacy fallback: no `.grl-root` ancestor → global `:root` style tag +
+   * Legacy fallback: no `.seal-root` ancestor → global `:root` style tag +
    * documentElement dataset, exactly as before P3. */
   const anchorRef = useRef<HTMLSpanElement>(null);
   const styleRef = useRef<HTMLStyleElement>(null);
@@ -75,7 +75,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
   const exposedTokens = useMemo(() => computeTheme(mode, seeds, token), [mode, seeds, token]);
 
   useLayoutEffect(() => {
-    const root = (anchorRef.current?.closest?.('.grl-root') as HTMLElement | null) ?? undefined;
+    const root = (anchorRef.current?.closest?.('.seal-root') as HTMLElement | null) ?? undefined;
     setContainer(root);
   }, []);
 
@@ -120,7 +120,7 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
     <ThemeModeContext.Provider value={mode}>
       <DictionaryContext.Provider value={dicts}>
         <App>
-          <span ref={anchorRef} style={{ display: 'none' }} data-grl-anchor='' />
+          <span ref={anchorRef} style={{ display: 'none' }} data-seal-anchor='' />
           {!container && (
             <style
               ref={styleRef}
@@ -134,12 +134,12 @@ export const JdmConfigProvider: React.FC<JdmConfigProviderProps> = ({
               }}
             />
           )}
-          <GrlContainerProvider container={container}>
+          <SealContainerProvider container={container}>
             <I18nProvider locale={locale} overrides={messages}>
               <Toaster theme={mode} position='bottom-right' richColors />
               {children}
             </I18nProvider>
-          </GrlContainerProvider>
+          </SealContainerProvider>
         </App>
       </DictionaryContext.Provider>
     </ThemeModeContext.Provider>

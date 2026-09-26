@@ -200,8 +200,8 @@ export const CodeHighlighter = React.forwardRef<HTMLDivElement, CodeHighlighterP
         ref={ref}
         tabIndex={0}
         className={clsx(
-          'grl-ce',
-          'grl-ce-highlighter',
+          'seal-ce',
+          'seal-ce-highlighter',
           noStyle && 'no-style',
           maxRows && !fullHeight && 'max-rows',
           fullHeight && 'full-height',

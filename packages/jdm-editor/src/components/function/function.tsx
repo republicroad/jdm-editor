@@ -220,7 +220,7 @@ export const Function: React.FC<FunctionProps> = ({
           options: {
             hoverMessage: { value: errorMessage },
             isWholeLine: true,
-            className: 'grl-function__errorLineContent',
+            className: 'seal-function__errorLineContent',
           },
         },
       ]);
@@ -241,7 +241,7 @@ export const Function: React.FC<FunctionProps> = ({
         style={
           {
             'height': '100%',
-            '--color-text': 'var(--grl-color-text-base)',
+            '--color-text': 'var(--seal-color-text-base)',
             '--color-background-elevated': 'var(--card)',
             '--color-border': 'var(--border)',
             '--line-height': 1.5,

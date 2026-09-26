@@ -22,29 +22,30 @@
 
 | 变更 | 影响 | 迁移 |
 |---|---|---|
-| 作用域注入(P3) | 变量从 `.grl-root` 岛解析,而非 `:root` | 确保应用内容包裹在 `.grl-root` 中(预检本就要求)。若在岛**外**消费 `var(--background)` 等,见下 |
-| 语义桥接作用域化 | `var(--background)` 等仅在 `.grl-root` 内解析 | 将消费方内容包进 `.grl-root`,或把桥接变量复制到你自己的 `:root` |
+| 作用域注入(P3) | 变量从 `.seal-root` 岛解析,而非 `:root` | 确保应用内容包裹在 `.seal-root` 中(预检本就要求)。若在岛**外**消费 `var(--background)` 等,见下 |
+| 语义桥接作用域化 | `var(--background)` 等仅在 `.seal-root` 内解析 | 将消费方内容包进 `.seal-root`,或把桥接变量复制到你自己的 `:root` |
 | 池化显示路径(A2) | 懒代码编辑器默认使用只读 EditorView 池 | 退出:`localStorage.gru-hl-view = '0'`(灰度逃生口) |
-| `--grl-primary-color(-bg)` 移除 | 与 `--grl-color-primary(-bg)` 重复 | 使用 `--grl-color-primary(-bg)` |
+| `--seal-primary-color(-bg)` 移除 | 与 `--seal-color-primary(-bg)` 重复 | 使用 `--seal-color-primary(-bg)` |
+| 前缀清扫 `grl-` → `seal-`(1.0 之后,reui 线) | 主题 token、作用域类与组件类同步重命名 | 将你的 `.grl-*` / `--grl-*` 覆盖机械重命名——映射见 [`brand-sweep-codemod.zh-CN.md`](./design/brand-sweep-codemod.zh-CN.md) |
 
 ## 新增能力
 
 - **一键换肤**:`<JdmConfigProvider seeds={{ primary: '#7c3aed' }}>` 同时派生明暗两套色板
-- **多岛**:一页多个 `.grl-root` 岛,各自独立主题
+- **多岛**:一页多个 `.seal-root` 岛,各自独立主题
 - **dark 变体隔离**:亮色岛不受宿主页面 dark 作用域影响
 - **Seeds Playground**:交互式色板可视化 Storybook story
 
-## `--grl-*` 变量契约
+## `--seal-*` 变量契约
 
-所有 `--grl-*` 变量内联注入到 `.grl-root` 容器。以下为**契约稳定**键
+所有 `--seal-*` 变量内联注入到 `.seal-root` 容器。以下为**契约稳定**键
 (1.x 生命周期内不变):
 
-全部 `--grl-color-*` 色板 token、`--grl-font-family`、`--grl-line-height`、
-`--grl-border-radius`、`--grl-control-outline`、`--node-color-*`。
+全部 `--seal-color-*` 色板 token、`--seal-font-family`、`--seal-line-height`、
+`--seal-border-radius`、`--seal-control-outline`、`--node-color-*`。
 
-原先仅面向宿主的键(`--grl-primary-color(-bg)`、`--grl-color-primary-text-hover`、
-`--grl-color-info-text`、`--grl-color-bg-mask`)已在 1.0.0 移除——迁移清单见
-[`grl-var-flatten.md`](./grl-var-flatten.md)。
+原先仅面向宿主的键(`--seal-primary-color(-bg)`、`--seal-color-primary-text-hover`、
+`--seal-color-info-text`、`--seal-color-bg-mask`)已在 1.0.0 移除——迁移清单见
+[`grl-var-flatten.md`](./archive/research/grl-var-flatten.md)。
 
 ## Antd 类型别名
 

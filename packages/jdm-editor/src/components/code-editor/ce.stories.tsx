@@ -134,7 +134,7 @@ export const LazyParity: Story = {
     // Deterministic display-state bootstrap: blur any focused editor so lazy
     // cells return to their display surface (pooled view or legacy
     // highlighter, depending on the active path).
-    const HL_SEL = '.grl-ce-highlighter, .grl-ce-highlighter-view';
+    const HL_SEL = '.seal-ce-highlighter, .seal-ce-highlighter-view';
     let highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     if (!highlighter) {
       (document.activeElement as HTMLElement | null)?.blur?.();
@@ -151,12 +151,12 @@ export const LazyParity: Story = {
     await waitFor(
       () =>
         expect(
-          canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)'),
+          canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter):not(.seal-ce-highlighter-view)'),
         ).not.toBeNull(),
       { timeout: 5_000 },
     );
 
-    const editor = canvasElement.querySelector('.grl-ce:not(.grl-ce-highlighter):not(.grl-ce-highlighter-view)');
+    const editor = canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter):not(.seal-ce-highlighter-view)');
     const after = snapshot(editor!);
 
     for (const part of ['content', 'line'] as const) {
@@ -192,8 +192,8 @@ export const Debug: StoryObj<
   render: (args) => {
     const token = {
       marginMD: 16,
-      colorBgLayout: 'var(--grl-color-bg-layout)',
-      colorBorder: 'var(--grl-color-border)',
+      colorBgLayout: 'var(--seal-color-bg-layout)',
+      colorBorder: 'var(--seal-color-border)',
       borderRadiusOuter: 8,
       paddingSM: 12,
     };

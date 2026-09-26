@@ -31,7 +31,7 @@ export const Spin: React.FC<
   return (
     <div className={cn('relative', className)} style={style} {...rest}>
       {children}
-      <div className='absolute inset-0 z-10 flex items-center justify-center rounded-(--grl-border-radius) bg-background/60'>
+      <div className='absolute inset-0 z-10 flex items-center justify-center rounded-(--seal-border-radius) bg-background/60'>
         <Loader2 className={cn('animate-spin text-muted-foreground', spinnerClass)} />
       </div>
     </div>

@@ -41,7 +41,7 @@ export const TextEdit: React.FC<TextEditProps> = ({ className, value, onChange, 
         <input
           ref={inputRef}
           className={clsx(
-            'nodrag rounded border border-[var(--grl-color-primary-border)] bg-transparent px-[5px] py-px text-sm! leading-[1.2] text-inherit outline-none!',
+            'nodrag rounded border border-[var(--seal-color-primary-border)] bg-transparent px-[5px] py-px text-sm! leading-[1.2] text-inherit outline-none!',
           )}
           onBlur={(e) => {
             if (e.target.value?.trim?.()?.length > 0) {

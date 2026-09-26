@@ -62,26 +62,26 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
 
   const cardBorder =
     diffStatus === 'added'
-      ? 'border-[var(--grl-color-success)] group-hover/dn:border-[var(--grl-color-success)]'
+      ? 'border-[var(--seal-color-success)] group-hover/dn:border-[var(--seal-color-success)]'
       : diffStatus === 'moved'
-        ? 'border-[var(--grl-color-info)] group-hover/dn:border-[var(--grl-color-info)]'
+        ? 'border-[var(--seal-color-info)] group-hover/dn:border-[var(--seal-color-info)]'
         : diffStatus === 'modified'
-          ? 'border-[var(--grl-color-warning)] group-hover/dn:border-[var(--grl-color-warning)]'
+          ? 'border-[var(--seal-color-warning)] group-hover/dn:border-[var(--seal-color-warning)]'
           : diffStatus === 'removed'
             ? 'border-[var(--destructive)] group-hover/dn:border-[var(--destructive)]'
             : isSelected
-              ? 'border-[var(--grl-color-primary-active)] group-hover/dn:border-[var(--grl-color-primary-active)]'
+              ? 'border-[var(--seal-color-primary-active)] group-hover/dn:border-[var(--seal-color-primary-active)]'
               : '';
 
-  const cardList = listMode ? 'rounded-none border-0 border-b border-b-[var(--grl-color-border-fade)]' : '';
+  const cardList = listMode ? 'rounded-none border-0 border-b border-b-[var(--seal-color-border-fade)]' : '';
 
   const statusBg =
     status === 'success'
-      ? '[--node-background:var(--grl-color-success-bg)]'
+      ? '[--node-background:var(--seal-color-success-bg)]'
       : status === 'error'
-        ? '[--node-background:var(--grl-color-error-bg)]'
+        ? '[--node-background:var(--seal-color-error-bg)]'
         : status === 'warning'
-          ? '[--node-background:var(--grl-color-warning-bg)]'
+          ? '[--node-background:var(--seal-color-warning-bg)]'
           : '';
 
   return (
@@ -89,7 +89,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
       className={clsx(
         'group/dn flex flex-col gap-2',
         '[--node-border-radius:8px] [--node-horizontal-padding:8px] [--node-small-text:12px]',
-        '[--node-color:var(--primary)] [--node-background:var(--grl-color-bg-container)]',
+        '[--node-color:var(--primary)] [--node-background:var(--seal-color-bg-container)]',
         statusBg,
       )}
       style={
@@ -155,8 +155,8 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
         {actions.length > 0 && (
           <div
             className={clsx(
-              'nodrag bg-[var(--grl-color-primary-bg-fade)] overflow-hidden',
-              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--grl-color-border-fade)]',
+              'nodrag bg-[var(--seal-color-primary-bg-fade)] overflow-hidden',
+              'rounded-b-[var(--node-border-radius)] border-t border-t-[var(--seal-color-border-fade)]',
             )}
           >
             <div className='flex [&_button]:py-0.5 [&_button]:px-2 [&_button]:text-xs [&_button]:h-auto [&_button]:rounded-none [&_button]:text-[var(--muted-foreground)]'>
@@ -177,7 +177,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
               }}
             >
               <div className='flex flex-col'>
-                <div className='flex items-center justify-between pl-2.5 bg-[var(--grl-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
+                <div className='flex items-center justify-between pl-2.5 bg-[var(--seal-color-primary-bg-fade)] rounded-t-[var(--node-border-radius)] border-b border-b-[var(--border)]'>
                   <Typography.Text className='text-xs! text-[var(--muted-foreground)]'>{detailsTitle}</Typography.Text>
                   <Button
                     type={'text'}
@@ -187,7 +187,7 @@ export const DecisionNode: React.FC<DecisionNodeProps> = ({
                     onClick={onDetailsClose}
                   />
                 </div>
-                <div className='flex flex-col p-2.5 gap-0.5 [&_.settings-form_.grl-ce]:text-xs'>{details}</div>
+                <div className='flex flex-col p-2.5 gap-0.5 [&_.settings-form_.seal-ce]:text-xs'>{details}</div>
               </div>
             </GraphCard>
           )

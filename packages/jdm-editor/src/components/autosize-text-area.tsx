@@ -38,7 +38,7 @@ export const AutosizeTextArea = React.forwardRef<HTMLDivElement, AutosizeTextAre
 
     return (
       <div
-        className={clsx(!noStyle && 'grl-textarea-input', className)}
+        className={clsx(!noStyle && 'seal-textarea-input', className)}
         ref={composeRefs(divRef, ref)}
         contentEditable={!disabled && !readOnly}
         onInput={handleInput}

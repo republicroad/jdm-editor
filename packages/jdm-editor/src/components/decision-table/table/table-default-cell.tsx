@@ -71,7 +71,7 @@ export const TableDefaultCell = memo<TableDefaultCellProps>(({ context, ...props
   return (
     <div
       data-cell-wrapper
-      className='flex items-stretch w-full h-full leading-0 [&>*]:grow [&_.grl-ce]:h-full [&_.grl-ce_.cm-editor]:h-full'
+      className='flex items-stretch w-full h-full leading-0 [&>*]:grow [&_.seal-ce]:h-full [&_.seal-ce_.cm-editor]:h-full'
       onFocus={() => tableActions.setCursor({ x: id, y: index })}
       onContextMenu={() => tableActions.setCursor({ x: id, y: index })}
       {...props}
@@ -325,14 +325,14 @@ const TableInputCellStatus: React.FC<{ columnId: string; index: number }> = Reac
     case 'hit':
       return (
         <div
-          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--grl-color-success)] bg-[var(--grl-color-success)]'
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--seal-color-success)] bg-[var(--seal-color-success)]'
           data-status={status}
         />
       );
     case 'no-hit':
       return (
         <div
-          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--grl-color-border-hover)]'
+          className='absolute top-0.5 left-0.5 z-[5] opacity-80 rounded-full h-[5px] w-[5px] border border-[var(--seal-color-border-hover)]'
           data-status={status}
         />
       );

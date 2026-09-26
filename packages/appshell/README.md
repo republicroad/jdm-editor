@@ -65,7 +65,7 @@ pnpm --filter @republicroad/jdm-appshell test:npm-smoke
 
 - React >= 18；`@republicroad/jdm-editor` >= 0.3；monaco-editor 需显式安装
 - Tailwind v4 + shadcn 语义 token（`--background`/`--foreground`/... 参考
-  `src/main.css`）；内核侧 `--grl-*` 变量由 `JdmConfigProvider` 自动注入
+  `src/main.css`）；内核侧 `--seal-*` 变量由 `JdmConfigProvider` 自动注入
 
 ## 发布契约
 

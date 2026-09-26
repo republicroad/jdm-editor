@@ -12,7 +12,7 @@
 | Toast / Dialog | ReUI 模式 —— `sonner` toaster + shadcn/ReUI dialog 与 alert-dialog |
 | 图标 | ReUI Icons 优先(`REUI_LICENSE_KEY`,Ultimate),统一经 `src/components/ui/icons.tsx` 出口层;lucide-react 兜底;业务代码禁止直接 import 图标库 |
 | 样式 | Tailwind CSS v4 编译进 `dist/style.css`,启用 **prefix**、**关闭 preflight**(对库分发安全) |
-| 主题 | 重写 `JdmConfigProvider` 输出 shadcn 风格 token;过渡期保留 `--grl-*` 别名桥接 |
+| 主题 | 重写 `JdmConfigProvider` 输出 shadcn 风格 token;过渡期保留 `--seal-*` 别名桥接 |
 | 分发 | 维持编译型 npm 包模式(非源码 registry);Tailwind 产物打包进 `dist/style.css` |
 
 ## 现状指标(基线 `283bb11` 实测)
@@ -22,18 +22,18 @@
   Form/Modal/Tabs/App ×4,Popconfirm ×3;另有 DatePicker/Card/Switch/Radio/Popover/Steps/Tag/
   Avatar/InputNumber/TimePicker/notification/ConfigProvider。
 - `@ant-design/icons` 分布于 **27 个文件**(lucide-react 已在 11 个文件并存)。
-- 10 个 SCSS 文件只消费 `--grl-*` 变量(主题层早已完成 token 解耦)。
+- 10 个 SCSS 文件只消费 `--seal-*` 变量(主题层早已完成 token 解耦)。
 
 ## 阶段计划
 
 ### Stage A —— 基建
 
 1. 安装 Tailwind v4(`@tailwindcss/vite`),构建配置:
-   - 所有工具类加 `prefix: 'grl-'`,`preflight: false`;
+   - 所有工具类加 `prefix: 'seal-'`,`preflight: false`;
    - 扫描范围限定 `src/**`;产物并入 `dist/style.css`。
 2. Token 桥接:扩展 `theme.tsx`,将单一内部调色板同时映射为
    - shadcn 变量(`--background`、`--foreground`、`--primary`、`--border`、`--radius` 等),以及
-   - 旧 `--grl-*` 别名(现有 SCSS 不改一行继续工作);
+   - 旧 `--seal-*` 别名(现有 SCSS 不改一行继续工作);
    暗色模式改用 `.dark` 类或 `[data-mode='dark']`,替代 antd algorithm。
 3. 验收:全部 Storybook story 视觉快照一致;此阶段不移除任何 antd 用法。
 

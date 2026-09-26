@@ -143,7 +143,7 @@ const TabContents: React.FC<{ customFunctions?: any }> = React.memo(({ customFun
         <div
           key={node?.id}
           className={clsx([
-            'relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
+            'relative h-full w-full flex-1 min-h-0 bg-[var(--seal-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
             activeNodeId === node?.id ? 'flex flex-col' : 'hidden',
           ])}
         >

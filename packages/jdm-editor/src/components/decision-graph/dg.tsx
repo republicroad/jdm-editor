@@ -21,7 +21,7 @@ export const DecisionGraph = forwardRef<DecisionGraphRef, DecisionGraphProps>(
   ({ reactFlowProOptions, tabBarExtraContent, toolbarItems, userResolver, ...props }, ref) => {
     return (
       <SafeBoundary>
-        <div className={clsx(['grl-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
+        <div className={clsx(['seal-dg', props?.hideLeftToolbar && 'hidden-left-toolbar'])}>
           <ReactFlowProvider>
             <DecisionGraphProvider>
               <SerializerProvider>

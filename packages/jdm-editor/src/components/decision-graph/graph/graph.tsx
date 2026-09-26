@@ -272,7 +272,7 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
   return (
     <div
       className={clsx([
-        'relative h-full w-full flex-1 min-h-0 bg-[var(--grl-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
+        'relative h-full w-full flex-1 min-h-0 bg-[var(--seal-color-bg-container)] outline-none focus:outline-none focus-within:outline-none',
         className,
       ])}
       tabIndex={0}
@@ -405,11 +405,11 @@ export const Graph = forwardRef<GraphRef, GraphProps>(function GraphInner({ reac
         {!disabled && (
           <div
             className={clsx(
-              'flex h-full min-h-0 flex-col border-l border-l-[var(--border)] bg-[var(--grl-color-bg-container)]',
+              'flex h-full min-h-0 flex-col border-l border-l-[var(--border)] bg-[var(--seal-color-bg-container)]',
               !componentsOpened ? 'w-10 min-w-10' : 'w-[260px] min-w-[260px]',
             )}
           >
-            <div className='box-border flex flex-row items-center border-b border-b-[var(--border)] bg-[var(--grl-color-primary-bg-fade)] px-3 py-1.5'>
+            <div className='box-border flex flex-row items-center border-b border-b-[var(--border)] bg-[var(--seal-color-primary-bg-fade)] px-3 py-1.5'>
               {componentsOpened && (
                 <div className='flex flex-1 items-center'>
                   <Typography.Text strong style={{ marginBottom: 0 }}>

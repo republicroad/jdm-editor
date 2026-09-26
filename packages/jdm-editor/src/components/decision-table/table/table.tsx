@@ -133,7 +133,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         accessorKey: '_description',
         header: () => (
           <div className='flex items-center h-full w-full min-h-0 box-border py-1 px-2'>
-            <Typography.Text className='truncate grl-dt-text-primary'>Description</Typography.Text>
+            <Typography.Text className='truncate seal-dt-text-primary'>Description</Typography.Text>
           </div>
         ),
         minSize: minColWidth,
@@ -372,7 +372,7 @@ const StyledTable: React.FC<React.HTMLAttributes<HTMLTableElement> & { width: nu
   return (
     <table
       className={clsx(
-        'border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--grl-color-bg-container)] h-px min-w-full',
+        'border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--seal-color-bg-container)] h-px min-w-full',
         className,
       )}
       style={{ width, ...style }}

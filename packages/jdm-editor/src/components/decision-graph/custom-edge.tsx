@@ -139,7 +139,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
         style={{
           ...(style || {}),
           stroke: match(diff)
-            .with({ status: 'added' }, () => 'var(--grl-color-success)')
+            .with({ status: 'added' }, () => 'var(--seal-color-success)')
             .with({ status: 'removed' }, () => 'var(--destructive)')
             .otherwise(() => undefined),
         }}
@@ -157,7 +157,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
             <>
               <div className='fixed inset-0 -z-10' onClick={() => setPicking(false)} />
               <div
-                className='absolute bottom-full mb-1 max-h-44 w-48 overflow-y-auto rounded-md border border-[var(--border)] bg-[var(--grl-color-bg-container)] p-1 shadow-md'
+                className='absolute bottom-full mb-1 max-h-44 w-48 overflow-y-auto rounded-md border border-[var(--border)] bg-[var(--seal-color-bg-container)] p-1 shadow-md'
                 data-slot='edge-node-picker'
               >
                 {pickerItems.map((item) => (
@@ -179,7 +179,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
               type='primary'
               shape='round'
               icon={<PlusOutlined />}
-              className='grl-edge-add-button'
+              className='seal-edge-add-button'
               data-visible={isHovered || picking}
               onClick={() => setPicking((p) => !p)}
             />
@@ -190,7 +190,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
               shape='round'
               icon={<DeleteOutlined />}
               danger
-              className={clsx('grl-edge-delete-button')}
+              className={clsx('seal-edge-delete-button')}
               data-visible={isHovered && !picking}
               onClick={() => graphActions.removeEdges([id])}
             />

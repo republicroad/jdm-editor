@@ -33,7 +33,7 @@ export const DiffSelect: React.FC<DiffSelectProps> = ({
       <Select
         {...rest}
         disabled={rest.disabled || displayDiff}
-        className={clsx(rest.className, displayDiff && 'text-[var(--grl-color-success)]')}
+        className={clsx(rest.className, displayDiff && 'text-[var(--seal-color-success)]')}
       />
     </Space>
   );

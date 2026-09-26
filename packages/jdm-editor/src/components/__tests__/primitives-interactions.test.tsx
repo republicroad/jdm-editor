@@ -125,7 +125,7 @@ describe('focusBuilderRoot', () => {
   it('focuses the embedded CodeMirror view and moves the caret to the end', () => {
     const host = document.createElement('div');
     const ceEl = document.createElement('div');
-    ceEl.className = 'grl-ce';
+    ceEl.className = 'seal-ce';
     const view = {
       focus: vi.fn(),
       dispatch: vi.fn(),

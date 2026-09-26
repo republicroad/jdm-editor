@@ -9,7 +9,7 @@
  * burning debt down is encouraged — lower the constants when you do.
  *
  * Registry context: docs/shadcn-theming-roadmap.zh-CN.md Appendix A,
- * searchable source markers via `rg 'GRL-STYLE-HACK' src`.
+ * searchable source markers via `rg 'SEAL-STYLE-HACK' src`.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -50,7 +50,7 @@ for (const file of walk(SRC)) {
   // Inline var(..., #fallback) defaults are consumed next to their definition
   // point and keep single-source truth in tokens.css / theme.tsx — not leaks.
   text = text.replace(/var\([^()]*\)/g, 'VAR()');
-  // Comments may narrate past debt (GRL-STYLE-HACK banners) — never counted.
+  // Comments may narrate past debt (SEAL-STYLE-HACK banners) — never counted.
   text = text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, ' ');
   important += (text.match(/!important/g) ?? []).length;
 
@@ -76,7 +76,7 @@ if (overImportant || overHex) {
   if (overHex) console.log(hexHits.join('\n'));
   console.error(
     `\nBUDGET EXCEEDED${overImportant ? ' [!important]' : ''}${overHex ? ' [hex]' : ''}.` +
-      '\nNew debt requires an explicit GRL-STYLE-HACK marker + registry row; fix or raise the budget consciously.',
+      '\nNew debt requires an explicit SEAL-STYLE-HACK marker + registry row; fix or raise the budget consciously.',
   );
   process.exit(1);
 }

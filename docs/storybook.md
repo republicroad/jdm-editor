@@ -32,14 +32,14 @@ corepack pnpm@10 --filter @republicroad/jdm-editor test:storybook
 
 ### `.storybook/preview.tsx`
 
-The global decorator implements the **canonical host shape**: `.grl-root` wraps
+The global decorator implements the **canonical host shape**: `.seal-root` wraps
 `JdmConfigProvider`, which wraps the story. This means:
 
 - Every story exercises the **scoped injection path** (P3) — variables are set
   as inline properties on the island container, `data-mode` lives there.
-- All Radix portals mount **inside** the island (via `GrlContainerProvider`).
+- All Radix portals mount **inside** the island (via `SealContainerProvider`).
 - Dark mode toggling via `storybook-dark-mode` flips the provider's `mode`,
-  which cascades through the `--grl-*` → semantic variable chain.
+  which cascades through the `--seal-*` → semantic variable chain.
 - The decorator injects a `<style>` to set `html` background color (matching
   mode) and pin `body`/`#storybook-root` to `height: 100vh/100%` — required by
   the virtualized table and full-height code editors (see
@@ -64,7 +64,7 @@ Sets the manager tab title to "JDM Editor" and a favicon.
 | `components/function/function.stories.tsx` | Uncontrolled, Controlled, WithError | |
 | `components/code-editor/business/expression-builder.stories.tsx` | 15 stories (auto-type, string-type, number-type, boolean-type, date-type, enum-type, dictionary-enum, …) | |
 | `components/code-editor/business/standard-expression-builder.stories.tsx` | (1 story) | |
-| `components/theming.stories.tsx` | **SeedsPlayground** | Interactive seed→derived-token visualiser with copy-to-clipboard `--grl-*` JSON |
+| `components/theming.stories.tsx` | **SeedsPlayground** | Interactive seed→derived-token visualiser with copy-to-clipboard `--seal-*` JSON |
 | `components/isolation.stories.tsx` | **Isolation** | Dual-island isolation harness (Batch S4): light-default vs dark-violet islands side-by-side, host-style probe outside |
 
 ### Story ID Reference
@@ -121,17 +121,17 @@ iframe unless every ancestor has an explicit height. The decorator pins
 `#storybook-root { height: 100% }` and the StressTest story uses `90vh`.
 Full investigation: [`storybook-height-chain.md`](./storybook-height-chain.md).
 
-## Scoped Injection (.grl-root) in Stories
+## Scoped Injection (.seal-root) in Stories
 
-The decorator's `.grl-root` wrapper makes every story exercise the **scoped
-injection path** (P3): `--grl-*` variables are set as inline properties on the
+The decorator's `.seal-root` wrapper makes every story exercise the **scoped
+injection path** (P3): `--seal-*` variables are set as inline properties on the
 island container, `data-mode` lives there, and Radix portals target the island
-via `GrlContainerProvider`.
+via `SealContainerProvider`.
 
 **Multi-island testing**: to verify island isolation, render your own
-`.grl-root` + `JdmConfigProvider` inside a story (as `Isolation` does). The
-innermost `.grl-root` wins for scope resolution. Do NOT nest providers without
-their own `.grl-root` wrapper — that would cause the inner provider to resolve
+`.seal-root` + `JdmConfigProvider` inside a story (as `Isolation` does). The
+innermost `.seal-root` wins for scope resolution. Do NOT nest providers without
+their own `.seal-root` wrapper — that would cause the inner provider to resolve
 the outer island as its container.
 
 ## Dark Mode

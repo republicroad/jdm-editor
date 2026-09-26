@@ -43,7 +43,7 @@ const preview: Preview = {
       const isDark = useDarkMode();
 
       return (
-        <div className='grl-root' style={{ height: '100%' }}>
+        <div className='seal-root' style={{ height: '100%' }}>
           <style
             dangerouslySetInnerHTML={{
               __html: `html { background-color: ${isDark ? '#1f1f1f' : 'white'} }

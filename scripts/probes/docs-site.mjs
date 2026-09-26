@@ -37,7 +37,7 @@ const baseOrigin = new URL(BASE).origin;
   const lazyLoaded = await page.evaluate(() => Boolean(document.querySelector('[data-testid="docs-live-demo"]')));
   check('lazy demo chunk mounted (testId present)', lazyLoaded, `react-flow=${flow}`);
   check('live DecisionGraph mounts inside demo', flow >= 1, `count=${flow}`);
-  check('theme island present', await page.evaluate(() => Boolean(document.querySelector('[class*="grl"]'))));
+  check('theme island present', await page.evaluate(() => Boolean(document.querySelector('[class*="seal"]'))));
   check('nav/sidebar rendered', await page.evaluate(() => (document.body.innerText || '').includes('Architecture')));
   check('no foreign localhost probes', foreignRequests.length === 0, foreignRequests.join(',').slice(0, 140));
   check('no failed resources', failedResponses.length === 0, failedResponses.join(' | ').slice(0, 200));

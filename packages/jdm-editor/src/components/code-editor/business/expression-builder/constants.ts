@@ -36,7 +36,7 @@ export const BUILDER_TOKENS: CSSProperties = {
 
 export const BUILDER_BG_VARS: CSSProperties = {
   '--bg-light': 'var(--muted)',
-  '--bg-active': 'var(--grl-color-primary-bg)',
+  '--bg-active': 'var(--seal-color-primary-bg)',
   '--color-active-text': 'var(--primary)',
 } as CSSProperties;
 

@@ -44,7 +44,7 @@
 ```
 #storybook-root      height: unset
 └─ wrapper div       height: 100% of auto  → auto
-   └─ .grl-dt        (无高度)
+   └─ .seal-dt        (无高度)
       └─ container   maxHeight: '100%' 相对 auto 高度父级解析
                      → 百分比失效 → 没有任何约束
 ```
@@ -213,7 +213,7 @@ expression 列(CodeMirror)不受影响。
 2. **追踪组件链路。** `expression-item.tsx` 向 `DiffAutosizeTextArea`
    传递 `noStyle`。在 `diff-text-area.tsx` 中,`noStyle` 被解构但在
    非 diff 路径(第42行) **未透传** 给 `AutosizeTextArea`。因此
-   `AutosizeTextArea` 始终带 `grl-textarea-input` class,应用了
+   `AutosizeTextArea` 始终带 `seal-textarea-input` class,应用了
    `border: 1px solid`、`padding: 4px 11px`、`font-size: 14px`
    ——与旧 SCSS 尺寸不一致。
 3. **定位两层问题。** `noStyle` 透传缺失是一层(错误基础样式);
@@ -226,7 +226,7 @@ expression 列(CodeMirror)不受影响。
 
 | 层 | 问题 |
 | --- | --- |
-| `diff-text-area.tsx:42` | `noStyle` 解构后未透传给 `AutosizeTextArea` → `grl-textarea-input` 始终生效 |
+| `diff-text-area.tsx:42` | `noStyle` 解构后未透传给 `AutosizeTextArea` → `seal-textarea-input` 始终生效 |
 | `expression-item.tsx:117` | 即使 `noStyle` 生效,裸 `contentEditable` 无 padding/高度/字体样式 → 聚焦时塌陷 |
 
 旧 SCSS 的 `[contenteditable]` 规则提供全部尺寸。Tailwind 迁移将其
@@ -238,8 +238,8 @@ expression 列(CodeMirror)不受影响。
 透传,合入 `d7a89d6`）:
 
 - `AutosizeTextAreaProps` 新增 `noStyle?: boolean`。
-- `AutosizeTextArea` 条件应用 `grl-textarea-input`:
-  `className={clsx(!noStyle && 'grl-textarea-input', className)}`。
+- `AutosizeTextArea` 条件应用 `seal-textarea-input`:
+  `className={clsx(!noStyle && 'seal-textarea-input', className)}`。
 - `DiffAutosizeTextArea` 非 diff 路径将 `noStyle` 透传给
   `AutosizeTextArea`。
 
@@ -283,7 +283,7 @@ expression 列(CodeMirror)不受影响。
 
 ## 4. Map Excel Data 面板:行内编辑/删除按钮失效 + 弹窗上下两端溢出视口
 
-**日期:** 2026-08 · **修复位置:** 工作区(`primitives/popover.tsx`、`primitives/popconfirm.tsx`、`primitives/modal.tsx`)· 已登记 **GRL-STYLE-HACK[HK-14]**
+**日期:** 2026-08 · **修复位置:** 工作区(`primitives/popover.tsx`、`primitives/popconfirm.tsx`、`primitives/modal.tsx`)· 已登记 **SEAL-STYLE-HACK[HK-14]**
 
 ### 症状
 
@@ -315,7 +315,7 @@ expression 列(CodeMirror)不受影响。
 | 缺陷 | 机制 |
 | --- | --- |
 | 触发器死亡 | Radix `asChild`(Slot) 只把 props/处理器克隆到**直接子元素**。两处按钮都以 `<TooltipTrigger asChild><Button/></Tooltip>` 组合再塞进 `<PopoverTrigger asChild>` / `<AlertDialogTrigger asChild>`。`Tooltip.Root` 是纯 Context 提供者——不渲染 DOM、不转发事件——外层 Slot 克隆的处理器落在了无法接收事件的载体上。 |
-| 弹窗溢出 | Radix DialogContent 固定居中且没有高度契约,内容超高时同时溢出上下两端、内部无滚动。此外修复中先加的 `maxHeight` 一度**不生效**:Radix Portal 把节点挂在 `<body>` 直下、位于 `.grl-root` 之外,库的作用域 mini-preflight(`:where(*) { box-sizing: border-box }`)够不到它,shadcn 模板回落到 UA 默认 `content-box`——maxHeight 被自身 padding 吃掉(+48px)。 |
+| 弹窗溢出 | Radix DialogContent 固定居中且没有高度契约,内容超高时同时溢出上下两端、内部无滚动。此外修复中先加的 `maxHeight` 一度**不生效**:Radix Portal 把节点挂在 `<body>` 直下、位于 `.seal-root` 之外,库的作用域 mini-preflight(`:where(*) { box-sizing: border-box }`)够不到它,shadcn 模板回落到 UA 默认 `content-box`——maxHeight 被自身 padding 吃掉(+48px)。 |
 
 ### 修复
 
@@ -344,9 +344,9 @@ expression 列(CodeMirror)不受影响。
 - **`asChild` 要求直接子元素是真实 DOM。** 在 Slot 与 Button 之间夹任何
   纯 Context 组件(Tooltip.Root 等)都会静默吞掉处理器。库 shim 应自行
   保证存在 DOM 元素(F1/F2 正是如此),不要依赖调用方书写方式。
-- **Portal 节点活在 `.grl-root` 之外。** 作用域 preflight 通常提供的库样式
+- **Portal 节点活在 `.seal-root` 之外。** 作用域 preflight 通常提供的库样式
   (首当其冲 box-sizing)必须在 portaled 原语里显式重申——或者让 Portal
-  挂到带 `.grl-root` 的容器(roadmap §P3 将此系统性解决)。
+  挂到带 `.seal-root` 的容器(roadmap §P3 将此系统性解决)。
 - **弹窗需要高度契约而不是页面滚动。** 固定居中 overlay 会两端同时裁切;
   应封顶并滚动 body。
 - **隔离阶梯省时间:** 默认触发器可用而组合触发器失效→组合问题;
@@ -363,11 +363,11 @@ expression 列(CodeMirror)不受影响。
 | 跟进项 | 位置 | 状态 |
 | --- | --- | --- |
 | 其余依赖隐式 border-box 的 portaled 原语 | `ui/dialog.tsx`、`ui/alert-dialog.tsx`、`ui/popover.tsx`、`ui/select.tsx`、`ui/tooltip.tsx` | 待办——随 roadmap §P1/P3 批量处理 |
-| Portal 归属作用域(多岛屿换肤前置) | roadmap §P3 | ✅ 已由 fda9501 实现（GrlContainerProvider） |
+| Portal 归属作用域(多岛屿换肤前置) | roadmap §P3 | ✅ 已由 fda9501 实现（SealContainerProvider） |
 
 ## 6. consumer-smoke 构建失败：代码分割 chunk 被清理脚本删除
 
-**日期:** 2026-08 · **修复位置:** `scripts/clean-dist.mjs` · 已登记 **GRL-STYLE-HACK** 无关（非样式问题）
+**日期:** 2026-08 · **修复位置:** `scripts/clean-dist.mjs` · 已登记 **SEAL-STYLE-HACK** 无关（非样式问题）
 
 ### 症状
 
@@ -408,7 +408,7 @@ expression 列(CodeMirror)不受影响。
 
 ## 7. 宿主构建失败：lightningcss 报 `Invalid qualified rule`(dist/style.css)
 
-**日期:** 2026-09 · **修复位置:** `src/styles/custom-function.css` · 非 GRL-STYLE-HACK(构建/工具链问题)
+**日期:** 2026-09 · **修复位置:** `src/styles/custom-function.css` · 非 SEAL-STYLE-HACK(构建/工具链问题)
 
 ### 症状
 

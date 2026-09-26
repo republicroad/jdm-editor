@@ -9,7 +9,7 @@
 本分叉目前维护**两套并存**的样式系统:
 
 - 全局 `src/styles/tailwind.css`(Tailwind v4,经 `@tailwindcss/vite`),以及把 antd 派生运行时
-  token(`--grl-*`)桥接为通用名称(`--border`、`--primary`…)的 `tokens.css`。所有
+  token(`--seal-*`)桥接为通用名称(`--border`、`--primary`…)的 `tokens.css`。所有
   shadcn/ui 与 ReUI 组件均由 Tailwind 工具类驱动。
 - 约 2 700 行手写 SCSS(`dg.scss`、`dt.scss`、`ce.scss`、`expression.scss`、`function.scss`、
   `_builder-base.scss` + 各构建器、`decision-node.scss`、`styles.scss`),由 `sass` devDependency 编译。
@@ -21,7 +21,7 @@
 > (`--tooltip-bg`)、诊断角标 (`--diagnostic-chip-bg`)、Monaco 错误行底色
 > (`--error-line-bg`)——统一放在 `tokens.css` 的 `[data-mode='light']` /
 > `[data-mode='dark']` 两块中。新增编辑器表面色请定义在那里（不要放进 `tailwind.css`，
-> 也不要占用运行时注入的 `--grl-*` 命名空间），以保证暗色模式持续生效；参见 §8。
+> 也不要占用运行时注入的 `--seal-*` 命名空间），以保证暗色模式持续生效；参见 §8。
 
 ## 2. 什么是"工具类"
 
@@ -55,7 +55,7 @@ Tailwind 是**构建时**:扫描源码中字面量 `className="…"`,只为扫�
 真正的边界是"**工具类 vs 纯 CSS**",**不是 SCSS vs Tailwind**。三类落在纯 CSS 一侧,不需要 Sass:
 
 1. **第三方 DOM 钩子。** Monaco 的行装饰只向 Monaco 生成的 DOM 传递一个*类名*
-   (`function.tsx` 向 `createDecorationsCollection` 传 `className: 'grl-function__errorLineContent'`)。
+   (`function.tsx` 向 `createDecorationsCollection` 传 `className: 'seal-function__errorLineContent'`)。
    工具类挂不上去——必须有按该类名写的真实 CSS 规则。`function-debugger-log.tsx` 里
    `react-json-tree` 的内部同样如此(`li > div + label + span`、`.log__values > ul:first-of-type > li:first-of-type`)。
 
@@ -77,8 +77,8 @@ Tailwind 是**构建时**:扫描源码中字面量 `className="…"`,只为扫�
 <BaseEdge style={{
   ...(style || {}),
   stroke: match(diff)
-    .with({ status: 'added' }, () => 'var(--grl-color-success)')
-    .with({ status: 'removed' }, () => 'var(--grl-color-error)')
+    .with({ status: 'added' }, () => 'var(--seal-color-success)')
+    .with({ status: 'removed' }, () => 'var(--seal-color-error)')
     .otherwise(() => undefined),
 }} />
 

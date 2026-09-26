@@ -9,7 +9,7 @@ const cardStyle: React.CSSProperties = {
   background: 'var(--card)',
   border: '1px solid var(--border)',
   borderRadius: 8,
-  boxShadow: 'var(--grl-box-shadow-secondary, 0 6px 16px rgba(0,0,0,0.12))',
+  boxShadow: 'var(--seal-box-shadow-secondary, 0 6px 16px rgba(0,0,0,0.12))',
   fontSize: 12,
   lineHeight: '20px',
   color: 'var(--foreground)',
@@ -25,7 +25,7 @@ const chipStyle: React.CSSProperties = {
 };
 
 export const DragOverlayCard: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className='grl-drag-overlay' style={cardStyle}>
+  <div className='seal-drag-overlay' style={cardStyle}>
     {children}
   </div>
 );
@@ -41,7 +41,7 @@ export const OverlayIndexChip: React.FC<{ index: number }> = ({ index }) => (
       textAlign: 'center',
       padding: '0 4px',
       borderRadius: 4,
-      background: 'var(--grl-color-primary-bg, var(--background))',
+      background: 'var(--seal-color-primary-bg, var(--background))',
       color: 'var(--primary)',
       fontWeight: 500,
     }}

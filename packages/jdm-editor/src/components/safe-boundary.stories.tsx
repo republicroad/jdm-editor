@@ -52,7 +52,7 @@ export const Interactive: StoryObj<SafeBoundaryDemoArgs> = {
         <SafeBoundary onError={(error) => console.error('[SafeBoundary demo]', error.message)}>
           <div
             style={{
-              border: '1px solid var(--grl-color-border, #d9d9d9)',
+              border: '1px solid var(--seal-color-border, #d9d9d9)',
               borderRadius: 8,
               padding: 16,
             }}
@@ -60,7 +60,7 @@ export const Interactive: StoryObj<SafeBoundaryDemoArgs> = {
             <Typography.Text strong>Editor content (simulated)</Typography.Text>
             <div style={{ marginTop: 8 }}>
               {trigger && <Bomb />}
-              <div style={{ padding: 12, background: 'var(--grl-color-bg-container, #fff)', borderRadius: 6 }}>
+              <div style={{ padding: 12, background: 'var(--seal-color-bg-container, #fff)', borderRadius: 6 }}>
                 Normal rendering — no errors.
               </div>
             </div>
@@ -105,10 +105,10 @@ export const CustomFallback: StoryObj<SafeBoundaryDemoArgs> = {
               role='alert'
               style={{
                 padding: 24,
-                border: '2px dashed var(--grl-color-warning-border, #ffe58f)',
+                border: '2px dashed var(--seal-color-warning-border, #ffe58f)',
                 borderRadius: 12,
                 textAlign: 'center',
-                background: 'var(--grl-color-warning-bg, #fffbe6)',
+                background: 'var(--seal-color-warning-bg, #fffbe6)',
               }}
             >
               <div style={{ fontSize: 28, marginBottom: 8 }}>⚠️</div>

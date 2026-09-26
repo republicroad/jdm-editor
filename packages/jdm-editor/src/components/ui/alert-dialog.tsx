@@ -5,7 +5,7 @@ import { cn } from '#lib/utils';
 import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog';
 import * as React from 'react';
 
-import { useGrlPortalContainer } from '../../theming/portal-context';
+import { useSealPortalContainer } from '../../theming/portal-context';
 
 function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot='alert-dialog' {...props} />;
@@ -39,15 +39,15 @@ function AlertDialogContent({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Popup> & {
   size?: 'default' | 'sm';
 }) {
-  const grlContainer = useGrlPortalContainer();
+  const sealContainer = useSealPortalContainer();
   return (
-    <AlertDialogPortal container={grlContainer}>
+    <AlertDialogPortal container={sealContainer}>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Popup
         data-slot='alert-dialog-content'
         data-size={size}
         className={cn(
-          // box-border: portaled nodes live outside .grl-root preflight scope (HK-14).
+          // box-border: portaled nodes live outside .seal-root preflight scope (HK-14).
           'group/alert-dialog-content box-border fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none transition-[opacity,transform] duration-200 data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-lg data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0',
           className,
         )}

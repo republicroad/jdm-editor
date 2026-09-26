@@ -11,7 +11,7 @@ import { Typography } from './primitives';
  * global :root styles, so a nested provider would pollute sibling stories.
  *
  * Values are rendered from derived data directly via inline styles; the JSON
- * panel doubles as copy-paste documentation for hosts wiring `--grl-*` maps.
+ * panel doubles as copy-paste documentation for hosts wiring `--seal-*` maps.
  */
 
 const DEFAULT_SEEDS: ThemeSeeds = {
@@ -55,7 +55,7 @@ const SwatchRow: React.FC<{ label: string; entries: [string, string][] }> = ({ l
             wordBreak: 'break-all',
           }}
         >
-          {k.replace(/^--grl-color-/, '')}
+          {k.replace(/^--seal-color-/, '')}
         </div>
       ))}
     </div>
@@ -94,7 +94,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
 
     const familyBlock = (fam: string) => {
       const keys = Object.keys(theme)
-        .filter((k) => k.startsWith(`--grl-color-${fam}`))
+        .filter((k) => k.startsWith(`--seal-color-${fam}`))
         .sort();
       return pick(...keys);
     };
@@ -114,22 +114,22 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
         <SwatchRow
           label='fields'
           entries={[
-            ['--grl-color-field-input', theme['--grl-color-field-input']],
-            ['--grl-color-field-input-hover', theme['--grl-color-field-input-hover']],
-            ['--grl-color-field-output', theme['--grl-color-field-output']],
-            ['--grl-color-field-output-hover', theme['--grl-color-field-output-hover']],
-            ['--grl-color-text-light-solid', theme['--grl-color-text-light-solid']],
+            ['--seal-color-field-input', theme['--seal-color-field-input']],
+            ['--seal-color-field-input-hover', theme['--seal-color-field-input-hover']],
+            ['--seal-color-field-output', theme['--seal-color-field-output']],
+            ['--seal-color-field-output-hover', theme['--seal-color-field-output-hover']],
+            ['--seal-color-text-light-solid', theme['--seal-color-text-light-solid']],
           ]}
         />
         <SwatchRow
           label='surfaces'
           entries={pick(
-            '--grl-color-bg-layout',
-            '--grl-color-bg-container',
-            '--grl-color-bg-elevated',
-            '--grl-color-border',
-            '--grl-color-border-hover',
-            '--grl-control-outline',
+            '--seal-color-bg-layout',
+            '--seal-color-bg-container',
+            '--seal-color-bg-elevated',
+            '--seal-color-border',
+            '--seal-color-border-hover',
+            '--seal-control-outline',
           )}
         />
 
@@ -143,7 +143,7 @@ export const SeedsPlayground: StoryObj<PlaygroundArgs> = {
             }}
             style={{ padding: '4px 10px', cursor: 'pointer' }}
           >
-            {copied ? 'Copied!' : 'Copy --grl-* map'}
+            {copied ? 'Copied!' : 'Copy --seal-* map'}
           </button>{' '}
           <a
             href='#'

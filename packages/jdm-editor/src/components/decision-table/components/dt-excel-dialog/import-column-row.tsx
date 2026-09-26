@@ -86,7 +86,7 @@ export const ImportColumnRow: React.FC<{
           justifyContent: 'center',
         }}
       >
-        <HolderOutlined style={{ color: 'var(--grl-color-text-tertiary)' }} />
+        <HolderOutlined style={{ color: 'var(--seal-color-text-tertiary)' }} />
       </div>
 
       <Switch size='small' checked={!disabled} onChange={onToggle} />
