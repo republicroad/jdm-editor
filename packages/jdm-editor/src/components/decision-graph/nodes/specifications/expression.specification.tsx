@@ -18,6 +18,7 @@ import { compareAndUnifyLists, compareStringFields } from '../../diff/comparison
 import { TabExpression } from '../../graph/tab-expression';
 import { GraphNode } from '../graph-node';
 import type { NodeDecisionTableData } from './decision-table.specification';
+import { SettingsFrame } from './settings-frame';
 import type { NodeSpecification } from './specification-types';
 import { NodeKind } from './specification-types';
 
@@ -223,7 +224,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
     };
 
     return (
-      <div className={'settings-form'}>
+      <SettingsFrame title='Expression'>
         <Form.Item label='Passthrough'>
           <DiffSwitch
             disabled={disabled}
@@ -279,7 +280,7 @@ export const expressionSpecification: NodeSpecification<NodeExpressionData> = {
             ]}
           />
         </Form.Item>
-      </div>
+      </SettingsFrame>
     );
   },
 };

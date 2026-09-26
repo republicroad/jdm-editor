@@ -16,6 +16,7 @@ import type { Diff, DiffMetadata } from '../../dg-types';
 import { compareAndUnifyLists } from '../../diff/comparison';
 import { TabDecisionTable } from '../../graph/tab-decision-table';
 import { GraphNode } from '../graph-node';
+import { SettingsFrame } from './settings-frame';
 import { NodeKind } from './specification-types';
 import type { NodeSpecification } from './specification-types';
 
@@ -374,7 +375,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
     };
 
     return (
-      <div className={'settings-form'}>
+      <SettingsFrame title='Decision table'>
         <Form.Item label={'Hit Policy'}>
           <Space direction={'vertical'} size={2}>
             <DiffRadio
@@ -450,7 +451,7 @@ export const decisionTableSpecification: NodeSpecification<NodeDecisionTableData
             ]}
           />
         </Form.Item>
-      </div>
+      </SettingsFrame>
     );
   },
 };
