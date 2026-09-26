@@ -59,6 +59,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
     targetPosition,
     style = {},
     markerEnd,
+    label,
   } = props;
   const { isHovered, disabled, decisionGraph, components } = useDecisionGraphState(
     ({ hoveredEdgeId, disabled, decisionGraph, components }) => ({
@@ -81,6 +82,22 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
     targetY,
     targetPosition,
   });
+
+  // WS1-R4：分支路径标签（flow-2 named branch paths 模式）——有 label 的边在路径上方渲染 chip。
+  // 必须放进 EdgeLabelRenderer（portal 到 HTML 层）：xyflow 把自定义边渲染在 SVG 命名空间，
+  // 标签层之外的裸 div 不可见（seal-editor 59227fd 的实现踩了这一点，仅 DOM 断言假绿）。
+  const labelChip =
+    label != null && String(label).trim() !== '' ? (
+      <div
+        data-slot='edge-label-chip'
+        className='nodrag nopan pointer-events-none absolute z-[999]'
+        style={{ transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 18}px)` }}
+      >
+        <span className='whitespace-nowrap rounded-sm border border-[var(--border)] bg-[var(--seal-color-bg-container)] px-1.5 py-0.5 text-[10px] text-[var(--muted-foreground)]'>
+          {label}
+        </span>
+      </div>
+    ) : null;
 
   const insertBetween = async (item: PickerItem) => {
     setPicking(false);
@@ -145,6 +162,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
         }}
       />
       <EdgeLabelRenderer>
+        {labelChip}
         <div
           className={
             'nodrag nopan absolute z-[1000] flex items-center justify-center gap-1 text-xs pointer-events-auto'

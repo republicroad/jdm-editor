@@ -320,6 +320,66 @@ export const SimulatorErrorBadgeFallbackTitle: Story = {
   },
 };
 
+/**
+ * WS1-R4 增强：switch case 名 ↔ 分支路径标签联动——在 case 行输入名字，
+ * 出边上的标签芯片即时出现/更新（edge.name 镜像）。
+ * 断言额外校验 offsetParent：芯片必须真实可见（在 EdgeLabelRenderer HTML 层内），
+ * 防止 SVG 命名空间裸 div 的"DOM 存在但不可见"假绿（seal-editor 59227fd 的缺陷）。
+ * Runs under `pnpm --filter @republicroad/jdm-editor test:storybook`.
+ */
+export const SwitchStatementNameLinkage: Story = {
+  render: () => {
+    const switchGraph = useMemo(
+      () => ({
+        contentType: 'application/vnd.gorules.decision',
+        nodes: [
+          { id: 'in-1', name: 'Request', type: 'inputNode', position: { x: 0, y: 150 } },
+          {
+            id: 'sw-1',
+            name: 'switch1',
+            type: 'switchNode',
+            position: { x: 320, y: 100 },
+            content: {
+              hitPolicy: 'first',
+              statements: [{ id: 'stmt-1', condition: 'customer.age >= 18', isDefault: false }],
+            },
+          },
+          { id: 'out-1', name: 'Response', type: 'outputNode', position: { x: 700, y: 150 } },
+        ],
+        edges: [
+          { id: 'e-in-sw', sourceId: 'in-1', targetId: 'sw-1', type: 'edge' },
+          { id: 'e-sw-out', sourceId: 'sw-1', sourceHandle: 'stmt-1', targetId: 'out-1', type: 'edge' },
+        ],
+      }),
+      [],
+    );
+    const [value, setValue] = useState<any>(switchGraph);
+
+    return (
+      <div style={{ height: '100%' }}>
+        <DecisionGraph value={value} onChange={(val) => setValue?.(val)} />
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const nameInput = canvasElement.querySelector<HTMLInputElement>("input[aria-label='Path name']");
+    expect(nameInput).not.toBeNull();
+    expect(canvasElement.querySelector("[data-slot='edge-label-chip']")).toBeNull();
+
+    await fireEvent.change(nameInput!, { target: { value: 'highRisk' } });
+
+    await waitFor(
+      () => {
+        const chip = canvasElement.querySelector<HTMLElement>("[data-slot='edge-label-chip']");
+        expect(chip?.textContent).toBe('highRisk');
+        // visibility guard: a div in the SVG namespace exists in the DOM but never paints
+        expect(chip?.offsetParent).not.toBeNull();
+      },
+      { timeout: 5_000 },
+    );
+  },
+};
+
 export const Diff: Story = {
   render: (args) => {
     const [value, setValue] = useState<any>(diffGraph);

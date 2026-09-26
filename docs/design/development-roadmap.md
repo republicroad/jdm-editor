@@ -14,12 +14,12 @@ flow-1/flow-3/flow-2 试点件与 [reui-flow-pilot.md](./reui-flow-pilot.md)。
 | R1 | 节点卡头部：IconTile（节点色着色）+ 类型 Badge（首次启用闲置的 `type` prop） | flow 块节点卡 | ✅ 0bb311ab |
 | R2 | 节点悬浮工具栏：hover/选中显现 设置/复制/复制节点/删除（复用确认对话框） | flow-1 NodeToolbar | ✅ bb2b2753 |
 | R3 | 连接线"+"：悬停选节点类型，中点插入并重连 source→新→target（nodeSchema 校验） | flow-1 connector + | ✅ 37deba8c |
-| R4 | 分支路径标签：边上显示条件/命名路径（flow-2 named branch paths） | flow-2 | 待开发 |
+| R4 | 分支路径标签：边上显示条件/命名路径（flow-2 named branch paths） | flow-2 | ✅ 2026-09-26 移植 seal-editor 59227fd + fb7b930 并修复两处缺陷：①chip 放进 EdgeLabelRenderer（HTML 层）——seal 原实现裸 div 落在 SVG 命名空间不可见、storybook 仅断言 textContent 假绿；②switchNodeSchema 补 statements.name——zod 剥离未声明键致 JSON 上传丢名。edge.name 镜像（applyStatementNameToEdges 纯函数）+ case 行内联输入 + 3 单测 + 1 schema round-trip 断言 + SwitchStatementNameLinkage storybook（含 offsetParent 可见性守卫） |
 | R5 | 停靠式检查器：选中带 renderSettings 的节点，画布右上停靠设置面板（useOnSelectionChange + Panel） | flow-2 | ✅ 976f0b6c |
 | R6 | 自动布局：dagre 一键整理（flow-2 用 @dagrejs/dagre） | flow-2 | ✅ 2026-09-26 移植 seal-editor d50d354：dynamic import + vite external（dist 保留裸 `import('@dagrejs/dagre')`，index.js 仅 +2kB，零新 chunk）；store `autoLayout`（pushUndo 可撤销 + fitView）+ 侧栏按钮（`dg.toolbar.autoLayout` en/zh）+ 4 单测 + AutoLayout storybook 用例（乱序输入防恒等误判）；consumer smoke 实证宿主导包器自拆 `dagre.esm` lazy chunk（46.5kB） |
-| R7 | 仿真状态条：节点卡底部 run strip（耗时/命中/错误码，对应 simulator trace） | flow-2 last-run strip | 待开发 |
+| R7 | 仿真状态条：节点卡底部 run strip（耗时/命中/错误码，对应 simulator trace） | flow-2 last-run strip | ✅ 2026-09-26 移植 seal-editor 33d04be + a75927d（全 seal-* token，seal 仓 33d04be 反向引入 3 处 grl- 残留）：DecisionNode trace/traceError props + strip（TRACE + performance）；SimulationError 契约新增可选 code——失败节点红底错误码徽章（code 优先，无 code 退化紧凑 title + 原生 tooltip）；2 storybook 用例（code 徽章 / title 回退） |
 
-门禁（每片通用）：kernel tsc + 451 测试 + build + size 预算；涉及画布交互的切片加
+门禁（每片通用）：kernel tsc + 455 测试 + build + size 预算；涉及画布交互的切片加
 storybook 交互用例。
 
 上游阻塞：`/r/base/` 注册路径整条 404（2026-09-17 实测，预览页存在但 registry 项未

@@ -114,6 +114,7 @@ export const en = {
   'dg.schema.importFromJson': 'Import from JSON',
   'dg.excel.wrapQuotes': 'Wrap value in quotes',
   'dg.excel.enterFieldName': 'Enter field name',
+  'dg.condition.namePlaceholder': 'Path name',
   'dg.condition.removeConfirm': 'Remove condition?',
 
   // ── expression ──

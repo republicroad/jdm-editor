@@ -104,6 +104,7 @@ export const zhCN: Record<string, string> = {
   'dg.schema.importFromJson': '从 JSON 导入',
   'dg.excel.wrapQuotes': '值包裹引号',
   'dg.excel.enterFieldName': '输入字段名',
+  'dg.condition.namePlaceholder': '路径名',
   'dg.condition.removeConfirm': '移除此条件？',
 
   'expression.placeholder': '表达式',

@@ -274,6 +274,12 @@ export const switchNodeSchema = z
             .boolean()
             .nullish()
             .transform((val) => val ?? false),
+          // WS1-R4：case 名——镜像为出边 edge.name（分支路径标签芯片）。
+          // zod 默认剥离未声明键：不声明它，JSON 上传路径（safeParse）会静默丢名。
+          name: z
+            .string()
+            .nullish()
+            .transform((val) => (val && val.trim() !== '' ? val : undefined)),
         }),
       ),
     }),

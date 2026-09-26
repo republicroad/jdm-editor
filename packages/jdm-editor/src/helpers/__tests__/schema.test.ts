@@ -89,6 +89,26 @@ describe('schema', () => {
     expect(result.content.statements[1].isDefault).toBe(false);
   });
 
+  it('preserves switch statement case names through a parse round-trip (WS1-R4)', () => {
+    // zod strips undeclared keys — the case name mirrors onto edge.name for the
+    // branch label chip, so an upload round-trip must not silently drop it
+    const result = nodeSchema.parse({
+      id: 'sw',
+      type: NodeKind.Switch,
+      name: 'Switch',
+      content: {
+        hitPolicy: 'first',
+        statements: [
+          { id: 's1', condition: 'x > 1', name: 'highRisk' },
+          { id: 's2', condition: 'x <= 1', name: '' },
+        ],
+      },
+    });
+
+    expect(result.content.statements[0].name).toBe('highRisk');
+    expect(result.content.statements[1].name).toBeUndefined();
+  });
+
   it('requires a key for decision nodes and normalizes options', () => {
     const result = nodeSchema.parse({
       id: 'd1',
