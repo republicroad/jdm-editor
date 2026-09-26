@@ -23,7 +23,7 @@
       "headers": {
         "Authorization": "Bearer ${REUI_LICENSE_KEY}"
       },
-      "url": "https://reui.io/r/base/{name}.json"
+      "url": "https://reui.io/r/base-nova/{name}.json"
     }
   }
 }

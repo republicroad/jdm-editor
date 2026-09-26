@@ -1,6 +1,12 @@
 import { PlusCircleOutlined } from '#icons';
 import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table';
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  columnResizingFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
@@ -36,6 +42,17 @@ export type TableProps = {
 };
 
 type ColumnSizing = Record<string, number>;
+
+// TanStack v9 declares features up front; core row models are built in. The
+// dt table needs exactly three optional ones: visibility gates
+// row.getVisibleCells(), sizing owns the persisted width map
+// (state.columnSizing), resizing owns the drag interaction (getResizeHandler
+// + columnResizeMode).
+const dtTableFeatures = tableFeatures({
+  columnVisibilityFeature,
+  columnSizingFeature,
+  columnResizingFeature,
+});
 
 const columnSizeKey = (id: string) => `jdm-editor:decisionTable:columns:${id}`;
 
@@ -92,7 +109,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       ),
   );
 
-  const columns = React.useMemo<ColumnDef<any>[]>(
+  const columns = React.useMemo<ColumnDef<any, any, any>[]>(
     () => [
       {
         id: 'inputs',
@@ -143,12 +160,12 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     [permission, disabled, inputs, outputs],
   );
 
-  const table = useReactTable({
+  const table = useTable({
     data: rules,
+    features: dtTableFeatures,
     columnResizeMode: 'onChange',
     getRowId: (row) => row._id,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     defaultColumn: {
       cell: (context) => <TableDefaultCell context={context} />,
     },
@@ -266,7 +283,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
 
 type TableBodyProps = {
   tableContainerRef: React.RefObject<HTMLDivElement | null>;
-  table: ReactTable<any>;
+  table: ReactTable<any, any>;
   scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
 } & Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'children'>;
 

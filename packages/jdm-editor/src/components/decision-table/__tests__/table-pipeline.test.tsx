@@ -30,7 +30,7 @@ const baseTable = (): DecisionTableType => ({
   ],
 });
 
-type Ctx = CellContext<Record<string, string>, string>;
+type Ctx = CellContext<any, any, any>;
 
 const fakeContext = (): Ctx =>
   ({

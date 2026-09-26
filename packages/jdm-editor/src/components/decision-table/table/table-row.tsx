@@ -15,7 +15,7 @@ import { TableRowHoverActions } from './table-row-hover-actions';
 
 export const TableRow: React.FC<{
   ref?: React.Ref<HTMLTableRowElement>;
-  row: Row<Record<string, string>>;
+  row: Row<any, any>;
   disabled?: boolean;
   virtualItem: VirtualItem;
   onResize?: (node: HTMLElement) => void;

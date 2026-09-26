@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import React from 'react';
 import { match } from 'ts-pattern';
 
-export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any> }> = ({ headerGroup }) => (
+export const TableHeadRow: React.FC<{ headerGroup: HeaderGroup<any, any> }> = ({ headerGroup }) => (
   <tr key={headerGroup.id}>
     <th
       colSpan={1}

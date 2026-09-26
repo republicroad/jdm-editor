@@ -23,7 +23,7 @@ import {
 import { getReferenceMap } from '../util';
 
 export type TableDefaultCellProps = {
-  context: CellContext<Record<string, string>, string>;
+  context: CellContext<any, any, any>;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 /** Runtime-only diff metadata attached to rule rows by the graph differ. */

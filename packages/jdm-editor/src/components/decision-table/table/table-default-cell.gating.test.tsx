@@ -51,7 +51,7 @@ const cellContext = {
   row: { index: 0 },
   column: { id: COLUMN_ID },
   table: { options: { meta: {} } },
-} as unknown as CellContext<Record<string, string>, string>;
+} as unknown as CellContext<any, any, any>;
 
 const renderCell = () => {
   const onChange = vi.fn();
