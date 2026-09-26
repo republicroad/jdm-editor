@@ -29,9 +29,9 @@ export const Popconfirm: React.FC<
     <AlertDialog open={open} onOpenChange={setOpen}>
       {/*
        * Real-DOM wrapper for the trigger: cloning through a non-DOM child
-       * (e.g. a Tooltip context wrapping the actual Button — see
-       * ImportColumnRow in dt-excel-dialog) drops handlers, so the trigger
-       * always renders its own inline span.
+       * (e.g. a Tooltip context wrapping the actual Button, as dialog row
+       * actions do) drops handlers, so the trigger always renders its own
+       * inline span.
        */}
       <AlertDialogTrigger disabled={disabled} render={<span className='inline-flex'>{children}</span>} />
       <AlertDialogContent>

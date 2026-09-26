@@ -26,7 +26,7 @@ export const Popover: React.FC<PopoverProps> = ({ open, onOpenChange, content, c
      * Wrap the child in a real DOM element unconditionally: Base UI
      * `render` merges its handlers into the rendered element, and cloning
      * through a non-DOM subtree (e.g. a Tooltip context provider wrapping a
-     * Button — see ImportColumnRow in dt-excel-dialog) silently drops them.
+     * Button, as dialog row actions do) silently drops them.
      */}
     <UiPopoverTrigger render={<span className='inline-flex'>{children}</span>} />
     <UiPopoverContent>{content}</UiPopoverContent>

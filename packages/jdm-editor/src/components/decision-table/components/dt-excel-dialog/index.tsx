@@ -1,19 +1,219 @@
-import { LeftOutlined, PlusOutlined } from '#icons';
+import { DeleteOutlined, EditOutlined, LeftOutlined, PlusOutlined } from '#icons';
+import { DataGrid, DataGridContainer, type DataGridFeatures, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useTable } from '@tanstack/react-table';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ColumnFieldType, OutputFieldType } from '../../../../helpers/schema';
 import { useT } from '../../../../theming/i18n';
-import { Button, Modal, Select, Switch, Typography } from '../../../primitives';
+import { Button, Checkbox, Modal, Popconfirm, Select, Switch, Tooltip, Typography } from '../../../primitives';
 import { useDecisionTableDialog } from '../../context/dt-dialog.context';
 import { useDecisionTableState } from '../../context/dt-store.context';
 import { InputFieldEdit } from '../input-field-edit';
 import { OutputFieldEdit } from '../output-field-edit';
-import { ExcelDnd } from './excel-dnd';
-import { ImportColumnRow } from './import-column-row';
 import { assembleMappedData, buildImportColumns } from './mapping';
 import type { DtExcelDialogProps, ImportColumn } from './types';
 
 export type { MappedExcelData } from './types';
+
+/** WS2-B2：映射行进 data-grid（行拖拽/启用开关/逐行控制均为单元格渲染） */
+const MappingGrid: React.FC<{
+  section: 'input' | 'output';
+  rows: ImportColumn[];
+  excelHeaders: { id: string; name?: string; value?: string }[];
+  disabledColumns: Record<string, boolean>;
+  wrapStates: Record<string, boolean>;
+  onReorder: (fromIndex: number, toIndex: number) => void;
+  onToggle: (colId: string, enabled: boolean) => void;
+  onExcelHeaderChange: (colId: string, excelHeaderId: string | undefined) => void;
+  onWrapChange: (colId: string, checked: boolean) => void;
+  onFieldChange: (colId: string, field: string, fieldType?: ColumnFieldType, outputFieldType?: OutputFieldType) => void;
+  onRemove: (colId: string) => void;
+  emptyMessage: string;
+}> = ({
+  section,
+  rows,
+  excelHeaders,
+  disabledColumns,
+  wrapStates,
+  onReorder,
+  onToggle,
+  onExcelHeaderChange,
+  onWrapChange,
+  onFieldChange,
+  onRemove,
+  emptyMessage,
+}) => {
+  const t = useT();
+
+  const columns = useMemo<ColumnDef<DataGridFeatures, ImportColumn>[]>(
+    () => [
+      {
+        id: 'enabled',
+        cell: ({ row }) => (
+          <Switch
+            size='small'
+            checked={!disabledColumns[row.original.id]}
+            onChange={(enabled) => onToggle(row.original.id, enabled)}
+            style={{ minWidth: 28 }}
+          />
+        ),
+        size: 40,
+      },
+      {
+        id: 'drag',
+        cell: ({ row }) => <DataGridTableDndRowHandle disabled={!!disabledColumns[row.original.id]} />,
+        size: 36,
+      },
+      {
+        id: 'tableColumn',
+        header: 'Table column',
+        cell: ({ row }) => (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              minHeight: 36,
+              opacity: disabledColumns[row.original.id] ? 0.4 : 1,
+            }}
+          >
+            <Typography.Text style={{ fontSize: 13, lineHeight: '18px' }}>{row.original.name}</Typography.Text>
+            {row.original.field && (
+              <Typography.Text type='secondary' style={{ fontSize: 11, lineHeight: '14px' }}>
+                {row.original.field}
+              </Typography.Text>
+            )}
+          </div>
+        ),
+        size: 180,
+      },
+      {
+        id: 'excelColumn',
+        header: 'Excel column',
+        cell: ({ row }) => (
+          <Select
+            allowClear
+            style={{ width: '100%' }}
+            placeholder={t('dt.table.selectExcelColumn')}
+            value={row.original.excelHeaderId}
+            disabled={!!disabledColumns[row.original.id]}
+            onChange={(val) => onExcelHeaderChange(row.original.id, val ?? undefined)}
+            options={excelHeaders.map((h) => ({
+              label: h.name || h.value || h.id,
+              value: h.id,
+            }))}
+          />
+        ),
+        size: 220,
+      },
+      {
+        id: 'wrap',
+        cell: ({ row }) => (
+          <Tooltip title={t('dt.field.wrapQuotes')}>
+            <Checkbox
+              disabled={!!disabledColumns[row.original.id]}
+              checked={wrapStates[row.original.id] || false}
+              onChange={(e) => onWrapChange(row.original.id, e.target.checked)}
+            />
+          </Tooltip>
+        ),
+        size: 40,
+      },
+      {
+        id: 'field',
+        cell: ({ row }) => {
+          const editTrigger = (
+            <Tooltip title={t('dt.field.editColumn')}>
+              <Button type='text' size='small' icon={<EditOutlined />} style={{ padding: 0 }} />
+            </Tooltip>
+          );
+          return section === 'input' ? (
+            <InputFieldEdit
+              mode='edit'
+              value={row.original.field}
+              fieldType={row.original.fieldType}
+              onChange={(field, fieldType) => onFieldChange(row.original.id, field, fieldType)}
+              onRemove={() => onRemove(row.original.id)}
+              trigger={editTrigger}
+            />
+          ) : (
+            <OutputFieldEdit
+              mode='edit'
+              value={row.original.field}
+              fieldType={row.original.outputFieldType}
+              onChange={(field, outputFieldType) => onFieldChange(row.original.id, field, undefined, outputFieldType)}
+              onRemove={() => onRemove(row.original.id)}
+              trigger={editTrigger}
+            />
+          );
+        },
+        size: 40,
+      },
+      {
+        id: 'remove',
+        cell: ({ row }) => (
+          <Popconfirm
+            title={t('dt.field.removeConfirm')}
+            okText={t('common.remove')}
+            onConfirm={() => onRemove(row.original.id)}
+          >
+            <Tooltip title={t('dt.field.removeColumn')}>
+              <Button type='text' size='small' danger icon={<DeleteOutlined />} style={{ padding: 0 }} />
+            </Tooltip>
+          </Popconfirm>
+        ),
+        size: 40,
+      },
+    ],
+    [
+      section,
+      excelHeaders,
+      disabledColumns,
+      wrapStates,
+      t,
+      onToggle,
+      onExcelHeaderChange,
+      onWrapChange,
+      onFieldChange,
+      onRemove,
+    ],
+  );
+
+  const dataIds = useMemo(() => rows.map(({ id }) => id), [rows]);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (active && over && active.id !== over.id) {
+        const from = dataIds.indexOf(String(active.id));
+        const to = dataIds.indexOf(String(over.id));
+        if (from >= 0 && to >= 0) {
+          onReorder(from, to);
+        }
+      }
+    },
+    [dataIds, onReorder],
+  );
+
+  const table = useTable({
+    features: dataGridFeatures,
+    columns,
+    data: rows,
+    getRowId: (row: ImportColumn) => row.id,
+  });
+
+  return (
+    <DataGrid table={table} recordCount={rows.length} emptyMessage={emptyMessage} tableLayout={{ rowsDraggable: true }}>
+      <DataGridContainer className='rounded-lg border border-[var(--border)]'>
+        <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
+      </DataGridContainer>
+    </DataGrid>
+  );
+};
 
 export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleSuccess, handleCancel }) => {
   const t = useT();
@@ -56,6 +256,19 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
   const enabledColumns = useMemo(() => columns.filter((c) => !disabledColumns[c.id]), [columns, disabledColumns]);
   const hasEnabledOutput = useMemo(() => enabledColumns.some((c) => c.type === 'output'), [enabledColumns]);
   const isOkDisabled = enabledColumns.length === 0 || !hasEnabledOutput;
+
+  /**
+   * Section 内重排：保持另一 type 的列在主数组中的位置不动，
+   * 仅按新顺序回填本 type 原占用的槽位（assembleMappedData 依赖主数组序）。
+   */
+  const reorderSection = useCallback((section: 'input' | 'output', fromIndex: number, toIndex: number) => {
+    setColumns((prev) => {
+      const sectionCols = prev.filter((c) => c.type === section);
+      const reordered = arrayMove(sectionCols, fromIndex, toIndex);
+      let k = 0;
+      return prev.map((c) => (c.type === section ? reordered[k++] : c));
+    });
+  }, []);
 
   const handleFieldChange = useCallback(
     (colId: string, field: string, fieldType?: ColumnFieldType, outputFieldType?: OutputFieldType) => {
@@ -176,203 +389,131 @@ export const DtExcelDialog: React.FC<DtExcelDialogProps> = ({ excelData, handleS
       width={900}
       getContainer={getContainer}
     >
-      <ExcelDnd
-        getColumnById={(id) => columns.find((c) => c.id === id)}
-        onMove={(draggedId, overId) => {
-          setColumns((prev) => {
-            const i = prev.findIndex((c) => c.id === draggedId);
-            const j = prev.findIndex((c) => c.id === overId);
-            if (i === -1 || j === -1 || i === j || prev[i].type !== prev[j].type) {
-              return prev;
-            }
+      <div style={{ padding: '8px 0' }}>
+        {/* Inputs Section */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Typography.Text strong style={{ fontSize: 13 }}>
+            Inputs
+          </Typography.Text>
+          <InputFieldEdit
+            mode='create'
+            variableType={inputVariableType}
+            onCreate={handleAddInput}
+            trigger={addInputTrigger}
+          />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <MappingGrid
+            section='input'
+            rows={inputColumns}
+            excelHeaders={excelHeaders}
+            disabledColumns={disabledColumns}
+            wrapStates={wrapStates}
+            onReorder={(from, to) => reorderSection('input', from, to)}
+            onToggle={(colId, enabled) => {
+              setDisabledColumns((prev) => {
+                const updated = { ...prev };
+                if (enabled) {
+                  delete updated[colId];
+                } else {
+                  updated[colId] = true;
+                }
+                return updated;
+              });
+            }}
+            onExcelHeaderChange={(colId, excelHeaderId) => {
+              setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
+            }}
+            onWrapChange={(colId, checked) => {
+              setWrapStates((prev) => ({ ...prev, [colId]: checked }));
+            }}
+            onFieldChange={handleFieldChange}
+            onRemove={handleRemoveColumn}
+            emptyMessage='No input columns'
+          />
+        </div>
 
-            const next = [...prev];
-            const [moved] = next.splice(i, 1);
-            next.splice(j, 0, moved);
-            return next;
-          });
-        }}
-      >
-        <div style={{ padding: '8px 0' }}>
-          {/* Inputs Section */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <Typography.Text strong style={{ fontSize: 13 }}>
-              Inputs
-            </Typography.Text>
-            <InputFieldEdit
-              mode='create'
-              variableType={inputVariableType}
-              onCreate={handleAddInput}
-              trigger={addInputTrigger}
+        {/* Outputs Section */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Typography.Text strong style={{ fontSize: 13 }}>
+            Outputs
+          </Typography.Text>
+          <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <MappingGrid
+            section='output'
+            rows={outputColumns}
+            excelHeaders={excelHeaders}
+            disabledColumns={disabledColumns}
+            wrapStates={wrapStates}
+            onReorder={(from, to) => reorderSection('output', from, to)}
+            onToggle={(colId, enabled) => {
+              setDisabledColumns((prev) => {
+                const updated = { ...prev };
+                if (enabled) {
+                  delete updated[colId];
+                } else {
+                  updated[colId] = true;
+                }
+                return updated;
+              });
+            }}
+            onExcelHeaderChange={(colId, excelHeaderId) => {
+              setColumns((prev) => prev.map((c) => (c.id === colId ? { ...c, excelHeaderId } : c)));
+            }}
+            onWrapChange={(colId, checked) => {
+              setWrapStates((prev) => ({ ...prev, [colId]: checked }));
+            }}
+            onFieldChange={handleFieldChange}
+            onRemove={handleRemoveColumn}
+            emptyMessage='No output columns'
+          />
+        </div>
+
+        {/* Description Section */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Typography.Text strong style={{ fontSize: 13 }}>
+            Description
+          </Typography.Text>
+        </div>
+        <div
+          style={{
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            padding: '8px 12px',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '36px 24px 1fr',
+              gap: '8px',
+              alignItems: 'center',
+            }}
+          >
+            <Switch
+              size='small'
+              checked={descriptionEnabled}
+              onChange={setDescriptionEnabled}
+              style={{ minWidth: 28 }}
+            />
+            <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
+            <Select
+              allowClear
+              style={{ width: '100%' }}
+              placeholder={t('dt.table.selectDescription')}
+              value={descriptionExcelId}
+              disabled={!descriptionEnabled}
+              onChange={(val) => setDescriptionExcelId(val ?? undefined)}
+              options={excelHeaders.map((h) => ({
+                label: h.name || h.value || h.id,
+                value: h.id,
+              }))}
             />
           </div>
-          <div
-            style={{
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              padding: '4px 12px',
-              marginBottom: 16,
-              minHeight: 40,
-            }}
-          >
-            {/* Column headers */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '24px 36px 1fr 12px 1fr 28px 28px 28px',
-                gap: '8px',
-                padding: '6px 0 2px',
-              }}
-            >
-              <div />
-              <div />
-              <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
-                Table column
-              </Typography.Text>
-              <div />
-              <Typography.Text type='secondary' style={{ fontSize: 12, fontWeight: 600 }}>
-                Excel column
-              </Typography.Text>
-              <div />
-              <div />
-              <div />
-            </div>
-            {inputColumns.length === 0 && (
-              <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
-                No input columns
-              </Typography.Text>
-            )}
-            {inputColumns.map((col) => (
-              <ImportColumnRow
-                key={col.id}
-                col={col}
-                section='input'
-                excelHeaders={excelHeaders}
-                disabled={!!disabledColumns[col.id]}
-                wrapChecked={wrapStates[col.id] || false}
-                onToggle={(enabled) => {
-                  setDisabledColumns((prev) => {
-                    const updated = { ...prev };
-                    if (enabled) {
-                      delete updated[col.id];
-                    } else {
-                      updated[col.id] = true;
-                    }
-                    return updated;
-                  });
-                }}
-                onExcelHeaderChange={(excelHeaderId) => {
-                  setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
-                }}
-                onWrapChange={(checked) => {
-                  setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
-                }}
-                onFieldChange={(field, fieldType, outputFieldType) =>
-                  handleFieldChange(col.id, field, fieldType, outputFieldType)
-                }
-                onRemove={() => handleRemoveColumn(col.id)}
-              />
-            ))}
-          </div>
-
-          {/* Outputs Section */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <Typography.Text strong style={{ fontSize: 13 }}>
-              Outputs
-            </Typography.Text>
-            <OutputFieldEdit mode='create' onCreate={handleAddOutput} trigger={addOutputTrigger} />
-          </div>
-          <div
-            style={{
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              padding: '4px 12px',
-              marginBottom: 16,
-              minHeight: 40,
-            }}
-          >
-            {outputColumns.length === 0 && (
-              <Typography.Text type='secondary' style={{ fontSize: 12, padding: '8px 0', display: 'block' }}>
-                No output columns
-              </Typography.Text>
-            )}
-            {outputColumns.map((col) => (
-              <ImportColumnRow
-                key={col.id}
-                col={col}
-                section='output'
-                excelHeaders={excelHeaders}
-                disabled={!!disabledColumns[col.id]}
-                wrapChecked={wrapStates[col.id] || false}
-                onToggle={(enabled) => {
-                  setDisabledColumns((prev) => {
-                    const updated = { ...prev };
-                    if (enabled) {
-                      delete updated[col.id];
-                    } else {
-                      updated[col.id] = true;
-                    }
-                    return updated;
-                  });
-                }}
-                onExcelHeaderChange={(excelHeaderId) => {
-                  setColumns((prev) => prev.map((c) => (c.id === col.id ? { ...c, excelHeaderId } : c)));
-                }}
-                onWrapChange={(checked) => {
-                  setWrapStates((prev) => ({ ...prev, [col.id]: checked }));
-                }}
-                onFieldChange={(field, fieldType, outputFieldType) =>
-                  handleFieldChange(col.id, field, fieldType, outputFieldType)
-                }
-                onRemove={() => handleRemoveColumn(col.id)}
-              />
-            ))}
-          </div>
-
-          {/* Description Section */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <Typography.Text strong style={{ fontSize: 13 }}>
-              Description
-            </Typography.Text>
-          </div>
-          <div
-            style={{
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              padding: '8px 12px',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '36px 24px 1fr',
-                gap: '8px',
-                alignItems: 'center',
-              }}
-            >
-              <Switch
-                size='small'
-                checked={descriptionEnabled}
-                onChange={setDescriptionEnabled}
-                style={{ minWidth: 28 }}
-              />
-              <LeftOutlined style={{ fontSize: 12, color: 'var(--primary)' }} />
-              <Select
-                allowClear
-                style={{ width: '100%' }}
-                placeholder={t('dt.table.selectDescription')}
-                value={descriptionExcelId}
-                disabled={!descriptionEnabled}
-                onChange={(val) => setDescriptionExcelId(val ?? undefined)}
-                options={excelHeaders.map((h) => ({
-                  label: h.name || h.value || h.id,
-                  value: h.id,
-                }))}
-              />
-            </div>
-          </div>
         </div>
-      </ExcelDnd>
+      </div>
     </Modal>
   );
 };
