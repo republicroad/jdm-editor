@@ -16,10 +16,10 @@ flow-1/flow-3/flow-2 试点件与 [reui-flow-pilot.md](./reui-flow-pilot.md)。
 | R3 | 连接线"+"：悬停选节点类型，中点插入并重连 source→新→target（nodeSchema 校验） | flow-1 connector + | ✅ 37deba8c |
 | R4 | 分支路径标签：边上显示条件/命名路径（flow-2 named branch paths） | flow-2 | 待开发 |
 | R5 | 停靠式检查器：选中带 renderSettings 的节点，画布右上停靠设置面板（useOnSelectionChange + Panel） | flow-2 | ✅ 976f0b6c |
-| R6 | 自动布局：dagre 一键整理（flow-2 用 @dagrejs/dagre） | flow-2 | 待开发（依赖评估 dagre 引入 kernel 的体积预算） |
+| R6 | 自动布局：dagre 一键整理（flow-2 用 @dagrejs/dagre） | flow-2 | ✅ 2026-09-26 移植 seal-editor d50d354：dynamic import + vite external（dist 保留裸 `import('@dagrejs/dagre')`，index.js 仅 +2kB，零新 chunk）；store `autoLayout`（pushUndo 可撤销 + fitView）+ 侧栏按钮（`dg.toolbar.autoLayout` en/zh）+ 4 单测 + AutoLayout storybook 用例（乱序输入防恒等误判）；consumer smoke 实证宿主导包器自拆 `dagre.esm` lazy chunk（46.5kB） |
 | R7 | 仿真状态条：节点卡底部 run strip（耗时/命中/错误码，对应 simulator trace） | flow-2 last-run strip | 待开发 |
 
-门禁（每片通用）：kernel tsc + 447 测试 + build + size 预算；涉及画布交互的切片加
+门禁（每片通用）：kernel tsc + 451 测试 + build + size 预算；涉及画布交互的切片加
 storybook 交互用例。
 
 上游阻塞：`/r/base/` 注册路径整条 404（2026-09-17 实测，预览页存在但 registry 项未

@@ -9,6 +9,7 @@ import { match } from 'ts-pattern';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import { create, useStore } from 'zustand';
 
+import { computeAutoLayout } from '../../../helpers/auto-layout';
 import { useMemoEquality } from '../../../helpers/use-memoized-selector';
 import { normalizeCustomNodeExpressions } from '../../../helpers/utility';
 import type { DictionaryMap } from '../../../theme';
@@ -119,6 +120,8 @@ export type DecisionGraphStoreType = {
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
 
     setNodes: (nodes: DecisionNode[]) => void;
+    /** WS1-R6: dagre auto-layout (lazily imported); optional fitView afterwards */
+    autoLayout: (options?: { ranksep?: number; nodesep?: number; fitView?: boolean }) => Promise<void>;
     addNodes: (nodes: DecisionNode[]) => void;
     updateNode: (id: string, updater: DraftUpdateCallback<DecisionNode>) => void;
     removeNodes: (ids: string[]) => void;
@@ -371,6 +374,41 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
 
         stateStore.setState({ decisionGraph: newDecisionGraph });
         listenerStore.getState().onChange?.(newDecisionGraph);
+      },
+      autoLayout: async (options) => {
+        const { nodesState, reactFlowInstance } = referenceStore.getState();
+        const { decisionGraph } = stateStore.getState();
+        const modelNodes = decisionGraph?.nodes ?? [];
+        const modelEdges = decisionGraph?.edges ?? [];
+        if (modelNodes.length === 0) {
+          return;
+        }
+
+        // rendered nodes carry reactflow's post-mount measurements — prefer
+        // them over the fallback estimate so dagre spacing matches reality
+        const measured: Record<string, { width: number; height: number }> = {};
+        for (const rendered of nodesState?.current?.[0] ?? []) {
+          if (rendered.measured?.width && rendered.measured?.height) {
+            measured[rendered.id] = { width: rendered.measured.width, height: rendered.measured.height };
+          }
+        }
+
+        const positions = await computeAutoLayout(modelNodes, modelEdges, measured, options);
+        pushUndo();
+
+        const positioned = modelNodes.map((node) => ({ ...node, position: positions[node.id] ?? node.position }));
+        // setNodes semantics inlined (store actions are a flat useMemo literal):
+        // swap rendered nodes, then the model, then notify the host
+        nodesState?.current?.[1](mapToGraphNodes(positioned));
+        const newDecisionGraph = produce(decisionGraph, (draft) => {
+          draft.nodes = positioned;
+        });
+        stateStore.setState({ decisionGraph: newDecisionGraph });
+        listenerStore.getState().onChange?.(newDecisionGraph);
+
+        if (options?.fitView !== false) {
+          reactFlowInstance.current?.fitView({ padding: 0.15, duration: 400 });
+        }
       },
       addNodes: (nodes: DecisionNode[]) => {
         const { nodesState } = referenceStore.getState();

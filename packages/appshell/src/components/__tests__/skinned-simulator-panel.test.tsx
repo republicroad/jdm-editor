@@ -105,7 +105,7 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
   }, 30000);
 
-  it('未传 simulateHandler：侧栏仅 upload/download（零变化）', async () => {
+  it('未传 simulateHandler：侧栏 auto-layout/upload/download（零变化）', async () => {
     const { container } = render(
       <ThemeContextProvider>
         <SkinnedDecisionGraph value={graph as never} onChange={vi.fn()} />
@@ -113,7 +113,8 @@ describe('SkinnedDecisionGraph simulator panel', () => {
     );
     await waitFor(
       () => {
-        if (container.querySelectorAll('[class*="grid-area:sidebar"] button').length !== 2) {
+        // 3 buttons since the kernel WS1-R6 auto-layout side-toolbar button
+        if (container.querySelectorAll('[class*="grid-area:sidebar"] button').length !== 3) {
           throw new Error('sidebar not settled');
         }
       },

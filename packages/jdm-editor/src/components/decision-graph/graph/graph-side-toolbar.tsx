@@ -1,4 +1,4 @@
-import { CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
+import { AutoLayoutOutlined, CloudDownloadOutlined, CloudUploadOutlined } from '#icons';
 import React, { Fragment, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -28,7 +28,7 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
   const excelFileInput = useRef<HTMLInputElement>(null);
   const [excelGraphData, setExcelGraphData] = useState<ParsedExcelData[] | null>();
 
-  const { setDecisionGraph, setActivePanel } = useDecisionGraphActions();
+  const { setDecisionGraph, setActivePanel, autoLayout } = useDecisionGraphActions();
   const { disabled, panels, activePanel, viewConfig } = useDecisionGraphState(
     ({ disabled, panels, activePanel, viewConfig }) => ({
       disabled,
@@ -312,6 +312,19 @@ export const GraphSideToolbar: React.FC<GraphSideToolbarProps> = () => {
         />
         <div className='flex w-12 min-w-12 flex-col items-center justify-between gap-2 border-r border-r-[var(--border)] py-2'>
           <div className={'flex flex-col items-center gap-2'}>
+            {!disabled && (
+              <Tooltip title={t('dg.toolbar.autoLayout')} placement={'right'}>
+                <Button
+                  type={'text'}
+                  aria-label={t('dg.toolbar.autoLayout')}
+                  disabled={disabled}
+                  icon={<AutoLayoutOutlined />}
+                  onClick={() => {
+                    autoLayout().catch((e: unknown) => toast.error(e instanceof Error ? e.message : String(e)));
+                  }}
+                />
+              </Tooltip>
+            )}
             {!disabled && (
               <Dropdown menu={{ items: uploadItems }} placement='bottomRight' trigger={['click']} arrow>
                 <Button type={'text'} disabled={disabled} icon={<CloudUploadOutlined />} />

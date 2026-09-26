@@ -13,6 +13,7 @@ import RefreshArrowClockwiseIcon from './reui/icons/animated/outline/refresh-arr
 import TrashSquareIcon from './reui/icons/animated/outline/trash-square';
 
 export {
+  AlignHorizontalDistributeCenter as AutoLayoutOutlined,
   Network as ApartmentOutlined,
   Plug as ApiOutlined,
   ArrowDown as ArrowDownOutlined,

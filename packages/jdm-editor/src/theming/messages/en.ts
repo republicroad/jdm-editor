@@ -94,6 +94,7 @@ export const en = {
   'vh.compare.entry': 'comparing',
   'dg.toolbar.uploadJson': 'Upload JSON',
   'dg.toolbar.uploadExcel': 'Upload Excel',
+  'dg.toolbar.autoLayout': 'Auto layout',
   'dg.toolbar.downloadJson': 'Download JSON',
   'dg.toolbar.downloadExcel': 'Download Excel',
   'dg.toolbar.searchNodes': 'Search nodes',

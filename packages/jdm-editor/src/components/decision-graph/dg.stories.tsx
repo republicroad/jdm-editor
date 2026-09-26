@@ -2,6 +2,7 @@ import { ApartmentOutlined, ApiOutlined, LeftOutlined, PlayCircleOutlined, Right
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import json5 from 'json5';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { expect, fireEvent, waitFor } from 'storybook/test';
 
 import type { DictionaryMap } from '../../theme';
 import type { JdmUiMode } from '../decision-table/context/dt-store.context';
@@ -384,6 +385,57 @@ const DecisionGraphWithSimulator: React.FC = () => {
       />
     </div>
   );
+};
+
+/**
+ * WS1-R6 regression: the side-toolbar auto-layout button must rearrange the
+ * graph via the lazily imported dagre engine — first click pays the dynamic
+ * chunk fetch, so the position change can take a moment to land. The input
+ * graph is deliberately scrambled (overlapping nodes) so the tidied layout
+ * is observably different.
+ * Runs under `pnpm --filter @republicroad/jdm-editor test:storybook`.
+ */
+export const AutoLayout: Story = {
+  render: () => {
+    // scrambled placements: overlapping, unordered — dagre must untangle them
+    const scrambled = useMemo(
+      () => ({
+        ...defaultGraph,
+        nodes: defaultGraph.nodes.map((node, index) => ({
+          ...node,
+          position: { x: ((index + 1) * 79) % 160, y: ((index + 1) * 47) % 53 },
+        })),
+      }),
+      [],
+    );
+    const [value, setValue] = useState<any>(scrambled);
+
+    return (
+      <div style={{ height: '100%' }}>
+        <DecisionGraph value={value} onChange={(val) => setValue?.(val)} />
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const nodeTransform = () => canvasElement.querySelector<HTMLElement>('.react-flow__node')?.style.transform ?? '';
+
+    // baseline: first node mounted and positioned by reactflow
+    await waitFor(() => expect(nodeTransform()).not.toBe(''), { timeout: 10_000 });
+    const before = nodeTransform();
+
+    const button = canvasElement.querySelector<HTMLButtonElement>("button[aria-label='Auto layout']");
+    expect(button).not.toBeNull();
+
+    await fireEvent.click(button!);
+    await waitFor(
+      () => {
+        const after = nodeTransform();
+        expect(after).not.toBe('');
+        expect(after).not.toBe(before);
+      },
+      { timeout: 10_000 },
+    );
+  },
 };
 
 export const View: Story = {

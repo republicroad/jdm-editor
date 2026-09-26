@@ -84,6 +84,7 @@ export const zhCN: Record<string, string> = {
   'vh.compare.entry': '对比中',
   'dg.toolbar.uploadJson': '上传 JSON',
   'dg.toolbar.uploadExcel': '上传 Excel',
+  'dg.toolbar.autoLayout': '一键整理',
   'dg.toolbar.downloadJson': '下载 JSON',
   'dg.toolbar.downloadExcel': '下载 Excel',
   'dg.toolbar.searchNodes': '搜索节点',
