@@ -58,9 +58,7 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
         nodeTrace: match(simulate)
           .with({ result: P._ }, ({ result }) => result?.trace?.[id])
           .otherwise(() => null),
-        nodeError: match(simulate)
-          .with({ error: { data: { nodeId: id } } }, ({ error }) => error)
-          .otherwise(() => null),
+        nodeError: simulate?.error?.data?.nodeId === id ? simulate.error : null,
         compactMode,
       }),
     );
@@ -211,6 +209,12 @@ export const GraphNode = React.forwardRef<HTMLDivElement, GraphNodeProps>(
             .with([P._, P.not(P.nullish), P._], () => 'error' as const)
             .with([P.not(P.nullish), P._, P._], () => 'success' as const)
             .otherwise(() => undefined)}
+          trace={nodeTrace}
+          traceError={
+            nodeError
+              ? { code: nodeError.code ?? null, title: nodeError.title ?? null, message: nodeError.message ?? null }
+              : null
+          }
           diffStatus={match([diff])
             .with([{ status: 'added' }], () => 'added' as const)
             .with([{ status: 'modified' }], () => 'modified' as const)

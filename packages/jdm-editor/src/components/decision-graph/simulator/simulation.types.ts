@@ -8,6 +8,8 @@ export type Simulation = { result?: SimulationOk } & { error?: SimulationError }
 export type SimulationError = {
   title?: string;
   message?: string;
+  /** Structured error code from the host engine (rendered as the node run-strip badge) */
+  code?: string;
   data: {
     nodeId?: string;
   };

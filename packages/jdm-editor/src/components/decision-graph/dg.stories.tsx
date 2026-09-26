@@ -271,6 +271,55 @@ export const Simulator: Story = {
   render: () => <DecisionGraphWithSimulator />,
 };
 
+/** WS1-R7 增强：仿真失败节点的 run strip 错误码徽章（code 优先，无 code 退化为 title） */
+export const SimulatorErrorBadge: Story = {
+  render: () => {
+    const errorNodeId = defaultGraph.nodes[0].id;
+    const [simulate] = useState<Simulation>({
+      error: {
+        code: 'EVAL_ERROR',
+        title: 'Expression evaluation failed',
+        message: 'Undefined variable: customer.rewardPoints',
+        data: { nodeId: errorNodeId },
+      },
+    });
+
+    return (
+      <div
+        style={{
+          height: '100%',
+        }}
+      >
+        <DecisionGraph value={defaultGraph} simulate={simulate} />
+      </div>
+    );
+  },
+};
+
+/** 同上，但引擎未提供结构化 code——徽章退化为紧凑 title */
+export const SimulatorErrorBadgeFallbackTitle: Story = {
+  render: () => {
+    const errorNodeId = defaultGraph.nodes[0].id;
+    const [simulate] = useState<Simulation>({
+      error: {
+        title: 'Expression evaluation failed',
+        message: 'Undefined variable: customer.rewardPoints',
+        data: { nodeId: errorNodeId },
+      },
+    });
+
+    return (
+      <div
+        style={{
+          height: '100%',
+        }}
+      >
+        <DecisionGraph value={defaultGraph} simulate={simulate} />
+      </div>
+    );
+  },
+};
+
 export const Diff: Story = {
   render: (args) => {
     const [value, setValue] = useState<any>(diffGraph);
