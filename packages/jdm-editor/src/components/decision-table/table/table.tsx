@@ -1,21 +1,17 @@
 import { PlusCircleOutlined } from '#icons';
-import type { ColumnDef, Table as ReactTable } from '@tanstack/react-table';
-import {
-  columnResizingFeature,
-  columnSizingFeature,
-  columnVisibilityFeature,
-  tableFeatures,
-  useTable,
-} from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
+import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { P, match } from 'ts-pattern';
 import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
 import { useThemeMode } from '../../../theme';
-import { CellViewPoolProvider } from '../../code-editor/cell-view-pool';
 import { Button, Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
@@ -26,8 +22,7 @@ import {
   TableHeadCellOutput,
   TableHeadCellOutputField,
 } from './table-head-cell';
-import { TableHeadRow } from './table-head-row';
-import { TableRow } from './table-row';
+import { TableRowHoverActions } from './table-row-hover-actions';
 
 export type TableScrollApi = {
   getTopRowIndex: () => number;
@@ -42,17 +37,6 @@ export type TableProps = {
 };
 
 type ColumnSizing = Record<string, number>;
-
-// TanStack v9 declares features up front; core row models are built in. The
-// dt table needs exactly three optional ones: visibility gates
-// row.getVisibleCells(), sizing owns the persisted width map
-// (state.columnSizing), resizing owns the drag interaction (getResizeHandler
-// + columnResizeMode).
-const dtTableFeatures = tableFeatures({
-  columnVisibilityFeature,
-  columnSizingFeature,
-  columnResizingFeature,
-});
 
 const columnSizeKey = (id: string) => `jdm-editor:decisionTable:columns:${id}`;
 
@@ -70,20 +54,43 @@ const loadColumnSizing = (id?: string) => {
   }
 };
 
+// TanStack v9 feature bundle: the grid's render path needs the full
+// dataGridFeatures set (visibility gates getVisibleCells, pinning provides
+// getStartVisibleLeafColumns used by the viewport, sizing owns the persisted
+// width map, resizing the drag interaction). Core row models are built in.
+const dtTableFeatures = dataGridFeatures;
+
+/**
+ * WS2 · 决策表核心编辑器 data-grid 换装（Phase 0 spike）。
+ *
+ * 列定义、受控 columnSizing（localStorage 键不动）、cellRenderer/CellViewPool
+ * 契约全部保持；渲染层从手搓 StyledTable/thead/tbody/虚拟化换为 vendored
+ * data-grid：行级 diff 三态走 getRowStatus，cursor/simulator-active 行高亮走
+ * getRowClassName 扩展，行拖拽换 grid 原生 DndRows（落点仍是 swapRows）。
+ */
+const IndexCell: React.FC<{ row: { index: number; id: string } }> = ({ row }) => {
+  const tableActions = useDecisionTableActions();
+  const { disabled } = useDecisionTableState(({ disabled }) => ({ disabled }));
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div
+      className='relative flex h-full min-h-[36px] select-none items-center justify-end pr-[8px]'
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onContextMenuCapture={() => tableActions.setCursor({ x: 'id', y: row.index })}
+    >
+      <TableRowHoverActions rowIndex={row.index} visible={hover && !disabled} disabled={disabled} />
+      <DataGridTableDndRowHandle disabled={disabled} />
+      <Typography>{row.index + 1}</Typography>
+    </div>
+  );
+};
+
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
   const mode = useThemeMode();
-
-  // Child→parent ref handoff happens inside the opaque setRefValue/composeRefs
-  // helpers, so react-compiler sees no direct prop mutation here.
-  const setContainerRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      (tableContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-      setRefValue(scrollContainerRef, el);
-    },
-    [scrollContainerRef],
-  );
-
   const tableActions = useDecisionTableActions();
+
   const { cellRenderer } = useDecisionTableListeners(({ cellRenderer }) => ({ cellRenderer }));
   const [columnSizing, setColumnSizing] = useState<ColumnSizing>(() => loadColumnSizing(id));
 
@@ -98,6 +105,13 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     }),
   );
 
+  // 行级高亮数据源：cursor 行 + simulator 命中行（grid 回调在渲染期读闭包，
+  // 这里订阅使变更传播到整表重渲染）
+  const { cursor, debug, debugIndex } = useDecisionTableState(({ cursor, debug, debugIndex }) => ({
+    cursor,
+    debug,
+    debugIndex,
+  }));
   const { rules } = useDecisionTableState(
     ({ decisionTable }) => ({
       rules: decisionTable.rules,
@@ -109,8 +123,20 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       ),
   );
 
+  const activeRuleId = match(debug?.trace.traceData)
+    .with(P.array(), (t) => t?.[debugIndex]?.rule?._id)
+    .otherwise((t) => (t as any)?.rule?._id);
+
   const columns = React.useMemo<ColumnDef<any, any, any>[]>(
     () => [
+      {
+        id: '__index',
+        header: () => null,
+        cell: ({ row }) => <IndexCell row={row} />,
+        size: 44,
+        enableResizing: false,
+        enableSorting: false,
+      },
       {
         id: 'inputs',
         minSize: minColWidth,
@@ -157,7 +183,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         size: colWidth,
       },
     ],
-    [permission, disabled, inputs, outputs],
+    [permission, disabled, inputs, outputs, minColWidth, colWidth],
   );
 
   const table = useTable({
@@ -180,39 +206,48 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         }),
   });
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = tableContainerRef.current;
-    if (!el) return;
-
-    let wasVisible = el.offsetWidth > 0;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (!(entry.target instanceof HTMLDivElement)) continue;
-        entry.target.style.setProperty('--dt-container-width', `${entry.contentRect.width}px`);
-
-        const isVisible = entry.contentRect.width > 0;
-        if (!wasVisible && isVisible) {
-          el.scrollTop = 0;
-          el.style.opacity = '0';
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              el.style.opacity = '';
-            });
-          });
+  // 行拖拽：grid 原生 DndRows，落点保持 swapRows 契约
+  const dataIds = useMemo<UniqueIdentifier[]>(() => rules.map((r: any) => r._id), [rules]);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (active && over && active.id !== over.id) {
+        const from = dataIds.indexOf(String(active.id));
+        const to = dataIds.indexOf(String(over.id));
+        if (from >= 0 && to >= 0) {
+          tableActions.swapRows(from, to);
         }
-        wasVisible = isVisible;
       }
-    });
+    },
+    [dataIds, tableActions],
+  );
 
-    resizeObserver.observe(el);
+  // 行级语义（渲染期闭包读取，见上方订阅说明）
+  const getRowStatus = useCallback(
+    (rowOriginal: any): 'new' | 'dirty' | 'deleted' | undefined =>
+      rowOriginal?._diff?.status === 'added'
+        ? 'new'
+        : rowOriginal?._diff?.status === 'removed'
+          ? 'deleted'
+          : rowOriginal?._diff?.status === 'modified'
+            ? 'dirty'
+            : undefined,
+    [],
+  );
+  const getRowClassName = useCallback(
+    (rowOriginal: any, dataIndex: number | undefined) =>
+      clsx(
+        !disabled && cursor?.y === dataIndex && 'bg-[var(--seal-color-primary-bg-fade)]!',
+        !rowOriginal?._diff?.status &&
+          activeRuleId &&
+          rowOriginal?._id === activeRuleId &&
+          'bg-[var(--seal-color-success-bg)]!',
+        !rowOriginal?._diff?.status && disabled && 'bg-black/[0.02]',
+      ),
+    [cursor?.y, activeRuleId, disabled],
+  );
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
+  const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -230,170 +265,82 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     localStorage.setItem(columnSizeKey(id), JSON.stringify(columnSizing));
   }, [columnSizing]);
 
-  return (
-    <div
-      ref={setContainerRef}
-      className='relative flex-1 overflow-auto'
-      style={{ maxHeight, overflowY: 'auto' }}
-      data-theme={mode}
-    >
-      <StyledTable width={table.getCenterTotalSize()}>
-        <thead className='bg-[var(--table-color)] border-[var(--border)] m-0 sticky top-0 z-10'>
-          {table
-            .getHeaderGroups()
-            .filter((_, i) => i === 0)
-            .map((headerGroup) => (
-              <TableHeadRow key={headerGroup.id} headerGroup={headerGroup} />
-            ))}
-        </thead>
-      </StyledTable>
-      <StyledTable width={table.getCenterTotalSize()}>
-        <thead className='bg-[var(--table-color)] border-[var(--border)] m-0 sticky top-0 z-10'>
-          {table
-            .getHeaderGroups()
-            .filter((_, i) => i === 1)
-            .map((headerGroup) => (
-              <TableHeadRow key={headerGroup.id} headerGroup={headerGroup} />
-            ))}
-        </thead>
-        <TableContextMenu>
-          <TableBody tableContainerRef={tableContainerRef} table={table} scrollApiRef={scrollApiRef} />
-        </TableContextMenu>
-        <tfoot className='bg-[var(--card)]'>
-          <tr>
-            <td colSpan={inputs.length + outputs.length + 2}>
-              <div className='p-2 sticky bottom-0'>
-                <Button
-                  className='max-w-[var(--dt-container-width)] transition-[background-color]! duration-200 [transition-timing-function:cubic-bezier(0.645,0.045,0.355,1)]!'
-                  type='link'
-                  disabled={disabled}
-                  icon={<PlusCircleOutlined />}
-                  onClick={() => tableActions.addRowBelow()}
-                >
-                  Add row
-                </Button>
-              </div>
-            </td>
-          </tr>
-        </tfoot>
-      </StyledTable>
-    </div>
-  );
-};
-
-type TableBodyProps = {
-  tableContainerRef: React.RefObject<HTMLDivElement | null>;
-  table: ReactTable<any, any>;
-  scrollApiRef?: React.MutableRefObject<TableScrollApi | null>;
-} & Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'children'>;
-
-const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
-  ({ table, tableContainerRef, scrollApiRef, ...props }, ref) => {
-    const tableActions = useDecisionTableActions();
-    const { disabled, cursor } = useDecisionTableState(({ disabled, cursor }) => ({
-      disabled,
-      cursor,
-    }));
-
-    const { rows } = table.getRowModel();
-    const virtualizer = useVirtualizer({
-      getScrollElement: () => tableContainerRef.current,
-      estimateSize: () => 38,
-      indexAttribute: 'data-virtual-index',
-      count: rows.length,
-      overscan: 5,
+  // scrollApiRef 近似实现：行高均值 38px（动态行高的精确换算留 Phase 1，
+  // grid 虚拟器实例的透传口待评估）
+  useEffect(() => {
+    if (!scrollApiRef) return;
+    setRefValue(scrollApiRef, {
+      getTopRowIndex: () => Math.floor((tableContainerRef.current?.scrollTop ?? 0) / 38),
+      scrollToRowIndex: (index) => tableContainerRef.current?.scrollTo({ top: index * 38, behavior: 'smooth' }),
     });
+    return () => {
+      setRefValue(scrollApiRef, null);
+    };
+  }, [scrollApiRef]);
 
-    useEffect(() => {
-      if (!scrollApiRef) return;
-      setRefValue(scrollApiRef, {
-        getTopRowIndex: () => {
-          const offset = tableContainerRef.current?.scrollTop ?? 0;
-          return virtualizer.getVirtualItemForOffset(offset)?.index ?? 0;
-        },
-        scrollToRowIndex: (index) => virtualizer.scrollToIndex(index, { align: 'start' }),
-      });
-      return () => {
-        setRefValue(scrollApiRef, null);
-      };
-    }, [virtualizer, scrollApiRef]);
-
-    const virtualItems = virtualizer.getVirtualItems();
-    const totalSize = virtualizer.getTotalSize();
-
-    const paddingTop = virtualItems.length > 0 ? virtualItems?.[0]?.start || 0 : 0;
-    const paddingBottom = virtualItems.length > 0 ? totalSize - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0;
-
-    const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
       if (disabled) {
         return;
       }
 
       if (e.code === 'ArrowUp' && (e.metaKey || e.altKey)) {
-        if (cursor) tableActions.addRowAbove(cursor.y);
+        const y = cursor?.y;
+        if (y != null) tableActions.addRowAbove(y);
       }
       if (e.code === 'ArrowDown' && (e.metaKey || e.altKey)) {
-        if (cursor) tableActions.addRowBelow(cursor.y);
+        const y = cursor?.y;
+        if (y != null) tableActions.addRowBelow(y);
       }
       if (e.code === 'Backspace' && (e.metaKey || e.altKey)) {
-        if (cursor) tableActions.removeRow(cursor.y);
+        const y = cursor?.y;
+        if (y != null) tableActions.removeRow(y);
       }
-    }, []);
+    },
+    [disabled, cursor?.y, tableActions],
+  );
 
-    return (
-      <tbody ref={ref} {...props} onKeyDown={onKeyDown}>
-        {/* Display-view pool for the lazy highlighter-view path (roadmap §3.6):
-            DOM-less provider, lives for the whole table, default cap 64. */}
-        <CellViewPoolProvider>
-          {paddingTop > 0 && (
-            <tr>
-              <td
-                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]'
-                style={{ height: `${paddingTop}px` }}
-              />
-            </tr>
-          )}
-          {virtualItems.map((item) => {
-            const row = rows[item.index];
-
-            return (
-              <TableRow
-                key={item.key}
-                virtualItem={item}
-                row={row}
-                disabled={disabled}
-                onResize={virtualizer.measureElement}
-              />
-            );
-          })}
-          {paddingBottom > 0 && (
-            <tr>
-              <td
-                className='p-0 outline-[1.5px] outline-transparent -outline-offset-[1.5px] shadow-[inset_0_0_0_0.3px_var(--border)]'
-                style={{ height: `${paddingBottom}px` }}
-              />
-            </tr>
-          )}
-        </CellViewPoolProvider>
-      </tbody>
-    );
-  },
-);
-
-const StyledTable: React.FC<React.HTMLAttributes<HTMLTableElement> & { width: number }> = ({
-  style,
-  className,
-  width,
-  ...props
-}) => {
   return (
-    <table
-      className={clsx(
-        'border-collapse table-fixed [font-family:arial,sans-serif] w-fit bg-[var(--seal-color-bg-container)] h-px min-w-full',
-        className,
-      )}
-      style={{ width, ...style }}
-      {...props}
-    />
+    <div
+      ref={(el) => {
+        tableContainerRef.current = el;
+        setRefValue(scrollContainerRef, el);
+      }}
+      data-theme={mode}
+      className='relative flex-1 overflow-auto'
+      style={{ maxHeight, overflowY: 'auto' }}
+      onKeyDown={onKeyDown}
+    >
+      <DataGrid
+        table={table}
+        recordCount={rules.length}
+        getRowStatus={getRowStatus}
+        getRowClassName={getRowClassName}
+        tableLayout={{
+          columnsResizable: true,
+          rowBorder: false,
+          cellBorder: true,
+          stripped: false,
+          rowsDraggable: true,
+        }}
+      >
+        <TableContextMenu>
+          {/* SPIKE 取舍：DndRows（行拖拽）与 Virtual（虚拟化）在 vendored 套件中不共存。
+              决策表以中小规则表为主，spike 先取行拖拽；大表虚拟化留 Phase 1 定案
+              （选项：a 非 Virtual 全量渲染 / b 去 Dnd 保留 Virtual / c vendored 增强）。 */}
+          <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
+        </TableContextMenu>
+        <div className='sticky bottom-0 bg-[var(--card)] p-2'>
+          <Button
+            type='link'
+            disabled={disabled}
+            icon={<PlusCircleOutlined />}
+            onClick={() => tableActions.addRowBelow()}
+          >
+            Add row
+          </Button>
+        </div>
+      </DataGrid>
+    </div>
   );
 };

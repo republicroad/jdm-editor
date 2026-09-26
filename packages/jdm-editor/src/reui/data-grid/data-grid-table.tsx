@@ -1351,6 +1351,7 @@ function DataGridTableBodyRow<TData extends object>({
   const { props, table } = useDataGrid();
   const isRowPinned = row.getIsPinned();
   const rowStatus = props.getRowStatus?.(row.original);
+  const rowClassName = props.getRowClassName?.(row.original, dataIndex);
 
   const bodyRowBottomBorderClasses = '[&:not(:last-child)>td]:border-b';
 
@@ -1396,6 +1397,7 @@ function DataGridTableBodyRow<TData extends object>({
         rowStatus === 'new' && props.tableClassNames?.rowNew,
         rowStatus === 'dirty' && props.tableClassNames?.rowDirty,
         rowStatus === 'deleted' && props.tableClassNames?.rowDeleted,
+        rowClassName,
         !props.tableLayout?.stripped && props.tableLayout?.rowBorder && bodyRowBottomBorderClasses,
         props.tableLayout?.cellBorder && `*:last:border-e-0 ${bodyRowBottomBorderClasses}`,
         // Virtualized rows stripe by absolute row index (CSS :nth-child

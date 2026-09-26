@@ -710,6 +710,12 @@ export interface DataGridProps<TFeatures extends TableFeatures, TData extends ob
    */
   getRowStatus?: (row: TData) => DataGridRowStatus | undefined;
   /**
+   * Optional per-row class names for stateful row tints the status slots do
+   * not cover (transient highlight, active simulation row, …). Concatenated
+   * into the body row's className on every render.
+   */
+  getRowClassName?: (row: TData, dataIndex: number | undefined) => string | undefined;
+  /**
    * Optional CRUD indication per cell: the classic corner mark on cells the
    * consumer tracks as edited or invalid.
    */
