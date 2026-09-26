@@ -33,7 +33,7 @@
 
 | 提交 | 内容 | 文件 |
 | --- | --- | --- |
-| `b68cd224` ⚠️ **提交名失真**：消息为 "style: remove unused useT import"，实际是批 B 本体 | 删除确认从 Popconfirm 改为 hover 显现的直接删除 | `switch.specification/switch-handle.tsx`（-28/+17） |
+| `a71a2fe2` feat(graph): switch-handle delete turns hover-revealed, Popconfirm removed (batch B) | 删除确认从 Popconfirm 改为 hover 显现的直接删除 | `switch.specification/switch-handle.tsx`（-28/+17） |
 
 **实际内容**：`SwitchHandle` 与 `SwitchHandleCompact` 两个变体一致改造——
 
