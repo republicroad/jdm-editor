@@ -1,6 +1,7 @@
 import {
   type DecisionAuditEvent,
   DecisionRuntime,
+  globalUdfRegistry,
   listRosters,
   registerRoster,
   runWithExecContext,
@@ -248,6 +249,59 @@ export const createApp = () => {
   // 自定义节点 schema（appshell useCustomNodes 消费）：注册表 → CustomNodeNamespace[]。
   // appshell 侧的专用节点（roster/crypto/http_request/current_date）会在客户端按名去重接管
   app.get('/v1/custom-nodes/schema', (c) => c.json(runtime.registry.udfFunctionSchemaNamespaces()));
+
+  // A4 演示：弃用标记的 demo 工具（转发到 crypto sha1）——供目录/补全的弃用 UI 走查
+  globalUdfRegistry.registerTools(
+    [
+      {
+        name: 'legacy_hash',
+        description: '旧版摘要（已弃用，请改用 crypto 函数）',
+        semantics: 'query',
+        idempotent: true,
+        deprecated: { since: '0.6.0', note: '请改用 crypto 函数' },
+        parametersSchema: {
+          type: 'object',
+          title: 'legacy_hash',
+          properties: { input: { type: 'string', description: '待摘要内容' } },
+          required: ['input'],
+        },
+        returnsSchema: { type: 'string', description: '摘要字符串' },
+        fn: (kwargs) => globalUdfRegistry.call('crypto', { input: String(kwargs?.input ?? ''), algorithm: 'sha1' }),
+      },
+    ],
+    'demo',
+  );
+
+  // A3a：单函数执行（REPL）——位置参数经 positional 校验与默认值绑定后直调 registry
+  app.post('/v1/functions/:name/execute', async (c) => {
+    const name = c.req.param('name');
+    const body = await c.req.json().catch(() => ({}) as { args?: unknown[] });
+    const args = Array.isArray(body?.args) ? (body!.args as unknown[]) : [];
+
+    const issues = runtime.registry.validatePositionalArgs(name, args);
+    if (issues.length > 0) {
+      return c.json({ error: 'invalid args', details: issues }, 400);
+    }
+
+    const kwargs = runtime.registry.funcBindParams(name, args);
+    const started = performance.now();
+    try {
+      const result = await runtime.registry.call(name, kwargs, {
+        name,
+        tenantId: DEMO_TENANT,
+        requestId: 'repl-' + crypto.randomUUID(),
+        signal: new AbortController().signal,
+        deadlineAt: null,
+      });
+      return c.json({
+        result,
+        micros: Math.round((performance.now() - started) * 1000),
+        kwargs,
+      });
+    } catch (e) {
+      return c.json({ error: String((e as Error)?.message ?? e) }, 500);
+    }
+  });
 
   app.post('/v1/validate', async (c) => {
     const body = await c.req.json().catch(() => null);

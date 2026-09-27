@@ -58,6 +58,8 @@ export interface CustomFunctionTool {
   kind: string;
   semantics: UdfSemantics;
   idempotent?: boolean;
+  /** 弃用标记（A4）：由 UdfSchema.deprecated 透传 */
+  deprecated?: { since?: string; note?: string };
 }
 
 /** 自定义节点命名空间(namespace/tools 格式)，对应侧边栏 group */
@@ -93,6 +95,8 @@ export interface UdfSchema {
   semantics?: UdfSemantics;
   /** act 语义的幂等声明（Z1）：缺失时 validatePack 产生警告（不阻断），verdict 审计可见 */
   idempotent?: boolean;
+  /** 弃用标记（A4）：目录/补全/画布三处标黄提示；since 为弃用发生的版本 */
+  deprecated?: { since?: string; note?: string };
 }
 
 interface UdfEntry {
@@ -174,6 +178,7 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
     namespace: schema.namespace ?? 'default',
     description: schema.description,
     semantics: schema.semantics ?? 'query',
+    deprecated: schema.deprecated,
   };
 
   if (schema.parametersSchema) {
@@ -293,6 +298,7 @@ class UdfRegistry {
           returnsSchema: def.returnsSchema,
           semantics: def.semantics,
           idempotent: def.idempotent,
+          deprecated: def.deprecated,
         },
         def.name,
       );
@@ -454,6 +460,7 @@ class UdfRegistry {
         kind: ns,
         semantics: entry.schema.semantics ?? 'query',
         idempotent: entry.schema.idempotent,
+        deprecated: entry.schema.deprecated,
       });
     }
     return [...namespaces.values()];
@@ -489,6 +496,8 @@ export interface ContribToolDef {
   idempotent?: boolean;
   parametersSchema?: UdfSchema['parametersSchema'];
   returnsSchema?: UdfSchema['returnsSchema'];
+  /** 弃用标记（A4）：透传至 schema/目录/补全 */
+  deprecated?: { since?: string; note?: string };
   fn: UdfFunction;
 }
 

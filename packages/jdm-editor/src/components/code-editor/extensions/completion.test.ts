@@ -40,3 +40,19 @@ describe('setUdfCompletions (WS2 批 1 A2)', () => {
     expect(getCompletions().some((c) => c.label === 'current_date')).toBe(false);
   });
 });
+
+describe('setUdfCompletions (WS2 批 2 A4)', () => {
+  it('flags deprecated tools in the completion info', () => {
+    setUdfCompletions([
+      {
+        name: 'legacy_hash',
+        title: '旧版摘要',
+        description: '旧版摘要实现',
+        deprecated: { since: '0.6.0', note: '请改用 crypto 函数' },
+      },
+    ]);
+    const udf = getCompletions().find((c) => c.label === 'legacy_hash');
+    expect(udf).toBeDefined();
+    expect(udf?.info).toContain('⚠️ 已弃用（自 0.6.0 起）: 请改用 crypto 函数');
+  });
+});

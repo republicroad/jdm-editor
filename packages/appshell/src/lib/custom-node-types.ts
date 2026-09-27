@@ -44,6 +44,10 @@ export interface CustomFunctionTool {
   returns: JsonSchema;
   namespace: string;
   kind: string;
+  semantics?: string;
+  idempotent?: boolean;
+  /** 弃用标记（A4）：由 zen-udf schema 透传 */
+  deprecated?: { since?: string; note?: string };
 }
 
 export interface CustomNodeNamespace {

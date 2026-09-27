@@ -22,6 +22,7 @@ export const setUdfCompletions = (
     name: string;
     title?: string;
     description?: string;
+    deprecated?: { since?: string; note?: string };
     parameters?: {
       properties?: Record<string, { type?: string; description?: string }>;
       required?: string[];
@@ -32,6 +33,13 @@ export const setUdfCompletions = (
     const props = Object.entries(tool.parameters?.properties ?? {});
     const required = new Set(tool.parameters?.required ?? []);
     const infoLines = [
+      ...(tool.deprecated
+        ? [
+            '⚠️ 已弃用' +
+              (tool.deprecated.since ? '（自 ' + tool.deprecated.since + ' 起）' : '') +
+              (tool.deprecated.note ? ': ' + tool.deprecated.note : ''),
+          ]
+        : []),
       '<b>' + (tool.title ?? tool.name) + '</b>',
       tool.description ?? '',
       props.length

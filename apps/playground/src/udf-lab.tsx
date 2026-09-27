@@ -12,6 +12,7 @@ import { setUdfCompletions } from '@republicroad/jdm-editor';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { FunctionCatalog } from './shared/function-catalog';
+import { FunctionRepl } from './shared/function-repl';
 import { InstanceShell } from './shared/instance-shell';
 import { RunMonitor } from './shared/run-monitor';
 import { TrustChainPanel } from './shared/trust-chain-panel';
@@ -29,6 +30,8 @@ const UdfLabBody: React.FC = () => {
   const [status, setStatus] = useState('');
   const [serverUp, setServerUp] = useState<boolean | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState('trust');
+  const [replToolName, setReplToolName] = useState<string | undefined>();
 
   // WS2 批 1（A2）：schema 到达后把 registry 函数注入全部 zen 表达式编辑器的
   // 补全与悬停文档（内核 completion 模块的模块级注入口）
@@ -145,12 +148,13 @@ const UdfLabBody: React.FC = () => {
           />
         </div>
         <div className='pg-split-trust'>
-          {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走 */}
-          <Tabs defaultValue='trust' className='pg-monitor-tabs'>
+          {/* key = 夹具 id：切换夹具时重挂载面板，默认输入随夹具走；REPL tab 供目录"试运行"跳转 */}
+          <Tabs value={panelTab} onValueChange={setPanelTab} className='pg-monitor-tabs'>
             <div style={{ padding: '8px 12px 0' }}>
               <TabsList>
                 <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
                 <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
+                <TabsTrigger value='repl'>REPL</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value='trust' className='pg-monitor-tabpane'>
@@ -159,10 +163,24 @@ const UdfLabBody: React.FC = () => {
             <TabsContent value='monitor' className='pg-monitor-tabpane'>
               <RunMonitor key={activeFixture} model={graph} defaultInput={currentFixture?.inputText ?? '{}'} />
             </TabsContent>
+            <TabsContent value='repl' className='pg-monitor-tabpane'>
+              <FunctionRepl schema={schema} toolName={replToolName} demoServer={DEMO_SERVER} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
-      <FunctionCatalog schema={schema} open={catalogOpen} onClose={() => setCatalogOpen(false)} onInsert={insertTool} />
+      <FunctionCatalog
+        schema={schema}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        onInsert={insertTool}
+        onTry={(tool) => {
+          setReplToolName(tool.name);
+          setPanelTab('repl');
+          setCatalogOpen(false);
+          document.querySelector('.pg-split-trust')?.scrollIntoView({ block: 'start' });
+        }}
+      />
     </InstanceShell>
   );
 };

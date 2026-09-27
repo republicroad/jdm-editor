@@ -6,15 +6,17 @@ import React, { useMemo, useState } from 'react';
 
 /**
  * WS2 批 1（A1）：函数目录——浏览 zen-udf registry 的全部函数（按 pack/namespace
- * 分组），展示签名/参数/返回/文档，一键插入画布。数据源 = EditorShell 的 schema
- * （udfFunctionSchemaNamespaces 端点），无状态、无租户。
+ * 分组），展示签名/参数/返回/文档，一键插入画布或送入 REPL 试运行。
+ * 数据源 = EditorShell 的 schema（udfFunctionSchemaNamespaces 端点），无状态、无租户。
  */
 export const FunctionCatalog: React.FC<{
   schema: CustomNodeNamespace[] | null;
   open: boolean;
   onClose: () => void;
   onInsert: (tool: CustomFunctionTool) => void;
-}> = ({ schema, open, onClose, onInsert }) => {
+  /** 批 2（A3）：送入 REPL 试运行 */
+  onTry?: (tool: CustomFunctionTool) => void;
+}> = ({ schema, open, onClose, onInsert, onTry }) => {
   const [search, setSearch] = useState('');
 
   const namespaces = useMemo(() => {
@@ -65,23 +67,52 @@ export const FunctionCatalog: React.FC<{
               const params = Object.entries(tool.parameters?.properties ?? {});
               const required = new Set(tool.parameters?.required ?? []);
               return (
-                <div key={tool.name} className='rounded-md border border-[var(--border)] p-2.5'>
+                <div
+                  key={tool.name}
+                  className={
+                    'rounded-md border p-2.5 ' +
+                    (tool.deprecated
+                      ? 'border-[var(--seal-color-warning)]/60 bg-[var(--seal-color-warning-bg)]'
+                      : 'border-[var(--border)]')
+                  }
+                >
                   <div className='flex items-start justify-between gap-2'>
                     <div className='min-w-0'>
                       <span className='text-xs font-semibold'>{tool.title}</span>{' '}
                       <code className='rounded bg-[var(--muted)] px-1 py-0.5 text-[11px]'>
                         {tool.name}({params.map(([n]) => n).join(', ')})
                       </code>
+                      {tool.deprecated && (
+                        <Badge variant='secondary' className='ml-1 align-middle'>
+                          已弃用{tool.deprecated.since ? ` ${tool.deprecated.since}` : ''}
+                        </Badge>
+                      )}
                     </div>
-                    <button
-                      className='shrink-0 rounded-md border border-[var(--border)] px-2 py-0.5 text-[11px] hover:bg-[var(--accent)]'
-                      onClick={() => onInsert(tool)}
-                    >
-                      插入画布
-                    </button>
+                    <div className='flex shrink-0 gap-1'>
+                      <button
+                        className='rounded-md border border-[var(--border)] px-2 py-0.5 text-[11px] hover:bg-[var(--accent)]'
+                        onClick={() => onInsert(tool)}
+                      >
+                        插入画布
+                      </button>
+                      {onTry && (
+                        <button
+                          className='rounded-md border border-[var(--border)] px-2 py-0.5 text-[11px] hover:bg-[var(--accent)]'
+                          onClick={() => onTry(tool)}
+                        >
+                          试运行
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {tool.description && (
                     <p className='mb-1 mt-0.5 text-[11px] text-[var(--muted-foreground)]'>{tool.description}</p>
+                  )}
+                  {tool.deprecated?.note && (
+                    <p className='mb-1 text-[11px] text-[var(--seal-color-warning)]'>
+                      ⚠ {tool.deprecated.note}
+                      {tool.deprecated.since ? `（自 ${tool.deprecated.since} 起）` : ''}
+                    </p>
                   )}
                   {params.length > 0 && (
                     <div className='mt-1 flex flex-col gap-0.5'>
