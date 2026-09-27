@@ -1,7 +1,8 @@
 # playground UDF Lab 计划：udf.html Custom Nodes 节点工作台
 
 - 日期: 2026-09-15
-- 状态: 规划（待执行）
+- 状态: ✅ 已落地并浏览器验证（2026-09-27 A1 走查）：UDF-1~5 全部交付（e2c87e62 + d2518eb0），
+  实测记录见文末 §6
 - 定位: editor 项目 `decision-simple` 页的缩小复刻；playground 第七个 MPA 实例
 - 目标: 编排（自定义节点面板）→ 仿真（simulator 全链路）→ Trust Chain（审计/回放/影子）单页闭环
 
@@ -85,3 +86,24 @@
 ## 4. 执行顺序与规模
 
 UDF-1（0.5h）→ UDF-2（0.5h）→ UDF-3（0.5h）→ UDF-4（1–2h）→ UDF-5（0.5h）→ 验证（0.5h）。合计约一个工作单元；各包可独立提交，UDF-2 可先行（纯重构）。
+
+## 6. A1 浏览器验证记录（2026-09-27）
+
+环境：demo-server（bun, :8787，demo_block 名单预置）+ playground vite dev（:5174，IPv6 localhost）。
+逐项结果：
+
+| 检查项 | 结果 |
+| --- | --- |
+| udf.html 打开、无降级横幅 | ✅ |
+| Components 面板：schema 驱动节点出现（查询名单/HTTP 请求/摘要签名/当前日期/ab-bucket/custom-list-query/datetime + 4 内置 + legacy） | ✅ |
+| 夹具 A 名单核验：载入 → 执行 → 决策结论 hit:true（1.2.3.4 命中 demo_block） | ✅ |
+| Trust ① 审计：decisionId req-7ce76a601defc3 + inputHash + UDF 行（roster/query/2672µs/ok） | ✅ |
+| Trust ② 回放 | ✅ CONSISTENT — 与历史结论一致 |
+| 夹具 B 当前日期 | ✅ today=2026-09-27（current_date 首调 50138µs = TSFN/wasm 预热，二期打磨项） |
+| 夹具 C 摘要计算 | ✅ digest = sha256("hello") 标准向量精确匹配（crypto 622µs） |
+| RunMonitor tab | ✅ 渲染（▶ 运行（trace）+ 画布联动提示） |
+| Save (IndexedDB) | ✅ saved v1（revision 语义正常） |
+| 暗色切换 | ✅ 画布重皮 |
+
+备注：③ 影子对比未走查（需候选模型 JSON 输入，功能在位）；夹具格式兼容性由
+"手写夹具直接执行成功"实证。IAB 截图管线存在瓦片伪影，DOM innerText 为准。
