@@ -282,6 +282,7 @@ class UdfRegistry {
         parametersSchema: schema?.parametersSchema,
         returnsSchema: schema?.returnsSchema,
         description: schema?.description,
+        deprecated: schema?.deprecated,
       }),
     });
   }

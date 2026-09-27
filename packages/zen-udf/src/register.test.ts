@@ -58,3 +58,32 @@ describe('UdfRegistry namespace collision（U3 起跨名硬失败）', () => {
     expect(manager.udfFunctionSchema('tool_b')?.namespace).toBe('pack-ns');
   });
 });
+
+describe('deprecated 标记透传（WS2 批 2 A4）', () => {
+  test('registerTools 的 deprecated 经 normalize 抵达 namespaces 载荷', () => {
+    const manager = new UdfRegistry();
+    manager.registerTools(
+      [
+        {
+          name: 'legacy_hash',
+          description: '旧版摘要',
+          deprecated: { since: '0.6.0', note: '请改用 crypto 函数' },
+          parametersSchema: {
+            type: 'object',
+            properties: { input: { type: 'string' } },
+            required: ['input'],
+          },
+          fn: () => 'x',
+        },
+      ],
+      'demo',
+    );
+
+    const tool = manager
+      .udfFunctionSchemaNamespaces()
+      .find((ns) => ns.name === 'demo')
+      ?.tools.find((t) => t.name === 'legacy_hash');
+
+    expect(tool?.deprecated).toEqual({ since: '0.6.0', note: '请改用 crypto 函数' });
+  });
+});
