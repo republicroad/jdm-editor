@@ -17,6 +17,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@republicroad/jdm-appshell": "workspace:*",
     "@republicroad/jdm-editor": "workspace:*",
+    "@republicroad/zen-udf": "workspace:*",
     "@tanstack/react-table": "^8.21.0",
     "@xyflow/react": "^12.11.3",
     "class-variance-authority": "catalog:",

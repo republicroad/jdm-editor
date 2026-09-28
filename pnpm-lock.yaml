@@ -175,6 +175,9 @@ importers:
       '@republicroad/jdm-editor':
         specifier: workspace:*
         version: link:../../packages/jdm-editor
+      '@republicroad/zen-udf':
+        specifier: workspace:*
+        version: link:../../packages/zen-udf
       '@tanstack/react-table':
         specifier: ^8.21.0
         version: 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

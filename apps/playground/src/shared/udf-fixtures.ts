@@ -2,7 +2,11 @@
  * Custom Nodes 实例（udf.html）的演示夹具：含 customNode (kind:UDF) 的样例图 + 配套决策输入。
  * 表达式契约：`udf名;;参数表达式...`——参数表达式按位置绑定到 UDF schema 参数序
  * （roster 参数序 = [roster, value]）。roster 夹具依赖 demo-server 注册的 demo 租户名单。
+ *
+ * WS2 批 3（A5）：每夹具附 DecisionFixture[]（确定性断言）——批 3 夹具视图的数据源。
+ * current-date 夹具不附（current_date 用处理时间，无 asOf 支持，无法确定性断言）。
  */
+import type { DecisionFixture } from '@republicroad/zen-udf';
 
 export type UdfFixture = {
   id: string;
@@ -11,6 +15,8 @@ export type UdfFixture = {
   /** Trust Chain 面板的默认决策输入（JSON 文本） */
   inputText: string;
   model: unknown;
+  /** WS2 批 3（A5）：决策测试夹具（runDecisionTests 契约） */
+  fixtures?: DecisionFixture[];
 };
 
 const edge = (id: string, sourceId: string, targetId: string) => ({ id, type: 'edge', sourceId, targetId });
@@ -82,6 +88,18 @@ export const udfFixtures: UdfFixture[] = [
     description: 'roster UDF：查询 demo 租户 demo_block 封禁名单（1.2.3.4 命中）',
     inputText: '{\n  "roster": "demo_block",\n  "value": "1.2.3.4"\n}',
     model: rosterModel,
+    fixtures: [
+      {
+        name: 'roster-hit',
+        input: { roster: 'demo_block', value: '1.2.3.4' },
+        expect: { mode: 'path', path: 'hit.hit', value: true },
+      },
+      {
+        name: 'roster-miss',
+        input: { roster: 'demo_block', value: '8.8.8.8' },
+        expect: { mode: 'path', path: 'hit.hit', value: false },
+      },
+    ],
   },
   {
     id: 'current-date',
@@ -96,5 +114,16 @@ export const udfFixtures: UdfFixture[] = [
     description: 'crypto UDF：sha256 摘要（算法为字面量参数）',
     inputText: '{\n  "text": "hello"\n}',
     model: cryptoModel,
+    fixtures: [
+      {
+        name: 'crypto-sha256-vector',
+        input: { text: 'hello' },
+        expect: {
+          mode: 'path',
+          path: 'digest',
+          value: '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824',
+        },
+      },
+    ],
   },
 ];

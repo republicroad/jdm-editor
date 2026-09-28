@@ -10,6 +10,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createHash } from 'node:crypto';
 
+import { registerFixturesRoute } from './fixtures-route';
+
 export type ExecuteBody = {
   model?: unknown;
   input?: unknown;
@@ -249,6 +251,9 @@ export const createApp = () => {
   // 自定义节点 schema（appshell useCustomNodes 消费）：注册表 → CustomNodeNamespace[]。
   // appshell 侧的专用节点（roster/crypto/http_request/current_date）会在客户端按名去重接管
   app.get('/v1/custom-nodes/schema', (c) => c.json(runtime.registry.udfFunctionSchemaNamespaces()));
+
+  // WS2 批 3（A5）：决策夹具执行（runDecisionTests 包装）——夹具视图消费
+  registerFixturesRoute(app, runtime, DEMO_TENANT);
 
   // A4 演示：弃用标记的 demo 工具（转发到 crypto sha1）——供目录/补全的弃用 UI 走查
   globalUdfRegistry.registerTools(

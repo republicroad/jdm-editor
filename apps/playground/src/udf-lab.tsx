@@ -12,6 +12,7 @@ import { setUdfCompletions } from '@republicroad/jdm-editor';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { FunctionCatalog } from './shared/function-catalog';
+import { FunctionFixtures } from './shared/function-fixtures';
 import { FunctionRepl } from './shared/function-repl';
 import { InstanceShell } from './shared/instance-shell';
 import { RunMonitor } from './shared/run-monitor';
@@ -155,6 +156,7 @@ const UdfLabBody: React.FC = () => {
                 <TabsTrigger value='trust'>Trust Chain</TabsTrigger>
                 <TabsTrigger value='monitor'>Run Monitor</TabsTrigger>
                 <TabsTrigger value='repl'>REPL</TabsTrigger>
+                <TabsTrigger value='fixtures'>Fixtures</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value='trust' className='pg-monitor-tabpane'>
@@ -165,6 +167,9 @@ const UdfLabBody: React.FC = () => {
             </TabsContent>
             <TabsContent value='repl' className='pg-monitor-tabpane'>
               <FunctionRepl schema={schema} toolName={replToolName} demoServer={DEMO_SERVER} />
+            </TabsContent>
+            <TabsContent value='fixtures' className='pg-monitor-tabpane'>
+              <FunctionFixtures fixtures={currentFixture?.fixtures} model={graph} demoServer={DEMO_SERVER} />
             </TabsContent>
           </Tabs>
         </div>
