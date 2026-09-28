@@ -1,7 +1,7 @@
 {
   "name": "@republicroad/jdm-editor",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "JDM decision-graph editor — long-term open-source exploration line (seal- design system, data-grid core tables, UDF authoring surface)",
   "author": "GoRules <hi@gorules.io> (https://gorules.io)",
   "homepage": "https://github.com/gorules/jdm-editor",
   "license": "MIT",

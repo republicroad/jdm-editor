@@ -1,7 +1,7 @@
 {
   "name": "@republicroad/jdm-appshell",
-  "version": "0.11.0",
-  "description": "Application shell for @republicroad/jdm-editor — custom node hosting, UI slot overrides and skinning",
+  "version": "0.12.0",
+  "description": "Application shell for @republicroad/jdm-editor v2 (long-term open-source exploration line) — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -27,7 +27,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@republicroad/jdm-editor": "^0.10.0",
+    "@republicroad/jdm-editor": "^2.0.0",
     "monaco-editor": "^0.52.2",
     "react": ">=18",
     "react-dom": ">=18"
