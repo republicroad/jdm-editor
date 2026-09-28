@@ -20,6 +20,7 @@ export const en = {
   'common.copy': 'Copy',
 
   // ── decision table ──
+  'dt.toolbar.toggleColumns': 'Toggle columns',
   'dt.toolbar.import': 'Import Excel',
   'dt.toolbar.export': 'Export Excel',
   'dt.toolbar.addRowAbove': 'Add row above',

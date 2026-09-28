@@ -10,14 +10,16 @@ import type { Table } from '@tanstack/react-table';
 import type { ReactElement } from 'react';
 
 import { getColumnHeaderLabel, useDataGrid } from './data-grid';
-import type { DataGridFeatures } from './data-grid';
 
-function DataGridColumnVisibility<TData extends object>({
+function DataGridColumnVisibility({
   table,
   trigger,
+  onColumnVisibilityChange,
 }: {
-  table: Table<DataGridFeatures, TData>;
+  table: Table<any, any>;
   trigger: ReactElement<Record<string, unknown>>;
+  /** WS1 填缝：列显隐变化回调（全量 map），供宿主持久化 */
+  onColumnVisibilityChange?: (visibility: Record<string, boolean>) => void;
 }) {
   const { i18n } = useDataGrid();
 
@@ -37,9 +39,16 @@ function DataGridColumnVisibility<TData extends object>({
                   className='capitalize'
                   checked={column.getIsVisible()}
                   onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  onCheckedChange={(value) => {
+                    const next: Record<string, boolean> = {};
+                    table.getAllLeafColumns().forEach((col) => {
+                      next[col.id] = col.id === column.id ? !!value : col.getIsVisible();
+                    });
+                    column.toggleVisibility(!!value);
+                    onColumnVisibilityChange?.(next);
+                  }}
                 >
-                  {getColumnHeaderLabel(column)}
+                  {getColumnHeaderLabel(column as unknown as Parameters<typeof getColumnHeaderLabel>[0])}
                 </DropdownMenuCheckboxItem>
               );
             })}

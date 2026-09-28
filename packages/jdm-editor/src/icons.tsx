@@ -31,6 +31,7 @@ export {
   GitFork as DeploymentUnitOutlined,
   ChevronDown as DownOutlined,
   Move as DragOutlined,
+  Columns3 as TableColumnsOutlined,
   Upload as ExportOutlined,
   Paintbrush as FormatPainterOutlined,
   GripVertical as HolderOutlined,

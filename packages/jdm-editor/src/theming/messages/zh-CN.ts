@@ -14,6 +14,7 @@ export const zhCN: Record<string, string> = {
   'common.recover': '恢复',
   'common.copy': '复制',
 
+  'dt.toolbar.toggleColumns': '列显隐',
   'dt.toolbar.import': '导入 Excel',
   'dt.toolbar.export': '导出 Excel',
   'dt.toolbar.addRowAbove': '在上方添加行',

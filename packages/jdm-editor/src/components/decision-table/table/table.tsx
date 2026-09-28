@@ -1,5 +1,6 @@
-import { PlusCircleOutlined } from '#icons';
+import { PlusCircleOutlined, TableColumnsOutlined } from '#icons';
 import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridColumnVisibility } from '#reui/data-grid/data-grid-column-visibility';
 import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -12,6 +13,7 @@ import { z } from 'zod';
 
 import { setRefValue } from '../../../helpers/compose-refs';
 import { useThemeMode } from '../../../theme';
+import { useT } from '../../../theming/i18n';
 import { Button, Typography } from '../../primitives';
 import { useDecisionTableActions, useDecisionTableListeners, useDecisionTableState } from '../context/dt-store.context';
 import { TableContextMenu } from './table-context-menu';
@@ -54,6 +56,23 @@ const loadColumnSizing = (id?: string) => {
   }
 };
 
+// WS1 填缝（backlog：dt 解锁候选——列显隐）：列显隐持久化，键沿用遗留 jdm-editor
+// 前缀（用户数据键不改名的既定纪律）。
+const columnVisibilityKey = (id: string) => `jdm-editor:decisionTable:columnVisibility:${id}`;
+
+const loadColumnVisibility = (id?: string): Record<string, boolean> => {
+  if (!id) {
+    return {};
+  }
+
+  try {
+    const data = localStorage.getItem(columnVisibilityKey(id));
+    return z.record(z.string(), z.boolean()).parse(JSON.parse(data ?? '{}'));
+  } catch {
+    return {};
+  }
+};
+
 // TanStack v9 feature bundle: the grid's render path needs the full
 // dataGridFeatures set (visibility gates getVisibleCells, pinning provides
 // getStartVisibleLeafColumns used by the viewport, sizing owns the persisted
@@ -89,10 +108,12 @@ const IndexCell: React.FC<{ row: { index: number; id: string } }> = ({ row }) =>
 
 export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef, scrollApiRef }) => {
   const mode = useThemeMode();
+  const t = useT();
   const tableActions = useDecisionTableActions();
 
   const { cellRenderer } = useDecisionTableListeners(({ cellRenderer }) => ({ cellRenderer }));
   const [columnSizing, setColumnSizing] = useState<ColumnSizing>(() => loadColumnSizing(id));
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>(() => loadColumnVisibility(id));
 
   const { permission, disabled, inputs, outputs, colWidth, minColWidth } = useDecisionTableState(
     ({ permission, disabled, minColWidth, colWidth, decisionTable }) => ({
@@ -198,11 +219,13 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     meta: {
       getCell: cellRenderer,
     },
+    initialState: { columnVisibility: loadColumnVisibility(id) },
     ...(!id
       ? {}
       : {
-          state: { columnSizing },
+          state: { columnSizing, columnVisibility },
           onColumnSizingChange: setColumnSizing,
+          onColumnVisibilityChange: setColumnVisibility,
         }),
   });
 
@@ -271,6 +294,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     }
 
     setColumnSizing(loadColumnSizing(id));
+    setColumnVisibility(loadColumnVisibility(id));
   }, [id]);
 
   useEffect(() => {
@@ -280,6 +304,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
 
     localStorage.setItem(columnSizeKey(id), JSON.stringify(columnSizing));
   }, [columnSizing]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    localStorage.setItem(columnVisibilityKey(id), JSON.stringify(columnVisibility));
+  }, [columnVisibility]);
 
   // scrollApiRef：DOM 精确定位（grid 行携带 data-index；行高随内容变化，
   // 38px 均值近似不可靠，直接按行元素几何换算）
@@ -356,6 +388,7 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         getRowStatus={getRowStatus}
         getRowClassName={getRowClassName}
         getCellClassName={getCellClassName}
+        i18n={{ labels: { toggleColumns: t('dt.toolbar.toggleColumns') } }}
         tableLayout={{
           columnsResizable: true,
           rowBorder: false,
@@ -371,7 +404,23 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
               （选项：a 非 Virtual 全量渲染 / b 去 Dnd 保留 Virtual / c vendored 增强）。 */}
           <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
         </TableContextMenu>
-        <div className='sticky bottom-0 bg-[var(--card)] p-2'>
+        <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
+          <DataGridColumnVisibility
+            table={table}
+            onColumnVisibilityChange={(visibility) => {
+              if (id) {
+                localStorage.setItem(columnVisibilityKey(id), JSON.stringify(visibility));
+              }
+            }}
+            trigger={
+              <Button
+                type='text'
+                disabled={disabled}
+                icon={<TableColumnsOutlined />}
+                aria-label={t('dt.toolbar.toggleColumns')}
+              />
+            }
+          />
           <Button
             type='link'
             disabled={disabled}
