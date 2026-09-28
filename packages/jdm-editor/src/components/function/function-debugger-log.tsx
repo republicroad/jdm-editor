@@ -1,3 +1,4 @@
+import { ExportOutlined } from '#icons';
 import React from 'react';
 import { JSONTree } from 'react-json-tree';
 import { toast } from 'sonner';
@@ -5,11 +6,13 @@ import { toast } from 'sonner';
 import { copyToClipboard } from '../../helpers/utility';
 import { useThemeMode } from '../../theme';
 import { useT } from '../../theming/i18n';
-import { Dropdown, Tooltip } from '../primitives';
+import { Button, Dropdown, Tooltip } from '../primitives';
 
 export type FunctionDebuggerLogProps = {
   lines: string[];
   msSinceRun: number | null;
+  /** WS1 填缝（backlog：调试器日志搜索/复制）：大小写不敏感的行过滤 */
+  filter?: string;
 };
 
 type JsonTheme = {
@@ -40,13 +43,40 @@ const themes: Record<'dark' | 'light', JsonTheme> = {
   },
 };
 
-export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines, msSinceRun }) => {
+export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines, msSinceRun, filter }) => {
   const mode = useThemeMode();
   const t = useT();
   const jsonTheme = themes[mode ?? 'light'];
 
+  // 过滤（backlog：日志搜索/过滤 + hover 复制）：大小写不敏感子串匹配；空 query 放行全量
+  const visibleLines = React.useMemo(() => {
+    const query = (filter ?? '').trim().toLowerCase();
+    if (!query) return lines;
+    return lines.filter((line) => line.toLowerCase().includes(query));
+  }, [lines, filter]);
+
+  const hasVisibleLines = visibleLines.length > 0;
+
   return (
     <div className='flex items-start justify-between border-b border-[var(--seal-color-border-fade)] pl-4 pr-6 text-xs leading-[var(--seal-line-height)] text-[var(--seal-color-text-base)] [font-family:var(--mono-font-family)]'>
+      <div
+        className={
+          'absolute right-6 top-0 flex h-full items-center opacity-0 transition-opacity group-hover:opacity-100'
+        }
+      >
+        <Tooltip title={t('func.debugger.copy')}>
+          <Button
+            type='text'
+            disabled={!hasVisibleLines}
+            size={'small'}
+            icon={<ExportOutlined />}
+            onClick={async () => {
+              await copyToClipboard(visibleLines.join('\n'));
+              toast.success(t('func.debugger.copied'));
+            }}
+          />
+        </Tooltip>
+      </div>
       <Dropdown
         trigger={['contextMenu']}
         menu={{
@@ -63,7 +93,7 @@ export const FunctionDebuggerLog: React.FC<FunctionDebuggerLogProps> = ({ lines,
         }}
       >
         <div className='seal-function__debugger__log__values'>
-          {lines.map((line, i) => {
+          {visibleLines.map((line, i) => {
             const data = safeParseJson(line);
 
             return (

@@ -126,6 +126,7 @@ export const en = {
 
   // ── function ──
   'func.debugger.copy': 'Copy to clipboard',
+  'func.debugger.searchLogs': 'Search logs',
   'func.debugger.copied': 'Copied to clipboard',
   'func.debugger.formatCode': 'Format code',
   'func.debugger.importLibrary': 'Import library',

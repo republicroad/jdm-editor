@@ -119,6 +119,7 @@ export const zhCN: Record<string, string> = {
   'func.debugger.goToDocs': '前往文档',
   'func.debugger.msSinceRun': '脚本开始执行至今的时长。',
   'misc.search': '搜索...',
+  'func.debugger.searchLogs': '搜索日志',
   'func.debugger.copied': '已复制到剪贴板',
   'func.preview.noResults': '运行模拟器以查看结果',
 
