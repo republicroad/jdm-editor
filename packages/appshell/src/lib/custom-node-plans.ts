@@ -29,6 +29,8 @@ export type CustomNodePlan = {
   shortDescription?: string;
   /** 命名空间工具集：存在时节点挂 schema 感知编辑面板（函数下拉 + 位置参数） */
   tools?: CustomFunctionTool[];
+  /** L6（ADR-008）：面板搜索附加关键词——容器内部工具的 name/title/描述首行，命中时高亮词条 */
+  searchKeywords?: string[];
   seed: (params: { index: number }) => { name: string; config: CustomNodeConfig };
 };
 
@@ -41,6 +43,13 @@ export const containerPlan = (namespace: CustomNodeNamespace): CustomNodePlan =>
     group: CUSTOM_FUNCTION_GROUP,
     shortDescription: firstLine(namespace.description) ?? `函数集合(${toolCount})`,
     tools: namespace.tools ?? [],
+    searchKeywords: Array.from(
+      new Set(
+        (namespace.tools ?? [])
+          .flatMap((tool) => [tool.name, tool.title, firstLine(tool.description) ?? ''])
+          .filter(Boolean),
+      ),
+    ),
     seed: ({ index }) => ({
       name: `${kind}${index}`,
       config: EMPTY_EXPRESSIONS_CONFIG,

@@ -79,6 +79,38 @@ describe('schemaToNodePlans', () => {
     expect(plans[0].seed({ index: 2 }).name).toBe('shared_counter2');
   });
 
+  test('container plan indexes internal tool names as search keywords (L6, deduped)', () => {
+    const ns: CustomNodeNamespace = {
+      name: 'validate-cn',
+      title: 'validate-cn',
+      description: '实名认证域',
+      tools: [
+        {
+          name: 'id_card',
+          title: 'id_card',
+          description: '身份证二要素认证\nsupports prefix',
+          type: 'function',
+          parameters: { type: 'object', properties: {} },
+          returns: { type: 'object' },
+          namespace: 'validate-cn',
+          kind: 'validate-cn',
+        },
+        {
+          name: 'bank_card',
+          title: 'id_card',
+          description: '银行卡认证',
+          type: 'function',
+          parameters: { type: 'object', properties: {} },
+          returns: { type: 'object' },
+          namespace: 'validate-cn',
+          kind: 'validate-cn',
+        },
+      ],
+    };
+    const plans = schemaToNodePlans([ns]);
+    expect(plans[0].searchKeywords).toEqual(['id_card', '身份证二要素认证', 'bank_card', '银行卡认证']);
+  });
+
   test('container plan seeds empty expressions config', () => {
     const plans = schemaToNodePlans([collectionNamespace]);
     expect(plans[0].seed({ index: 0 }).config).toEqual(EMPTY_EXPRESSIONS_CONFIG);

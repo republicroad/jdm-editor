@@ -46,6 +46,7 @@ const planToJdmNode = (plan: CustomNodePlan): ReturnType<typeof createJdmNode> =
     displayName: plan.displayName,
     group: plan.group,
     shortDescription: plan.shortDescription,
+    searchKeywords: plan.searchKeywords,
     icon: kindIcons[plan.kind] ?? defaultIcon,
     generateNode: plan.seed,
   };

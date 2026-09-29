@@ -33,6 +33,8 @@ export type CustomNodeSpecification<Data extends object, Component extends strin
   group?: string;
   documentationUrl?: string;
   shortDescription?: string;
+  /** L6（ADR-008）：面板搜索附加关键词——如 schema 容器节点的内部工具名 */
+  searchKeywords?: string[];
   renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
   calculateDiff?: (current: any, previous: any) => [any, any];
   generateNode: (params: GenerateNodeParams) => Omit<DecisionNode, 'position' | 'id' | 'type' | 'content'> & {
@@ -96,6 +98,7 @@ export type BaseNode<
   displayName: string;
   shortDescription?: string;
   group?: string;
+  searchKeywords?: string[];
   handleLeft?: boolean;
   handleRight?: boolean;
   inputs?: [...Inputs];
@@ -118,6 +121,7 @@ export const createJdmNode = <
     displayName: n.displayName,
     group: n.group,
     shortDescription: n.shortDescription,
+    searchKeywords: n.searchKeywords,
     generateNode:
       n.generateNode ||
       (({ index }) => ({
