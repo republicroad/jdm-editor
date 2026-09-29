@@ -39,6 +39,8 @@ export type NodeSpecification<T = any> = {
   shortDescription?: string;
   /** L6（ADR-008）：面板搜索附加关键词——如 schema 容器节点的内部工具名（命中时高亮词条） */
   searchKeywords?: string[];
+  /** ADR-009：pack 元数据（目录 origin 徽标/版本/许可），schema 端点与文件协议透传 */
+  meta?: { origin: 'reference' | 'extension' | 'industry'; version: string; license?: 'oss' | 'proprietary' };
   helper?: string | React.ReactNode;
   renderTab?: (props: { id: string; user?: string; customFunctions?: any }) => React.ReactNode;
   getDiffContent?: (current: T, previous: T) => T;

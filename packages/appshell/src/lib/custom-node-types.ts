@@ -50,6 +50,16 @@ export interface CustomFunctionTool {
   deprecated?: { since?: string; note?: string };
 }
 
+/** ADR-009：pack 来源生态位（目录 origin 徽标的取值域）；与 zen-udf UdfPackMeta 结构对齐 */
+export type UdfPackOrigin = 'reference' | 'extension' | 'industry';
+
+/** ADR-009：pack 元数据最小集（与 zen-udf UdfPackMeta 结构对齐；经 schema 端点/文件协议透传） */
+export interface UdfPackMeta {
+  origin: UdfPackOrigin;
+  version: string;
+  license?: 'oss' | 'proprietary';
+}
+
 export interface CustomNodeNamespace {
   /** 恒为 'namespace'(集合容器档；契约字段保留供未来场景) */
   type?: 'namespace';
@@ -57,6 +67,8 @@ export interface CustomNodeNamespace {
   name: string;
   description?: string;
   tools: CustomFunctionTool[];
+  /** ADR-009：pack 元数据（origin 徽标/版本/许可），动态端点与文件协议透传 */
+  meta?: UdfPackMeta;
 }
 
 export type CustomNodeExpression = {
