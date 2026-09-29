@@ -1,6 +1,6 @@
 {
   "name": "@republicroad/jdm-appshell",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Application shell for @republicroad/jdm-editor v2 (long-term open-source exploration line) — custom node hosting, UI slot overrides and skinning",
   "type": "module",
   "license": "MIT",
