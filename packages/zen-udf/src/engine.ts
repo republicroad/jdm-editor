@@ -85,9 +85,15 @@ interface EvaluateResponse {
 }
 
 /** DecisionRuntime 构造项：zen-engine 原生 options + 实例级 UDF 注册表 + L1 缓存配置 */
-export interface DecisionRuntimeOptions extends ZenEngineOptions {
+export interface DecisionRuntimeOptions extends Omit<ZenEngineOptions, 'customHandler'> {
   /** 缺省回落 globalUdfRegistry（配合 `@republicroad/zen-udf` 根导入的 reference 装载） */
   registry?: UdfRegistry;
+  /**
+   * L7/ADR-008：宿主自定义分发 handler。返回 undefined（not-handled 语义）时回落
+   * 内置 UDF 分发（decline）；或显式委托 runtime.handleCustomNode（组合形态）。
+   * 缺省 = 全部走内置 UDF 分发。详见 ADR-008。
+   */
+  customHandler?: (request: ZenEngineHandlerRequest) => Promise<ZenEngineHandlerResponse | undefined>;
   /** L1 决策缓存容量（条目数），缺省 500 */
   cacheCapacity?: number;
   /** 缓存指标 sink（verdict 接 Prometheus 用），每次读写后回调快照 */
@@ -240,11 +246,26 @@ class DecisionRuntime {
     this.onDecision = options.onDecision;
     this.otel = options.otel ?? false;
     this.metrics = options.metrics;
-    if (options.customHandler == null) {
-      options.customHandler = (request) => this.handleCustomNode(request);
+    // L7（ADR-008）：宿主 customHandler 与内置 UDF 分发可组合——宿主 handler
+    // 返回 undefined（not-handled 语义）时回落内置分发器（decline 语义）；
+    // 内置分发器同时以 runtime.handleCustomNode 公开（显式委托形态，二选一或组合均可）。
+    let installedHandler: NonNullable<ZenEngineOptions['customHandler']>;
+    if (options.customHandler != null) {
+      const hostHandler = options.customHandler;
+      installedHandler = async (request) => {
+        const handled = await hostHandler(request);
+        if (handled === undefined) {
+          return this.handleCustomNode(request);
+        }
+        return handled;
+      };
+    } else {
+      installedHandler = (request) => this.handleCustomNode(request);
     }
-    this.options = options;
-    this.engine = new ZenEngine(this.options);
+    // engine 视角的 handler 永不返回 undefined（decline 已回落内置），类型随之收窄
+    const engineOptions: ZenEngineOptions = { ...options, customHandler: installedHandler };
+    this.options = engineOptions;
+    this.engine = new ZenEngine(engineOptions);
   }
 
   createDecision(content: string | object): ZenDecision {
@@ -634,8 +655,18 @@ class DecisionRuntime {
     return DecisionRuntime.parseOperatorExpr(value as string | string[]);
   }
 
-  /** customNode 执行器（实例绑定：经 this.registry 解析 UDF，多运行时互不串扰） */
-  private async handleCustomNode(request: ZenEngineHandlerRequest): Promise<ZenEngineHandlerResponse> {
+  /**
+   * 内置 customNode 分发器（L7/ADR-008）：经 this.registry 解析 UDF 工具，实例绑定
+   * （多运行时互不串扰）。
+   *
+   * 公开形态（L7 二选一之一）：宿主 customHandler 可显式委托——
+   *   customHandler: async (request) => {
+   *     if (isMyProtocolNode(request)) return myDispatch(request);
+   *     return runtime.handleCustomNode(request);
+   *   }
+   * 或对未处理节点返回 undefined 走 decline 回落（构造器自动包装）。
+   */
+  async handleCustomNode(request: ZenEngineHandlerRequest): Promise<ZenEngineHandlerResponse> {
     const node = request.node;
     const exprAsts = (node.config?.['expr_asts'] ?? []) as ExprAstItem[];
     const inputField = (node.config?.['inputField'] as string | null) ?? null;
