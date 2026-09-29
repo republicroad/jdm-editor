@@ -11,7 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@gorules/zen-engine": "2.0.2"
+    "@gorules/zen-engine": "2.1.0"
   },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.1",
