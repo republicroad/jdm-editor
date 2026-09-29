@@ -16,6 +16,7 @@
 | B 线 | expression 小件去重；stepper vendored；B2b/B3 适应性否决 | 提交 e09d0fed/87c89536 |
 | dt 核心编辑器 | data-grid 换装四阶段（spike/换装/裁决/清债），index.js 累计 **-7.5kB** | [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md) |
 | 三区参考 | dt-command-bar / switch 面板 / function 调试器提交清单 | [reui-retrofit-reference-for-seal-editor.md](./reui-retrofit-reference-for-seal-editor.md) |
+| dt 增强 | 列显隐菜单（bffa6253）+ 大表虚拟化（DndRows 表体窗口化，9eb5aa7e）+ 调试器日志过滤/hover 复制（a4a3ec95） | [dt-row-virtualization-best-practices.md](./dt-row-virtualization-best-practices.md) |
 
 ## 剩余清单（按价值排序）
 
@@ -23,7 +24,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 1 | **graph 面板区**（5,605 行 / 14 文件，最大剩余面） | tab-request / tab-function / tab-json-schema / request-definitions / request-examples 为 primitives 堆叠（同一"列表+工具栏+空态"形态逐文件手写） | ~~tree 承载 request-definitions~~（侦察修正：它是可编辑定义编辑器，非只读树——tree 落点=UDF Lab）；request 面板空态已用共享 PanelEmpty 统一（52102f64） | ✅ 空态部分完成 | — |
 | 2 | ~~fields-reorder-dialog~~ | ✅ 2026-09-26 完成（sortable vendored，176→88 行） | — | — | — |
-| 3 | function 调试器切片（3,889 行区，IoInspector 已做） | 日志无搜索/过滤，单条无复制 | 搜索过滤 + hover 复制。日志级别类型化需 WASM 侧拦截，另行评估 | ~半天 | 随手做 |
+| 3 | ~~function 调试器切片~~ | ✅ 2026-09-28 完成（日志过滤 + hover 复制，a4a3ec95）；日志级别类型化需 WASM 侧拦截，另行评估 | — | — | — |
 | 4 | **specifications renderSettings**（1,752 行） | 已用 kernel ui 但密度/层级/间距未规范 | [frame](https://reui.io/components/frame?ref=mcp) + 密度规范统一——属"规范化"非"换件" | ~1 天 | 触及 spec 面板时顺做 |
 | 5 | **UDF Lab**（主线新功能，非存量） | 已建成未走查 | **tree**（自定义节点目录）+ **timeline**（审计/回放）+ data-grid 原生采用——tree/timeline 的首次入链场景 | 随主线 | A1 验证后 |
 
@@ -31,8 +32,8 @@
 
 | 候选 | 说明 | 量级 |
 | --- | --- | --- |
-| 列显隐菜单 | `data-grid-column-visibility` 已 vendored 未用，dt 开列显隐是现成能力 | ~半天 |
-| 大表虚拟化 | StressTest 场景：DndRows（行拖拽）与 Virtual（虚拟化）在 vendored 套件不共存，需 vendored 增强（三选一见 [dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md) 开放问题 1） | 1–2 天 |
+| ~~列显隐菜单~~ | ✅ 2026-09-28 完成（bffa6253，localStorage columnVisibility:<id> + grid 级 i18n） | — |
+| ~~大表虚拟化~~ | ✅ 2026-09-29 完成（9eb5aa7e，虚拟化下沉 DndRows 表体：spacer+measureElement+拖拽源行保活，dt minRows=100；全程实录见 [dt-row-virtualization-best-practices.md](./dt-row-virtualization-best-practices.md)） | — |
 | cellSelection single 模式（A'） | 方向键格间导航 + aria 焦点跟踪，桥接回 cursor；**Phase 2 已裁决**为推荐备选、维持现状 | ~1 天，按需 |
 
 ## 维持否决清单（附理由，防止重复评估）
@@ -46,10 +47,10 @@
 
 ## ReUI 组件覆盖快照（22 个免费组件）
 
-- **在用 6**：data-grid 系（含 11 子模块）、badge、icon-tile、stepper、sortable、frame
-- **有落点待用 4**：tree、timeline、sortable、frame
+- **在用 6**：data-grid 系（含 11 子模块，表体虚拟化已启用）、badge、icon-tile、stepper、sortable、frame
+- **有落点待用 2**：tree、timeline（首次入链场景=UDF Lab 节点目录/审计回放）
 - **候选 4**：alert、icon-stack、number-field、code-block
-- **已 vendored 未启用 2**：data-grid-cell-selection（Phase 2 备选 A'）、data-grid-column-visibility（列显隐）
+- **已 vendored 未启用 1**：data-grid-cell-selection（Phase 2 备选 A'）
 - **无场景/否决 10**：见上表
 - 另有 premium blocks（整页区块）与 Motion Icons 产品线，本仓未涉及
 

@@ -30,11 +30,17 @@
 1. **DndRows 与 Virtual 不共存**（vendored 套件现状）：决策表以中小规则表为主，spike 取
    DndRows（全量渲染）；大表虚拟化为 vendored 增强候选（三选一：a 维持全量渲染 /
    b 去 Dnd 保 Virtual / c 增强合并两者）。
+   **✅ 已定案（2026-09-29，选项 c）：虚拟化下沉进 DndRows 表体**（`virtual` prop，
+   spacer 行 + measureElement + rangeExtractor 拖拽源行保活，dt minRows=100），
+   提交 9eb5aa7e，全过程与纪律见
+   [dt-row-virtualization-best-practices.md](./dt-row-virtualization-best-practices.md)。
 2. **字段级 diff tint**：修改行目前仅变更格着色（warning bg）。grid 的 `getCellStatus`
    是角标语义非底色。候选：grid td 补 `data-column-id`（1 行 patch，可上游）+ dt 作用域
-   CSS；或扩展 `getCellStatus` 支持类名。
+   CSS；或扩展 `getCellStatus` 支持类名。**（已由 getCellClassName 扩展解决，Phase 1 落地）**
 3. **scrollApiRef 精确化**：spike 用 38px 行高均值近似（getTopRowIndex/scrollToRowIndex）。
    随开放问题 1 的虚拟化取舍一并定（DndRows 无虚拟器，精确滚动暂无对象）。
+   **（已定案：虚拟化时走 virtualizerRef.scrollToIndex + rAF 精调，小表 DOM 几何路径；
+   并修复了换装后 data-index 缺失导致 DOM 路径失效的回归）**
 4. **Add row 底栏**：原 sticky tfoot 改为 grid 外 sticky div（视觉近似）；表头 sticky
    行为待像素走查核对。
 
