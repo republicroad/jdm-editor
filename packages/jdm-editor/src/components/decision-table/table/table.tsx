@@ -5,6 +5,7 @@ import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useTable } from '@tanstack/react-table';
+import type { Virtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import equal from 'fast-deep-equal/es6/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -290,6 +291,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   );
 
   const tableContainerRef = React.useRef<HTMLDivElement | null>(null);
+  // 大表虚拟化（backlog：dt 换装解锁候选）：DndRows 表体窗口化。≤minRows 行保持
+  // 全量渲染（绝大多数决策表 + 全部快照/交互用例路径零变化），≥minRows 才挂
+  // 虚拟窗口。38px 与旧手搓虚拟表的 estimateSize 一致。
+  const virtualizerRef = React.useRef<Virtualizer<HTMLElement, HTMLTableRowElement> | null>(null);
+  const virtualConfig = React.useMemo(
+    () => ({ estimateSize: 38, overscan: 8, minRows: 100, scrollElementRef: tableContainerRef }),
+    [],
+  );
 
   useEffect(() => {
     if (!id) {
@@ -316,10 +325,11 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     localStorage.setItem(columnVisibilityKey(id), JSON.stringify(columnVisibility));
   }, [columnVisibility]);
 
-  // scrollApiRef：DOM 精确定位（grid 行携带 data-index；行高随内容变化，
-  // 38px 均值近似不可靠，直接按行元素几何换算）
+  // scrollApiRef：虚拟化时走虚拟器（窗口外无 DOM，几何查询自然失效）；小表
+  // （<minRows，未虚拟化）保持 DOM 几何路径。sticky 表头占位在两处显式补偿。
   useEffect(() => {
     if (!scrollApiRef) return;
+    const headerHeight = () => tableContainerRef.current?.querySelector('thead')?.getBoundingClientRect().height ?? 0;
     const topOfRow = (index: number): number | null => {
       const el = tableContainerRef.current;
       const row = el?.querySelector<HTMLElement>(`[data-index="${index}"]`);
@@ -330,6 +340,10 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       getTopRowIndex: () => {
         const el = tableContainerRef.current;
         if (!el) return 0;
+        const virtualizer = virtualizerRef.current;
+        if (virtualizer) {
+          return virtualizer.getVirtualItemForOffset(Math.max(0, el.scrollTop - headerHeight()))?.index ?? 0;
+        }
         let top = 0;
         for (const row of el.querySelectorAll<HTMLElement>('[data-index]')) {
           const index = Number(row.dataset.index);
@@ -340,10 +354,28 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         return top;
       },
       scrollToRowIndex: (index) => {
+        const virtualizer = virtualizerRef.current;
+        if (virtualizer) {
+          // 第一段：虚拟器按估值落点；第二段：行挂载后按真实几何补偿
+          // sticky 表头与动态行高的残余偏差（估值 ≠ 实测时的兜底）。
+          virtualizer.scrollToIndex(index, { align: 'start' });
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              const el = tableContainerRef.current;
+              const top = topOfRow(index);
+              if (!el || top == null) return;
+              const delta = top - el.scrollTop - headerHeight();
+              if (Math.abs(delta) > 1) {
+                el.scrollBy({ top: delta });
+              }
+            }),
+          );
+          return;
+        }
         const el = tableContainerRef.current;
         const top = topOfRow(index);
         if (el && top != null) {
-          el.scrollTo({ top, behavior: 'smooth' });
+          el.scrollTo({ top: top - headerHeight(), behavior: 'smooth' });
         }
       },
     });
@@ -402,10 +434,15 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
         }}
       >
         <TableContextMenu>
-          {/* SPIKE 取舍：DndRows（行拖拽）与 Virtual（虚拟化）在 vendored 套件中不共存。
-              决策表以中小规则表为主，spike 先取行拖拽；大表虚拟化留 Phase 1 定案
-              （选项：a 非 Virtual 全量渲染 / b 去 Dnd 保留 Virtual / c vendored 增强）。 */}
-          <DataGridTableDndRows handleDragEnd={handleDragEnd} dataIds={dataIds} />
+          {/* SPIKE 取舍已收口（backlog dt 解锁候选）：DndRows（行拖拽）与 Virtual
+              （虚拟化）经 vendored 增强共存——虚拟化下沉进 DndRows 表体，≥minRows
+              行窗口化渲染，拖拽/悬停钮/右键/列显隐路径不变。 */}
+          <DataGridTableDndRows
+            handleDragEnd={handleDragEnd}
+            dataIds={dataIds}
+            virtual={virtualConfig}
+            virtualizerRef={virtualizerRef}
+          />
         </TableContextMenu>
         <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
           <DataGridColumnVisibility

@@ -23,6 +23,12 @@ import { SortableContext, type SortingStrategy, sortableKeyboardCoordinates, use
 import { CSS } from '@dnd-kit/utilities';
 import { flexRender } from '@tanstack/react-table';
 import type { Cell, HeaderGroup, Row } from '@tanstack/react-table';
+import {
+  measureElement as defaultMeasureElement,
+  defaultRangeExtractor,
+  useVirtualizer,
+} from '@tanstack/react-virtual';
+import type { Range, VirtualItem, Virtualizer, VirtualizerOptions } from '@tanstack/react-virtual';
 import { createContext, memo, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -79,6 +85,68 @@ type DataGridTableDndRowDecoration<TData extends object> = (context: {
   isDragging: boolean;
   isOver: boolean;
 }) => ReactNode;
+
+/**
+ * Row virtualization for the dnd body. Off unless passed; when enabled, only
+ * the window (plus overscan) mounts, with spacer rows carrying the scroll
+ * height - the `<table>`-native pattern from TanStack Virtual's own examples.
+ */
+type DataGridTableDndRowsVirtual = {
+  /** Row height estimate; real heights are measured and win. Default 38. */
+  estimateSize?: number;
+  /** Rows rendered beyond each window edge. Default 8. */
+  overscan?: number;
+  /** Virtualize only at or above this row count; below it, full render. Default 1. */
+  minRows?: number;
+  /**
+   * The scrolling ancestor that owns the vertical scroll - a host layout
+   * panel wrapping the grid, not the grid's own viewport. Defaults to the
+   * nearest scrollable ancestor of the viewport.
+   */
+  scrollElementRef?: { readonly current: HTMLElement | null };
+};
+
+type DataGridTableDndRowsVirtualWindow = {
+  items: VirtualItem[];
+  totalSize: number;
+  measureRowRef: (node: HTMLTableRowElement | null) => void;
+};
+
+/**
+ * Nearest ancestor that actually scrolls. `overlay` is legacy but was a real
+ * value on WebKit for years, and an `overflow: auto` panel with no overflow
+ * yet still scrolls programmatically, so the computed value is the test.
+ */
+function findDataGridTableScrollParent(node: HTMLElement | null): HTMLElement | null {
+  let el = node?.parentElement ?? null;
+  while (el && el !== document.body) {
+    const overflowY = getComputedStyle(el).overflowY;
+    if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
+      return el;
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+
+/**
+ * Keeps one index inside the extracted window even when the scroll has moved
+ * past it. A dragged source row must not unmount mid-drag: dnd-kit's active
+ * droppable disappearing ends the drag, so while a row is being carried the
+ * extractor is extended until it is released. Sorted back into order because
+ * the extractor output feeds index arithmetic downstream.
+ */
+function keepDataGridDndIndexInRange(
+  range: Range,
+  extract: (range: Range) => number[],
+  keepIndex: number | null,
+): number[] {
+  const next = extract(range);
+  if (keepIndex == null || next.includes(keepIndex)) {
+    return next;
+  }
+  return [...next, keepIndex].sort((a, b) => a - b);
+}
 
 function DataGridTableDndRowHandle({
   className,
@@ -173,10 +241,16 @@ function DataGridTableDndRow<TData extends object>({
   row,
   renderRowDecoration,
   dropIndicator = true,
+  dataIndex,
+  rowRef,
 }: {
   row: Row<DataGridFeatures, TData>;
   renderRowDecoration?: DataGridTableDndRowDecoration<TData>;
   dropIndicator?: boolean;
+  /** Absolute row index; rendered as `data-index` (the virtualizer's measure key and the scroll API's locator). */
+  dataIndex?: number;
+  /** Extra ref composed onto the `tr` alongside the dnd node ref (the virtualizer's measureElement). */
+  rowRef?: React.Ref<HTMLTableRowElement>;
 }) {
   const rowData: DataGridTableDndRowData = {
     type: 'data-grid-row',
@@ -235,7 +309,7 @@ function DataGridTableDndRow<TData extends object>({
 
   return (
     <SortableRowContext.Provider value={{ attributes, listeners }}>
-      <DataGridTableBodyRow row={row} dndRef={setNodeRef} dndStyle={style}>
+      <DataGridTableBodyRow row={row} rowRef={rowRef} dataIndex={dataIndex} dndRef={setNodeRef} dndStyle={style}>
         {row.getVisibleCells().map((cell: Cell<DataGridFeatures, TData, unknown>, index, cells) => {
           return (
             <DataGridTableBodyRowCell cell={cell} key={cell.id}>
@@ -302,12 +376,14 @@ function DataGridTableDndRowsBody<TData extends object>({
   renderRowDecoration,
   dropIndicator,
   sortingStrategy,
+  virtualWindow,
 }: {
   table: DataGridTableInstance<TData>;
   dataIds: UniqueIdentifier[];
   renderRowDecoration?: DataGridTableDndRowDecoration<TData>;
   dropIndicator?: boolean;
   sortingStrategy: SortingStrategy;
+  virtualWindow?: DataGridTableDndRowsVirtualWindow;
 }) {
   const { isLoading, props } = useDataGrid();
   const pagination = table.state.pagination;
@@ -331,20 +407,63 @@ function DataGridTableDndRowsBody<TData extends object>({
     );
   }
 
-  if (!table.getRowModel().rows.length) return <DataGridTableEmpty />;
+  const rows = table.getRowModel().rows;
+
+  if (!rows.length) return <DataGridTableEmpty />;
+
+  // One cell spanning every visible column (plus the fill cell the data rows
+  // end with) whose height carries the unmounted scroll range. aria-hidden,
+  // borderless and padding-free: it contributes height and nothing else.
+  const renderSpacer = (key: string, height: number) => {
+    if (height <= 0) return null;
+    return (
+      <tr key={key} aria-hidden='true' data-slot='data-grid-table-dnd-virtual-spacer'>
+        <td colSpan={table.getVisibleLeafColumns().length + 1} style={{ height, padding: 0, border: 'none' }} />
+      </tr>
+    );
+  };
 
   return (
     <SortableContext items={dataIds} strategy={sortingStrategy}>
-      {table.getRowModel().rows.map((row: Row<DataGridFeatures, TData>) => {
-        return (
-          <DataGridTableDndRow
-            row={row}
-            renderRowDecoration={renderRowDecoration}
-            dropIndicator={dropIndicator}
-            key={row.id}
-          />
-        );
-      })}
+      {virtualWindow ? (
+        <>
+          {renderSpacer('data-grid-dnd-virtual-spacer-start', virtualWindow.items[0]?.start ?? 0)}
+          {virtualWindow.items.map((item) => {
+            const row = rows[item.index];
+            if (!row) return null;
+            return (
+              <DataGridTableDndRow
+                key={row.id}
+                row={row}
+                dataIndex={item.index}
+                rowRef={virtualWindow.measureRowRef}
+                renderRowDecoration={renderRowDecoration}
+                dropIndicator={dropIndicator}
+              />
+            );
+          })}
+          {renderSpacer(
+            'data-grid-dnd-virtual-spacer-end',
+            virtualWindow.items.length > 0
+              ? virtualWindow.totalSize - (virtualWindow.items[virtualWindow.items.length - 1]?.end ?? 0)
+              : 0,
+          )}
+        </>
+      ) : (
+        rows.map((row: Row<DataGridFeatures, TData>) => {
+          return (
+            <DataGridTableDndRow
+              row={row}
+              // data-index rides on every row, virtualized or not: hosts query
+              // it for scroll math (row jumping from the simulator).
+              dataIndex={row.index}
+              renderRowDecoration={renderRowDecoration}
+              dropIndicator={dropIndicator}
+              key={row.id}
+            />
+          );
+        })
+      )}
     </SortableContext>
   );
 }
@@ -372,6 +491,8 @@ function DataGridTableDndRows<TData extends object>({
   onDragMove,
   onDragOver,
   onDragCancel,
+  virtual,
+  virtualizerRef,
 }: {
   handleDragEnd: (event: DragEndEvent) => void;
   dataIds: UniqueIdentifier[];
@@ -407,6 +528,14 @@ function DataGridTableDndRows<TData extends object>({
   onDragMove?: (event: DragMoveEvent) => void;
   onDragOver?: (event: DragOverEvent) => void;
   onDragCancel?: (event: DragCancelEvent) => void;
+  /** Row virtualization; off unless passed. */
+  virtual?: DataGridTableDndRowsVirtual;
+  /**
+   * Receives the live virtualizer while virtualization is active (and null
+   * otherwise), for hosts that need index math outside the grid - a
+   * scroll-to-row API, a visible-range readout.
+   */
+  virtualizerRef?: { current: Virtualizer<HTMLElement, HTMLTableRowElement> | null };
 }) {
   const { table, props } = useDataGrid<TData>();
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -536,6 +665,103 @@ function DataGridTableDndRows<TData extends object>({
     return [...(modifiers ?? [restrictToVerticalAxis]), restrictToTableContainer];
   }, [modifiers]);
 
+  // --- Row virtualization -------------------------------------------------
+  // The virtualizer is created unconditionally (hooks order) with count 0
+  // while disabled, so "off" costs one hook call and nothing else.
+  const { estimateSize = 38, overscan = 8, minRows = 1, scrollElementRef: virtualScrollElementRef } = virtual ?? {};
+  const rowCount = table.getRowModel().rows.length;
+  const isVirtualizationEnabled = virtual != null && rowCount >= minRows;
+  const [virtualScrollElement, setVirtualScrollElement] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!virtual) {
+      return;
+    }
+    setVirtualScrollElement(
+      virtualScrollElementRef?.current ?? findDataGridTableScrollParent(tableContainerRef.current),
+    );
+  }, [virtual, virtualScrollElementRef, isVirtualizationEnabled]);
+
+  // The virtualizer connects with whatever rect the container has at commit
+  // time. Mounted inside a hidden tab (or an occluded webview) that rect is
+  // 0x0, and correction rides on ResizeObserver - whose delivery needs
+  // rendering frames, so the table can come back empty when the container is
+  // finally laid out but no frame has been delivered yet. Toggling the element
+  // identity once the container has a real height forces the reconnect, whose
+  // immediate rect read needs no frame.
+  const [rectReadyTick, setRectReadyTick] = useState(0);
+  useEffect(() => {
+    if (!isVirtualizationEnabled || !virtualScrollElement) {
+      return;
+    }
+    if (virtualScrollElement.offsetHeight > 0) {
+      return;
+    }
+    let raf = 0;
+    const tick = () => {
+      if (virtualScrollElement.offsetHeight > 0) {
+        setRectReadyTick((n) => n + 1);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isVirtualizationEnabled, virtualScrollElement]);
+  useEffect(() => {
+    // rectReadyTick participates only to re-run after the height check above;
+    // the identity toggle below is what reconnects the virtualizer.
+    if (rectReadyTick > 0 && virtualScrollElement) {
+      setVirtualScrollElement(null);
+      const raf = requestAnimationFrame(() => setVirtualScrollElement(virtualScrollElement));
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [rectReadyTick]);
+
+  // A hidden tab reports one 0x0 border box before going quiet; caching that
+  // zero would collapse every row of the hidden tab until it returns. Keep
+  // the previous measurement instead (the same guard the hand-rolled virtual
+  // table carried before the data-grid retrofit).
+  const measureElementSafely = useCallback<
+    NonNullable<VirtualizerOptions<HTMLElement, HTMLTableRowElement>['measureElement']>
+  >((element, entry, instance) => {
+    if (entry?.borderBoxSize?.[0] && entry.borderBoxSize[0].blockSize === 0) {
+      const index = instance.indexFromElement(element);
+      const key = instance.options.getItemKey(index);
+      return instance.itemSizeCache.get(key) ?? instance.options.estimateSize(index);
+    }
+    return defaultMeasureElement(element, entry, instance);
+  }, []);
+
+  // Index of the row being carried, so the window keeps it mounted until the
+  // drag ends - dnd-kit ends a drag whose active droppable unmounts.
+  const [carriedIndex, setCarriedIndex] = useState<number | null>(null);
+  const carriedIndexRef = useRef<number | null>(null);
+  carriedIndexRef.current = carriedIndex;
+
+  const virtualizer = useVirtualizer<HTMLElement, HTMLTableRowElement>({
+    count: isVirtualizationEnabled ? rowCount : 0,
+    getScrollElement: () => virtualScrollElement,
+    getItemKey: (index) => String(dataIds[index] ?? index),
+    estimateSize: () => estimateSize,
+    overscan,
+    measureElement: measureElementSafely,
+    rangeExtractor: useCallback(
+      (range: Range) => keepDataGridDndIndexInRange(range, defaultRangeExtractor, carriedIndexRef.current),
+      [],
+    ),
+  });
+
+  useEffect(() => {
+    if (!virtualizerRef) {
+      return;
+    }
+    virtualizerRef.current = isVirtualizationEnabled ? virtualizer : null;
+    return () => {
+      virtualizerRef.current = null;
+    };
+  }, [isVirtualizationEnabled, virtualizer, virtualizerRef]);
+
   return (
     <DndContext
       id={useId()}
@@ -544,11 +770,13 @@ function DataGridTableDndRows<TData extends object>({
       onDragCancel={(event) => {
         setIsDraggingRow(false);
         setCarried(null);
+        setCarriedIndex(null);
         onDragCancel?.(event);
       }}
       onDragEnd={(event) => {
         setIsDraggingRow(false);
         setCarried(null);
+        setCarriedIndex(null);
         handleDragEnd(event);
       }}
       onDragMove={onDragMove}
@@ -556,6 +784,8 @@ function DataGridTableDndRows<TData extends object>({
       onDragStart={(event) => {
         setIsDraggingRow(true);
         pickUpRow(event.active.id);
+        const index = dataIds.indexOf(event.active.id);
+        setCarriedIndex(index >= 0 ? index : null);
         onDragStart?.(event);
       }}
       sensors={sensors}
@@ -600,6 +830,15 @@ function DataGridTableDndRows<TData extends object>({
               renderRowDecoration={renderRowDecoration}
               dropIndicator={dropIndicator}
               sortingStrategy={sortingStrategy}
+              virtualWindow={
+                isVirtualizationEnabled
+                  ? {
+                      items: virtualizer.getVirtualItems(),
+                      totalSize: virtualizer.getTotalSize(),
+                      measureRowRef: (node: HTMLTableRowElement | null) => virtualizer.measureElement(node),
+                    }
+                  : undefined
+              }
             />
           </DataGridTableBody>
 
@@ -663,5 +902,5 @@ function DataGridTableDndRows<TData extends object>({
   );
 }
 
-export { DataGridTableDndRowHandle, DataGridTableDndRows };
-export type { DataGridTableDndRowData, DataGridTableDndRowDecoration };
+export { DataGridTableDndRowHandle, DataGridTableDndRows, keepDataGridDndIndexInRange };
+export type { DataGridTableDndRowData, DataGridTableDndRowDecoration, DataGridTableDndRowsVirtual };
