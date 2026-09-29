@@ -34,7 +34,7 @@
 | --- | --- | --- |
 | ~~列显隐菜单~~ | ✅ 2026-09-28 完成（bffa6253，localStorage columnVisibility:<id> + grid 级 i18n） | — |
 | ~~大表虚拟化~~ | ✅ 2026-09-29 完成（9eb5aa7e，虚拟化下沉 DndRows 表体：spacer+measureElement+拖拽源行保活，dt minRows=100；全程实录见 [dt-row-virtualization-best-practices.md](./dt-row-virtualization-best-practices.md)） | — |
-| cellSelection single 模式（A'） | 方向键格间导航 + aria 焦点跟踪，桥接回 cursor；**Phase 2 已裁决**为推荐备选、维持现状 | ~1 天，按需 |
+| ~~cellSelection single 模式（A'）~~ | ✅ 2026-09-29 完成（dt 启用 `cellSelection: 'single'` + 受控 cellSelection 桥接回 cursor，方向键格间导航/⌘+方向边缘跳转/Alt+方向插删行三分键盘约定；grid 侧 altKey 让位；快捷键从 ⌘/Alt 收敛为 Alt-only） | — |
 
 ## 维持否决清单（附理由，防止重复评估）
 
@@ -50,7 +50,7 @@
 - **在用 6**：data-grid 系（含 11 子模块，表体虚拟化已启用）、badge、icon-tile、stepper、sortable、frame
 - **有落点待用 2**：tree、timeline（首次入链场景=UDF Lab 节点目录/审计回放）
 - **候选 4**：alert、icon-stack、number-field、code-block
-- **已 vendored 未启用 1**：data-grid-cell-selection（Phase 2 备选 A'）
+- **已 vendored 未启用 0**：~~data-grid-cell-selection~~（A' 单格聚焦已启用）、~~data-grid-column-visibility~~（列显隐已启用）
 - **无场景/否决 10**：见上表
 - 另有 premium blocks（整页区块）与 Motion Icons 产品线，本仓未涉及
 

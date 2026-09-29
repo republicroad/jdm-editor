@@ -1431,6 +1431,11 @@ function DataGridCellSelection<TData extends object>({
         case 'ArrowDown':
         case 'ArrowLeft':
         case 'ArrowRight': {
+          // Alt+Arrow is reserved for host row management (e.g. the decision
+          // table's Alt+Up/Down inserts and removes rows). Moving focus on
+          // the same chord would double-act while the rows shift under the
+          // focus; Ctrl/Cmd+Arrow keeps its edge-jump role below.
+          if (event.altKey) return;
           const direction =
             event.key === 'ArrowUp'
               ? ('up' as const)

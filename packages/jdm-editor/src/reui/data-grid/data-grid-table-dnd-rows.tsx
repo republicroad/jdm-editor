@@ -688,7 +688,10 @@ function DataGridTableDndRows<TData extends object>({
   // rendering frames, so the table can come back empty when the container is
   // finally laid out but no frame has been delivered yet. Toggling the element
   // identity once the container has a real height forces the reconnect, whose
-  // immediate rect read needs no frame.
+  // immediate rect read needs no frame. The poll is a TIMER, not rAF: rAF
+  // delivery needs the same starved frames the RO does, while timers run in
+  // background tabs (the same reason the cell-selection controller retries
+  // row mounts with a timer).
   const [rectReadyTick, setRectReadyTick] = useState(0);
   useEffect(() => {
     if (!isVirtualizationEnabled || !virtualScrollElement) {
@@ -697,24 +700,26 @@ function DataGridTableDndRows<TData extends object>({
     if (virtualScrollElement.offsetHeight > 0) {
       return;
     }
-    let raf = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let tries = 0;
     const tick = () => {
       if (virtualScrollElement.offsetHeight > 0) {
         setRectReadyTick((n) => n + 1);
         return;
       }
-      raf = requestAnimationFrame(tick);
+      if (++tries > 100) return;
+      timer = setTimeout(tick, 120);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    timer = setTimeout(tick, 120);
+    return () => clearTimeout(timer);
   }, [isVirtualizationEnabled, virtualScrollElement]);
   useEffect(() => {
     // rectReadyTick participates only to re-run after the height check above;
     // the identity toggle below is what reconnects the virtualizer.
     if (rectReadyTick > 0 && virtualScrollElement) {
       setVirtualScrollElement(null);
-      const raf = requestAnimationFrame(() => setVirtualScrollElement(virtualScrollElement));
-      return () => cancelAnimationFrame(raf);
+      const timer = setTimeout(() => setVirtualScrollElement(virtualScrollElement), 0);
+      return () => clearTimeout(timer);
     }
   }, [rectReadyTick]);
 

@@ -1,9 +1,10 @@
 import { PlusCircleOutlined, TableColumnsOutlined } from '#icons';
 import { DataGrid, dataGridFeatures } from '#reui/data-grid/data-grid';
+import { DataGridCellSelection } from '#reui/data-grid/data-grid-cell-selection';
 import { DataGridColumnVisibility } from '#reui/data-grid/data-grid-column-visibility';
 import { DataGridTableDndRowHandle, DataGridTableDndRows } from '#reui/data-grid/data-grid-table-dnd-rows';
 import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { CellSelectionState, ColumnDef } from '@tanstack/react-table';
 import { useTable } from '@tanstack/react-table';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
@@ -208,6 +209,14 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     [permission, disabled, inputs, outputs, minColWidth, colWidth],
   );
 
+  // A' 单格聚焦（Phase 2 备选立项）：grid 焦点经受控 cellSelection 桥接回
+  // dt cursor——命令栏/快捷键的行级操作契约零改动。本 fork 的 tanstack 里
+  // 传 onCellSelectionChange 即外部接管态，必须同时持有 state 才会生效，
+  // 故走受控模式（state + onCellSelectionChange 直通）。single 模式无范围/
+  // 剪贴板/内置编辑器（dt 列未声明 meta.cellEdit，编辑仍走自家控件），
+  // CodeMirror 与格内输入由控制器的事件过滤器天然让位。
+  const [cellSelection, setCellSelection] = useState<CellSelectionState>([]);
+
   const table = useTable({
     data: rules,
     features: dtTableFeatures,
@@ -223,15 +232,32 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
     meta: {
       getCell: cellRenderer,
     },
+    state: {
+      cellSelection,
+      ...(id ? { columnSizing, columnVisibility } : {}),
+    },
+    onCellSelectionChange: setCellSelection,
     initialState: { columnVisibility: loadColumnVisibility(id) },
-    ...(!id
-      ? {}
-      : {
-          state: { columnSizing, columnVisibility },
+    ...(id
+      ? {
           onColumnSizingChange: setColumnSizing,
           onColumnVisibilityChange: setColumnVisibility,
-        }),
+        }
+      : {}),
   });
+
+  // 焦点→cursor 桥接：'__index' 伪列映射为 cursor 惯用的 'id'（行级操作
+  // 定位语义）；无变化不写。焦点视觉复用既有 cursor 格描边，无新增样式。
+  useEffect(() => {
+    const range = cellSelection[cellSelection.length - 1];
+    if (!range) return;
+    const row = table.getRow(range.focusRowId);
+    if (!row) return;
+    const x = range.focusColumnId === '__index' ? ('id' as const) : range.focusColumnId;
+    if (cursor?.y !== row.index || cursor?.x !== x) {
+      tableActions.setCursor({ x, y: row.index });
+    }
+  }, [cellSelection, table, cursor?.x, cursor?.y, tableActions]);
 
   // 行拖拽：grid 原生 DndRows，落点保持 swapRows 契约
   const dataIds = useMemo<UniqueIdentifier[]>(() => rules.map((r: any) => r._id), [rules]);
@@ -389,16 +415,23 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
       if (disabled) {
         return;
       }
+      // 编辑控件内的事件让位（Word 删除词、输入导航等原生语义优先）
+      if ((e.target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable]')) {
+        return;
+      }
 
-      if (e.code === 'ArrowUp' && (e.metaKey || e.altKey)) {
+      // A' 之后的方向键约定：plain=焦点移动（grid），Ctrl/⌘+方向=边缘跳转
+      // （grid），Alt+方向/⌫=插删行（本处，grid 已让位 altKey）——原先的
+      // ⌘+方向插删行与 grid 边缘跳转撞车，收敛为 Alt-only。
+      if (e.code === 'ArrowUp' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.addRowAbove(y);
       }
-      if (e.code === 'ArrowDown' && (e.metaKey || e.altKey)) {
+      if (e.code === 'ArrowDown' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.addRowBelow(y);
       }
-      if (e.code === 'Backspace' && (e.metaKey || e.altKey)) {
+      if (e.code === 'Backspace' && e.altKey) {
         const y = cursor?.y;
         if (y != null) tableActions.removeRow(y);
       }
@@ -431,6 +464,11 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
           stripped: false,
           rowsDraggable: true,
           headerSticky: true,
+          // A'：单格聚焦——方向键格间导航 + aria 焦点跟踪；范围/填充/剪贴板/
+          // 内置编辑器全不启用（cellEditMode 缺省 dblclick 且列无 cellEdit，
+          // 双击编辑仍走 dt 自家控件）
+          cellSelection: true,
+          cellSelectionMode: 'single',
         }}
       >
         <TableContextMenu>
@@ -444,6 +482,8 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
             virtualizerRef={virtualizerRef}
           />
         </TableContextMenu>
+        {/* 单格聚焦控制器：键盘导航开启，剪贴板关闭（dt 无 onCellsChange 契约） */}
+        <DataGridCellSelection clipboard={false} />
         <div className='sticky bottom-0 flex items-center gap-3 bg-[var(--card)] p-2'>
           <DataGridColumnVisibility
             table={table}
