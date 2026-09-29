@@ -70,6 +70,8 @@ export interface CustomNodeNamespace {
   name: string;
   description?: string;
   tools: CustomFunctionTool[];
+  /** ADR-009：pack 元数据（origin 徽标/版本/许可），经 setPackMeta 记录后随视图透传 */
+  meta?: UdfPackMeta;
 }
 
 /** 算子语义三元（Y1）：query 纯读 / observe 观测累积（处理时间，回放不重执行）/ act 处置效果（回放读 journal） */
@@ -234,6 +236,8 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
 
 class UdfRegistry {
   private functions = new Map<string, UdfEntry>();
+  /** ADR-009：pack 元数据（namespace → meta），目录徽标/过滤的数据源；setPackMeta 写入 */
+  private packMetas = new Map<string, UdfPackMeta>();
 
   /**
    * 平台硬化：跨名冲突校验——裸 kind 解析中 namespace 优先，函数名/namespace 交叉同名
@@ -430,7 +434,17 @@ class UdfRegistry {
    * namespace 分组 + tools 格式，与 brdeapi.geetest.com/zen_custom_node_function.json 对齐。
    * 每个 namespace 对应侧边栏 group，每个 tool 对应 createJdmNode 的 kind。
    * type 恒为 'namespace'(集合容器档；契约字段保留供未来场景)。
+   * ADR-009：pack 元数据（若有）随 namespace 透传，目录据此渲染 origin 徽标。
    */
+  /** ADR-009：记录 pack 元数据（目录徽标/过滤数据源）；同 namespace 后写覆盖 */
+  setPackMeta(namespace: string, meta: UdfPackMeta): void {
+    this.packMetas.set(namespace, meta);
+  }
+
+  getPackMeta(namespace: string): UdfPackMeta | undefined {
+    return this.packMetas.get(namespace);
+  }
+
   udfFunctionSchemaNamespaces(): CustomNodeNamespace[] {
     const namespaces = new Map<string, CustomNodeNamespace>();
     for (const [name, entry] of this.functions.entries()) {
@@ -443,6 +457,7 @@ class UdfRegistry {
           name: ns,
           description: '',
           tools: [],
+          ...(this.packMetas.has(ns) ? { meta: this.packMetas.get(ns) } : {}),
         };
         namespaces.set(ns, nsObj);
       }
@@ -499,6 +514,11 @@ export interface ContribToolDef {
   returnsSchema?: UdfSchema['returnsSchema'];
   /** 弃用标记（A4）：透传至 schema/目录/补全 */
   deprecated?: { since?: string; note?: string };
+  /**
+   * ADR-009：跨 namespace 函数名撞名时的显式接管声明——true 时免撞名失败，
+   * 后注册者覆盖（与 registerUdf 的 force 同语义，报错信息会提示本出口）。
+   */
+  overwrite?: boolean;
   fn: UdfFunction;
 }
 
@@ -549,7 +569,35 @@ export const defineToolFor = <TParams extends Record<string, unknown>>(
 export interface UdfPack {
   namespace: string;
   tools: ContribToolDef[];
+  /** ADR-009：pack 元数据（目录徽标/过滤的数据基础）；缺省 = 无徽标（向后兼容） */
+  meta?: UdfPackMeta;
 }
+
+/** ADR-009：pack 来源生态位（目录 origin 徽标的取值域） */
+export type UdfPackOrigin = 'reference' | 'extension' | 'industry';
+
+/**
+ * ADR-009 pack 元数据——目录渲染与过滤的最小集。实施加强注记 2：元数据字段一旦
+ * 发布即兼容性 surface，宁可后加不可先滥；禁止收描述类内容（description/title
+ * 各有归属）。
+ */
+export interface UdfPackMeta {
+  origin: UdfPackOrigin;
+  /** 目录过期提示（目录可对比 registry 内版本与最新发布） */
+  version: string;
+  license?: 'oss' | 'proprietary';
+}
+
+/**
+ * ADR-009 namespace 立法：保留前缀给 zen-udf 本体与参考域，宿主通用扩展与行业包
+ * 禁用（精确名或点分前缀命中，如 'zen'/'zen.ext' 拒绝、'zenkit' 放行）。
+ */
+export const RESERVED_NAMESPACE_PREFIXES: readonly string[] = ['zen', 'core', 'reference', 'builtin'];
+
+export const reservedNamespaceViolation = (namespace: string): string | null => {
+  const hit = RESERVED_NAMESPACE_PREFIXES.find((r) => namespace === r || namespace.startsWith(`${r}.`));
+  return hit ? `namespace '${namespace}' uses reserved prefix '${hit}' (ADR-009)` : null;
+};
 
 /**
  * act 幂等声明警告（Z1）：act 语义工具未声明 idempotent 时产生警告（不阻断注册）。
@@ -632,6 +680,27 @@ export function validatePack(pack: UdfPack): string[] {
   const errors: string[] = [];
   if (!pack.namespace || typeof pack.namespace !== 'string') {
     errors.push('namespace is required and must be a non-empty string');
+  } else {
+    const reserved = reservedNamespaceViolation(pack.namespace);
+    if (reserved) {
+      errors.push(reserved);
+    }
+  }
+  if (pack.meta !== undefined) {
+    const { meta } = pack;
+    if (typeof meta !== 'object' || meta === null) {
+      errors.push('meta must be an object');
+    } else {
+      if (!['reference', 'extension', 'industry'].includes(meta.origin)) {
+        errors.push(`meta.origin must be one of reference/extension/industry (got '${meta.origin}')`);
+      }
+      if (!meta.version || typeof meta.version !== 'string') {
+        errors.push('meta.version is required and must be a non-empty string');
+      }
+      if (meta.license !== undefined && !['oss', 'proprietary'].includes(meta.license)) {
+        errors.push(`meta.license must be 'oss' or 'proprietary' (got '${meta.license}')`);
+      }
+    }
   }
   if (!Array.isArray(pack.tools) || pack.tools.length === 0) {
     errors.push('tools must be a non-empty array');
@@ -674,15 +743,40 @@ export interface CreateUdfRegistryOptions {
  */
 export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRegistry {
   const registry = new UdfRegistry();
+  // ADR-009 撞名检测（deploy 期 fail fast，报错列出冲突 namespace——实施加强注记 1）：
+  // 跨 pack 的工具名重复即失败（分发按裸函数名，重复即覆盖歧义），除非工具显式
+  // 声明 overwrite；pack namespace 重复为配置错误，一并失败。
+  const nameOwners = new Map<string, string>();
+  const seenPackNamespaces = new Set<string>();
   for (const pack of options.packs ?? []) {
     const errors = validatePack(pack);
+    if (seenPackNamespaces.has(pack.namespace)) {
+      errors.push(`duplicate pack namespace '${pack.namespace}'`);
+    }
+    for (const tool of pack.tools) {
+      const owner = nameOwners.get(tool.name);
+      if (owner !== undefined && owner !== pack.namespace && tool.overwrite !== true) {
+        errors.push(
+          `tool '${tool.name}' already registered by namespace '${owner}' (declare overwrite: true to take over)`,
+        );
+      }
+    }
     if (errors.length > 0) {
       throw new Error(`[udf] invalid UdfPack '${pack.namespace}': ${errors.join('; ')}`);
+    }
+    seenPackNamespaces.add(pack.namespace);
+    for (const tool of pack.tools) {
+      if (!nameOwners.has(tool.name)) {
+        nameOwners.set(tool.name, pack.namespace);
+      }
     }
     for (const warning of packWarnings(pack)) {
       console.warn('[udf] pack "' + pack.namespace + '" warning: ' + warning);
     }
     registry.registerTools(pack.tools, pack.namespace);
+    if (pack.meta) {
+      registry.setPackMeta(pack.namespace, pack.meta);
+    }
   }
   return registry;
 }

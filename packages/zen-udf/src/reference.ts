@@ -20,9 +20,9 @@ import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './regi
 
 /** 参考域清单：[namespace, tools]——namespace 与 contrib 文件名约定一致 */
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
-  ['ab', abBucketTools],
+  ['ab-bucket', abBucketTools],
   ['crypto', cryptoTools],
-  ['dt', datetimeTools],
+  ['datetime', datetimeTools],
   ['custom-list-query', customListQueryTools],
   ['debug', debugTools],
   ['debugui', debuguiTools],
@@ -33,14 +33,26 @@ export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['rate-window', rateWindowTools],
   ['roster', rosterTools],
   ['template', templateTools],
-  ['validate', validateCnTools],
+  ['validate-cn', validateCnTools],
 ];
+
+/**
+ * 参考域元数据（ADR-009）：origin=reference；version 随 zen-udf 发版同步更新
+ * （与 package.json 一致，目录据此做过期提示）。
+ */
+export const REFERENCE_PACK_META = { origin: 'reference' as const, version: '0.9.0' };
 
 /** 将参考函数域注册到任意注册表（实例隔离场景用；global 的注册由 import 副作用完成） */
 export const loadReferenceInto = (registry: UdfRegistry): void => {
   for (const [namespace, tools] of referenceDomains) {
     registry.registerTools(tools, namespace);
+    registry.setPackMeta(namespace, REFERENCE_PACK_META);
   }
 };
+
+// globalUdfRegistry 的参考域同样打标记（import 副作用注册路径的 meta 补录）
+for (const [namespace] of referenceDomains) {
+  globalUdfRegistry.setPackMeta(namespace, REFERENCE_PACK_META);
+}
 
 export { globalUdfRegistry };
