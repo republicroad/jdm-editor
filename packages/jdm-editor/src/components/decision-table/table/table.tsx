@@ -210,6 +210,9 @@ export const Table: React.FC<TableProps> = ({ id, maxHeight, scrollContainerRef,
   const table = useTable({
     data: rules,
     features: dtTableFeatures,
+    // 全量行渲染（grid DndRows 渲染路径不认分页）：manualPagination 跳过
+    // rowPagination 的 10 行默认页，否则 10000 行表只能见第一页（Phase 3 回归）。
+    manualPagination: true,
     columnResizeMode: 'onChange',
     getRowId: (row) => row._id,
     columns,
