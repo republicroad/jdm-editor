@@ -103,7 +103,7 @@ export const NoStyle: Story = {
 /**
  * Regression guard for the two cell-editing bugs fixed in 2026-08:
  *   1. Single click must enter edit mode (a regression made it double-click).
- *   2. Display (CodeHighlighter) ↔ edit (CodeMirror) must be pixel-aligned;
+ *   2. Display (pooled CodeHighlighterView) ↔ edit (CodeMirror) must be pixel-aligned;
  *      drift was caused by CM runtime-injected unlayered styles beating the
  *      layered skin (see docs/codemirror-theme-migration.md).
  * Runs under `pnpm --filter @gorules/jdm-editor test:storybook`.
@@ -134,7 +134,7 @@ export const LazyParity: Story = {
     // Deterministic display-state bootstrap: blur any focused editor so lazy
     // cells return to their display surface (pooled view or legacy
     // highlighter, depending on the active path).
-    const HL_SEL = '.seal-ce-highlighter, .seal-ce-highlighter-view';
+    const HL_SEL = '.seal-ce-highlighter-view';
     let highlighter = canvasElement.querySelector<HTMLElement>(HL_SEL);
     if (!highlighter) {
       (document.activeElement as HTMLElement | null)?.blur?.();
@@ -148,15 +148,11 @@ export const LazyParity: Story = {
     // regressed back to requiring a second click.
     await userEvent.click(highlighter!.querySelector<HTMLElement>('.cm-content')!);
 
-    await waitFor(
-      () =>
-        expect(
-          canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter):not(.seal-ce-highlighter-view)'),
-        ).not.toBeNull(),
-      { timeout: 5_000 },
-    );
+    await waitFor(() => expect(canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter-view)')).not.toBeNull(), {
+      timeout: 5_000,
+    });
 
-    const editor = canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter):not(.seal-ce-highlighter-view)');
+    const editor = canvasElement.querySelector('.seal-ce:not(.seal-ce-highlighter-view)');
     const after = snapshot(editor!);
 
     for (const part of ['content', 'line'] as const) {

@@ -18,8 +18,9 @@ import { EditorView } from '@codemirror/view';
  *   • per-instance overrides via [--ce-*] utilities on the host container.
  *
  * Component-owned layout classes (.max-rows/.full-height/.no-style/
- * .seal-ce-single) and the manual CodeHighlighter skeleton remain plain CSS
- * on purpose — see shadcn-theming-roadmap Appendix A, HK-03.
+ * .seal-ce-single) remain plain CSS on purpose — see shadcn-theming-roadmap
+ * Appendix A, HK-03. The manual CodeHighlighter retired in phase-2b
+ * (2026-09-29); display cells render through the pooled CodeHighlighterView.
  *
  * Shared skin extension (module-level singleton).
  *

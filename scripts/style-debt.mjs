@@ -20,7 +20,7 @@ const SRC = new URL('../packages/jdm-editor/src', import.meta.url).pathname.repl
  * (CM skin migrated to EditorView.theme; !important count nearly halved).
  * Hex budget zero: new palette literals must enter theme.tsx/tokens.css. */
 const BUDGET = {
-  important: 18,
+  important: 8,
   hex: 0,
 };
 

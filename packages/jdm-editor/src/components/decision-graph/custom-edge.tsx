@@ -208,7 +208,7 @@ export const CustomEdge: React.FC<EdgeProps & { sourceHandle?: string | null; ta
               shape='round'
               icon={<DeleteOutlined />}
               danger
-              className={clsx('seal-edge-delete-button')}
+              className={clsx('seal-edge-delete-button p-0 w-8')}
               data-visible={isHovered && !picking}
               onClick={() => graphActions.removeEdges([id])}
             />

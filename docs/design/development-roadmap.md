@@ -94,7 +94,7 @@ Alibaba Cloud 兼容成熟度与排障资料密度是决定因素）。服务拆
 
 | 项 | 触发/窗口 |
 | --- | --- |
-| CM phase-2b（删 PARITY 块 + 旧高亮器，烧 ~6 处 !important，下调 style-debt 常量） | v1.0 发布后第一个清债窗口（池化默认态浸泡一周期） |
+| CM phase-2b（删 PARITY 块 + 旧高亮器，烧 !important，下调 style-debt 常量） | ✅ 2026-09-29 完成（ce-highlight.tsx 退役+gru-hl-view 逃生舱作废——池化默认态自 08-28 浸泡跨两次 major；PARITY CSS 双段删除；edge-delete-button 2 处改 utility；BUDGET.important 18→8 贴顶；style-debt 实测 8/8。保留 7 处=第三方对抗（xyflow 5+节点可见性 1+preview no-style 1）） |
 | N4：ReUI `/r/base/` 发布跟踪（flow 块重装 + 撤翻译层） | 上游发布即触发；当前以本地试点件规避 |
 | **N5：ip2region xdb 接入 → 转移到 verdict 实现**（宿主裁决 2026-09-17：实现需要持续更新 IP 库文件，不适合作为 zen-udf 的依赖——机制/数据分界同 D1/velocity 裁决）。实测链接：`raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb` 与 `_v6.xdb`（上游 Action 自动更新；旧 `ip2region.xdb` 路径已 404）。verdict 侧实现要点：xdb 文件管道 + 全量缓存（~15MB 换微秒查询）+ 查询 API；海外可叠 geoip-lite。zen-udf 侧 ip-location 域保持现状或仅暴露注入式查询口 | verdict 侧窗口 |
 | xyflow handle 样式（5 处 !important） | xyflow 升级窗口 |

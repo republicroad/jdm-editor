@@ -3,16 +3,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { composeRefs } from '../../helpers/compose-refs';
 import type { CodeEditorBaseProps, CodeEditorBaseRef } from './ce-base';
 import { CodeEditorBase } from './ce-base';
-import { CodeHighlighter } from './ce-highlight';
 import { CodeHighlighterView } from './ce-highlight-view';
-
-/**
- * Pooled display path (A2 revival) — DEFAULT ON since the major release
- * (Phase 2 guards green; grayscale period complete). Opt OUT with
- * `localStorage.gru-hl-view = '0'` (escape hatch, not a supported config).
- */
-const highlighterViewEnabled = (): boolean =>
-  typeof localStorage === 'undefined' || localStorage.getItem('gru-hl-view') !== '0';
 
 export type CodeEditorRef = CodeEditorBaseRef;
 
@@ -165,37 +156,23 @@ export const CodeEditor = React.forwardRef<CodeEditorRef, CodeEditorProps>(
       );
     }
 
-    if (highlighterViewEnabled()) {
-      return (
-        <CodeHighlighterView
-          ref={composeRefs(containerRef, ref)}
-          type={type as 'standard' | 'unary' | 'template'}
-          value={value}
-          placeholder={props.placeholder}
-          className={props.className}
-          maxRows={props.maxRows}
-          fullHeight={props.fullHeight}
-          noStyle={props.noStyle}
-          style={props.style}
-          onClick={handleClick}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onFocus={handleFocus}
-        />
-      );
-    }
-
+    // 池化显示路径（CM phase-2b 后唯一路径）：旧手动 CodeHighlighter 已退役
+    // （gru-hl-view 逃生舱随之作废——池化默认态自 2026-08-28 起浸泡跨两次 major）。
     return (
-      <CodeHighlighter
+      <CodeHighlighterView
         ref={composeRefs(containerRef, ref)}
-        {...restProps}
-        type={type}
+        type={type as 'standard' | 'unary' | 'template'}
         value={value}
-        disabled={disabled}
-        onClick={chainMouse(onClick, handleClick)}
-        onFocus={chainFocus(onFocus, handleFocus)}
-        onMouseDown={chainMouse(onMouseDown, handleMouseDown)}
-        onMouseUp={chainMouse(onMouseUp, handleMouseUp)}
+        placeholder={props.placeholder}
+        className={props.className}
+        maxRows={props.maxRows}
+        fullHeight={props.fullHeight}
+        noStyle={props.noStyle}
+        style={props.style}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onFocus={handleFocus}
       />
     );
   },
