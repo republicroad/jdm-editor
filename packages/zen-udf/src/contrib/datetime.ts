@@ -22,6 +22,9 @@ const isBusinessDay = (iso: string, cal: Calendar): boolean => {
   return !(cal.weekend ?? [0, 6]).includes(parseDate(iso)!.getUTCDay());
 };
 
+const daysInUTCMonth = (year: number, monthIndex: number): number =>
+  new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+
 const CalendarSchema = Type.Optional(
   Type.Object(
     {
@@ -137,7 +140,7 @@ export const dtDiffTool = tool({
   name: 'diff',
   title: 'dt_diff',
   description:
-    '日期差：unit=days（日历日）/ business_days（需 calendar）/ months（月末日钳制）。inclusive 缺省 false。',
+    '日期差：unit=days（日历日）/ business_days（需 calendar）/ months（anniversary 完整月数，月末钳制视为满月）。inclusive 缺省 false。',
   semantics: 'query',
   input: Type.Object({
     from: Type.String({ title: 'From', description: 'YYYY-MM-DD' }),
@@ -168,8 +171,12 @@ export const dtDiffTool = tool({
       };
     }
     if (unit === 'months') {
+      // anniversary 完整月数（2026-10-01 宿主终裁，对齐内建 .diff(x,'M')）：
+      // from + n 个月（日超出目标月天数时钳制到月末）≤ to 的最大 n——月末
+      // 钳制视为到达（金融 EOM 惯例：11-30→2-28 = 3）。
       let months = (to.getUTCFullYear() - from.getUTCFullYear()) * 12 + (to.getUTCMonth() - from.getUTCMonth());
-      if (to.getUTCDate() < from.getUTCDate()) months -= 1;
+      const effFromDay = Math.min(from.getUTCDate(), daysInUTCMonth(to.getUTCFullYear(), to.getUTCMonth()));
+      if (to.getUTCDate() < effFromDay) months -= 1;
       return { count: Math.abs(months) };
     }
     const days = Math.abs((to.getTime() - from.getTime()) / 86400000);

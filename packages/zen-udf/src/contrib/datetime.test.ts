@@ -63,4 +63,16 @@ describe('dt_diff', () => {
     };
     expect(r.count).toBeGreaterThanOrEqual(4);
   });
+
+  test("months=anniversary 完整月数（2026-10-01 宿主终裁，对齐内建 .diff(x,'M')）", () => {
+    // 月末钳制视为满月（金融 EOM 惯例）：旧口径「月序差−日不足调减」给 2，现对齐内建给 3
+    expect(dtDiffTool.run({ from: '2025-11-30', to: '2026-02-28', unit: 'months' })).toMatchObject({ count: 3 });
+    // 非月末的日不足仍减一（anniversary 语义本身）
+    expect(dtDiffTool.run({ from: '2026-01-15', to: '2026-03-01', unit: 'months' })).toMatchObject({ count: 1 });
+    // 整月边界
+    expect(dtDiffTool.run({ from: '2026-01-01', to: '2026-02-01', unit: 'months' })).toMatchObject({ count: 1 });
+    // 同月内为 0；钳制月与非钳制月一致（3-31→4-30 = 1）
+    expect(dtDiffTool.run({ from: '2026-03-01', to: '2026-03-28', unit: 'months' })).toMatchObject({ count: 0 });
+    expect(dtDiffTool.run({ from: '2026-01-31', to: '2026-04-30', unit: 'months' })).toMatchObject({ count: 3 });
+  });
 });
