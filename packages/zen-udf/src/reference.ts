@@ -13,7 +13,7 @@ import debuguiPack from './contrib/debugui.ts';
 import geoPack from './contrib/geo.ts';
 import httpTools from './contrib/http.ts';
 import ipLocationPack from './contrib/ip-location.ts';
-import notifyTools from './contrib/notify.ts';
+import notifyPack from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
 import rosterPack from './contrib/roster.ts';
 import templatePack from './contrib/template.ts';
@@ -25,7 +25,6 @@ import { type UdfTool } from './tool.ts';
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['debug', debugTools],
   ['http', httpTools],
-  ['notify', notifyTools],
   ['rate-window', rateWindowTools],
 ];
 
@@ -47,6 +46,7 @@ export const referencePacks: ReferencePack[] = [
   { id: 'ip-location', tools: ipLocationPack.tools },
   { id: 'template', tools: templatePack.tools },
   { id: 'validate', tools: validatePack.tools },
+  { id: 'notify', tools: notifyPack.tools },
 ];
 
 /**
