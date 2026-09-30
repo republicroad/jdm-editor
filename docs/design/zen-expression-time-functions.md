@@ -4,7 +4,8 @@
 - 状态：活档 · 上游 issue 候选池
 - 证据方法：① zen-expression 回归语料 861 例（[expression-regression](../../packages/zen-udf/src/expression-regression/)，
   Rust 基线 61862ab）；② @gorules/zen-engine@2.1.0 实测探针
-  （`packages/zen-udf/scripts-time-probe.mjs`，69 项业务表达式逐条验证）
+  （`packages/zen-udf/scripts-time-probe.mjs`，69 项业务表达式逐条验证）；
+  ③ dt 域重叠探针（`packages/zen-udf/scripts-dt-overlap-probe.mjs`，2026-09-30）
 - 关联：[dt-datagrid-retrofit-plan.md](./dt-datagrid-retrofit-plan.md)（同目录）、
   zen-udf contrib `dt` 域（convert/business_day/diff）
 
@@ -157,13 +158,24 @@
 > issue 提交模板：复现表达式 + 实测输出 + Rust 基线期望（本语料可直接引用：
 > `core/expression/tests/data/date.csv` 对应行）+ 业务场景一句话。
 
-## 与 zen-udf contrib `dt` 域的分工
+## 与 zen-udf contrib `dt` 域的分工（0.11.x 重叠 review，2026-09-30）
 
-- `dt.convert`（格式转换）、`dt.business_day`（假日表驱动工作日）、`dt.diff`（差值）
-  已覆盖内建缺失的**高业务语义**部分——业务日历依赖假日数据注入，属「机制/数据分界」
-  的数据侧，长期留在 zen-udf 域（对齐 ADR-009 参考域定位：机制开源、数据注入）；
-- 上游补齐**无数据依赖的纯机制**项（now/isBetween/格式 token）后，业务应优先迁移内建；
-- zen-udf 域与内建重合时，以回归语料防语义漂移（语料即两实现的对照基准）。
+> 逐工具×逐能力实测判定（探针 `packages/zen-udf/scripts-dt-overlap-probe.mjs`，
+> @gorules/zen-engine@2.1.0；内建语义以回归语料 date.csv Rust 基线为对照锚）。
+
+| dt 工具 | 2.1.0 内建对应 | 重叠判定 | 处置 |
+| --- | --- | --- | --- |
+| `dt.convert` | `d(x).tz(z).format('%Y-%m-%dT%H:%M:%S')` | **转换本体已内建**：同输入输出逐字符相等（`2026-09-30T20:00:00`），DST 正确（冬令时 12:00Z→07:00）。差异仅错误通道——内建非法时区抛 vmError（表达式硬中断），dt 域返回结构化 `{datetime:null, error:'INVALID_TIMEZONE'}` | **保留，定位收窄**为「IANA 时区校验 + 结构化错误」工具；纯表达式内联转换场景优先内建 `tz()+format`（fail fast 语义本就合理） |
+| `dt.diff` | `.diff(d2, 'd'/'M')` | **days 重叠**（差符号约定：内建有符号 `-14`，dt 域恒绝对值）；**months 语义分歧实锤**——内建 `'M'` 为 anniversary 完整月数（`11-30→2-28 = 3`），dt 域为「月序差−日不足调减」（`= 2`）；**business_days 内建无对应**（`Invalid duration unit`） | **保留**：days 场景业务可迁内建（注意符号）；months 双口径并存须业务先裁口径（按完整月还是按月序调减）；business_days 为唯一能力单元 |
+| `dt.business_day` | 无——仅 `weekday()` 取值（实测周六=6，dayjs 0=周日口径），无假日/日历概念 | **零重叠** | **长期保留**（假日表=数据注入，机制/数据分界，与上游「无内置数据」取向一致） |
+
+- **分工总纲**（承旧版结论，经实测校准）：业务日历（business_day）是 dt 域的
+  不可替代核；convert/diff 与内建的重叠部分不构成废弃理由——dt 域的价值在
+  **结构化错误通道**与**业务口径包装**（绝对值/调减语义），两者都是表达式内联
+  做不到的；上游补齐纯机制项（now/isBetween）与本分工互不影响；
+- **两实现防漂移**已就位：内建语义由回归语料 861 例（Rust 基线）钉住，dt 域
+  语义由 datetime.test.ts 钉住——语料即对照基准；
+- dt 域三工具均**不打 deprecated**（1.0 注册 API 收敛不涉及 contrib 语义面）。
 
 ## 维护
 
