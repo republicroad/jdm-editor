@@ -66,3 +66,33 @@ export const useWasmReady = (): boolean => {
 
   return ready;
 };
+
+let warmupScheduled = false;
+
+/**
+ * A2 二期打磨：把 wasm 下载+编译挪出首次真实求值的临界路径。
+ *
+ * ensureWasmLoaded 此前只在 wasm 消费组件挂载（useWasmReady）时才被触发——
+ * 用户首次跑表达式仍吃整段 fetch+编译延迟（实测 ~50ms 级：UDF Lab
+ * current_date 首调 50138µs，2026-09-29；node 侧无此问题）。warmupZenEngine
+ * 在 shell 挂载后的空闲窗口调度同一次装载：requestIdleCallback（3s 超时兜底
+ * 防饥饿；不可用时 setTimeout 退化）。幂等：调度标记只挂一次，重复调用
+ * no-op；装载本体由 ensureWasmLoaded 的 promise 缓存与失败复位兜底。
+ *
+ * 接线：appshell EditorShellProvider 挂载时调用（appshell 宿主默认全覆盖）；
+ * 直嵌 kernel 的宿主可在合适时机自行调用。SSR/Node 无预热语义（no-op）。
+ */
+export const warmupZenEngine = (): void => {
+  if (warmupScheduled || typeof window === 'undefined') return;
+  warmupScheduled = true;
+
+  const fire = () => {
+    void ensureWasmLoaded();
+  };
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(fire, { timeout: 3000 });
+  } else {
+    setTimeout(fire, 200);
+  }
+};

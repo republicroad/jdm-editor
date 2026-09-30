@@ -1,5 +1,5 @@
-import type { CustomNodeSpecification } from '@republicroad/jdm-editor';
-import React, { createContext, useContext, useMemo } from 'react';
+import { type CustomNodeSpecification, warmupZenEngine } from '@republicroad/jdm-editor';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 
 import { useCustomNodes } from '../hooks/useCustomNodes';
 import { createAnonymousAdapter } from '../lib/auth/adapter';
@@ -29,6 +29,11 @@ export const EditorShellProvider: React.FC<{ options?: EditorShellOptions; child
 }) => {
   const { schemaSource, authAdapter, simulate, persistence } = options ?? {};
   const { customNodes, schema, ready } = useCustomNodes({ schemaSource });
+
+  // A2 二期打磨：挂载后空闲窗口预热 wasm，首次表达式求值不再吃下载+编译延迟
+  useEffect(() => {
+    warmupZenEngine();
+  }, []);
 
   const userResolver = useMemo(() => createUserResolver(authAdapter ?? createAnonymousAdapter()), [authAdapter]);
   const runSimulate = useMemo(() => simulate ?? createDefaultSimulate(), [simulate]);
