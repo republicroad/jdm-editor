@@ -24,6 +24,12 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # Release gate (0.12.0 shipped 15 red tests because this pipeline never
+      # ran them — validate.yaml only covers main/PRs, not release branches).
+      # lerna run test reaches every package with a test script (incl. zen-udf).
+      - name: Test (release gate)
+        run: pnpm test
+
       # lerna/npm publish leaves pnpm `catalog:` specifiers unrewritten in the
       # published manifest (0.3.2/0.1.0 shipped with unresolvable deps).
       # pnpm publish replaces them with the real versions from

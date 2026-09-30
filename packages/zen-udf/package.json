@@ -8,7 +8,8 @@
   "scripts": {
     "regression:ledger": "bun scripts-regression-scan.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@gorules/zen-engine": "2.1.0",
