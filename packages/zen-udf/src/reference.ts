@@ -14,7 +14,7 @@ import geoPack from './contrib/geo.ts';
 import httpPack from './contrib/http.ts';
 import ipLocationPack from './contrib/ip-location.ts';
 import notifyPack from './contrib/notify.ts';
-import rateWindowTools from './contrib/rate-window.ts';
+import rateWindowPack from './contrib/rate-window.ts';
 import rosterPack from './contrib/roster.ts';
 import templatePack from './contrib/template.ts';
 import validatePack from './contrib/validate-cn.ts';
@@ -22,10 +22,7 @@ import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './regi
 import { type UdfTool } from './tool.ts';
 
 /** 旧风格域清单：[namespace, ContribToolDef[]]——namespace 与 contrib 文件名约定一致（debug 暂缓 / rate-window 待迁移） */
-export const referenceDomains: Array<[string, ContribToolDef[]]> = [
-  ['debug', debugTools],
-  ['rate-window', rateWindowTools],
-];
+export const referenceDomains: Array<[string, ContribToolDef[]]> = [['debug', debugTools]];
 
 /** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
 export interface ReferencePack {
@@ -39,6 +36,7 @@ export const referencePacks: ReferencePack[] = [
   { id: 'crypto', tools: cryptoPack.tools },
   { id: 'custom-list-query', tools: customListQueryPack.tools },
   { id: 'debugui', tools: debuguiPack.tools },
+  { id: 'rate-window', tools: rateWindowPack.tools },
   { id: 'roster', tools: rosterPack.tools },
   { id: 'geo', tools: geoPack.tools },
   { id: 'ip-location', tools: ipLocationPack.tools },
