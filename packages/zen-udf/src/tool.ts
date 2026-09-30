@@ -35,8 +35,8 @@ export interface UdfToolDef<I extends TSchema, O extends TSchema> {
   examples?: ToolExample<I, O>[];
   meta?: UdfPackMeta;
   deprecated?: { since?: string; note?: string };
-  /** 处理器：签名 = input 静态类型；执行策略经 ctx 注入 */
-  run: (input: Static<I>, ctx: ToolContext) => Static<O> | Promise<Static<O>>;
+  /** 处理器：签名 = input 静态类型；ctx 可选（执行策略经端口注入，处理器按需读取） */
+  run: (input: Static<I>, ctx?: ToolContext) => Static<O> | Promise<Static<O>>;
 }
 
 export interface UdfTool<I extends TSchema = TSchema, O extends TSchema = TSchema> {
@@ -52,7 +52,7 @@ export interface UdfTool<I extends TSchema = TSchema, O extends TSchema = TSchem
   examples?: ToolExample<I, O>[];
   meta?: UdfPackMeta;
   deprecated?: { since?: string; note?: string };
-  run(input: Static<I>, ctx: ToolContext): Static<O> | Promise<Static<O>>;
+  run(input: Static<I>, ctx?: ToolContext): Static<O> | Promise<Static<O>>;
 }
 
 /**

@@ -1,3 +1,5 @@
+import type { UdfTool } from './tool.ts';
+
 /**
  * 完整 JSON Schema 属性(与 brdeapi.geetest.com/zen_custom_node_function.json 对齐)。
  * index signature 允许嵌套 schema(properties/items/$defs/anyOf 等)。
@@ -501,20 +503,8 @@ class UdfRegistry {
   register(entry: {
     id?: string;
     meta?: UdfPackMeta;
-    // 桥接入口：结构放宽（any）——类型安全由 tool() 声明位承担
-    tools: Array<{
-      namespace?: string;
-      name: string;
-      description?: string;
-      run: (kwargs: Record<string, any>, ctx?: any) => unknown;
-      inputSchema: object;
-      outputSchema?: object;
-      semantics?: UdfSemantics;
-      idempotent?: boolean;
-      deprecated?: { since?: string; note?: string };
-      meta?: UdfPackMeta;
-      overwrite?: boolean;
-    }>;
+    // S012：复用 UdfTool 类型（消除手写内联漂移根因）；namespace 可选（回退 pack id）
+    tools: Array<Omit<UdfTool, 'namespace'> & { namespace?: string; overwrite?: boolean }>;
   }): void {
     const fallbackNs = entry.id;
     if (entry.meta && entry.id) {
