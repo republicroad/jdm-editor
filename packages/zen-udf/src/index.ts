@@ -63,7 +63,7 @@ export {
   type CustomFunctionTool,
   type CustomNodeNamespace,
 } from './register.ts';
-export { loadReferenceInto, referenceDomains } from './reference.ts';
+export { loadReferenceInto, referencePacks } from './reference.ts';
 export {
   runDecisionTests,
   type DecisionFixture,
