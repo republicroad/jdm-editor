@@ -70,6 +70,14 @@ function applyMetrics(element: HTMLElement, metrics: ScrollbarMetrics) {
   element.style.setProperty('--data-grid-scrollbar-track-height', `${metrics.trackHeight}px`);
 }
 
+// Module scope keeps the imperative write out of react-compiler's component
+// analysis (same escape hatch as applyMetrics) — restoring user selection is
+// a DOM side effect, not render logic.
+function clearBodyDragSelection() {
+  document.body.style.userSelect = '';
+  document.body.style.webkitUserSelect = '';
+}
+
 function DataGridScrollArea({ children, className, orientation = 'both', ...props }: DataGridScrollAreaProps) {
   const { props: dataGridProps, table } = useDataGrid();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -100,8 +108,7 @@ function DataGridScrollArea({ children, className, orientation = 'both', ...prop
 
   const clearDragState = useCallback(() => {
     dragRef.current = null;
-    document.body.style.userSelect = '';
-    document.body.style.webkitUserSelect = '';
+    clearBodyDragSelection();
   }, []);
 
   // The overlay is mounted one commit after the sync that detected overflow,
