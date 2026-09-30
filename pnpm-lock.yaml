@@ -571,6 +571,9 @@ importers:
       '@gorules/zen-engine':
         specifier: 2.1.0
         version: 2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@sinclair/typebox':
+        specifier: 0.34.38
+        version: 0.34.38
     devDependencies:
       '@opentelemetry/api':
         specifier: ^1.9.1
@@ -2772,6 +2775,9 @@ packages:
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
+
+  '@sinclair/typebox@0.34.38':
+    resolution: {integrity: sha512-HpkxMmc2XmZKhvaKIZZThlHmx1L0I/V1hWK1NubtlFnr6ZqdiOpV72TKudZUNQjZNsyDBay72qFEhEvb+bcwcA==}
 
   '@sinclair/typebox@0.34.52':
     resolution: {integrity: sha512-XiMQh7qqVlxZzcVD+kkGMNGMzcTrDMLWI7S4x7z1MkCkbDPrekpZXEUK0eZqZFMuHQg2a2DZOcDIh9o5v3Gonw==}
@@ -11334,6 +11340,8 @@ snapshots:
       '@sigstore/protobuf-specs': 0.3.3
 
   '@sinclair/typebox@0.27.8': {}
+
+  '@sinclair/typebox@0.34.38': {}
 
   '@sinclair/typebox@0.34.52': {}
 

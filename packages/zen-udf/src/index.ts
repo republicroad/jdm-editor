@@ -3,6 +3,8 @@
 // 并按需用 loadReferenceInto 装载参考域。
 import './reference.ts';
 
+export { tool, pack, toConformance } from './tool.ts';
+export type { UdfTool, UdfToolDef, UdfPackDef, ToolContext, ToolExample } from './tool.ts';
 export {
   DecisionRuntime,
   type DecisionRuntimeOptions,

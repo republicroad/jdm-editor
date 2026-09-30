@@ -421,7 +421,7 @@ class UdfRegistry {
     const bound: Record<string, unknown> = {};
     params.forEach((param, i) => {
       const val = i < args.length ? args[i] : param.hasDefault ? param.default : null;
-      const converter = param.jsonType ? jsonT2pyT(param.jsonType) : (v) => v;
+      const converter = param.jsonType ? jsonT2pyT(param.jsonType) : (v: unknown) => v;
       bound[param.name] = converter(val);
     });
     return bound;
@@ -493,6 +493,68 @@ class UdfRegistry {
     return this.packMetas.get(namespace);
   }
 
+  /**
+   * 唯一注册入口（CONTRACT §4）：接受规范工具对象（tool() 产物）的 pack/集合。
+   * 注册语义（deploy 期 fail fast，CONTRACT §4）：跨工具撞名列出已注册 namespace、
+   * act 治理字段经 registerFunction 既有管道、pack meta 随 namespace 落账。
+   */
+  register(entry: {
+    id?: string;
+    meta?: UdfPackMeta;
+    tools: Array<{
+      namespace?: string;
+      name: string;
+      description: string;
+      run: (kwargs: Record<string, unknown>, ctx?: ToolCallContext) => unknown;
+      inputSchema: object;
+      outputSchema?: object;
+      semantics?: UdfSemantics;
+      idempotent?: boolean;
+      deprecated?: { since?: string; note?: string };
+      meta?: UdfPackMeta;
+      overwrite?: boolean;
+    }>;
+  }): void {
+    const fallbackNs = entry.id;
+    if (entry.meta && entry.id) {
+      this.setPackMeta(entry.id, entry.meta);
+    }
+    const seen = new Map<string, string>();
+    for (const t of entry.tools) {
+      const namespace = t.namespace ?? fallbackNs;
+      if (!namespace) {
+        throw new Error(`[udf] tool '${t.name}' requires a namespace (or pack id)`);
+      }
+      const reserved = reservedNamespaceViolation(namespace);
+      if (reserved) {
+        throw new Error(`[udf] ${reserved}`);
+      }
+      const existing = this.functions.get(t.name);
+      if (existing && !t.overwrite) {
+        throw new Error(
+          `[udf] tool '${t.name}' already registered by namespace '${existing.schema.namespace ?? 'default'}' (declare overwrite: true to take over)`,
+        );
+      }
+      if (t.meta) {
+        this.setPackMeta(namespace, t.meta);
+      }
+      this.registerFunction(
+        t.run as UdfFunction,
+        namespace,
+        {
+          description: t.description,
+          parametersSchema: t.inputSchema as UdfSchema['parametersSchema'],
+          returnsSchema: t.outputSchema as UdfSchema['returnsSchema'],
+          semantics: t.semantics,
+          idempotent: t.idempotent,
+          deprecated: t.deprecated,
+        },
+        t.name,
+      );
+      seen.set(t.name, namespace);
+    }
+  }
+
   udfFunctionSchemaNamespaces(): CustomNodeNamespace[] {
     const namespaces = new Map<string, CustomNodeNamespace>();
     for (const [name, entry] of this.functions.entries()) {
@@ -533,6 +595,7 @@ class UdfRegistry {
 
 const globalUdfRegistry = new UdfRegistry();
 
+/** @deprecated ADR-011：改用 defineTool + registry.register（0.11.0 起兼容保留，1.0 移除） */
 function registerUdf(name: string, namespace?: string, schema?: UdfSchema): (fn: UdfFunction) => UdfFunction {
   return (fn: UdfFunction) => {
     globalUdfRegistry.registerFunction(fn, namespace, schema, name);
@@ -579,6 +642,7 @@ export interface ContribDef {
  * contrib 域单调用注册（第七十七批 ergonomics）：文件名即 namespace，tools 逐个挂载。
  * 返回传入的 tools（便于测试断言与再导出）。旧 createExtRegister/registerUdf 签名保留向后兼容。
  */
+/** @deprecated ADR-011：改用 defineTool + pack()（0.11.0 起兼容保留，1.0 移除） */
 export function defineContrib(importMetaUrl: string, def: ContribDef): ContribToolDef[] {
   const namespace = decodeURIComponent(importMetaUrl.split('/').pop() ?? '').replace(/\.[^.]+$/, '');
   for (const tool of def.tools) {
