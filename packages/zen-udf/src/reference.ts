@@ -7,7 +7,7 @@
 import abBucketPack from './contrib/ab-bucket.ts';
 import cryptoPack from './contrib/crypto.ts';
 import customListQueryPack from './contrib/custom-list-query.ts';
-import datetimeTools from './contrib/datetime.ts';
+import datetimePack from './contrib/datetime.ts';
 import debugTools from './contrib/debug.ts';
 import debuguiPack from './contrib/debugui.ts';
 import geoPack from './contrib/geo.ts';
@@ -23,7 +23,6 @@ import { type UdfTool } from './tool.ts';
 
 /** 旧风格域清单：[namespace, ContribToolDef[]]——namespace 与 contrib 文件名约定一致 */
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
-  ['datetime', datetimeTools],
   ['debug', debugTools],
   ['http', httpTools],
   ['notify', notifyTools],
@@ -39,6 +38,7 @@ export interface ReferencePack {
 /** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
 export const referencePacks: ReferencePack[] = [
   { id: 'ab-bucket', tools: abBucketPack.tools },
+  { id: 'dt', tools: datetimePack.tools },
   { id: 'crypto', tools: cryptoPack.tools },
   { id: 'custom-list-query', tools: customListQueryPack.tools },
   { id: 'debugui', tools: debuguiPack.tools },
@@ -75,3 +75,4 @@ for (const pack of referencePacks) {
   globalUdfRegistry.setPackMeta(pack.id, REFERENCE_PACK_META);
 }
 globalUdfRegistry.setPackMeta('ab-bucket', REFERENCE_PACK_META);
+globalUdfRegistry.setPackMeta('dt', REFERENCE_PACK_META);
