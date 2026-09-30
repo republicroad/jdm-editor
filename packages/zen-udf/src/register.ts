@@ -546,6 +546,24 @@ class UdfRegistry {
     }
   }
 
+  /** CONTRACT §5.2 别名：validatePositional */
+  validatePositional(name: string, input: Record<string, unknown>): string[] {
+    return this.validatePositionalArgs(
+      name,
+      this.positionalParams(name).map((param) => input?.[param.name] ?? undefined),
+    );
+  }
+
+  /** CONTRACT §5.3 别名：bindPositional = 位置式绑定 */
+  bindPositional(name: string, args: unknown[]): Record<string, unknown> {
+    return this.funcBindParams(name, args);
+  }
+
+  /** CONTRACT §3 目录视图别名 */
+  catalog(): CustomNodeNamespace[] {
+    return this.udfFunctionSchemaNamespaces();
+  }
+
   udfFunctionSchemaNamespaces(): CustomNodeNamespace[] {
     const namespaces = new Map<string, CustomNodeNamespace>();
     for (const [name, entry] of this.functions.entries()) {
