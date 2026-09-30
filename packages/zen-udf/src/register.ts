@@ -314,16 +314,59 @@ class UdfRegistry {
    * 位置参数前置校验（执行规范 §6.1）：对已求值、未绑定的位置参数检查必填项。
    * 返回错误清单（空数组 = 通过）。缺省参数在 funcBindParams 中回退，不算缺失。
    */
+  /**
+   * R1（ADR-011）：位置参数序列——规范表示直读（input schema 的
+   * properties 键序 = 绑定序；required 数组 + default 决定必填）。
+   * legacy 无 parametersSchema 的 schema 回退读扁平（required = 无 default）。
+   */
+  private positionalParams(name: string): {
+    name: string;
+    jsonType: string | null; // 简单类型（可矫正）；null = 复杂 schema（透传不矫正）
+    description?: string;
+    hasDefault: boolean;
+    default: unknown;
+    required: boolean; // required 且无 default
+  }[] {
+    const schema = this.udfFunctionSchema(name);
+    if (!schema) return [];
+    const ps = schema.parametersSchema;
+    if (ps && typeof ps === 'object' && ps.properties) {
+      const required = new Set((ps as { required?: string[] }).required ?? []);
+      return Object.entries(ps.properties).map(([paramName, prop]) => {
+        const hasDefault = prop !== null && typeof prop === 'object' && prop.default !== undefined;
+        const jsonType = prop && typeof prop === 'object' && typeof prop.type === 'string' ? prop.type : null;
+        return {
+          name: paramName,
+          jsonType,
+          description: prop && typeof prop === 'object' ? prop.description : undefined,
+          hasDefault,
+          default: hasDefault ? (prop as { default: unknown }).default : undefined,
+          required: required.has(paramName) && !hasDefault,
+        };
+      });
+    }
+    // legacy：仅扁平声明（规范化会合成 parametersSchema；此回退保护未规范化直调）
+    return Object.entries(schema.parameters ?? {}).map(([paramName, param]) => ({
+      name: paramName,
+      jsonType: typeof param.type === 'string' ? param.type : null,
+      description: param.description,
+      hasDefault: param.default !== undefined,
+      default: param.default,
+      required: param.default === undefined,
+    }));
+  }
+
   validatePositionalArgs(name: string, args: unknown[]): string[] {
-    const schema = this.functions.get(name)?.schema;
-    if (!schema?.parameters) return [];
+    if (!this.functions.has(name)) return [];
     const issues: string[] = [];
-    Object.entries(schema.parameters).forEach(([paramName, paramSchema], i) => {
-      if (i >= args.length) return; // 越界位置由 funcBindParams 以默认值补齐
-      if (paramSchema.default !== undefined) return; // 有默认值 = 非必填
-      const value = args[i];
+    this.positionalParams(name).forEach((param, i) => {
+      const value = i < args.length ? args[i] : undefined;
       if (value === undefined || value === null) {
-        issues.push(`${paramName} is required (position ${i})`);
+        // 缺必填位（R1）：不再静默跳过——契约 §5.2 要求列出参数名与位置
+        if (param.required) {
+          issues.push(`${param.name} is required (position ${i})`);
+        }
+        return; // 可选缺位由 funcBindParams 以默认值补齐
       }
     });
     return issues;
@@ -365,16 +408,21 @@ class UdfRegistry {
   }
 
   funcBindParams(name: string, args: unknown[]): Record<string, unknown> {
-    const schema = this.udfFunctionSchema(name);
-    if (!schema?.parameters) {
-      return {};
+    const params = this.positionalParams(name);
+    const missing = params.filter(
+      (param, i) => param.required && (i >= args.length || args[i] === undefined || args[i] === null),
+    );
+    if (missing.length > 0) {
+      // 契约 §5.3：必填缺失 MUST NOT 静默填空（直调绕过 validate 时同样拦截）
+      throw new Error(
+        `INVALID_PARAM: ${missing.map((m) => `${m.name} is required (position ${params.indexOf(m)})`).join('; ')}`,
+      );
     }
-    const paramEntries = Object.entries(schema.parameters);
     const bound: Record<string, unknown> = {};
-    paramEntries.forEach(([paramName, paramSchema], i) => {
-      const val = i < args.length ? args[i] : (paramSchema.default ?? null);
-      const converter = jsonT2pyT(paramSchema.type ?? 'null');
-      bound[paramName] = converter(val);
+    params.forEach((param, i) => {
+      const val = i < args.length ? args[i] : param.hasDefault ? param.default : null;
+      const converter = param.jsonType ? jsonT2pyT(param.jsonType) : (v) => v;
+      bound[param.name] = converter(val);
     });
     return bound;
   }

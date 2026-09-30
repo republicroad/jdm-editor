@@ -50,8 +50,9 @@
 - `input`：**JSON Schema 对象**（`type: 'object'` + `properties` + `required`）——
   唯一契约来源；位置参数序 = `properties` 键序（实现 MUST 保持键序稳定）；
 - `output`：JSON Schema 对象，返回值契约（校验语义见 §5.4）；
-- **required 语义**：`required` 数组中的属性为必填；缺省且无 `default` 的属性视为
-  可选；实现 MUST NOT 丢失 required 信息（有损派生是历史缺陷，见 ADR-011 评审注记）；
+- **required 语义**：`required` 数组中的属性为必填；`required` 数组是必填性的
+  **唯一权威**（无 default 不隐含必填——对齐 JSON Schema 标准语义；有损派生是历史
+  缺陷，见 ADR-011 评审注记）；实现 MUST NOT 丢失 required 信息；
 - **便利声明形态**（MAY 提供，语言本地）：扁平 `parameters: {名: {type, description,
 default}}` 等。任何便利形态 MUST 在注册期归一化为 input JSON Schema：
   扁平无 default = 必填（进 `required`）；键序保留；`required` 数组显式给出时以

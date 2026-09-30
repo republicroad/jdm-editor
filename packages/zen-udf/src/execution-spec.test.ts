@@ -41,6 +41,9 @@ const makeRegistry = (fn: (kwargs: Record<string, unknown>) => unknown): UdfRegi
           p3: { type: 'string', title: 'P3', default: '' },
           timeout: { type: 'integer', title: 'Timeout', default: 0 },
         },
+        // R1/ADR-011：required 数组是唯一权威（旧隐式语义「无 default=必填」已废弃，
+        // 对齐 JSON Schema 标准语义——本夹具迁移自隐式形态）
+        required: ['p1', 'p2'],
       },
     },
     'target_udf',
