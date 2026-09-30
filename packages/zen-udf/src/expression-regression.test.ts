@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { corpusFiles, kindOf, parseCsv, runCase } from './expression-regression.runner.ts';
+import { corpusFiles, kindOf, localZoneProbe, parseCsv, runCase } from './expression-regression.runner.ts';
 
 process.env.TZ = 'UTC';
 
@@ -11,9 +11,19 @@ process.env.TZ = 'UTC';
 // import.meta.dir 是 bun 运行时专有；类型面局部收窄（消费方 tsc 不引入 bun-types）
 const importMetaDir = (import.meta as { dir?: string }).dir ?? 'src';
 
-const DIVERGENCES: Record<string, string> = JSON.parse(
-  readFileSync(join(importMetaDir, 'expression-regression.divergences.json'), 'utf8'),
-).divergences;
+const LEDGER: {
+  divergences: Record<string, string>;
+  calibratedZoneProbe?: string;
+} = JSON.parse(readFileSync(join(importMetaDir, 'expression-regression.divergences.json'), 'utf8'));
+
+// 台账适用性按「求值层真实时区」门控（localZoneProbe 直接测 wasm/原生层的
+// 裸日期渲染，免疫 JS 层 TZ 覆写——bun test 自身就把 JS 层设为 UTC，而
+// Windows 求值层恒读 OS 时区，混合环境下 Date/Intl 均不可信）。当前环境
+// ≠ 校准时区时条目两向停用：校准环境的「差异」在别处可能天然通过（如
+// UTC CI 的六条，无需清账），也可能以新形态失败——后者以「台账外新回归」
+// 硬拦（新环境的真缺口须在彼环境重新校准入账）。
+const ledgerApplicable = LEDGER.calibratedZoneProbe === undefined || LEDGER.calibratedZoneProbe === localZoneProbe();
+const DIVERGENCES: Record<string, string> = ledgerApplicable ? LEDGER.divergences : {};
 
 for (const file of corpusFiles) {
   const kind = kindOf(file);

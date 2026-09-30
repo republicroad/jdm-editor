@@ -17,6 +17,23 @@ export type Row = { line: number; expression: string; input: string; output: str
 export type CaseKind = 'standard' | 'unary';
 export type CaseResult = { pass: boolean; detail: string };
 
+/**
+ * 求值层的真实时区探针：裸日期经字符串拼接渲染出带偏移的 ISO 串
+ * （`x2023-10-15T00:00:00+08:00` / UTC 环境 `...Z`）。这是唯一可信的
+ * 时区观测位——JS 层（Date/Intl）会被 process.env.TZ 即时改写（bun 尤甚，
+ * bun test 自身就把 TZ 设为 UTC），而 wasm/原生求值层 Windows 恒读 OS 时区、
+ * POSIX 随 TZ env。分歧台账的适用性门控据此比对校准戳记。
+ */
+export const localZoneProbe = (): string | null => {
+  try {
+    const rendered = evaluateExpressionSync(`'x' + d('2023-10-15')`, {});
+    const match = /([+-]\d{2}:\d{2}|Z)$/.exec(String(rendered));
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+};
+
 /** RFC 风格 ';' 分割：双引号包裹字段（"" 转义），非引号字段内引号按字面量 */
 export const splitCsvLine = (raw: string): string[] => {
   const fields: string[] = [];
