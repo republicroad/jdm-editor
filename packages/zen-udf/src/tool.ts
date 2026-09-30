@@ -52,7 +52,7 @@ export interface UdfTool<I extends TSchema = TSchema, O extends TSchema = TSchem
   examples?: ToolExample<I, O>[];
   meta?: UdfPackMeta;
   deprecated?: { since?: string; note?: string };
-  run: (input: Static<I>, ctx: ToolContext) => Static<O> | Promise<Static<O>>;
+  run(input: Static<I>, ctx: ToolContext): Static<O> | Promise<Static<O>>;
 }
 
 /**
