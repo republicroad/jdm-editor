@@ -3,7 +3,7 @@
 // 模块级副作用：旧域经 defineContrib、新域（tool()/pack()）经模块内显式
 // globalUdfRegistry.register）；需要装载到独立实例（多租户/多运行时隔离）时，
 // 调用 loadReferenceInto(registry)。业务 UDF 包（verdict 侧）不应依赖本模块。
-// 新风格域（ADR-011 示范迁移）：tool()/pack() 声明，经 register 唯一入口装载
+// 新风格域（ADR-011 尾项）：tool()/pack() 声明，经 register 唯一入口装载
 import abBucketPack from './contrib/ab-bucket.ts';
 import cryptoPack from './contrib/crypto.ts';
 import customListQueryPack from './contrib/custom-list-query.ts';
@@ -11,7 +11,7 @@ import datetimePack from './contrib/datetime.ts';
 import debugTools from './contrib/debug.ts';
 import debuguiPack from './contrib/debugui.ts';
 import geoPack from './contrib/geo.ts';
-import httpTools from './contrib/http.ts';
+import httpPack from './contrib/http.ts';
 import ipLocationPack from './contrib/ip-location.ts';
 import notifyPack from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
@@ -21,10 +21,9 @@ import validatePack from './contrib/validate-cn.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
 import { type UdfTool } from './tool.ts';
 
-/** 旧风格域清单：[namespace, ContribToolDef[]]——namespace 与 contrib 文件名约定一致 */
+/** 旧风格域清单：[namespace, ContribToolDef[]]——namespace 与 contrib 文件名约定一致（debug 暂缓 / rate-window 待迁移） */
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['debug', debugTools],
-  ['http', httpTools],
   ['rate-window', rateWindowTools],
 ];
 
@@ -34,7 +33,6 @@ export interface ReferencePack {
   tools: UdfTool<any, any>[];
 }
 
-/** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
 export const referencePacks: ReferencePack[] = [
   { id: 'ab-bucket', tools: abBucketPack.tools },
   { id: 'dt', tools: datetimePack.tools },
@@ -47,6 +45,7 @@ export const referencePacks: ReferencePack[] = [
   { id: 'template', tools: templatePack.tools },
   { id: 'validate', tools: validatePack.tools },
   { id: 'notify', tools: notifyPack.tools },
+  { id: 'http', tools: httpPack.tools },
 ];
 
 /**
@@ -74,5 +73,3 @@ for (const [namespace] of referenceDomains) {
 for (const pack of referencePacks) {
   globalUdfRegistry.setPackMeta(pack.id, REFERENCE_PACK_META);
 }
-globalUdfRegistry.setPackMeta('ab-bucket', REFERENCE_PACK_META);
-globalUdfRegistry.setPackMeta('dt', REFERENCE_PACK_META);

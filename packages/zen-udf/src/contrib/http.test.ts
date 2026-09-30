@@ -209,7 +209,17 @@ describe('http_request udf', () => {
 
   test('引擎路径：funcBindParams 按声明顺序位置绑定，url 缺省参数回退默认值', async () => {
     const kwargs = globalUdfRegistry.funcBindParams('http_request', [`${baseUrl}/json`]);
-    expect(Object.keys(kwargs)).toEqual(['url', 'method', 'headers', 'body', 'params', 'timeout', 'retry', 'auth']);
+    expect(Object.keys(kwargs)).toEqual([
+      'url',
+      'method',
+      'headers',
+      'body',
+      'params',
+      'timeout',
+      'retry',
+      'auth',
+      'maxBytes',
+    ]);
     expect(kwargs['method']).toBe('GET');
     expect(kwargs['timeout']).toBe(10000);
     expect(kwargs['retry']).toBe(0);
