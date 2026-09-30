@@ -58,6 +58,73 @@ await runWithExecContext({ tenantId: 't-1', userId: 'u-1', decisionId: 'dec-42' 
 const replayed = await runtime.evaluateReplay(auditEvent, originalInput);
 ```
 
+// 确定性回放（Y3）：observe/act 读审计 journal，query 以 asOf 重算
+const replayed = await runtime.evaluateReplay(auditEvent, originalInput);
+
+````
+
+## 理想态 API（tool()/pack()/createUdfRuntime）
+
+> ADR-011 理想态：TypeBox schema-as-type（一份构造 = JSON Schema 契约 + 编译期类型）
+> + 组合根（端口一次注入）+ examples 即 conformance。旧 API（DecisionRuntime + UdfPack）
+> 保留兼容，1.0 移除。
+
+### 声明一个工具
+
+```ts
+import { tool } from '@republicroad/zen-udf';
+import { Type } from '@sinclair/typebox';
+
+const scoreTool = tool({
+  namespace: 'credit',                 // namespace 立法（保留前缀禁用）
+  name: 'score',
+  description: '信用评分',
+  semantics: 'query',                  // query | observe | act
+  input: Type.Object({                 // TypeBox schema = JSON Schema + 编译期类型
+    income: Type.Number({ description: '月收入' }),
+  }),
+  output: Type.Object({ score: Type.Number() }),
+  examples: [{ input: { income: 8000 }, output: { score: 640 } }], // conformance 即声明
+  run: (input) => ({ score: input.income / 10 }),  // input 类型自动推导
+});
+````
+
+### 声明一个 pack 并注册
+
+```ts
+import { createUdfRuntime, pack } from '@republicroad/zen-udf';
+
+const creditPack = pack({
+  id: 'credit',
+  meta: { origin: 'industry', version: '1.0.0', license: 'proprietary' },
+  tools: [scoreTool],
+});
+
+const runtime = createUdfRuntime({
+  packs: [creditPack],
+  ports: {
+    // 策略层端口（CONTRACT §6）
+    egressGuard: myGuard,
+    secretResolver: myResolver,
+    rateStore: myRedisStore,
+  },
+});
+
+// 执行
+const result = await runtime.call('credit.score', { income: 8000 });
+```
+
+### 端口依赖：集中管理 vs per-tenant 覆写
+
+- **基础设施实现**（EgressGuard 类等）在组合根一次注入——全局唯一，不按租户分实例
+- **per-tenant 决策**由端口接口自带的 `tenantId` 参数处理（实现方内部按租户数据判定）
+- 类比：一个数据库连接池服务所有租户（查询带 tenantId），不是一个租户一个池
+
+### 旧 API 兼容
+
+DecisionRuntime / UdfPack / registerUdf / registerTools / defineContrib / defineToolFor
+保留为兼容桥（JSDoc @deprecated），内部桥接到新 API——1.0 移除。迁移见 ADR-011。
+
 ## 算子语义三元
 
 | 语义            | 例                      | 生产执行                                    | 回放行为                     |
