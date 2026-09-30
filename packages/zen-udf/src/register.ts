@@ -501,11 +501,12 @@ class UdfRegistry {
   register(entry: {
     id?: string;
     meta?: UdfPackMeta;
+    // 桥接入口：结构放宽（any）——类型安全由 tool() 声明位承担
     tools: Array<{
       namespace?: string;
       name: string;
-      description: string;
-      run: (kwargs: Record<string, unknown>, ctx?: ToolCallContext) => unknown;
+      description?: string;
+      run: (kwargs: Record<string, any>, ctx?: any) => unknown;
       inputSchema: object;
       outputSchema?: object;
       semantics?: UdfSemantics;

@@ -70,7 +70,8 @@ export interface UdfPackDef {
   /** pack id 即工具缺省 namespace（ADR-009：{pack-id}.{domain} 立法） */
   id: string;
   meta?: UdfPackMeta;
-  tools: UdfTool[];
+  // any：集合持有异构工具（各工具的 input/output 类型不同），类型安全由 tool() 声明位承担
+  tools: UdfTool<any, any>[];
 }
 
 /** 声明一个 pack（可序列化契约层；注册经 registry.register） */
