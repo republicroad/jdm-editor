@@ -1,6 +1,9 @@
 // validate 域：中国常见证件/标识的本地校验。纯函数、零出网、零状态。
 // 测试向量一律按校验算法反向合成，严禁使用真实公民证件号。
-import { defineContrib, defineTool } from '../register.ts';
+import { Type } from '@sinclair/typebox';
+
+import { globalUdfRegistry } from '../register.ts';
+import { pack, tool } from '../tool.ts';
 
 const CN_PROVINCES = new Set([
   '11',
@@ -114,62 +117,46 @@ export const validateBankCard = (raw: string): { valid: boolean; normalized: str
   return { valid: ok, normalized: digits, code: ok ? undefined : 'CHECKSUM_MISMATCH' };
 };
 
-export const validate_id_card = defineTool({
-  name: 'id_card',
-  description:
-    '校验 18 位中国居民身份证：格式、省级行政区码、出生日期合法性、MOD 11-2 校验码。' +
+// ADR-011 迁移：理想态 tool() 声明（校验函数本体不动，测试直接消费导出的校验函数）
+const valueTool = (name: string, description: string, run: (value: string) => unknown) =>
+  tool({
+    namespace: 'validate',
+    name,
+    title: `validate_${name}`,
+    description,
+    semantics: 'query',
+    input: Type.Object({ value: Type.String({ description: '待校验值' }) }),
+    run: (input) => run(input.value),
+  });
+
+export const validate_id_card = valueTool(
+  'id_card',
+  '校验 18 位中国居民身份证：格式、省级行政区码、出生日期合法性、MOD 11-2 校验码。' +
     '返回 { valid, fields: { province, birth, sex }, normalized }；失败返回 { valid: false, code }。',
-  parametersSchema: {
-    properties: { value: { type: 'string', title: '身份证号' } },
-    required: ['value'],
-    title: 'validate_id_card',
-    type: 'object',
-  },
-  returnsSchema: { type: 'object', title: '校验结果' },
-  fn: (kwargs: Record<string, unknown>) => validateIdCard(String(kwargs?.value ?? '')),
-});
+  (value) => validateIdCard(String(value)),
+);
 
-export const validate_mobile = defineTool({
-  name: 'mobile',
-  description: '校验中国大陆手机号格式（^1[3-9]\\d{9}$）。返回 { valid, normalized }。',
-  parametersSchema: {
-    properties: { value: { type: 'string', title: '手机号' } },
-    required: ['value'],
-    title: 'validate_mobile',
-    type: 'object',
-  },
-  returnsSchema: { type: 'object', title: '校验结果' },
-  fn: (kwargs: Record<string, unknown>) => validateMobile(String(kwargs?.value ?? '')),
-});
+export const validate_mobile = valueTool(
+  'mobile',
+  '校验中国大陆手机号格式（^1[3-9]\\d{9}$）。返回 { valid, normalized }。',
+  (value) => validateMobile(String(value)),
+);
 
-export const validate_uscc = defineTool({
-  name: 'uscc',
-  description: '校验 18 位统一社会信用代码（GB 32100-2015 base-31 加权校验）。返回 { valid, code? }。',
-  parametersSchema: {
-    properties: { value: { type: 'string', title: '信用代码' } },
-    required: ['value'],
-    title: 'validate_uscc',
-    type: 'object',
-  },
-  returnsSchema: { type: 'object', title: '校验结果' },
-  fn: (kwargs: Record<string, unknown>) => validateUscc(String(kwargs?.value ?? '')),
-});
+export const validate_uscc = valueTool(
+  'uscc',
+  '校验 18 位统一社会信用代码（GB 32100-2015 base-31 加权校验）。返回 { valid, code? }。',
+  (value) => validateUscc(String(value)),
+);
 
-export const validate_bank_card = defineTool({
-  name: 'bank_card',
-  description: '校验银行卡号（Luhn 算法，13–19 位，自动去空格/连字符）。返回 { valid, normalized, code? }。',
-  parametersSchema: {
-    properties: { value: { type: 'string', title: '银行卡号' } },
-    required: ['value'],
-    title: 'validate_bank_card',
-    type: 'object',
-  },
-  returnsSchema: { type: 'object', title: '校验结果' },
-  fn: (kwargs: Record<string, unknown>) => validateBankCard(String(kwargs?.value ?? '')),
-});
+export const validate_bank_card = valueTool(
+  'bank_card',
+  '校验银行卡号（Luhn 算法，13–19 位，自动去空格/连字符）。返回 { valid, normalized, code? }。',
+  (value) => validateBankCard(String(value)),
+);
 
 export const tools = [validate_id_card, validate_mobile, validate_uscc, validate_bank_card];
 
-export default defineContrib(import.meta.url, {
-  tools,
-});
+export default pack({ id: 'validate', tools });
+
+// 全局注册（import 副作用，接替 defineContrib 的模块级注册）
+globalUdfRegistry.register(pack({ id: 'validate', tools }));

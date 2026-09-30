@@ -10,14 +10,14 @@ import customListQueryPack from './contrib/custom-list-query.ts';
 import datetimeTools from './contrib/datetime.ts';
 import debugTools from './contrib/debug.ts';
 import debuguiPack from './contrib/debugui.ts';
-import geoTools from './contrib/geo.ts';
+import geoPack from './contrib/geo.ts';
 import httpTools from './contrib/http.ts';
-import ipLocationTools from './contrib/ip-location.ts';
+import ipLocationPack from './contrib/ip-location.ts';
 import notifyTools from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
 import rosterPack from './contrib/roster.ts';
-import templateTools from './contrib/template.ts';
-import validateCnTools from './contrib/validate-cn.ts';
+import templatePack from './contrib/template.ts';
+import validatePack from './contrib/validate-cn.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
 import { type UdfTool } from './tool.ts';
 
@@ -25,13 +25,9 @@ import { type UdfTool } from './tool.ts';
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
   ['datetime', datetimeTools],
   ['debug', debugTools],
-  ['geo', geoTools],
   ['http', httpTools],
-  ['ip-location', ipLocationTools],
   ['notify', notifyTools],
   ['rate-window', rateWindowTools],
-  ['template', templateTools],
-  ['validate-cn', validateCnTools],
 ];
 
 /** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
@@ -47,6 +43,10 @@ export const referencePacks: ReferencePack[] = [
   { id: 'custom-list-query', tools: customListQueryPack.tools },
   { id: 'debugui', tools: debuguiPack.tools },
   { id: 'roster', tools: rosterPack.tools },
+  { id: 'geo', tools: geoPack.tools },
+  { id: 'ip-location', tools: ipLocationPack.tools },
+  { id: 'template', tools: templatePack.tools },
+  { id: 'validate', tools: validatePack.tools },
 ];
 
 /**

@@ -1,6 +1,11 @@
 // template 域(template_render 函数)：Mustache 无逻辑子集渲染。
 // 限制：禁 partials；模板 ≤16KB、输出 ≤64KB（防租户图内容 DoS）。
-import { defineContrib, defineTool } from '../register.ts';
+//
+// ADR-011 迁移：理想态 tool()/pack()。templateRender 裸函数保留导出（测试签名不变）。
+import { Type } from '@sinclair/typebox';
+
+import { globalUdfRegistry } from '../register.ts';
+import { pack, tool } from '../tool.ts';
 
 const MAX_TEMPLATE_BYTES = 16 * 1024;
 const MAX_OUTPUT_BYTES = 64 * 1024;
@@ -76,47 +81,42 @@ const renderString = (template: string, context: Record<string, unknown>): strin
   return root.join('');
 };
 
-export const template_render = defineTool({
+/** 裸函数形态（kwargs 签名）：测试与纯函数消费方沿用 */
+export const templateRender = (kwargs: Record<string, unknown>) => {
+  const template = String(kwargs?.template ?? '');
+  const context = kwargs?.context;
+  if (Buffer.byteLength(template, 'utf8') > MAX_TEMPLATE_BYTES) return err('TEMPLATE_TOO_LARGE');
+  if (!context || typeof context !== 'object' || Array.isArray(context)) return err('CONTEXT_NOT_OBJECT');
+  try {
+    const rendered = renderString(template, context as Record<string, unknown>);
+    if (Buffer.byteLength(rendered, 'utf8') > MAX_OUTPUT_BYTES) return err('OUTPUT_OVERFLOW');
+    return { rendered, error: undefined };
+  } catch (e) {
+    return err(e instanceof Error ? e.message : String(e));
+  }
+};
+
+export const templateRenderTool = tool({
+  namespace: 'template',
   name: 'render',
   description:
     'Mustache 无逻辑子集渲染：{{name}}（HTML 转义）、{{{raw}}}（不转义）、{{#sec}}...{{/sec}}（列表/真值）、' +
     '{{^inv}}（反转）、{{!注释}}。缺 key 输出空串。禁 partials。模板 ≤16KB、输出 ≤64KB，' +
     '结构化错误（TEMPLATE_TOO_LARGE / OUTPUT_OVERFLOW / RENDER_ERROR）。' +
     '渲染文本不渲染 JSON——结构化 payload 请在图内构造对象。',
-  parametersSchema: {
-    properties: {
-      template: { type: 'string', title: 'Template', description: 'Mustache 模板（≤16KB）' },
-      context: { type: 'object', title: 'Context', description: '渲染数据对象' },
-    },
-    required: ['template', 'context'],
-    title: 'template_render',
-    type: 'object',
-  },
-  returnsSchema: {
-    type: 'object',
-    title: 'template_render 函数返回',
-    properties: {
-      rendered: { type: 'string' },
-      error: { type: 'string' },
-    },
-  },
-  fn: (kwargs: Record<string, unknown>) => {
-    const template = String(kwargs?.template ?? '');
-    const context = kwargs?.context;
-    if (Buffer.byteLength(template, 'utf8') > MAX_TEMPLATE_BYTES) return err('TEMPLATE_TOO_LARGE');
-    if (!context || typeof context !== 'object' || Array.isArray(context)) return err('CONTEXT_NOT_OBJECT');
-    try {
-      const rendered = renderString(template, context as Record<string, unknown>);
-      if (Buffer.byteLength(rendered, 'utf8') > MAX_OUTPUT_BYTES) return err('OUTPUT_OVERFLOW');
-      return { rendered, error: undefined };
-    } catch (e) {
-      return err(e instanceof Error ? e.message : String(e));
-    }
-  },
+  semantics: 'query',
+  input: Type.Object({
+    template: Type.String({ title: 'Template', description: 'Mustache 模板（≤16KB）' }),
+    context: Type.Record(Type.String(), Type.Unknown(), { title: 'Context', description: '渲染数据对象' }),
+  }),
+  output: Type.Object({
+    rendered: Type.Union([Type.String(), Type.Null()]),
+    error: Type.Optional(Type.String()),
+  }),
+  run: (input) => templateRender({ template: String(input?.template ?? ''), context: input?.context }),
 });
 
-export const { fn: templateRender } = template_render;
+export default pack({ id: 'template', tools: [templateRenderTool] });
 
-export default defineContrib(import.meta.url, {
-  tools: [template_render],
-});
+// 全局注册（import 副作用，接替 defineContrib 的模块级注册）
+globalUdfRegistry.register(pack({ id: 'template', tools: [templateRenderTool] }));
