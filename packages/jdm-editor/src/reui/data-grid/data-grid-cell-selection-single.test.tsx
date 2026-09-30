@@ -36,7 +36,6 @@ const Host: React.FC<{ rows: Row[]; onCellSelectionChange?: (state: CellSelectio
   const [cellSelection, setCellSelection] = useState<CellSelectionState>([]);
   useEffect(() => {
     onCellSelectionChange?.(cellSelection);
-     
   }, [cellSelection]);
   const table = useTable({
     data: rows,
