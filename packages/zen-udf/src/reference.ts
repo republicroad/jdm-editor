@@ -5,17 +5,17 @@
 // 调用 loadReferenceInto(registry)。业务 UDF 包（verdict 侧）不应依赖本模块。
 // 新风格域（ADR-011 示范迁移）：tool()/pack() 声明，经 register 唯一入口装载
 import abBucketPack from './contrib/ab-bucket.ts';
-import cryptoTools from './contrib/crypto.ts';
-import customListQueryTools from './contrib/custom-list-query.ts';
+import cryptoPack from './contrib/crypto.ts';
+import customListQueryPack from './contrib/custom-list-query.ts';
 import datetimeTools from './contrib/datetime.ts';
 import debugTools from './contrib/debug.ts';
-import debuguiTools from './contrib/debugui.ts';
+import debuguiPack from './contrib/debugui.ts';
 import geoTools from './contrib/geo.ts';
 import httpTools from './contrib/http.ts';
 import ipLocationTools from './contrib/ip-location.ts';
 import notifyTools from './contrib/notify.ts';
 import rateWindowTools from './contrib/rate-window.ts';
-import rosterTools from './contrib/roster.ts';
+import rosterPack from './contrib/roster.ts';
 import templateTools from './contrib/template.ts';
 import validateCnTools from './contrib/validate-cn.ts';
 import { type ContribToolDef, type UdfRegistry, globalUdfRegistry } from './register.ts';
@@ -23,23 +23,25 @@ import { type UdfTool } from './tool.ts';
 
 /** 旧风格域清单：[namespace, ContribToolDef[]]——namespace 与 contrib 文件名约定一致 */
 export const referenceDomains: Array<[string, ContribToolDef[]]> = [
-  ['crypto', cryptoTools],
   ['datetime', datetimeTools],
-  ['custom-list-query', customListQueryTools],
   ['debug', debugTools],
-  ['debugui', debuguiTools],
   ['geo', geoTools],
   ['http', httpTools],
   ['ip-location', ipLocationTools],
   ['notify', notifyTools],
   ['rate-window', rateWindowTools],
-  ['roster', rosterTools],
   ['template', templateTools],
   ['validate-cn', validateCnTools],
 ];
 
 /** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
-export const referencePacks: Array<UdfTool<any, any>[]> = [abBucketPack.tools];
+export const referencePacks: Array<UdfTool<any, any>[]> = [
+  abBucketPack.tools,
+  cryptoPack.tools,
+  customListQueryPack.tools,
+  debuguiPack.tools,
+  rosterPack.tools,
+];
 export const referencePackIds = ['ab-bucket'];
 
 /**
@@ -65,3 +67,7 @@ for (const [namespace] of referenceDomains) {
   globalUdfRegistry.setPackMeta(namespace, REFERENCE_PACK_META);
 }
 globalUdfRegistry.setPackMeta('ab-bucket', REFERENCE_PACK_META);
+globalUdfRegistry.setPackMeta('crypto', REFERENCE_PACK_META);
+globalUdfRegistry.setPackMeta('custom-list-query', REFERENCE_PACK_META);
+globalUdfRegistry.setPackMeta('debugui', REFERENCE_PACK_META);
+globalUdfRegistry.setPackMeta('roster', REFERENCE_PACK_META);

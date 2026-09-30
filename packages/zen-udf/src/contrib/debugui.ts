@@ -1,5 +1,12 @@
 // debugui 域(调试用专属 UI 函数，文件名即 namespace)
-import { defineContrib } from '../register.ts';
+//
+// ADR-011 迁移：理想态 tool()/pack()。
+// 语义修正：current_date 依赖处理时间——semantics 由缺省 query 修正为 observe
+// （回放改读 journal，不再重执行；对齐 Y3 语义三元定义）。
+import { Type } from '@sinclair/typebox';
+
+import { globalUdfRegistry } from '../register.ts';
+import { pack, tool } from '../tool.ts';
 
 /** 服务器当前日期(本地时区，YYYY-MM-DD 格式)，无参数 */
 export function currentDate(): string {
@@ -10,18 +17,17 @@ export function currentDate(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-export default defineContrib(import.meta.url, {
-  tools: [
-    {
-      name: 'current_date',
-      description: '返回服务器当前日期(本地时区，YYYY-MM-DD 格式)，无参数.',
-      parametersSchema: {
-        properties: {},
-        title: 'current_date',
-        type: 'object',
-      },
-      returnsSchema: { type: 'string', title: 'current_date 函数返回', properties: {} },
-      fn: currentDate,
-    },
-  ],
+export const currentDateTool = tool({
+  namespace: 'debugui',
+  name: 'current_date',
+  description: '返回服务器当前日期(本地时区，YYYY-MM-DD 格式)，无参数.',
+  semantics: 'observe',
+  input: Type.Object({}),
+  output: Type.String({ title: 'current_date 函数返回' }),
+  run: () => currentDate(),
 });
+
+export default pack({ id: 'debugui', tools: [currentDateTool] });
+
+// 全局注册（import 副作用，接替 defineContrib 的模块级注册）
+globalUdfRegistry.register(pack({ id: 'debugui', tools: [currentDateTool] }));
