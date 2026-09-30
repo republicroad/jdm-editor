@@ -35,14 +35,19 @@ export const referenceDomains: Array<[string, ContribToolDef[]]> = [
 ];
 
 /** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
-export const referencePacks: Array<UdfTool<any, any>[]> = [
-  abBucketPack.tools,
-  cryptoPack.tools,
-  customListQueryPack.tools,
-  debuguiPack.tools,
-  rosterPack.tools,
+export interface ReferencePack {
+  id: string;
+  tools: UdfTool<any, any>[];
+}
+
+/** 新风格域清单（tool()/pack()）：装载走 register 唯一入口 */
+export const referencePacks: ReferencePack[] = [
+  { id: 'ab-bucket', tools: abBucketPack.tools },
+  { id: 'crypto', tools: cryptoPack.tools },
+  { id: 'custom-list-query', tools: customListQueryPack.tools },
+  { id: 'debugui', tools: debuguiPack.tools },
+  { id: 'roster', tools: rosterPack.tools },
 ];
-export const referencePackIds = ['ab-bucket'];
 
 /**
  * 参考域元数据（ADR-009）：origin=reference；version 随 zen-udf 发版同步更新
@@ -56,9 +61,9 @@ export const loadReferenceInto = (registry: UdfRegistry): void => {
     registry.registerTools(tools, namespace);
     registry.setPackMeta(namespace, REFERENCE_PACK_META);
   }
-  for (const tools of referencePacks) {
-    registry.register({ id: 'ab-bucket', tools });
-    registry.setPackMeta('ab-bucket', REFERENCE_PACK_META);
+  for (const pack of referencePacks) {
+    registry.register({ id: pack.id, tools: pack.tools });
+    registry.setPackMeta(pack.id, REFERENCE_PACK_META);
   }
 };
 
@@ -66,8 +71,7 @@ export const loadReferenceInto = (registry: UdfRegistry): void => {
 for (const [namespace] of referenceDomains) {
   globalUdfRegistry.setPackMeta(namespace, REFERENCE_PACK_META);
 }
+for (const pack of referencePacks) {
+  globalUdfRegistry.setPackMeta(pack.id, REFERENCE_PACK_META);
+}
 globalUdfRegistry.setPackMeta('ab-bucket', REFERENCE_PACK_META);
-globalUdfRegistry.setPackMeta('crypto', REFERENCE_PACK_META);
-globalUdfRegistry.setPackMeta('custom-list-query', REFERENCE_PACK_META);
-globalUdfRegistry.setPackMeta('debugui', REFERENCE_PACK_META);
-globalUdfRegistry.setPackMeta('roster', REFERENCE_PACK_META);
