@@ -9,10 +9,13 @@ import { UdfRegistry } from './register.ts';
 // handlers：fixtures 是纯数据（无处理器）——call 动作的处理器由此处按
 // `namespace.name` 供给（与实现解耦：换实现跑同一份 fixtures）。
 
-const fixtures = JSON.parse(readFileSync(join(import.meta.dir, 'conformance', 'fixtures.json'), 'utf8')) as {
+const fixtures = JSON.parse(
+  readFileSync(join((import.meta as { dir?: string }).dir ?? 'src', 'conformance', 'fixtures.json'), 'utf8'),
+) as {
   contract: string;
   cases: Array<{
     kind: 'tool' | 'equivalence' | 'registry';
+    name?: string;
     tool?: Record<string, unknown>;
     handler?: string;
     actions?: Array<{ action: string; input?: unknown; args?: unknown[]; expect: Record<string, unknown> }>;
@@ -59,7 +62,7 @@ describe(`CONTRACT conformance（fixtures v${fixtures.contract}）`, () => {
                 expect(errors.some((e) => (e as string).includes(action.expect!.errorsContain as string))).toBe(true);
               }
               if (action.expect.errors) {
-                expect(errors.length).toBe(action.expect.errors.length);
+                expect(errors.length).toBe((action.expect.errors as unknown[]).length);
               }
             });
           }

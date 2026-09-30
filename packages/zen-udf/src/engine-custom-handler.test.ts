@@ -87,8 +87,9 @@ describe('L7 customHandler 组合语义（ADR-008）', () => {
     const { registry, spies } = makeRegistry();
     let protoHandlerCalls = 0;
     let delegatedCalls = 0;
-    // 构造时即注入最终 handler（wasm 侧在构造时捕获分发函数，事后换挂不生效）
-    const runtime = new DecisionRuntime({
+    // 构造时即注入最终 handler（wasm 侧在构造时捕获分发函数，事后换挂不生效）；
+    // handler 闭包自引用 runtime，显式标注类型以断开初始化循环推导
+    const runtime: DecisionRuntime = new DecisionRuntime({
       registry,
       customHandler: async (request) => {
         const node = request.node as { name?: string };

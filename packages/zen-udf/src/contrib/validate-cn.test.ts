@@ -23,7 +23,7 @@ describe('validate_id_card', () => {
   });
 
   test('女性顺序码', () => {
-    const r = validateIdCard(syntheticIdFemale) as { fields?: Record<string, string> };
+    const r = validateIdCard(syntheticIdFemale) as { valid?: boolean; fields?: Record<string, string> };
     expect(r.valid).toBe(true);
     expect(r.fields?.sex).toBe('F');
   });

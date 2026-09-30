@@ -10,8 +10,10 @@ describe('dt_convert', () => {
     expect(r.datetime).toBe('2026-09-30T20:00:00');
   });
   test('非法时区/日期结构化报错', () => {
-    expect(dtConvertTool.run({ datetime: 'x', to: 'Asia/Shanghai' }).error).toBe('INVALID_DATE');
-    expect(dtConvertTool.run({ datetime: '2026-10-01T08:00:00Z', to: 'Nope/Nowhere' }).error).toBe('INVALID_TIMEZONE');
+    // 工具无显式 output schema（Static 推导为 unknown）：错误面按结构化约定断言
+    const run = (input: { datetime: string; to: string }) => dtConvertTool.run(input) as { error?: string };
+    expect(run({ datetime: 'x', to: 'Asia/Shanghai' }).error).toBe('INVALID_DATE');
+    expect(run({ datetime: '2026-10-01T08:00:00Z', to: 'Nope/Nowhere' }).error).toBe('INVALID_TIMEZONE');
   });
 });
 

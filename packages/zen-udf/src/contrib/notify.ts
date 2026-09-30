@@ -195,7 +195,7 @@ export const notifyWebhookTool = tool({
   },
 });
 
-export const { fn: notifyWebhook } = notifyWebhookTool;
+export const notifyWebhook = notifyWebhookTool.run;
 
 export default pack({ id: 'notify', tools: [notifyWebhookTool] });
 

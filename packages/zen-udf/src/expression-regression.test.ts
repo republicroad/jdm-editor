@@ -8,8 +8,11 @@ process.env.TZ = 'UTC';
 
 // 求值与比较语义在 runner 模块（台账再生脚本共用同一实现，单一事实源）
 
+// import.meta.dir 是 bun 运行时专有；类型面局部收窄（消费方 tsc 不引入 bun-types）
+const importMetaDir = (import.meta as { dir?: string }).dir ?? 'src';
+
 const DIVERGENCES: Record<string, string> = JSON.parse(
-  readFileSync(join(import.meta.dir, 'expression-regression.divergences.json'), 'utf8'),
+  readFileSync(join(importMetaDir, 'expression-regression.divergences.json'), 'utf8'),
 ).divergences;
 
 for (const file of corpusFiles) {

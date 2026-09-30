@@ -1,3 +1,5 @@
+import type { UdfPorts } from './ports.ts';
+import { setPorts } from './runtime-ports.ts';
 import type { UdfTool } from './tool.ts';
 
 /**
@@ -856,6 +858,8 @@ export function validatePack(pack: UdfPack): string[] {
 export interface CreateUdfRegistryOptions {
   /** 业务函数包（deploy-time 注入）；注册前逐个 validatePack，违例整体失败 */
   packs?: UdfPack[];
+  /** 策略层端口（CONTRACT §6）：组合根一次注入，handlers 经 getPorts() 读取（单进程语义） */
+  ports?: UdfPorts;
 }
 
 /**
@@ -864,6 +868,7 @@ export interface CreateUdfRegistryOptions {
  */
 export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRegistry {
   const registry = new UdfRegistry();
+  if (options.ports) setPorts(options.ports);
   // ADR-009 撞名检测（deploy 期 fail fast，报错列出冲突 namespace——实施加强注记 1）：
   // 跨 pack 的工具名重复即失败（分发按裸函数名，重复即覆盖歧义），除非工具显式
   // 声明 overwrite；pack namespace 重复为配置错误，一并失败。

@@ -8,7 +8,10 @@ import { join } from 'node:path';
  * （scripts-regression-scan.mjs）共用的单一事实源。
  */
 
-export const DATA_DIR = join(import.meta.dir, 'expression-regression');
+// import.meta.dir 是 bun 运行时专有；类型面局部收窄（消费方 tsc 不引入 bun-types）
+const importMetaDir = (import.meta as { dir?: string }).dir ?? 'src';
+
+export const DATA_DIR = join(importMetaDir, 'expression-regression');
 
 export type Row = { line: number; expression: string; input: string; output: string };
 export type CaseKind = 'standard' | 'unary';

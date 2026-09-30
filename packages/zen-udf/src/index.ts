@@ -49,9 +49,12 @@ export {
   packWarnings,
   packChecks,
   defineToolFor,
+  RESERVED_NAMESPACE_PREFIXES,
+  reservedNamespaceViolation,
   type PackQualityIssue,
   type ToolCallContext,
   type UdfPack,
+  type UdfPackMeta,
   type UdfSemantics,
   type CreateUdfRegistryOptions,
   type ContribToolDef,
@@ -81,3 +84,5 @@ export {
   type RateCommonResult,
   type GroupDistinctCommonResult,
 } from './contrib/rate-window.ts';
+export { setPorts, getPorts } from './runtime-ports.ts';
+export type { UdfPorts } from './ports.ts';
