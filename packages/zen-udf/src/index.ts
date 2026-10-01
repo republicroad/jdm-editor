@@ -69,11 +69,16 @@ export {
 export { loadReferenceInto, referencePacks } from './reference.ts';
 export {
   runDecisionTests,
+  createRuntimeExecutor,
+  createZenExpressionEvaluator,
   type DecisionFixture,
   type Expectation,
   type FixtureReport,
   type FixtureResult,
-  type RunDecisionTestsOptionsWithModel,
+  type FixtureOutcome,
+  type DecisionTestExecutor,
+  type ExpressionEvaluator,
+  type RunDecisionTestsOptions,
 } from './fixtures.ts';
 export { configureHttpUdf, type EgressGuard, type SecretResolver } from './contrib/http.ts';
 export {

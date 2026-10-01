@@ -171,3 +171,53 @@ ADR-009/执行规范 §6.2-6.4）。语言实现 MUST 提供这些端口的接�
 | ---------- | ----------------------------------------------------------------------------------- | --------- |
 | TypeScript | 参考实现（0.11.0 起对齐本规范：tool()/pack() + R1 直读规范表示 + conformance 导出） | 本包 src/ |
 | 其他语言   | 未开始；触发 = 真实部署后端语言出现                                                 | —         |
+
+## 10. 测试契约（决策夹具与执行器）
+
+决策级测试夹具（fixtures）是跨仓交换物（verdict 存库、编辑器消费、CI 验证），
+形状与执行器契约立于此节。与 §7 的区别：§7 是**工具级**三动作 conformance
+（validate/bind/call），本节是**决策级**端到端执行（整图求值 + 断言）。
+
+### 10.1 夹具（DecisionFixture）
+
+```json
+{
+  "name": "正常 GOLD 用户",
+  "input": { "customer": { "tier": "GOLD" } },
+  "asOf": "2026-10-01T00:00:00Z",
+  "journal": [{ "key": "flag", "name": "flag_udf", "outcome": { "flagged": false } }],
+  "expect": { "mode": "deep", "value": { "tier": "GOLD" } }
+}
+```
+
+- `expect` **可选**——缺省即 **smoke 语义**：`passed = 执行无异常`（示例天然是
+  smoke 用例，可逐个「毕业」为断言用例）；
+- `expect.mode`：`deep`（结果深比较）/ `path`（结果路径取值比较）/
+  `expression`（zen-expression 对结果求值，**根绑定 `result`**，可序列化）；
+- `mode: "predicate"`（函数体断言）是**进程内便利糖，不在本契约内**（不可跨端
+  序列化）；
+- `journal` + `asOf`：Y3 回放语义——observe/act 从桩读回不重执行，夹具可复现。
+
+### 10.2 执行器（DecisionTestExecutor）
+
+```
+executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
+```
+
+- runner（`runDecisionTests`）只依赖本契约，零引擎依赖——执行/租户/回放/追踪
+  全部在 executor 实现（服务端 runtime 适配器 / 浏览器 simulateHandler 适配器 /
+  mock，同语义）；
+- `traceHits` = 命中节点 id 数组（executor 自行对齐来源语义）。
+
+### 10.3 报告（FixtureReport）
+
+- 聚合：`{ passed, failed, results[] }`；单条 `FixtureResult` 含
+  `outcome: "passed" | "assertion-failed" | "execution-error"`（断言失败与
+  执行错误分家）+ `durationMs` + `traceHits`；
+- 并发缺省 1——act 类算子有副作用，并发是显式选择。
+
+### 10.4 版本纪律
+
+- 夹具文档**存库/跨端交换时携带 `contractVersion`**（信封层，同 §8 纪律）；
+  运行时返回值（FixtureReport）不携带（形状随包版本走）；
+- 破坏性变更（删字段/改语义）升 major 并附迁移注记；additive 升 minor。

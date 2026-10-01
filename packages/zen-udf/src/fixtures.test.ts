@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from './engine.ts';
 import { runWithExecContext } from './exec-context.ts';
-import { runDecisionTests } from './fixtures.ts';
+import { createRuntimeExecutor, createZenExpressionEvaluator, runDecisionTests } from './fixtures.ts';
 import { UdfRegistry } from './register.ts';
 
 const model = {
@@ -31,6 +31,16 @@ const model = {
   ],
 };
 
+/** 宿主模型（键隔离测试用）：与夹具模型同名 key 但内容不同 */
+const hostModel = {
+  id: 'g-host',
+  nodes: [
+    { id: 'in', type: 'inputNode', name: 'Request' },
+    { id: 'out', type: 'outputNode', name: 'Response' },
+  ],
+  edges: [{ id: 'ed1', sourceId: 'in', targetId: 'out', type: 'edge' }],
+};
+
 const makeRuntime = (): DecisionRuntime => {
   const registry = new UdfRegistry();
   registry.registerFunction(
@@ -53,13 +63,11 @@ const makeRuntime = (): DecisionRuntime => {
   return new DecisionRuntime({ registry });
 };
 
-describe('Y7 决策测试夹具运行器', () => {
+describe('Y7 决策测试夹具运行器（ADR-014 executor 反转形态）', () => {
   test('deep/path/predicate 三种断言，报告逐夹具记录', async () => {
     const runtime = makeRuntime();
-    const report = await runDecisionTests(runtime, {
-      key: 'score-model',
-      model,
-      rev: 'v1',
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'score-model', model, rev: 'v1' }),
       fixtures: [
         {
           name: 'x=3 → score 3',
@@ -91,20 +99,13 @@ describe('Y7 决策测试夹具运行器', () => {
     expect(report.failed).toBe(1);
     const failed = report.results.find((r) => !r.passed);
     expect(failed?.error).toBe('expectation mismatch');
+    expect(failed?.outcome).toBe('assertion-failed');
   });
 
   test('journal 桩：observe UDF 走回放语义不重执行（效果隔离）', async () => {
     const runtime = makeRuntime();
-    await runWithExecContext({ tenantId: 'fixtures' }, () => {
-      runtime.createDecisionWithCacheKey('jm', model, 'v1');
-      return Promise.resolve();
-    });
-
-    // journal 桩：flag_udf 不执行，返回桩值 —— 夹具完全可复现
-    const report = await runDecisionTests(runtime, {
-      key: 'jm',
-      model,
-      rev: 'v1',
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'jm', model, rev: 'v1' }),
       fixtures: [
         {
           name: 'observe 走桩',
@@ -116,5 +117,116 @@ describe('Y7 决策测试夹具运行器', () => {
       ],
     });
     expect(report.failed).toBe(0);
+  });
+
+  test('smoke 语义：无 expect 的夹具 passed = 执行无异常（NamedExample 接入形态）', async () => {
+    const runtime = makeRuntime();
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'smoke', model, rev: 'v1' }),
+      fixtures: [{ name: '只跑不断言', input: { x: 6, flagged: false } }],
+    });
+    expect(report.passed).toBe(1);
+    expect(report.results[0]).toMatchObject({ outcome: 'passed', actual: { score: { value: 6 } } });
+    expect(report.results[0]?.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  test('expression 断言：可序列化，根绑定 result', async () => {
+    const runtime = makeRuntime();
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'expr', model, rev: 'v1' }),
+      expressionEvaluator: createZenExpressionEvaluator(),
+      fixtures: [
+        {
+          name: '表达式通过',
+          input: { x: 5, flagged: false },
+          expect: { mode: 'expression', source: 'result.score.value == 5' },
+        },
+        {
+          name: '表达式不通过',
+          input: { x: 5, flagged: false },
+          expect: { mode: 'expression', source: 'result.score.value == 999' },
+        },
+      ],
+    });
+    expect(report.passed).toBe(1);
+    expect(report.failed).toBe(1);
+    expect(report.results[1]?.outcome).toBe('assertion-failed');
+    expect(report.results[1]?.error).toBe('expectation mismatch');
+  });
+
+  test('expression 断言缺求值器 → assertion-failed 且 error 注明', async () => {
+    const runtime = makeRuntime();
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'expr-none', model, rev: 'v1' }),
+      fixtures: [
+        {
+          name: '缺求值器',
+          input: { x: 5, flagged: false },
+          expect: { mode: 'expression', source: 'result.score.value == 5' },
+        },
+      ],
+    });
+    expect(report.failed).toBe(1);
+    expect(report.results[0]?.error).toContain('expressionEvaluator');
+  });
+
+  test('outcome 三分：passed / assertion-failed / execution-error', async () => {
+    const runtime = makeRuntime();
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'outcomes', model, rev: 'v1' }),
+      fixtures: [
+        { name: '通过', input: { x: 2, flagged: false }, expect: { mode: 'path', path: 'score.value', value: 2 } },
+        { name: '断言失败', input: { x: 2, flagged: false }, expect: { mode: 'path', path: 'score.value', value: 0 } },
+        { name: '执行错误', input: { x: Number.NaN, flagged: false } },
+      ],
+    });
+    const outcomes = report.results.map((r) => r.outcome);
+    expect(outcomes).toEqual(['passed', 'assertion-failed', 'execution-error']);
+    expect(report.results[2]?.error).toContain('non-finite');
+  });
+
+  test('traceHits：executor 上报命中节点 id（结果矩阵列）', async () => {
+    const runtime = makeRuntime();
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'hits', model, rev: 'v1' }),
+      fixtures: [{ name: '命中', input: { x: 2, flagged: false } }],
+    });
+    expect(report.results[0]?.traceHits).toContain('c1');
+  });
+
+  test('__fixtures__ 键隔离：同键宿主模型不被夹具覆盖', async () => {
+    const runtime = makeRuntime();
+    await runWithExecContext({ tenantId: 'fixtures' }, () => {
+      runtime.createDecisionWithCacheKey('score-model', hostModel, 'v1');
+      return Promise.resolve();
+    });
+
+    const report = await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'score-model', model, rev: 'v1' }),
+      fixtures: [{ name: '夹具用自己的模型', input: { x: 3, flagged: false } }],
+    });
+    expect(report.passed).toBe(1);
+
+    // 宿主键未被覆盖：同键同 rev 求值仍是宿主直通模型（标记透传）；
+    // 若被夹具模型覆盖，输出会是 {score, flag, x, flagged} 而非标记
+    const hostOutcome = await runWithExecContext({ tenantId: 'fixtures' }, () =>
+      runtime.evaluateAsync('score-model', { hostMarker: 'keep' }, undefined, 'v1'),
+    );
+    expect(hostOutcome.result).toMatchObject({ hostMarker: 'keep' });
+  });
+
+  test('onProgress 逐夹具回调（携带 index/total）', async () => {
+    const runtime = makeRuntime();
+    const progress: Array<{ name: string; index: number; total: number }> = [];
+    await runDecisionTests({
+      executor: createRuntimeExecutor(runtime, { key: 'progress', model, rev: 'v1' }),
+      fixtures: [
+        { name: 'a', input: { x: 1, flagged: false } },
+        { name: 'b', input: { x: 2, flagged: false } },
+      ],
+      onProgress: (r, index, total) => progress.push({ name: r.name, index, total }),
+    });
+    expect(progress.map((p) => p.name)).toEqual(['a', 'b']);
+    expect(progress[0]).toMatchObject({ index: 0, total: 2 });
   });
 });
