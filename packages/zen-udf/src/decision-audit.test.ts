@@ -113,6 +113,31 @@ describe('Y2 决策审计事件', () => {
     expect(spies.observeCalls).toBeGreaterThan(0);
   });
 
+  test('Y2 免 trace 化：配置审计且不传 trace 选项——observed 仍完整、引擎 trace 不强制开启', async () => {
+    const events: DecisionAuditEvent[] = [];
+    const { registry, spies } = makeRegistry();
+    const runtime = new DecisionRuntime({ registry, onDecision: (e) => events.push(e) });
+    await runWithExecContext({ tenantId: TENANT }, () => {
+      runtime.createDecisionWithCacheKey('k3', mixedGraph('g3'), 'v1');
+      return Promise.resolve();
+    });
+    // 关键断言：options 不带任何 trace/debug 诉求（生产高频调用形态）
+    const result = await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-1' }, () =>
+      runtime.evaluateAsync('k3', { x: 9 }, undefined, 'v1'),
+    );
+    // 引擎 trace 未被强制开启——上游 traceData 成本不再随审计产生
+    expect(result.trace).toBeUndefined();
+    // 审计 observed 经分发器自记账仍完整（三语义 + outcome 快照）
+    expect(events).toHaveLength(1);
+    const bySemantics = Object.fromEntries(events[0]!.observed.map((o) => [o.name, o.semantics]));
+    expect(bySemantics['query_udf']).toBe('query');
+    expect(bySemantics['observe_udf']).toBe('observe');
+    expect(bySemantics['act_udf']).toBe('act');
+    // observed 携带 outcome 快照（该函数未声明参数 schema，位置绑定不落 kwargs 为既有语义）
+    expect(events[0]!.observed.find((o) => o.name === 'observe_udf')?.outcome).toEqual({ count: 1, x: 9 });
+    expect(spies.actCalls).toBe(1);
+  });
+
   test('sink 抛错不中断决策', async () => {
     const { registry } = makeRegistry();
     const runtime = new DecisionRuntime({

@@ -18,6 +18,12 @@ export interface ExecContext {
    * 仅限 CLI / 本地 / 单租户部署使用；多租户服务端禁止开启。
    */
   tenantExempt?: boolean;
+  /**
+   * 审计 journal 通道（Y2 免 trace 化，内部）：本次执行的 journal 注册表 opaque id。
+   * 随冻结副本跨 TSFN 传播，handleCustomNode 据其把 UDF 轨迹写入自记账 journal——
+   * 副本只透传 id，journal 本体不可被图表达式触及（§5 篡改加固性质保持）。
+   */
+  journalId?: string;
 }
 
 /** 单条 UDF 观测 journal（来自审计事件 observed；Y3 回放的数据源） */

@@ -40,6 +40,17 @@ export interface UdfTrace {
   idempotent?: boolean;
 }
 
+/**
+ * 审计 journal 注册表（Y2 免 trace 化）：evaluateAsync 为本次执行登记 accumulator，
+ * handleCustomNode（全部 UDF 调用的必经分发点）经冻结副本携带的 journalId 写入。
+ * 冻结副本只透传 opaque id——journal 本体不可被图表达式触及（§5 篡改加固性质保持）。
+ * 审计/OTel 由此不再依赖上游 traceData，生产高频面无需强制开启引擎 trace。
+ */
+const auditJournalRegistry = new Map<string, UdfTrace[]>();
+
+const newAuditJournalId = (): string =>
+  globalThis.crypto?.randomUUID?.() ?? `journal-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 /** 字段级差异（AA1 影子评估 diff 报告） */
 export interface ShadowDiffEntry {
   path: string;
@@ -384,9 +395,34 @@ class DecisionRuntime {
   }
 
   /**
-   * 审计事件（Y2）：配置 onDecision 后，evaluate 内部强制开启 trace，
-   * 从节点 traceData 收集 observed（含各 UDF 返回值快照），构造 DecisionAuditEvent 下发。
-   * sink 异常不中断决策（仅 console.error）。
+   * observed 收集（Y2 免 trace 化）：分发器自记账 journal 优先，节点 traceData 作
+   * 并集兜底——宿主 customHandler 自带 traceData 的节点只出现在后者。去重键
+   * key+name+micros（同一调用在两来源中为同值；跨 wasm 边界为克隆故按值去重）。
+   */
+  private collectObservedTraces(journal: UdfTrace[] | undefined, result: EvaluateResponse): UdfTrace[] {
+    const merged: UdfTrace[] = [];
+    const seen = new Set<string>();
+    const add = (t: UdfTrace): void => {
+      const dedupe = `${t.key}::${t.name}::${t.micros}`;
+      if (seen.has(dedupe)) return;
+      seen.add(dedupe);
+      merged.push(t);
+    };
+    for (const t of journal ?? []) add(t);
+    const trace = result.trace as
+      | Record<string, { traceData?: { udf?: Array<UdfTrace & { outcome?: unknown; semantics?: UdfSemantics }> } }>
+      | undefined;
+    for (const nodeTrace of Object.values(trace ?? {})) {
+      for (const t of nodeTrace?.traceData?.udf ?? []) add(t);
+    }
+    return merged;
+  }
+
+  /**
+   * 审计事件（Y2）：observed 来源=分发器自记账 journal 并集节点 traceData
+   * （journal 通道不可用时回退强制 trace，见 evaluateAsync）。配置后 evaluate
+   * 内部不再强制开启引擎 trace——生产高频面审计成本从全量 traceData 降到
+   * 仅 UDF 快照。sink 异常不中断决策（仅 console.error）。
    */
   private emitAudit(
     execCtx: ExecContext | undefined,
@@ -394,25 +430,18 @@ class DecisionRuntime {
     rev: string | undefined,
     rawInput: unknown,
     result: EvaluateResponse,
+    journal?: UdfTrace[],
   ): void {
     if (!this.onDecision) return;
     try {
-      const observed: DecisionObservedCall[] = [];
-      const trace = result.trace as
-        | Record<string, { traceData?: { udf?: Array<UdfTrace & { outcome?: unknown; semantics?: UdfSemantics }> } }>
-        | undefined;
-      for (const nodeTrace of Object.values(trace ?? {})) {
-        for (const t of nodeTrace?.traceData?.udf ?? []) {
-          observed.push({
-            key: t.key,
-            name: t.name,
-            semantics: t.semantics ?? 'query',
-            idempotent: t.idempotent,
-            outcome: t.outcome,
-            micros: t.micros,
-          });
-        }
-      }
+      const observed: DecisionObservedCall[] = this.collectObservedTraces(journal, result).map((t) => ({
+        key: t.key,
+        name: t.name,
+        semantics: t.semantics ?? 'query',
+        idempotent: t.idempotent,
+        outcome: t.outcome,
+        micros: t.micros,
+      }));
       const event: DecisionAuditEvent = {
         decisionId: execCtx?.decisionId ?? globalThis.crypto?.randomUUID?.() ?? `dec-${Date.now()}-${Math.random()}`,
         tenantId: execCtx?.tenantId ?? 'single',
@@ -448,30 +477,39 @@ class DecisionRuntime {
       assertJsonSafeInput(ctx);
       const decision = this.getDecision(key, rev);
       const execCtx = getExecContext();
-      // Y2：配置 onDecision 时强制 trace（observed 从节点 traceData 收集）
+      // Y2 审计免 trace 化：有执行上下文时 observed 经分发器自记账（handleCustomNode
+      // 是全部 UDF 调用的必经点；journal 经 journalId 注册表跨冻结副本传递），不再
+      // 强制上游 trace。上下文缺位的遗留调用面（CLI/豁免直调）journal 通道不可用，
+      // 保留旧行为：强制 trace + traceData 收集。
+      const needsAuditSink = this.onDecision != null || this.otel;
+      const journalId = needsAuditSink && execCtx ? newAuditJournalId() : undefined;
+      const journal = journalId ? ([] as UdfTrace[]) : undefined;
+      if (journalId && journal) auditJournalRegistry.set(journalId, journal);
       const evalOpts =
-        this.onDecision != null || this.otel
+        needsAuditSink && !journal
           ? ({ ...(options as Record<string, unknown> | undefined), trace: true } as ZenEvaluateOptions)
           : (options as ZenEvaluateOptions | null | undefined);
-      const result = (await decision.evaluate(
-        DecisionRuntime.enrichInputWithExecContext(ctx),
-        evalOpts,
-      )) as EvaluateResponse;
-      // 剥离输出中的上下文保留键（AA1：键仅用于跨 TSFN 传播，不进最终结论）
-      if (result.result !== null && typeof result.result === 'object' && !Array.isArray(result.result)) {
-        delete (result.result as Record<string, unknown>)[EXEC_CONTEXT_INPUT_KEY];
-      }
-      this.emitAudit(execCtx, key, rev, ctx, result);
-      // Y6：UdfTrace 作为 span events
-      if (span) {
-        const trace = result.trace as Record<string, { traceData?: { udf?: UdfTrace[] } }> | undefined;
-        for (const nodeTrace of Object.values(trace ?? {})) {
-          for (const t of nodeTrace?.traceData?.udf ?? []) {
+      try {
+        const evaluateCall = async () =>
+          decision.evaluate(DecisionRuntime.enrichInputWithExecContext(ctx), evalOpts) as Promise<EvaluateResponse>;
+        const result: EvaluateResponse = journalId
+          ? await runWithExecContext({ ...(execCtx as ExecContext), journalId }, evaluateCall)
+          : await evaluateCall();
+        // 剥离输出中的上下文保留键（AA1：键仅用于跨 TSFN 传播，不进最终结论）
+        if (result.result !== null && typeof result.result === 'object' && !Array.isArray(result.result)) {
+          delete (result.result as Record<string, unknown>)[EXEC_CONTEXT_INPUT_KEY];
+        }
+        this.emitAudit(execCtx, key, rev, ctx, result, journal);
+        // Y6：UdfTrace 作为 span events（与审计同一并集来源，不再依赖强制 trace）
+        if (span) {
+          for (const t of this.collectObservedTraces(journal, result)) {
             span.addEvent('zen-udf.udf', { key: t.key, name: t.name, micros: t.micros, code: t.code ?? 'ok' });
           }
         }
+        return result;
+      } finally {
+        if (journalId) auditJournalRegistry.delete(journalId);
       }
-      return result;
     };
     if (this.otel) {
       return withOtelSpan(
@@ -691,6 +729,10 @@ class DecisionRuntime {
       const traces: UdfTrace[] = [];
       const coroFuncs = exprAsts.map((item) => this.executeExpr(item, request.input, context, traces));
       const resultsArr = await Promise.all(coroFuncs);
+      // Y2 免 trace 化：同一份轨迹自记账进本次执行的审计 journal（journalId 注册表；
+      // traceData 仍随 handler 响应交给引擎透传——调试面不受影响）
+      const auditJournal = execCtx?.journalId ? auditJournalRegistry.get(execCtx.journalId) : undefined;
+      if (auditJournal) auditJournal.push(...traces);
       const results: Record<string, unknown> = {};
       exprAsts.forEach((item, i) => {
         results[item.key] = resultsArr[i];
