@@ -59,12 +59,17 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The registry CDN can lag the write by minutes AND the npm CLI caches
-      # metadata per-runner: the publish step itself queried the not-yet-
-      # published version (404 cached), so subsequent `npm view` polls in this
-      # same job served the stale 404 for 30+ minutes (0.13.1/0.14.0 false
-      # alarms) while the version was actually visible. Poll with a dedicated
-      # fresh cache dir + prefer-online so every attempt revalidates.
+      # Propagation has two distinct lag sources, both observed:
+      #  1. npm CLI per-job metadata cache (0.13.1/0.14.0) — fixed by a
+      #     dedicated fresh cache dir + prefer-online;
+      #  2. the runner-facing registry edge serving stale packuments for
+      #     minutes AFTER the version is publicly visible elsewhere
+      #     (0.14.1: npm-accepted, tarball 200 and packument present from
+      #     outside while the runner polled 404 for the full window).
+      # Poll BOTH channels — npm CLI and a raw registry-API fetch — either
+      # confirming visibility passes. The publish acceptance line (+ pkg@ver)
+      # remains the authoritative proof of write; this step only guards
+      # downstream smoke steps against racing the CDN.
       - name: Wait for registry propagation
         if: steps.publish.outputs.published != ''
         shell: bash
@@ -75,8 +80,15 @@ jobs:
             name="${entry%@*}"
             ver="${entry#*@}"
             ok=0
-            for i in $(seq 1 90); do
-              if npm view "$name@$ver" version --prefer-online --cache "$cache" > /dev/null 2>&1; then
+            for i in $(seq 1 60); do
+              enc=$(node -p "encodeURIComponent('$name').replace('%40','@').replace('/','%2f')")
+              if npm view "$name@$ver" version --prefer-online --cache "$cache" > /dev/null 2>&1 ||
+                 curl -fsS --max-time 20 "https://registry.npmjs.org/$enc" | node -e "
+                   let raw=''; process.stdin.on('data',(d)=>(raw+=d)); process.stdin.on('end',()=>{
+                     try { process.exit(JSON.parse(raw).versions?.['$ver'] ? 0 : 1); }
+                     catch { process.exit(1); }
+                   });"
+              then
                 echo "registry visible: $entry (attempt $i)"
                 ok=1
                 break
@@ -84,7 +96,7 @@ jobs:
               sleep 10
             done
             if [ "$ok" = "0" ]; then
-              echo "$entry not visible after 15min (cache-free polling)"
+              echo "$entry not visible after 10min on either channel"
               fail=1
             fi
           done
