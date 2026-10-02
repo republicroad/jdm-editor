@@ -13,6 +13,7 @@ import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
 import { type ConcurrencyLimiter } from './limiter.ts';
 import { withOtelSpan } from './otel.ts';
+import type { JsonSchema } from './register.ts';
 import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
@@ -694,6 +695,67 @@ class DecisionRuntime {
   }
 
   /**
+   * 规范化调用为 ADR-015 具名字典形态（CONTRACT §11 canonical）：
+   * `{ $call: fn, kwargs: {...} }`。
+   *
+   * 三形态同吃（与执行语义同源——经 normalizeOperatorCall）：
+   * - 具名对象：已规范（kwargs 信封）或 legacy 平面（除 $call 外键即参数），照实收编；
+   * - 位置数组：按 parametersSchema.properties 键序映射为具名；
+   *   **结构归一、值不造**——超出声明位的多余位置值原样收进保留键
+   *   `$positional`（$ 前缀与参数键永不碰撞，供漂移带按 extra 检出）；
+   * - 表达式字符串：经 parseOperatorExpr 同路径解析（与执行一致的单一事实源）；
+   *   不可解析返回 null。
+   *
+   * 编辑面用途：保存时归一（ADR-015 §2.3）+ 漂移带按名检测的输入侧。
+   */
+  static normalizeNamedCall(
+    value: unknown,
+    parametersSchema?: JsonSchema | null,
+  ): { $call: string; kwargs: Record<string, unknown> } | null {
+    if (value === null || value === undefined) return null;
+    let normalized: string | string[] | Record<string, unknown>;
+    try {
+      normalized = DecisionRuntime.normalizeOperatorCall(value as string | string[] | Record<string, unknown>);
+    } catch {
+      return null; // 不可解析（与执行侧 parserError 同源）
+    }
+    if (normalized !== null && typeof normalized === 'object' && !Array.isArray(normalized)) {
+      const callSpec = normalized as Record<string, unknown>;
+      const fn = String(callSpec['$call'] ?? '');
+      if (!fn) return null;
+      const envelope = callSpec['kwargs'];
+      if (envelope !== null && typeof envelope === 'object' && !Array.isArray(envelope)) {
+        return { $call: fn, kwargs: { ...(envelope as Record<string, unknown>) } };
+      }
+      const kwargs: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(callSpec)) {
+        if (k !== '$call') kwargs[k] = v;
+      }
+      return { $call: fn, kwargs };
+    }
+    if (!Array.isArray(normalized)) return null;
+    const fn = String(normalized[0] ?? '');
+    if (!fn) return null;
+    const positional = normalized.slice(1);
+    const props =
+      parametersSchema && typeof parametersSchema === 'object'
+        ? ((parametersSchema as { properties?: Record<string, unknown> }).properties ?? {})
+        : {};
+    const keys = Object.keys(props);
+    const kwargs: Record<string, unknown> = {};
+    positional.forEach((v, i) => {
+      if (i < keys.length) kwargs[keys[i]!] = v;
+    });
+    // 未映射的位置值（超声明位或无 schema 可依）原样收进保留键——值不造、键不造
+    if (positional.length > keys.length) {
+      kwargs.$positional = positional.slice(Math.max(keys.length, 0));
+    } else if (keys.length === 0 && positional.length > 0) {
+      kwargs.$positional = positional;
+    }
+    return { $call: fn, kwargs };
+  }
+
+  /**
    * 内置 customNode 分发器（L7/ADR-008）：经 this.registry 解析 UDF 工具，实例绑定
    * （多运行时互不串扰）。
    *
@@ -807,8 +869,17 @@ class DecisionRuntime {
           return badOutcome;
         }
         namedArgs = {};
-        for (const [k, v] of Object.entries(callSpec)) {
-          if (k !== '$call') namedArgs[k] = v;
+        // ADR-015 调用规范双读：{$call, kwargs} 嵌套信封（canonical）优先；
+        // legacy 平面形态（除 $call 外键即参数）长期兼容。kwargs 键为普通
+        // Record 时按信封解释——参数恰好名为 kwargs 的平面调用属歧义形态，
+        // 信封胜出（迁移规范形即消除歧义，CONTRACT §11）
+        const envelope = callSpec['kwargs'];
+        if (envelope !== null && typeof envelope === 'object' && !Array.isArray(envelope)) {
+          namedArgs = { ...(envelope as Record<string, unknown>) };
+        } else {
+          for (const [k, v] of Object.entries(callSpec)) {
+            if (k !== '$call') namedArgs[k] = v;
+          }
         }
       } else {
         const ast = Array.isArray(exprAst) ? exprAst : DecisionRuntime.parseOperatorExpr(exprAst as string);

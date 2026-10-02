@@ -377,6 +377,37 @@ class UdfRegistry {
   }
 
   /**
+   * 按名校验（ADR-015 调用规范 §3）：位置校验（validatePositionalArgs）的具名
+   * 对应物——三类结构化清单（与编辑面参数漂移带同构，编辑时孪生）：
+   * missing（声明且必填但缺）/ extra（未声明键）/ typeMismatch（声明类型不符）。
+   * 未注册函数返回空清单（与位置校验同款宽容）。
+   */
+  validateNamedArgs(
+    name: string,
+    kwargs: Record<string, unknown>,
+  ): {
+    missing: string[];
+    extra: string[];
+    typeMismatch: Array<{ name: string; expected: string; actual: string }>;
+  } {
+    if (!this.functions.has(name)) return { missing: [], extra: [], typeMismatch: [] };
+    const declared = new Map(this.positionalParams(name).map((param) => [param.name, param]));
+    const missing = [...declared.values()]
+      .filter((param) => param.required && (kwargs[param.name] === undefined || kwargs[param.name] === null))
+      .map((param) => param.name);
+    const extra = Object.keys(kwargs).filter((k) => !declared.has(k));
+    const typeMismatch: Array<{ name: string; expected: string; actual: string }> = [];
+    for (const [key, value] of Object.entries(kwargs)) {
+      const param = declared.get(key);
+      if (!param || param.jsonType == null || value === undefined || value === null) continue;
+      if (!matchJsonType(value, param.jsonType)) {
+        typeMismatch.push({ name: key, expected: param.jsonType, actual: describeJsonType(value) });
+      }
+    }
+    return { missing, extra, typeMismatch };
+  }
+
+  /**
    * 返回值契约校验（执行规范 §6.5）：按 returnsSchema 顶层断言
    * （type / required / properties 浅层类型）。返回错误清单（空数组 = 通过）。
    */
