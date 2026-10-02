@@ -4,6 +4,7 @@
 import './reference.ts';
 
 export { tool, pack, toConformance } from './tool.ts';
+export { toMcpTool, type McpToolView } from './tool.ts';
 export type { UdfTool, UdfToolDef, UdfPackDef, ToolContext, ToolExample } from './tool.ts';
 export {
   DecisionRuntime,
@@ -42,23 +43,18 @@ export {
 export {
   UdfRegistry,
   globalUdfRegistry,
-  registerUdf,
-  createExtRegister,
-  createUdfRegistry,
+  createUdfRuntime,
   validatePack,
   packWarnings,
   packChecks,
-  defineToolFor,
   RESERVED_NAMESPACE_PREFIXES,
   reservedNamespaceViolation,
   type PackQualityIssue,
-  type ToolCallContext,
   type UdfPack,
   type UdfPackMeta,
   type UdfSemantics,
-  type CreateUdfRegistryOptions,
+  type CreateUdfRuntimeOptions,
   type ContribToolDef,
-  type ContribDef,
   type UdfSchema,
   type UdfSchemaParameter,
   type JsonSchema,
@@ -80,7 +76,7 @@ export {
 } from './fixtures.ts';
 export { createRuntimeExecutor } from './runtime-executor.ts';
 export { createZenExpressionEvaluator } from './expression-evaluator.ts';
-export { configureHttpUdf, type EgressGuard, type SecretResolver } from './contrib/http.ts';
+export { currentEgressPolicy, type EgressGuard, type SecretResolver } from './contrib/http.ts';
 export {
   setRateStore,
   getRateStore,

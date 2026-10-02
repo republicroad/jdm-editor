@@ -217,6 +217,7 @@ describe('Y3 replay 模式（确定性回放）', () => {
       key: 'k',
       rev: 'v1',
       inputHash: 'deadbeef',
+      journalVersion: 1,
       output: {},
       processingTime: '2026-09-13T00:00:00Z',
       source: 'live',
@@ -234,4 +235,58 @@ describe('Y3 replay 模式（确定性回放）', () => {
     });
     return runtime.evaluateReplay(audit, input);
   }
+});
+
+describe('1.0 审计哈希链与 journalVersion', () => {
+  test('observed 逐条 hash 链可重算验证（种子=inputHash），journalDigest=链终值', async () => {
+    const { createHash } = await import('node:crypto');
+    const events: DecisionAuditEvent[] = [];
+    const { registry } = makeRegistry();
+    const runtime = new DecisionRuntime({ registry, onDecision: (e) => events.push(e) });
+    await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-chain' }, () => {
+      runtime.createDecisionWithCacheKey('kc', mixedGraph('gc'), 'v1');
+      return Promise.resolve();
+    });
+    await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-chain' }, () =>
+      runtime.evaluateAsync('kc', { x: 5 }, undefined, 'v1'),
+    );
+    const audit = events[events.length - 1]!;
+    expect(audit.journalVersion).toBe(1);
+    expect(audit.journalDigest).toBeTruthy();
+    // 链重算：h0=inputHash，hI=sha256(h(I-1)+稳定序列化)
+    let chain = audit.inputHash;
+    for (const o of audit.observed) {
+      const expectHash = createHash('sha256')
+        .update(
+          chain +
+            JSON.stringify({ key: o.key, name: o.name, semantics: o.semantics, outcome: o.outcome, micros: o.micros }),
+        )
+        .digest('hex');
+      expect(o.hash).toBe(expectHash);
+      chain = expectHash;
+    }
+    expect(chain).toBe(audit.journalDigest);
+  });
+
+  test('act 语义快照 MUST NOT 携带入参载荷（结构面：observed 无入参字段）', async () => {
+    const events: DecisionAuditEvent[] = [];
+    const { registry } = makeRegistry();
+    const runtime = new DecisionRuntime({ registry, onDecision: (e) => events.push(e) });
+    await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-ni' }, () => {
+      runtime.createDecisionWithCacheKey('kn', mixedGraph('gn'), 'v1');
+      return Promise.resolve();
+    });
+    await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-ni' }, () =>
+      runtime.evaluateAsync('kn', { x: 3, secretPayload: 'SENSITIVE' }, undefined, 'v1'),
+    );
+    const audit = events[events.length - 1]!;
+    for (const o of audit.observed) {
+      const keys = Object.keys(o);
+      // 快照面 = key/name/semantics/idempotent/outcome/micros/hash——无任何入参字段
+      expect(
+        keys.every((k) => ['key', 'name', 'semantics', 'idempotent', 'outcome', 'micros', 'hash'].includes(k)),
+      ).toBe(true);
+      expect(JSON.stringify(o)).not.toContain('secretPayload');
+    }
+  });
 });

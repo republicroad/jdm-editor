@@ -180,3 +180,33 @@ describe('ADR-015 增补：实例依赖调度（行内顺序求值进函数节�
     expect(outcome).toMatchObject({ x: { v: 1 }, y: { v: 2 } });
   });
 });
+
+describe('1.0 toMcpTool 派生视图（MCP annotations 单一事实源）', () => {
+  test('query → readOnlyHint；act → !readOnly + idempotentHint 直映', async () => {
+    const { tool } = await import('./tool.ts');
+    const { toMcpTool } = await import('./tool.ts');
+    const { Type } = await import('@sinclair/typebox');
+    const q = tool({
+      namespace: 'x',
+      name: 'q',
+      description: 'd',
+      input: Type.Object({}),
+      semantics: 'query',
+      run: () => ({}),
+    });
+    const act = tool({
+      namespace: 'x',
+      name: 'a',
+      description: 'd',
+      title: 'Act!',
+      input: Type.Object({}),
+      semantics: 'act',
+      idempotent: true,
+      run: () => ({}),
+    });
+    expect(toMcpTool(q).annotations).toEqual({ readOnlyHint: true });
+    expect(toMcpTool(act).annotations).toEqual({ readOnlyHint: false, idempotentHint: true });
+    expect(toMcpTool(act).name).toBe('x.a');
+    expect(toMcpTool(act).title).toBe('Act!');
+  });
+});

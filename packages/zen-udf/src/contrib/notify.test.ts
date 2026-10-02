@@ -1,7 +1,8 @@
 import { type IncomingMessage, type Server, type ServerResponse, createServer } from 'node:http';
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { configureHttpUdf } from './http.ts';
+import type { UdfPorts } from '../ports.ts';
+import { setPorts } from '../runtime-ports.ts';
 import { notifyWebhook } from './notify.ts';
 
 let server: Server;
@@ -44,7 +45,7 @@ afterAll(() => {
 beforeEach(() => {
   hits.length = 0;
   // 每条用例回到"无守卫、无密钥"开发态基线
-  configureHttpUdf({});
+  setPorts({} as UdfPorts);
   respond = (_req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end('{"ok":true}');
@@ -124,7 +125,7 @@ describe('notify_webhook 结果语义', () => {
 
 describe('notify_webhook 出口纪律', () => {
   test('webhook 支持 ${secret:引用} 且经密钥解析出真实地址', async () => {
-    configureHttpUdf({ secretResolver: { resolve: async (ref) => `${baseUrl}/${ref}` } });
+    setPorts({ secretResolver: { resolve: async (ref) => `${baseUrl}/${ref}` } } as UdfPorts);
     const result = (await notifyWebhook({
       channel: 'feishu',
       webhook: '${secret:feishu-bot}',
@@ -146,13 +147,13 @@ describe('notify_webhook 出口纪律', () => {
   });
 
   test('EgressGuard 拒绝: policyBlocked 不出网', async () => {
-    configureHttpUdf({
+    setPorts({
       egressGuard: {
         assertAllowed: () => {
           throw new Error('tenant egress deny');
         },
       },
-    });
+    } as UdfPorts);
     const result = (await notifyWebhook({ channel: 'feishu', webhook: `${baseUrl}/hook`, message: 'hi' })) as Record<
       string,
       unknown

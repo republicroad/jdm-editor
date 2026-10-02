@@ -14,7 +14,7 @@ const fixtures = JSON.parse(
 ) as {
   contract: string;
   cases: Array<{
-    kind: 'tool' | 'equivalence' | 'registry';
+    kind: 'tool' | 'equivalence' | 'registry' | 'flat-removed';
     name?: string;
     tool?: Record<string, unknown>;
     handler?: string;
@@ -84,33 +84,22 @@ describe(`CONTRACT conformance（fixtures v${fixtures.contract}）`, () => {
       });
     }
 
-    if (c.kind === 'equivalence') {
-      describe(`双形态等价：${c.name}`, () => {
-        // 四点口径（ADR-011 开放问题 5）：validate / 缺参报错 / bind / call 逐字段相等
+    if (c.kind === 'flat-removed') {
+      // 1.0 行为锁（B 案终裁）：扁平 parameters 声明不再合成 parametersSchema——
+      // 注册后无位置参数（positionalParams 空），位置绑定按 R1 报必填缺失
+      describe(`1.0 行为锁：扁平声明已移除（${c.name}）`, () => {
         const flatReg = freshRegistry();
         flatReg.registerFunction((kwargs) => HANDLERS.credit_score(kwargs), 'eq', c.flat as never, c.flat!.name);
-        const canonReg = freshRegistry();
-        canonReg.registerFunction(
-          (kwargs) => HANDLERS.credit_score(kwargs),
-          'eq',
-          c.canonical as never,
-          c.canonical!.name,
-        );
 
-        const args = c.positionalArgs ?? [];
+        test('扁平声明不合成 parametersSchema：positionalParams 为空', () => {
+          expect(flatReg.validatePositionalArgs(c.flat!.name, [])).toEqual([]);
+          expect(flatReg.funcBindParams(c.flat!.name, [])).toEqual({});
+        });
 
-        test('validate（合法位置参数）两点相等', () => {
-          expect(flatReg.validatePositionalArgs(c.flat!.name, args)).toEqual(
-            canonReg.validatePositionalArgs(c.canonical!.name, args),
-          );
-        });
-        test('bind 逐字段相等', () => {
-          expect(flatReg.funcBindParams(c.flat!.name, args)).toEqual(canonReg.funcBindParams(c.canonical!.name, args));
-        });
-        test('call 结果相等', async () => {
-          const a = await flatReg.call(c.flat!.name, flatReg.funcBindParams(c.flat!.name, args));
-          const b = await canonReg.call(c.canonical!.name, canonReg.funcBindParams(c.canonical!.name, args));
-          expect(a).toEqual(b);
+        test('位置绑定不抛错但无参数可绑（bind 返回空 kwargs——声明已移除）', () => {
+          const schema = flatReg.udfFunctionSchema(c.flat!.name);
+          expect(schema?.parametersSchema).toBeUndefined();
+          expect(flatReg.funcBindParams(c.flat!.name, [600])).toEqual({});
         });
       });
     }

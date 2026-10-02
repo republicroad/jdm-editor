@@ -1,6 +1,6 @@
 # zen-udf Tool Contract Specification（工具契约规范）
 
-- 版本：0.1.0-draft（本规范的变更遵循 §8 演进规则；契约版本号独立于 zen-udf 包版本）
+- 版本：**1.0.0**（随 zen-udf 1.0.0 冻结；本规范的变更遵循 §8 演进规则；契约版本号独立于 zen-udf 包版本）
 - 状态：基石规范——zen-udf 各语言实现（当前 TypeScript 参考实现 + 未来移植版）的
   统一约束；多语言移植的验收 = 通过 §7 conformance 全量 fixtures
 - 语言：本规范语言中立；规范性（normative）部分以 MUST/SHOULD/MAY 表述（RFC 2119 语义）
@@ -298,3 +298,15 @@ executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
   执行前替换为裸键（仅对已完成依赖键、词边界精确）；
 - **零边快路径**：无依赖边 = 单层全并行（原 `Promise.all` 直通，零开销）；
 - **调度器单源**：Y3 回放与执行共用同一调度序（拓扑序回放防垫回错位）。
+
+## 12. 一致性档位（Conformance Profiles，1.0 验收基准）
+
+zen-udf 实现按三档验收；档位递增累积（B 含 A，C 含 B）：
+
+| 档位                       | 覆盖面                                                                                            | 验收                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------- |
+| **Profile A · 核心执行**   | §3 声明契约 + §5 执行三动作（validate/bind/call）+ §11 调用形态双读 + §10 夹具契约                | §7 全量 fixtures 通过     |
+| **Profile B · 信任链**     | A + Y3 回放（journal 垫回/asOf/REPLAY_JOURNAL_MISS fail-closed）+ 审计哈希链与 journalDigest 重算 | §10 夹具 + 回放一致性断言 |
+| **Profile C · 服务端全量** | B + 多租户 ExecContext + 端口面（§6）+ 实例依赖调度（§11.5）+ breaker/limiter/审计                | 全量 1100 用例            |
+
+多语言移植版按目标部署面选档认证；档位明示于实现的兼容性声明中。

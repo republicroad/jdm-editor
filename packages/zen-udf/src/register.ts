@@ -59,7 +59,7 @@ export interface CustomFunctionTool {
     type?: 'object';
   };
   returns: JsonSchema;
-  namespace: string;
+  namespace?: string;
   kind: string;
   semantics: UdfSemantics;
   idempotent?: boolean;
@@ -83,10 +83,10 @@ export interface CustomNodeNamespace {
 export type UdfSemantics = 'query' | 'observe' | 'act';
 const UDF_SEMANTICS: readonly UdfSemantics[] = ['query', 'observe', 'act'];
 
-/** UDF 声明 schema(向后兼容：扁平 parameters 与完整 parametersSchema 二选一或并存) */
+/** UDF 声明 schema（1.0：parametersSchema 唯一声明形态——扁平 parameters 声明已移除） */
 export interface UdfSchema {
-  parameters?: Record<string, UdfSchemaParameter>;
   returns?: { type?: string; description?: string };
+  /** 所属 namespace：由 registerFunction/register 显式供给（不存在默认命名空间，'default' 已入保留清单） */
   namespace?: string;
   /** 完整 JSON Schema 形式的参数定义(用于 /api/custom-nodes/schema 下发) */
   parametersSchema?: {
@@ -103,7 +103,7 @@ export interface UdfSchema {
   /** act 语义的幂等声明（Z1）：缺失时 validatePack 产生警告（不阻断），verdict 审计可见 */
   idempotent?: boolean;
   /** 弃用标记（A4）：目录/补全/画布三处标黄提示；since 为弃用发生的版本 */
-  deprecated?: { since?: string; note?: string };
+  deprecated?: { since?: string; note?: string; replacement?: string };
 }
 
 interface UdfEntry {
@@ -116,7 +116,7 @@ interface UdfEntry {
  * signal 在 kwargs.timeout 到点或上游取消时 abort——重 I/O 函数（Redis/DB/HTTP）
  * 必须把它传给底层客户端，否则超时返回后底层调用仍占着连接继续执行。
  */
-export interface ToolCallContext {
+export interface ToolContext {
   namespace?: string;
   name: string;
   tenantId?: string;
@@ -128,7 +128,7 @@ export interface ToolCallContext {
 }
 
 /** 可注册的 UDF 函数签名(动态注册表，运行时统一以单个 kwargs 对象调用；第二参为调用上下文) */
-type UdfFunction = (kwargs: Record<string, unknown>, call?: ToolCallContext) => unknown;
+type UdfFunction = (kwargs: Record<string, unknown>, call?: ToolContext) => unknown;
 
 /** JSON Schema type 语义匹配（校验用；'any'/'null' 恒真，未知类型不判违例） */
 function matchJsonType(value: unknown, type: string): boolean {
@@ -174,15 +174,20 @@ function jsonT2pyT(jsonType: string): (v: unknown) => unknown {
 }
 
 /**
- * 归一化 UdfSchema：
- * - 提供了 parametersSchema 时，自动派生扁平 parameters(供 funcBindParams 绑定/执行)
- * - 只提供扁平 parameters 时，自动合成 parametersSchema(供 schema 下发，保持旧调用方兼容)
+ * 归一化 UdfSchema（1.0）：parametersSchema 唯一声明形态——扁平 parameters
+ * 由 parametersSchema 派生（运行时绑定缓存，funcBindParams/positionalParams
+ * 的执行素材）；扁平声明入口已随 1.0 移除（B 案终裁）。
  */
-function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
-  const normalized: UdfSchema = {
-    parameters: schema.parameters ?? {},
+function normalizeUdfSchema(
+  schema: UdfSchema,
+  namespace: string,
+): UdfSchema & {
+  parameters: Record<string, UdfSchemaParameter>;
+} {
+  const normalized: UdfSchema & { parameters: Record<string, UdfSchemaParameter> } = {
+    parameters: {},
     returns: schema.returns ?? { type: 'null' },
-    namespace: schema.namespace ?? 'default',
+    namespace,
     description: schema.description,
     semantics: schema.semantics ?? 'query',
     deprecated: schema.deprecated,
@@ -190,42 +195,17 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
 
   if (schema.parametersSchema) {
     normalized.parametersSchema = schema.parametersSchema;
-    if (!normalized.parameters || Object.keys(normalized.parameters).length === 0) {
-      const derived: Record<string, UdfSchemaParameter> = {};
-      for (const [name, prop] of Object.entries(schema.parametersSchema.properties)) {
-        // JSON Schema 联合类型（type 数组）与 anyOf：派生为 'any'（绑定透传不折值）——
-        // 曾错误归 'null' 致该类参数绑定值一律被置 null（ADR-015 实施期发现）
-        derived[name] = {
-          type: typeof prop.type === 'string' ? prop.type : Array.isArray(prop.type) || prop.anyOf ? 'any' : 'null',
-          description: prop.description,
-          default: prop.default,
-        };
-      }
-      normalized.parameters = derived;
-    }
-  } else if (schema.parameters && Object.keys(schema.parameters).length > 0) {
-    const synthesized: {
-      properties: Record<string, JsonSchemaProperty>;
-      required: string[];
-      title: string;
-      type: 'object';
-    } = {
-      properties: {},
-      required: [],
-      title: '',
-      type: 'object',
-    };
-    for (const [name, param] of Object.entries(schema.parameters)) {
-      synthesized.properties[name] = {
-        type: param.type,
-        description: param.description,
-        default: param.default,
+    const derived: Record<string, UdfSchemaParameter> = {};
+    for (const [name, prop] of Object.entries(schema.parametersSchema.properties)) {
+      // JSON Schema 联合类型（type 数组）与 anyOf：派生为 'any'（绑定透传不折值）——
+      // 曾错误归 'null' 致该类参数绑定值一律被置 null（ADR-015 实施期发现）
+      derived[name] = {
+        type: typeof prop.type === 'string' ? prop.type : Array.isArray(prop.type) || prop.anyOf ? 'any' : 'null',
+        description: prop.description,
+        default: prop.default,
       };
-      if (param.default === undefined) {
-        synthesized.required.push(name);
-      }
     }
-    normalized.parametersSchema = synthesized;
+    normalized.parameters = derived;
   }
 
   if (schema.returnsSchema) {
@@ -255,7 +235,9 @@ class UdfRegistry {
   private assertNoNamespaceCollision(name: string, namespace: string): void {
     const existingNamespaces = new Set<string>();
     for (const entry of this.functions.values()) {
-      existingNamespaces.add(entry.schema.namespace ?? 'default');
+      if (entry.schema.namespace !== undefined) {
+        existingNamespaces.add(entry.schema.namespace);
+      }
     }
     if (name !== namespace && existingNamespaces.has(name)) {
       throw new Error(
@@ -271,7 +253,8 @@ class UdfRegistry {
 
   registerFunction(
     fn: UdfFunction,
-    namespace?: string,
+    /** 1.0 起必填——不存在默认命名空间（'default' 已入保留清单） */
+    namespace: string,
     schema?: UdfSchema,
     nameOverride?: string,
     options?: { force?: boolean },
@@ -280,26 +263,32 @@ class UdfRegistry {
     if (!name) {
       throw new Error('Function must have a name to register');
     }
+    const reserved = reservedNamespaceViolation(namespace);
+    if (reserved) {
+      throw new Error(`[udf] ${reserved}`);
+    }
     if (!options?.force) {
-      this.assertNoNamespaceCollision(name, namespace ?? 'default');
+      this.assertNoNamespaceCollision(name, namespace);
     }
     this.functions.set(name, {
       fn,
-      schema: normalizeUdfSchema({
-        parameters: schema?.parameters ?? {},
-        returns: schema?.returns ?? { type: 'null' },
-        namespace: namespace ?? 'default',
-        semantics: schema?.semantics,
-        parametersSchema: schema?.parametersSchema,
-        returnsSchema: schema?.returnsSchema,
-        description: schema?.description,
-        deprecated: schema?.deprecated,
-      }),
+      schema: normalizeUdfSchema(
+        {
+          returns: schema?.returns ?? { type: 'null' },
+          namespace,
+          semantics: schema?.semantics,
+          parametersSchema: schema?.parametersSchema,
+          returnsSchema: schema?.returnsSchema,
+          description: schema?.description,
+          deprecated: schema?.deprecated,
+        },
+        namespace,
+      ),
     });
   }
 
-  /** 批量注册工具定义（UdfPack / reference 域装载共用；namespace 缺省 'default'） */
-  registerTools(defs: ContribToolDef[], namespace?: string): void {
+  /** 批量注册工具定义（UdfPack 装载内部通道；namespace 必填） */
+  registerTools(defs: ContribToolDef[], namespace: string): void {
     for (const def of defs) {
       this.registerFunction(
         def.fn,
@@ -352,15 +341,9 @@ class UdfRegistry {
         };
       });
     }
-    // legacy：仅扁平声明（规范化会合成 parametersSchema；此回退保护未规范化直调）
-    return Object.entries(schema.parameters ?? {}).map(([paramName, param]) => ({
-      name: paramName,
-      jsonType: typeof param.type === 'string' ? param.type : null,
-      description: param.description,
-      hasDefault: param.default !== undefined,
-      default: param.default,
-      required: param.default === undefined,
-    }));
+    // 1.0：扁平声明已移除——无 parametersSchema 的函数无位置参数
+    // （normalized.parameters 缓存仅供 funcBindParams 兼容读取，不再回退声明）
+    return [];
   }
 
   validatePositionalArgs(name: string, args: unknown[]): string[] {
@@ -441,8 +424,11 @@ class UdfRegistry {
     return issues;
   }
 
-  udfFunctionSchema(name: string): UdfSchema | undefined {
-    return this.functions.get(name)?.schema;
+  /** 归一化 schema（含由 parametersSchema 派生的扁平 parameters 绑定缓存） */
+  udfFunctionSchema(name: string): (UdfSchema & { parameters: Record<string, UdfSchemaParameter> }) | undefined {
+    return this.functions.get(name)?.schema as
+      | (UdfSchema & { parameters: Record<string, UdfSchemaParameter> })
+      | undefined;
   }
 
   funcBindParams(name: string, args: unknown[]): Record<string, unknown> {
@@ -498,12 +484,12 @@ class UdfRegistry {
     return { kwargs, issues };
   }
 
-  async call(udfName: string, kwargs?: Record<string, unknown>, callCtx?: ToolCallContext): Promise<unknown> {
+  async call(udfName: string, kwargs?: Record<string, unknown>, callCtx?: ToolContext): Promise<unknown> {
     const entry = this.functions.get(udfName);
     if (!entry) {
       throw new Error(`Function '${udfName}' is not registered in UdfRegistry`);
     }
-    const result = entry.fn(kwargs ?? {}, callCtx && { ...callCtx, namespace: entry.schema.namespace ?? 'default' });
+    const result = entry.fn(kwargs ?? {}, callCtx && { ...callCtx, namespace: entry.schema.namespace });
     return result instanceof Promise ? await result : result;
   }
 
@@ -559,7 +545,7 @@ class UdfRegistry {
       const existing = this.functions.get(t.name);
       if (existing && !t.overwrite) {
         throw new Error(
-          `[udf] tool '${t.name}' already registered by namespace '${existing.schema.namespace ?? 'default'}' (declare overwrite: true to take over)`,
+          `[udf] tool '${t.name}' already registered by namespace '${existing.schema.namespace}' (declare overwrite: true to take over)`,
         );
       }
       if (t.meta) {
@@ -603,7 +589,8 @@ class UdfRegistry {
   udfFunctionSchemaNamespaces(): CustomNodeNamespace[] {
     const namespaces = new Map<string, CustomNodeNamespace>();
     for (const [name, entry] of this.functions.entries()) {
-      const ns = entry.schema.namespace ?? 'default';
+      // 手工 schema 可能未带 namespace（normalizeUdfSchema 显式供给前的直构形态）——目录归 'ungrouped'
+      const ns = entry.schema.namespace ?? 'ungrouped';
       let nsObj = namespaces.get(ns);
       if (!nsObj) {
         nsObj = {
@@ -640,25 +627,11 @@ class UdfRegistry {
 
 const globalUdfRegistry = new UdfRegistry();
 
-/** @deprecated ADR-011：改用 defineTool + registry.register（0.11.0 起兼容保留，1.0 移除） */
-function registerUdf(name: string, namespace?: string, schema?: UdfSchema): (fn: UdfFunction) => UdfFunction {
-  return (fn: UdfFunction) => {
-    globalUdfRegistry.registerFunction(fn, namespace, schema, name);
-    return fn;
-  };
-}
-
 /**
- * ext 扩展文件专用注册器（ext 约定：文件名即 namespace，函数缺省注册到该 namespace）。
- * 用法：const registerUdf = createExtRegister(import.meta.url); 之后 registerUdf(name, schema)(fn)。
- * 需要显式指定 namespace 时使用全局 registerUdf(name, namespace, schema)。
+ * contrib 域单工具定义（UdfPack.tools 数组项；字段与 UdfSchema 注册参数一致）。
+ * 1.0 起这是宿主业务包（verdict 纯数据+处理器注入）的工具形态——contrib 参考域
+ * 已全部迁理想态 tool()/pack()，遗留 defineContrib/defineTool 出口已移除。
  */
-export function createExtRegister(importMetaUrl: string) {
-  const namespace = decodeURIComponent(importMetaUrl.split('/').pop() ?? '').replace(/\.[^.]+$/, '');
-  return (name: string, schema?: UdfSchema): ((fn: UdfFunction) => UdfFunction) => registerUdf(name, namespace, schema);
-}
-
-/** contrib 域单工具定义（defineContrib 数组项；字段与 UdfSchema 注册参数一致） */
 export interface ContribToolDef {
   name: string;
   description?: string;
@@ -668,55 +641,15 @@ export interface ContribToolDef {
   idempotent?: boolean;
   parametersSchema?: UdfSchema['parametersSchema'];
   returnsSchema?: UdfSchema['returnsSchema'];
-  /** 弃用标记（A4）：透传至 schema/目录/补全 */
-  deprecated?: { since?: string; note?: string };
+  /** 弃用标记（A4）：透传至 schema/目录/补全；replacement 指引替代函数 */
+  deprecated?: { since?: string; note?: string; replacement?: string };
   /**
    * ADR-009：跨 namespace 函数名撞名时的显式接管声明——true 时免撞名失败，
-   * 后注册者覆盖（与 registerUdf 的 force 同语义，报错信息会提示本出口）。
+   * 后注册者覆盖（与 registerFunction 的 force 同语义，报错信息会提示本出口）。
    */
   overwrite?: boolean;
   fn: UdfFunction;
 }
-
-/** contrib 域定义（defineContrib 的入参） */
-export interface ContribDef {
-  tools: ContribToolDef[];
-}
-
-/**
- * contrib 域单调用注册（第七十七批 ergonomics）：文件名即 namespace，tools 逐个挂载。
- * 返回传入的 tools（便于测试断言与再导出）。旧 createExtRegister/registerUdf 签名保留向后兼容。
- */
-/** @deprecated ADR-011：改用 defineTool + pack()（0.11.0 起兼容保留，1.0 移除） */
-export function defineContrib(importMetaUrl: string, def: ContribDef): ContribToolDef[] {
-  const namespace = decodeURIComponent(importMetaUrl.split('/').pop() ?? '').replace(/\.[^.]+$/, '');
-  for (const tool of def.tools) {
-    registerUdf(tool.name, namespace, {
-      description: tool.description,
-      parametersSchema: tool.parametersSchema,
-      returnsSchema: tool.returnsSchema,
-      semantics: tool.semantics,
-      idempotent: tool.idempotent,
-    })(tool.fn);
-  }
-  return def.tools;
-}
-
-/** 单工具声明助手：为字面量提供 ContribToolDef 类型检查与补全 */
-export const defineTool = (tool: ContribToolDef): ContribToolDef => tool;
-
-/**
- * 泛型变体：宿主为 fn 的 kwargs 声明类型，获得参数补全与静态检查
- * （schema 仍是运行时唯一权威——类型只是它的开发态影子）。
- * @example
- * defineTool<{ key: string }>({
- *   name: 'get',
- *   fn: async (kwargs) => pool.get(kwargs.key),  // kwargs: { key: string }
- * })
- */
-export const defineToolFor = <TParams extends Record<string, unknown>>(
-  tool: Omit<ContribToolDef, 'fn'> & { fn: (kwargs: TParams, call?: ToolCallContext) => unknown },
-): ContribToolDef => tool as unknown as ContribToolDef;
 
 /**
  * UdfPack：宿主业务函数包契约（verdict 等仓以纯数据 + 处理器形态注入）。
@@ -749,7 +682,7 @@ export interface UdfPackMeta {
  * ADR-009 namespace 立法：保留前缀给 zen-udf 本体与参考域，宿主通用扩展与行业包
  * 禁用（精确名或点分前缀命中，如 'zen'/'zen.ext' 拒绝、'zenkit' 放行）。
  */
-export const RESERVED_NAMESPACE_PREFIXES: readonly string[] = ['zen', 'core', 'reference', 'builtin'];
+export const RESERVED_NAMESPACE_PREFIXES: readonly string[] = ['zen', 'core', 'reference', 'builtin', 'default'];
 
 export const reservedNamespaceViolation = (namespace: string): string | null => {
   const hit = RESERVED_NAMESPACE_PREFIXES.find((r) => namespace === r || namespace.startsWith(`${r}.`));
@@ -786,8 +719,9 @@ export interface PackQualityIssue {
  * 注册前的形状硬校验仍由 validatePack 独立承担；本函数供宿主 CI 与 verdict 登记页使用。
  */
 export function packChecks(pack: UdfPack): PackQualityIssue[] {
+  const namespace = pack.namespace ?? '';
   const issues: PackQualityIssue[] = [];
-  if (!/^[a-z][a-z0-9_-]*$/.test(pack.namespace)) {
+  if (!/^[a-z][a-z0-9_-]*$/.test(namespace)) {
     issues.push({
       check: 'namespace-convention',
       severity: 'warning',
@@ -832,7 +766,7 @@ export function packChecks(pack: UdfPack): PackQualityIssue[] {
   return issues;
 }
 
-/** 校验 UdfPack 形状，返回错误清单（空数组 = 通过）。createUdfRegistry 注册前自动调用 */
+/** 校验 UdfPack 形状，返回错误清单（空数组 = 通过）。createUdfRuntime 注册前自动调用 */
 export function validatePack(pack: UdfPack): string[] {
   const errors: string[] = [];
   if (!pack.namespace || typeof pack.namespace !== 'string') {
@@ -889,7 +823,7 @@ export function validatePack(pack: UdfPack): string[] {
   return errors;
 }
 
-export interface CreateUdfRegistryOptions {
+export interface CreateUdfRuntimeOptions {
   /** 业务函数包（deploy-time 注入）；注册前逐个 validatePack，违例整体失败 */
   packs?: UdfPack[];
   /** 策略层端口（CONTRACT §6）：组合根一次注入，handlers 经 getPorts() 读取（单进程语义） */
@@ -900,7 +834,7 @@ export interface CreateUdfRegistryOptions {
  * 构建隔离的 UdfRegistry 实例（U6）：多运行时/多租户实例注入的推荐入口。
  * 参考函数域按需经 loadReferenceInto(registry) 装载（builtin: 'reference' 语义）。
  */
-export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRegistry {
+export function createUdfRuntime(options: CreateUdfRuntimeOptions = {}): UdfRegistry {
   const registry = new UdfRegistry();
   if (options.ports) setPorts(options.ports);
   // ADR-009 撞名检测（deploy 期 fail fast，报错列出冲突 namespace——实施加强注记 1）：
@@ -941,4 +875,4 @@ export function createUdfRegistry(options: CreateUdfRegistryOptions = {}): UdfRe
   return registry;
 }
 
-export { UdfRegistry, globalUdfRegistry, registerUdf };
+export { UdfRegistry, globalUdfRegistry };

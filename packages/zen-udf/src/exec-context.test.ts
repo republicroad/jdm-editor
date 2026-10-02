@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { getExecContext, runWithExecContext } from './exec-context.ts';
-import { globalUdfRegistry, registerUdf } from './register.ts';
+import { globalUdfRegistry } from './register.ts';
 
 describe('exec-context', () => {
   test('无上下文时返回 undefined', () => {
@@ -22,13 +22,18 @@ describe('exec-context', () => {
   });
 
   test('UDF 经 getExecContext 读到各自 userId(并发注册函数探针)', async () => {
-    registerUdf('exec_probe_test', 'risk', {
-      description: 'test probe',
-      parametersSchema: { properties: {}, title: 'exec_probe_test', type: 'object' },
-      returnsSchema: { type: 'object', title: 'probe', properties: {} },
-    })(function execProbeUdf() {
-      return { caller: getExecContext()?.userId ?? null };
-    });
+    globalUdfRegistry.registerFunction(
+      function execProbeUdf() {
+        return { caller: getExecContext()?.userId ?? null };
+      },
+      'risk',
+      {
+        description: 'test probe',
+        parametersSchema: { properties: {}, title: 'exec_probe_test', type: 'object' },
+        returnsSchema: { type: 'object', title: 'probe', properties: {} },
+      },
+      'exec_probe_test',
+    );
 
     const callProbe = () => globalUdfRegistry.call('exec_probe_test', {}) as Promise<{ caller: string | null }>;
     const [a, b] = await Promise.all([

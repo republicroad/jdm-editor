@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from './engine.ts';
 import { runWithExecContext } from './exec-context.ts';
-import { type UdfPack, createUdfRegistry, validatePack } from './register.ts';
+import { type UdfPack, createUdfRuntime, validatePack } from './register.ts';
 
 const fraudPack: UdfPack = {
   namespace: 'fraud',
@@ -49,8 +49,8 @@ describe('UdfPack 契约（U6）', () => {
     expect(errors.join('\n')).toContain("duplicate tool name 't2'");
   });
 
-  test('createUdfRegistry：pack 注册 → schema 下发 → 调用 round-trip', async () => {
-    const registry = createUdfRegistry({ packs: [fraudPack] });
+  test('createUdfRuntime：pack 注册 → schema 下发 → 调用 round-trip', async () => {
+    const registry = createUdfRuntime({ packs: [fraudPack] });
 
     const schema = registry.udfFunctionSchema('device_fingerprint_query');
     expect(schema?.namespace).toBe('fraud');
@@ -73,20 +73,20 @@ describe('UdfPack 契约（U6）', () => {
     });
     expect(errors.join('; ')).toContain('semantics must be one of query/observe/act');
 
-    const registry = createUdfRegistry({
+    const registry = createUdfRuntime({
       packs: [{ namespace: 'obs', tools: [{ name: 'counter', fn: () => 1, semantics: 'observe' }] }],
     });
     expect(registry.udfFunctionSchema('counter')?.semantics).toBe('observe');
     expect(registry.udfFunctionSchemaNamespaces()[0].tools[0].semantics).toBe('observe');
   });
 
-  test('createUdfRegistry：非法 pack 整体失败且不产生半注册状态', () => {
+  test('createUdfRuntime：非法 pack 整体失败且不产生半注册状态', () => {
     const badPack: UdfPack = { namespace: 'bad', tools: [{ name: 't', fn: undefined as never }] };
-    expect(() => createUdfRegistry({ packs: [badPack] })).toThrow(/invalid UdfPack 'bad'/);
+    expect(() => createUdfRuntime({ packs: [badPack] })).toThrow(/invalid UdfPack 'bad'/);
   });
 
   test('pack 注入的注册表 + DecisionRuntime 端到端执行', async () => {
-    const registry = createUdfRegistry({ packs: [fraudPack] });
+    const registry = createUdfRuntime({ packs: [fraudPack] });
     const runtime = new DecisionRuntime({ registry });
     const graph = {
       id: 'g-pack',

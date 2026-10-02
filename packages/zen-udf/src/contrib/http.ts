@@ -1,33 +1,22 @@
 // http 域(http_request 函数，有专属 UI 设计，文件名即 namespace)
 //
-// ADR-011 迁移：理想态 tool()/pack()。端口接口迁至 ports.ts（统一出处），
-// configureHttpUdf/currentEgressPolicy 模块单例保留（模式 B，0.12.0 前不改）。
+// ADR-011/012 迁移完成（1.0）：端口经组合根 createUdfRuntime({ ports }) 注入，
+// 本域经 getPorts() 读取——configureHttpUdf 模块单例已随 1.0 移除。
 import { Type } from '@sinclair/typebox';
 
 import { getExecContext } from '../exec-context.ts';
 import { type EgressGuard, type SecretResolver } from '../ports.ts';
-import { type ToolCallContext, globalUdfRegistry } from '../register.ts';
+import { type ToolContext, globalUdfRegistry } from '../register.ts';
+import { getPorts } from '../runtime-ports.ts';
 import { pack, tool } from '../tool.ts';
 
 // 回退导出（ports.ts 为统一出处，此处 re-export 保持既有消费方兼容）
 export type { EgressGuard, SecretResolver };
 
-let egressGuard: EgressGuard | undefined;
-let secretResolver: SecretResolver | undefined;
-
-/** @deprecated ADR-011：端口改经 createUdfRuntime({ ports }) 注入（0.12.0 起兼容保留，1.0 移除） */
-export const configureHttpUdf = (options: { egressGuard?: EgressGuard; secretResolver?: SecretResolver }): void => {
-  egressGuard = options.egressGuard;
-  secretResolver = options.secretResolver;
-};
-
 const SECRET_REF_PATTERN = /^\$\{secret:([^}]+)\}$/;
 
-/** notify 等其他出网 contrib 复用同一出口/凭证配置面 */
-export const currentEgressPolicy = (): { egressGuard?: EgressGuard; secretResolver?: SecretResolver } => ({
-  egressGuard,
-  secretResolver,
-});
+/** notify 等其他出网 contrib 复用同一出口/凭证配置面（组合根 getPorts 单源） */
+export const currentEgressPolicy = (): { egressGuard?: EgressGuard; secretResolver?: SecretResolver } => getPorts();
 
 export { SECRET_REF_PATTERN };
 
@@ -102,11 +91,11 @@ const shouldRetryResult = (result: HttpAttemptResult): boolean =>
   !result.policyBlocked && (result.status === 0 || result.status === 429 || result.status >= 500);
 
 /** 裸函数形态（kwargs 签名）：测试与纯函数消费方沿用 */
-export const httpRequest = async function httpRequestUdf(kwargs: Record<string, unknown>, call?: ToolCallContext) {
+export const httpRequest = async function httpRequestUdf(kwargs: Record<string, unknown>, call?: ToolContext) {
   return runHttpRequest(kwargs, call);
 };
 
-async function runHttpRequest(kwargs: Record<string, unknown>, call?: ToolCallContext) {
+async function runHttpRequest(kwargs: Record<string, unknown>, call?: ToolContext) {
   const rawUrl = String(kwargs?.url ?? '').trim();
   const method =
     String(kwargs?.method ?? 'GET')
@@ -130,6 +119,8 @@ async function runHttpRequest(kwargs: Record<string, unknown>, call?: ToolCallCo
   }
 
   const tenantId = getExecContext()?.tenantId;
+  // 端口每次执行时从组合根读取（getPorts 单源）——注入时机与 per-call 测试注入均生效
+  const { egressGuard, secretResolver } = currentEgressPolicy();
   try {
     await egressGuard?.assertAllowed(url, tenantId);
   } catch (e) {

@@ -1,6 +1,6 @@
 import type { Static, TSchema } from '@sinclair/typebox';
 
-import type { ToolCallContext, UdfPackMeta, UdfSemantics } from './register.ts';
+import type { ToolContext, UdfPackMeta, UdfSemantics } from './register.ts';
 
 /**
  * 理想态声明 API（CONTRACT.md §3/§4 的 TS 参考实现）：
@@ -10,7 +10,7 @@ import type { ToolCallContext, UdfPackMeta, UdfSemantics } from './register.ts';
  */
 
 /** 执行上下文：宿主经端口注入，不进声明契约（CONTRACT §6） */
-export type ToolContext = ToolCallContext;
+export type { ToolContext };
 
 export interface ToolExample<I extends TSchema, O extends TSchema> {
   input: Static<I>;
@@ -79,7 +79,7 @@ export const pack = (def: UdfPackDef): UdfPackDef => def;
 
 /** 语言中立 conformance fixtures（CONTRACT §7）：从 pack 的 examples 导出，跨语言移植复用 */
 export const toConformance = (def: UdfPackDef): object => ({
-  contract: '0.1.0',
+  contract: '1.0.0',
   cases: def.tools
     .filter((t) => t.examples && t.examples.length > 0)
     .map((t) => ({
@@ -98,4 +98,32 @@ export const toConformance = (def: UdfPackDef): object => ({
         { action: 'call', input: example.input, expect: { output: example.output } },
       ]),
     })),
+});
+
+/**
+ * MCP Tool 视图派生（1.0 公开面）：semantics+idempotent 单一事实源派生 MCP
+ * annotations（readOnlyHint/idempotentHint）——语义三元不外传确定性维度，
+ * MCP 侧 annotations 仅为 UX hint（CONTRACT 哲学：宿主行为判定不依赖 hints）。
+ * destructiveHint/openWorldHint 不可由三元推导，留宿主按工具性质自补。
+ */
+export interface McpToolView {
+  name: string;
+  title?: string;
+  description: string;
+  inputSchema: object;
+  annotations: {
+    readOnlyHint: boolean;
+    idempotentHint?: boolean;
+  };
+}
+
+export const toMcpTool = (t: UdfTool): McpToolView => ({
+  name: t.namespace ? `${t.namespace}.${t.name}` : t.name,
+  ...(t.title ? { title: t.title } : {}),
+  description: t.description,
+  inputSchema: t.inputSchema,
+  annotations: {
+    readOnlyHint: t.semantics !== 'act',
+    ...(t.semantics === 'act' && t.idempotent !== undefined ? { idempotentHint: t.idempotent } : {}),
+  },
 });

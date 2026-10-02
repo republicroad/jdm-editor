@@ -148,11 +148,13 @@ export interface DecisionObservedCall {
   key: string;
   name: string;
   semantics: UdfSemantics;
-  /** 返回值快照（含结构化错误对象——journal 回放依据） */
+  /** 返回值快照（含结构化错误对象——journal 回放依据；act 语义 MUST NOT 携带入参载荷，CONTRACT §5） */
   outcome: unknown;
   micros: number;
   /** act 语义幂等声明（Z1，verdict 审计可见） */
   idempotent?: boolean;
+  /** 审计哈希链（1.0：Trust Chain 验证记录完整性）：sha256(前链哈希+本条稳定序列化)，链种子=inputHash */
+  hash?: string;
 }
 
 /**
@@ -175,6 +177,10 @@ export interface DecisionAuditEvent {
   source: 'live' | 'replay';
   observed: DecisionObservedCall[];
   performance?: string;
+  /** journal 格式版本（1.0 契约；宿主按此 upcast 历史留存记录） */
+  journalVersion: number;
+  /** 哈希链终值（1.0：逐条 hash 链 + inputHash 种子）——Trust Chain 验证记录完整性 */
+  journalDigest?: string;
 }
 
 interface GraphNode {
@@ -437,20 +443,41 @@ class DecisionRuntime {
   ): void {
     if (!this.onDecision) return;
     try {
-      const observed: DecisionObservedCall[] = this.collectObservedTraces(journal, result).map((t) => ({
-        key: t.key,
-        name: t.name,
-        semantics: t.semantics ?? 'query',
-        idempotent: t.idempotent,
-        outcome: t.outcome,
-        micros: t.micros,
-      }));
+      const inputHash = createHash('sha256').update(JSON.stringify(rawInput)).digest('hex');
+      // 审计哈希链（1.0）：种子 = inputHash，逐条 sha256(前链哈希 + 稳定序列化)——
+      // 宿主/Trust Chain 重算链条即可验证记录未被篡改（验证计算 + 验证记录完整性）
+      const observed: DecisionObservedCall[] = [];
+      let chain = inputHash;
+      for (const t of this.collectObservedTraces(journal, result)) {
+        const entry: DecisionObservedCall = {
+          key: t.key,
+          name: t.name,
+          semantics: t.semantics ?? 'query',
+          idempotent: t.idempotent,
+          outcome: t.outcome,
+          micros: t.micros,
+        };
+        entry.hash = createHash('sha256')
+          .update(
+            chain +
+              JSON.stringify({
+                key: entry.key,
+                name: entry.name,
+                semantics: entry.semantics,
+                outcome: entry.outcome,
+                micros: entry.micros,
+              }),
+          )
+          .digest('hex');
+        chain = entry.hash;
+        observed.push(entry);
+      }
       const event: DecisionAuditEvent = {
         decisionId: execCtx?.decisionId ?? globalThis.crypto?.randomUUID?.() ?? `dec-${Date.now()}-${Math.random()}`,
         tenantId: execCtx?.tenantId ?? 'single',
         key,
         rev: rev ?? 'latest',
-        inputHash: createHash('sha256').update(JSON.stringify(rawInput)).digest('hex'),
+        inputHash,
         output: result.result,
         asOf: execCtx?.eventTime,
         processingTime: new Date().toISOString(),
@@ -458,6 +485,8 @@ class DecisionRuntime {
         source: execCtx?.replay ? 'replay' : 'live',
         observed,
         performance: result.performance,
+        journalVersion: 1,
+        journalDigest: chain === inputHash ? undefined : chain,
       };
       this.onDecision(event);
     } catch (sinkError) {
@@ -1215,7 +1244,7 @@ class DecisionRuntime {
         let result: unknown;
         const startedAt = process.hrtime.bigint();
         // 执行规范 §6.2：kwargs.timeout 约定（毫秒）——运行时级超时兜底，超时返回结构化错误；
-        // 同时经 ToolCallContext.signal 向 fn 传播取消（重 I/O 函数应把 signal 传给底层客户端）
+        // 同时经 ToolContext.signal 向 fn 传播取消（重 I/O 函数应把 signal 传给底层客户端）
         const timeoutMs = typeof kwargs.timeout === 'number' && kwargs.timeout > 0 ? kwargs.timeout : null;
         const execCtx = getExecContext();
         const callController = new AbortController();

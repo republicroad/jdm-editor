@@ -2,7 +2,9 @@ import { type IncomingMessage, type Server, type ServerResponse, createServer } 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { runWithExecContext } from '../exec-context.ts';
-import { configureHttpUdf, httpRequest } from './http.ts';
+import type { UdfPorts } from '../ports.ts';
+import { setPorts } from '../runtime-ports.ts';
+import { httpRequest } from './http.ts';
 
 let server: Server;
 let baseUrl: string;
@@ -17,6 +19,7 @@ const call = async (kwargs: Record<string, unknown>, ctx?: { tenantId: string })
   ctx ? runWithExecContext(ctx, async () => httpRequest(kwargs)) : httpRequest(kwargs);
 
 beforeAll(async () => {
+  setPorts({}); // 隔离其他测试文件经 setPorts 泄漏的端口状态
   await new Promise<void>((resolve) => {
     server = createServer((req: IncomingMessage, res: ServerResponse) => {
       echoHits += 1;
@@ -28,6 +31,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
+  setPorts({});
   server.close();
 });
 
@@ -39,7 +43,7 @@ describe('http_request EgressGuard（U9）', () => {
 
   test('egress 拒绝返回结构化错误且不重试', async () => {
     let guardCalls = 0;
-    configureHttpUdf({
+    setPorts({
       egressGuard: {
         assertAllowed: (url) => {
           guardCalls += 1;
@@ -48,7 +52,7 @@ describe('http_request EgressGuard（U9）', () => {
           }
         },
       },
-    });
+    } as UdfPorts);
 
     const result = (await call({ url: `${baseUrl}/json`, retry: 3 }, { tenantId: 't-1' })) as {
       status: number;
@@ -60,17 +64,17 @@ describe('http_request EgressGuard（U9）', () => {
     expect(result.error).toContain('allowlist');
     // 策略性失败不重试：守卫恰好被调用一次
     expect(guardCalls).toBe(1);
-    configureHttpUdf({});
+    setPorts({} as UdfPorts);
   });
 });
 
 describe('http_request SecretResolver（U9）', () => {
   test('basic 认证的 ${secret:引用} 按租户解析', async () => {
-    configureHttpUdf({
+    setPorts({
       secretResolver: {
         resolve: (ref, tenantId) => (ref === 'db-pass' && tenantId === 't-1' ? 's3cret-value' : ''),
       },
-    });
+    } as UdfPorts);
 
     const result = (await call(
       { url: `${baseUrl}/echo`, auth: { type: 'basic', username: 'alice', password: '${secret:db-pass}' } },
@@ -79,7 +83,7 @@ describe('http_request SecretResolver（U9）', () => {
     expect(result.status).toBe(200);
     const expected = 'Basic ' + Buffer.from('alice:s3cret-value', 'utf8').toString('base64');
     expect(result.body?.auth).toBe(expected);
-    configureHttpUdf({});
+    setPorts({} as UdfPorts);
   });
 
   test('未配置 resolver 时 secret 引用失败且不泄漏', async () => {
@@ -97,13 +101,13 @@ describe('http_request SecretResolver（U9）', () => {
   });
 
   test('resolver 抛错时错误信息不包含已解析凭证', async () => {
-    configureHttpUdf({
+    setPorts({
       secretResolver: {
         resolve: () => {
           throw new Error('secret db-pass not found for tenant');
         },
       },
-    });
+    } as UdfPorts);
     const result = (await call(
       { url: `${baseUrl}/echo`, auth: { type: 'basic', username: 'u', password: '${secret:db-pass}' } },
       { tenantId: 't-1' },
@@ -111,6 +115,6 @@ describe('http_request SecretResolver（U9）', () => {
     expect(result.status).toBe(0);
     expect(result.error).toContain('secret resolve failed');
     expect(result.error).toContain('db-pass not found');
-    configureHttpUdf({});
+    setPorts({} as UdfPorts);
   });
 });

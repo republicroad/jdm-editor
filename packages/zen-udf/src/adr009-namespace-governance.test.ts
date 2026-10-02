@@ -1,17 +1,21 @@
 import { describe, expect, test } from 'vitest';
 
 import { loadReferenceInto } from './reference.ts';
-import { type UdfPack, createUdfRegistry, reservedNamespaceViolation, validatePack } from './register.ts';
-import { defineTool } from './register.ts';
+import {
+  type ContribToolDef,
+  type UdfPack,
+  createUdfRuntime,
+  reservedNamespaceViolation,
+  validatePack,
+} from './register.ts';
 
-const tool = (name: string, value: unknown = {}) =>
-  defineTool({
-    name,
-    description: `${name} test tool`,
-    parametersSchema: { type: 'object', properties: {}, title: name },
-    returnsSchema: { type: 'object', properties: {} },
-    fn: () => value,
-  });
+const tool = (name: string, value: unknown = {}): ContribToolDef => ({
+  name,
+  description: `${name} test tool`,
+  parametersSchema: { type: 'object', properties: {}, title: name },
+  returnsSchema: { type: 'object', properties: {} },
+  fn: () => value,
+});
 
 const pack = (namespace: string, tools: UdfPack['tools'], meta?: UdfPack['meta']): UdfPack => ({
   namespace,
@@ -29,13 +33,13 @@ describe('ADR-009 namespace 立法', () => {
     expect(reservedNamespaceViolation('zenkit')).toBeNull();
     expect(reservedNamespaceViolation('verdict.risk')).toBeNull();
     expect(validatePack(pack('zen.risk', [tool('t')]))[0]).toMatch(/reserved prefix/);
-    expect(() => createUdfRegistry({ packs: [pack('core', [tool('t')])] })).toThrow(/reserved prefix/);
+    expect(() => createUdfRuntime({ packs: [pack('core', [tool('t')])] })).toThrow(/reserved prefix/);
   });
 
   test('跨 namespace 函数名撞名 → deploy 期失败，报错列出已注册来源 namespace', () => {
     const err = (() => {
       try {
-        createUdfRegistry({
+        createUdfRuntime({
           packs: [pack('crypto', [tool('hash')]), pack('risk', [tool('hash')])],
         });
         return '';
@@ -47,7 +51,7 @@ describe('ADR-009 namespace 立法', () => {
   });
 
   test('overwrite: true 显式接管——不报错且后注册者生效', () => {
-    const registry = createUdfRegistry({
+    const registry = createUdfRuntime({
       packs: [
         pack('crypto', [tool('hash', { from: 'crypto' })]),
         pack('risk', [{ ...tool('hash', { from: 'risk' }), overwrite: true }]),
@@ -59,7 +63,7 @@ describe('ADR-009 namespace 立法', () => {
   });
 
   test('pack namespace 重复 → 失败（配置错误）', () => {
-    expect(() => createUdfRegistry({ packs: [pack('dupe', [tool('a')]), pack('dupe', [tool('b')])] })).toThrow(
+    expect(() => createUdfRuntime({ packs: [pack('dupe', [tool('a')]), pack('dupe', [tool('b')])] })).toThrow(
       /duplicate pack namespace 'dupe'/,
     );
   });
@@ -78,7 +82,7 @@ describe('ADR-009 UdfPackMeta', () => {
   });
 
   test('meta 随 udfFunctionSchemaNamespaces 透传；无 meta 的 namespace 不带该字段', () => {
-    const registry = createUdfRegistry({
+    const registry = createUdfRuntime({
       packs: [
         pack('risk', [tool('score')], { origin: 'industry', version: '2.0.0', license: 'proprietary' }),
         pack('freestyle', [tool('bare')]),
@@ -97,7 +101,7 @@ describe('ADR-009 UdfPackMeta', () => {
 
 describe('ADR-009 参考域 origin 标记', () => {
   test('loadReferenceInto 为参考域写入 origin=reference 元数据', () => {
-    const registry = createUdfRegistry();
+    const registry = createUdfRuntime();
     loadReferenceInto(registry);
     const namespaces = registry.udfFunctionSchemaNamespaces();
     const crypto = namespaces.find((ns) => ns.name === 'crypto');
@@ -107,14 +111,14 @@ describe('ADR-009 参考域 origin 标记', () => {
 });
 
 describe('CONTRACT §6 端口注入接线（组合根）', () => {
-  test('createUdfRegistry({ ports }) 经 setPorts 注入，getPorts() 可读（单进程语义）', async () => {
+  test('createUdfRuntime({ ports }) 经 setPorts 注入，getPorts() 可读（单进程语义）', async () => {
     const { getPorts } = await import('./runtime-ports.ts');
     const egressGuard = {
       assertAllowed: (url: string) => {
         if (!url.startsWith('https://')) throw new Error(`egress denied: ${url}`);
       },
     };
-    createUdfRegistry({ ports: { egressGuard } });
+    createUdfRuntime({ ports: { egressGuard } });
     expect(getPorts().egressGuard).toBe(egressGuard);
   });
 });

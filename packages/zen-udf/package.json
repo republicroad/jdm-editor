@@ -29,6 +29,7 @@
   "files": [
     "src",
     "docs",
+    "CONTRACT.md",
     "README.md"
   ],
   "peerDependencies": {

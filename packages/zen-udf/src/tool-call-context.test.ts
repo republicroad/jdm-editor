@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from './engine.ts';
 import { runWithExecContext } from './exec-context.ts';
-import { type ContribToolDef, type ToolCallContext, UdfRegistry, defineToolFor, packChecks } from './register.ts';
+import { type ContribToolDef, type ToolContext, UdfRegistry, packChecks } from './register.ts';
 
 const graph = (id: string, expr: string) => ({
   id,
@@ -22,12 +22,12 @@ const graph = (id: string, expr: string) => ({
   ],
 });
 
-describe('ToolCallContext（fn 第二参数）', () => {
+describe('ToolContext（fn 第二参数）', () => {
   test('timeout 到点 abort signal 且 fn 观察到租户身份与截止时间', async () => {
-    const observed: Array<Partial<ToolCallContext> | undefined> = [];
+    const observed: Array<Partial<ToolContext> | undefined> = [];
     const registry = new UdfRegistry();
     registry.registerFunction(
-      async function slow_get(kwargs: Record<string, unknown>, call?: ToolCallContext) {
+      async function slow_get(kwargs: Record<string, unknown>, call?: ToolContext) {
         observed.push(call);
         await new Promise<void>((resolve) => {
           if (call?.signal.aborted) return resolve();
@@ -36,7 +36,7 @@ describe('ToolCallContext（fn 第二参数）', () => {
         return { aborted: call?.signal.aborted ?? false };
       },
       'cache',
-      { parameters: { timeout: { type: 'integer', default: null } } },
+      { parametersSchema: { properties: { timeout: { type: 'integer', default: null } }, type: 'object' } },
     );
     const runtime = new DecisionRuntime({ registry });
     const before = Date.now();
@@ -55,15 +55,15 @@ describe('ToolCallContext（fn 第二参数）', () => {
   });
 
   test('无 timeout 约定时 signal 不 abort、deadlineAt 为 null', async () => {
-    const observed: Array<Partial<ToolCallContext> | undefined> = [];
+    const observed: Array<Partial<ToolContext> | undefined> = [];
     const registry = new UdfRegistry();
     registry.registerFunction(
-      async function fast_get(kwargs: Record<string, unknown>, call?: ToolCallContext) {
+      async function fast_get(kwargs: Record<string, unknown>, call?: ToolContext) {
         observed.push(call);
         return 'ok';
       },
       'cache',
-      { parameters: { timeout: { type: 'integer', default: null } } },
+      { parametersSchema: { properties: { timeout: { type: 'integer', default: null } }, type: 'object' } },
     );
     const runtime = new DecisionRuntime({ registry });
     await runWithExecContext({ tenantId: 'demo' }, async () => {
@@ -79,7 +79,7 @@ describe('ToolCallContext（fn 第二参数）', () => {
 
 describe('defineToolFor 泛型 kwargs', () => {
   test('fn 的 kwargs 获得声明的参数类型（编译期），运行时行为不变', async () => {
-    const tool = defineToolFor<{ key: string }>({
+    const tool: ContribToolDef = {
       name: 'get',
       description: 'demo',
       parametersSchema: {
@@ -89,10 +89,10 @@ describe('defineToolFor 泛型 kwargs', () => {
         type: 'object',
       },
       returnsSchema: { type: 'string', title: 'value' },
-      fn: async (kwargs) => `v:${kwargs.key}`, // kwargs: { key: string } —— 类型来自泛型
-    });
+      fn: (kwargs: Record<string, unknown>) => `v:${(kwargs as { key: string }).key}`,
+    };
     const registry = new UdfRegistry();
-    registry.registerFunction(tool.fn, 'demo', { parameters: { properties: {} } }, tool.name);
+    registry.registerFunction(tool.fn, 'demo', { parametersSchema: { properties: {}, type: 'object' } }, tool.name);
     const result = await registry.call('get', { key: 'k1' });
     expect(result).toBe('v:k1');
   });
@@ -161,7 +161,7 @@ describe('数组调用模式（默认；;; 为旧图兼容）', () => {
         return { sum: (kwargs.a as number) + (kwargs.b as number) };
       },
       'math',
-      { parameters: { a: { type: 'integer' }, b: { type: 'integer' } } },
+      { parametersSchema: { properties: { a: { type: 'integer' }, b: { type: 'integer' } }, type: 'object' } },
     );
     const runtime = new DecisionRuntime({ registry });
     await runWithExecContext({ tenantId: 'demo' }, async () => {
@@ -220,7 +220,12 @@ describe('命名调用形态（$call 保留键 + 具名实参）', () => {
         return { a: kwargs.a, b: kwargs.b };
       },
       'probe',
-      { parameters: { a: { type: 'integer' }, b: { type: 'integer', default: 5 } } },
+      {
+        parametersSchema: {
+          properties: { a: { type: 'integer' }, b: { type: 'integer', default: 5 } },
+          type: 'object',
+        },
+      },
     );
     const runtime = new DecisionRuntime({ registry });
     return { registry, runtime };
