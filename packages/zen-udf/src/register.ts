@@ -7,7 +7,8 @@ import type { UdfTool } from './tool.ts';
  * index signature 允许嵌套 schema(properties/items/$defs/anyOf 等)。
  */
 export interface JsonSchemaProperty {
-  type?: string;
+  /** JSON Schema type；联合形态（数组，如 ["string","null"]）合法——归一化派生为 'any' 透传 */
+  type?: string | string[];
   title?: string;
   description?: string;
   default?: unknown;
@@ -192,8 +193,10 @@ function normalizeUdfSchema(schema: UdfSchema): UdfSchema {
     if (!normalized.parameters || Object.keys(normalized.parameters).length === 0) {
       const derived: Record<string, UdfSchemaParameter> = {};
       for (const [name, prop] of Object.entries(schema.parametersSchema.properties)) {
+        // JSON Schema 联合类型（type 数组）与 anyOf：派生为 'any'（绑定透传不折值）——
+        // 曾错误归 'null' 致该类参数绑定值一律被置 null（ADR-015 实施期发现）
         derived[name] = {
-          type: typeof prop.type === 'string' ? prop.type : 'null',
+          type: typeof prop.type === 'string' ? prop.type : Array.isArray(prop.type) || prop.anyOf ? 'any' : 'null',
           description: prop.description,
           default: prop.default,
         };
