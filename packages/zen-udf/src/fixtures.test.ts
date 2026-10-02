@@ -2,8 +2,10 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from './engine.ts';
 import { runWithExecContext } from './exec-context.ts';
-import { createRuntimeExecutor, createZenExpressionEvaluator, runDecisionTests } from './fixtures.ts';
+import { createZenExpressionEvaluator } from './expression-evaluator.ts';
+import { runDecisionTests } from './fixtures.ts';
 import { UdfRegistry } from './register.ts';
+import { createRuntimeExecutor } from './runtime-executor.ts';
 
 const model = {
   id: 'g-fixture',

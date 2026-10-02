@@ -5,6 +5,10 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./runner": "./src/fixtures.ts"
+  },
   "scripts": {
     "regression:ledger": "bun scripts-regression-scan.mjs",
     "test": "vitest run",

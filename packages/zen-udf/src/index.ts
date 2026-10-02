@@ -69,8 +69,6 @@ export {
 export { loadReferenceInto, referencePacks } from './reference.ts';
 export {
   runDecisionTests,
-  createRuntimeExecutor,
-  createZenExpressionEvaluator,
   type DecisionFixture,
   type Expectation,
   type FixtureReport,
@@ -80,6 +78,8 @@ export {
   type ExpressionEvaluator,
   type RunDecisionTestsOptions,
 } from './fixtures.ts';
+export { createRuntimeExecutor } from './runtime-executor.ts';
+export { createZenExpressionEvaluator } from './expression-evaluator.ts';
 export { configureHttpUdf, type EgressGuard, type SecretResolver } from './contrib/http.ts';
 export {
   setRateStore,

@@ -1,16 +1,17 @@
-import { evaluateExpressionSync } from '@gorules/zen-engine';
-
-import type { DecisionRuntime } from './engine.ts';
-import type { ExecContext, ReplayJournalEntry } from './exec-context.ts';
-import { runWithExecContext } from './exec-context.ts';
-
 /**
  * 决策测试夹具运行器（Y7；ADR-014 executor 反转）：
  * runner 只认识执行器，不认识 runtime——执行、租户、回放、追踪全部留在
- * executor 侧（服务端适配器 = createRuntimeExecutor；浏览器/mock = 宿主自造）。
- * runner 职责收敛为：迭代/并发、断言匹配、报告装配、进度回调，零引擎依赖。
+ * executor 侧（服务端适配器 = runtime-executor.ts 的 createRuntimeExecutor；
+ * 浏览器/mock = 宿主自造）。runner 职责收敛为：迭代/并发、断言匹配、报告
+ * 装配、进度回调。
  * fixtures 形状是跨仓交换物（CONTRACT.md §10 测试契约）。
+ * 本文件经子路径 `@republicroad/zen-udf/runner` 单独导出（ADR-014 包面注记）：
+ * **零 import**——浏览器消费（Run all）不拖服务端引擎树/async_hooks；
+ * expression 求值器由注入供给（未注入 = 断言不通过），Node 便利工厂在
+ * 根包 expression-evaluator.ts。
  */
+// 纯类型导入（编译期擦除）——零运行时依赖的前提不破坏
+import type { ReplayJournalEntry } from './exec-context.ts';
 
 export type Expectation =
   | { mode: 'deep'; value: unknown }
@@ -193,62 +194,3 @@ export async function runDecisionTests(options: RunDecisionTestsOptions): Promis
     results,
   };
 }
-
-/** 夹具专用键命名空间：不碰宿主服务键空间（隔离修复，ADR-014 问题 4） */
-const FIXTURES_KEY_PREFIX = '__fixtures__:';
-
-/** 服务端便利适配器：runtime 世界一行接入 executor 契约（现实现的执行侧原样迁入） */
-export const createRuntimeExecutor = (
-  runtime: DecisionRuntime,
-  options: { key: string; model: string | object; rev?: string; tenantId?: string },
-): DecisionTestExecutor => {
-  const tenantId = options.tenantId ?? 'fixtures';
-  const rev = options.rev ?? 'latest';
-  const cacheKey = `${FIXTURES_KEY_PREFIX}${options.key}`;
-  // promise memo：并发首跑只登记一次（闭包 boolean 有竞态窗口）
-  let registration: Promise<void> | null = null;
-
-  const ensureRegistered = (): Promise<void> => {
-    registration ??= runWithExecContext({ tenantId }, async () => {
-      try {
-        runtime.createDecisionWithCacheKey(cacheKey, options.model, rev);
-      } catch {
-        runtime.updateDecisionWithCacheKey(cacheKey, options.model, rev);
-      }
-    });
-    return registration;
-  };
-
-  return async (fixture) => {
-    await ensureRegistered();
-    const startedAt = Date.now();
-    const execCtx: ExecContext = {
-      tenantId,
-      decisionId: `fixture:${fixture.name}`,
-      ...(fixture.asOf ? { eventTime: fixture.asOf } : {}),
-      ...(fixture.journal
-        ? {
-            replay: {
-              decisionId: `fixture:${fixture.name}`,
-              asOf: fixture.asOf ?? new Date().toISOString(),
-              journal: fixture.journal,
-            },
-          }
-        : {}),
-    };
-    // trace 开销是测试语义的一部分（traceHits 矩阵列）；与生产热路径的审计
-    // 免 trace 化互不干扰（cbbbd347 解耦的是审计⇒trace，此处显式要 trace）
-    const outcome = await runWithExecContext(execCtx, () =>
-      runtime.evaluateAsync(cacheKey, fixture.input, { trace: true }, rev),
-    );
-    return {
-      result: outcome.result,
-      durationMs: Date.now() - startedAt,
-      traceHits: Object.keys((outcome.trace ?? {}) as Record<string, unknown>),
-    };
-  };
-};
-
-/** Node 世界便利工厂：zen-expression 对结果求值（根绑定 result，ADR-014 OQ3） */
-export const createZenExpressionEvaluator = (): ExpressionEvaluator => (source, data) =>
-  evaluateExpressionSync(source, { result: data }) !== false;
