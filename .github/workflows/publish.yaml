@@ -59,23 +59,24 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The registry CDN can lag the write by minutes — poll EVERY package this
-      # run actually published until visible (0.13.0: the old step only checked
-      # the kernel version, so a zen-udf publish that npm accepted but never
-      # indexed reported success).
+      # The registry CDN can lag the write by minutes AND the npm CLI caches
+      # metadata per-runner: the publish step itself queried the not-yet-
+      # published version (404 cached), so subsequent `npm view` polls in this
+      # same job served the stale 404 for 30+ minutes (0.13.1/0.14.0 false
+      # alarms) while the version was actually visible. Poll with a dedicated
+      # fresh cache dir + prefer-online so every attempt revalidates.
       - name: Wait for registry propagation
         if: steps.publish.outputs.published != ''
         shell: bash
         run: |
           fail=0
+          cache="$(mktemp -d)"
           for entry in ${{ steps.publish.outputs.published }}; do
             name="${entry%@*}"
             ver="${entry#*@}"
             ok=0
-            # 10min proved too tight: npm indexing lag ran 10-35min on two
-            # consecutive publishes (0.13.0/0.13.1) while status stayed green
-            for i in $(seq 1 180); do
-              if npm view "$name@$ver" version > /dev/null 2>&1; then
+            for i in $(seq 1 90); do
+              if npm view "$name@$ver" version --prefer-online --cache "$cache" > /dev/null 2>&1; then
                 echo "registry visible: $entry (attempt $i)"
                 ok=1
                 break
@@ -83,7 +84,7 @@ jobs:
               sleep 10
             done
             if [ "$ok" = "0" ]; then
-              echo "$entry not visible after 30min"
+              echo "$entry not visible after 15min (cache-free polling)"
               fail=1
             fi
           done
