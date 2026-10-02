@@ -72,7 +72,9 @@ jobs:
             name="${entry%@*}"
             ver="${entry#*@}"
             ok=0
-            for i in $(seq 1 60); do
+            # 10min proved too tight: npm indexing lag ran 10-35min on two
+            # consecutive publishes (0.13.0/0.13.1) while status stayed green
+            for i in $(seq 1 180); do
               if npm view "$name@$ver" version > /dev/null 2>&1; then
                 echo "registry visible: $entry (attempt $i)"
                 ok=1
@@ -81,7 +83,7 @@ jobs:
               sleep 10
             done
             if [ "$ok" = "0" ]; then
-              echo "$entry not visible after 10min"
+              echo "$entry not visible after 30min"
               fail=1
             fi
           done
