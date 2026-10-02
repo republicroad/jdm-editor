@@ -203,3 +203,26 @@ describe('ADR-015 validateNamedArgs（按名校验三类清单）', () => {
     expect(report.failed).toBe(0);
   });
 });
+
+describe('ADR-015 平面 kwargs 歧义检测（detectKwargsEnvelopeAmbiguity）', () => {
+  const schemaWithKwargs = {
+    type: 'object',
+    properties: { kwargs: { type: 'object', title: 'Kwargs' } },
+  };
+  const schemaNormal = { type: 'object', properties: { x: { type: 'integer' } } };
+
+  test('kwargs Record + 声明 kwargs 参数 → 歧义（作者平面意图无法表达）', () => {
+    expect(DecisionRuntime.detectKwargsEnvelopeAmbiguity({ $call: 'f', kwargs: { inner: 1 } }, schemaWithKwargs)).toBe(
+      true,
+    );
+  });
+
+  test('未声明 kwargs 参数 / 非信封形态 → 无歧义', () => {
+    expect(DecisionRuntime.detectKwargsEnvelopeAmbiguity({ $call: 'f', kwargs: { inner: 1 } }, schemaNormal)).toBe(
+      false,
+    );
+    expect(DecisionRuntime.detectKwargsEnvelopeAmbiguity({ $call: 'f', x: 1 }, schemaWithKwargs)).toBe(false);
+    expect(DecisionRuntime.detectKwargsEnvelopeAmbiguity(['f', 1], schemaWithKwargs)).toBe(false);
+    expect(DecisionRuntime.detectKwargsEnvelopeAmbiguity(null, schemaWithKwargs)).toBe(false);
+  });
+});

@@ -756,6 +756,27 @@ class DecisionRuntime {
   }
 
   /**
+   * 平面 kwargs 歧义检测（ADR-015 双读的唯一行为变化点，编辑面漂移带消费）：
+   * 调用对象带 `kwargs: Record` 键时引擎**必按信封解释**（CONTRACT §11）——
+   * 若函数同时声明了字面 `kwargs` 参数，作者的平面传参意图即无法表达
+   * （0.13 前可成功绑定，0.14 起变 INVALID_PARAM）。检出即提示迁移规范形：
+   * `{$call, kwargs: { kwargs: {...} }}`。无 schema 可依时返回 false
+   * （无声明参数即无歧义，信封是唯一读法）。
+   */
+  static detectKwargsEnvelopeAmbiguity(value: unknown, parametersSchema?: JsonSchema | null): boolean {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+    const callSpec = value as Record<string, unknown>;
+    if (!callSpec['$call']) return false;
+    const envelope = callSpec['kwargs'];
+    if (envelope === null || typeof envelope !== 'object' || Array.isArray(envelope)) return false;
+    const props =
+      parametersSchema && typeof parametersSchema === 'object'
+        ? ((parametersSchema as { properties?: Record<string, unknown> }).properties ?? {})
+        : {};
+    return 'kwargs' in props;
+  }
+
+  /**
    * 内置 customNode 分发器（L7/ADR-008）：经 this.registry 解析 UDF 工具，实例绑定
    * （多运行时互不串扰）。
    *

@@ -250,6 +250,13 @@ executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
 不可解析返回 null。`kwargs` 键为普通 Record 时按信封解释（歧义形态信封胜出，
 迁移规范形即消除）。
 
+- **行为变化警示（双读的唯一已知破坏点）**：平面调用向名为 `kwargs` 的参数传
+  Record 值——0.13 前绑定成功，0.14 起按信封解释（对声明的 kwargs 参数是
+  未声明键 → INVALID_PARAM）。检出器：
+  `DecisionRuntime.detectKwargsEnvelopeAmbiguity(value, parametersSchema)`，
+  编辑面漂移带 MUST 消费之并提示迁移规范形
+  （`{$call, kwargs: { kwargs: {...} }}`）。
+
 ### 11.3 弃用表
 
 | 形态                     | 写入                                           | 读取                 |
@@ -258,6 +265,10 @@ executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
 | 具名平面                 | 弃用（随 0.14）                                | 永久（旧图存续义务） |
 | 位置数组                 | 弃用（随 0.14；简写便利由编辑器 parse 层继承） | 永久（旧图存续义务） |
 | 表达式字符串             | 弃用沿 ADR-011 路径                            | 永久                 |
+
+**写路径切换前置（编辑器切规范形的硬时序）**：全部图消费 kernel（verdict
+引擎面/旧版 seal 包）MUST ≥ 0.14 方可切换——规范形信封在 0.13 引擎会被当作
+名为 kwargs 的平面参数错绑（反向不兼容：新读旧可以、旧读新不行）。
 
 ### 11.4 按名校验
 
