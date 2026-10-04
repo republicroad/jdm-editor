@@ -18,6 +18,25 @@ import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './regist
 
 const CUSTOM_HANDLER_META = '__meta__';
 
+type TypedValueEnvelope = { mode: 'literal' | 'expression' | 'reference'; value: string | number | boolean };
+
+/** 信封窄识别（ADR-016，单源）：恰为 mode+value 二键、mode 枚举、value 原始类型
+ * （literal 允许 string/number/boolean——OQ2；expression/reference 要求字符串）。
+ * object/array value = 非信封（按现状对象字面量透传，校验面按类型不符报）。 */
+function asTypedValueEnvelope(v: unknown): TypedValueEnvelope | null {
+  if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
+  const keys = Object.keys(v);
+  if (keys.length !== 2 || !('mode' in v) || !('value' in v)) return null;
+  const mode = (v as { mode: unknown }).mode;
+  const value = (v as { value: unknown }).value;
+  if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') return null;
+  if (mode === 'expression' || mode === 'reference') {
+    if (typeof value !== 'string') return null;
+  }
+  if (mode !== 'literal' && mode !== 'expression' && mode !== 'reference') return null;
+  return { mode, value } as TypedValueEnvelope;
+}
+
 interface ExprAstItem {
   id: string;
   key: string;
@@ -813,12 +832,27 @@ class DecisionRuntime {
    * 递归收集其字符串叶子（kwargs 实参值/位置实参）。
    */
   static extractInstanceRefs(value: unknown, into: Set<string>): void {
+    // 信封感知（ADR-016）：literal 不含引用；expression 提取 $.refs；reference 取路径根段
+    const env = asTypedValueEnvelope(value);
+    if (env?.mode === 'literal') return;
+    if (env?.mode === 'expression' && typeof env.value === 'string') {
+      const pattern = /$.([A-Za-z_][A-Za-z0-9_]*)/g;
+      let m: RegExpExecArray | null;
+      while ((m = pattern.exec(env.value)) !== null) {
+        into.add(m[1]!);
+      }
+      return;
+    }
     if (typeof value === 'string') {
       const pattern = /\$\.([A-Za-z_][A-Za-z0-9_]*)/g;
       let m: RegExpExecArray | null;
       while ((m = pattern.exec(value)) !== null) {
         into.add(m[1]!);
       }
+      return;
+    }
+    if (env?.mode === 'reference' && typeof env.value === 'string') {
+      into.add(env.value.split('.')[0]);
       return;
     }
     if (Array.isArray(value)) {
@@ -863,7 +897,16 @@ class DecisionRuntime {
     let hasEdges = false;
     for (const item of items) {
       const refs = new Set<string>();
-      DecisionRuntime.extractInstanceRefs(item.value, refs);
+      const env = asTypedValueEnvelope(item.value);
+      if (env?.mode === 'reference' && typeof env.value === 'string') {
+        // reference 路径无 $. 前缀：根段即依赖实例键（tier.v → tier）
+        refs.add(env.value.split('.')[0]);
+      } else if (env?.mode === 'expression') {
+        DecisionRuntime.extractInstanceRefs(env.value, refs);
+      } else if (!env) {
+        DecisionRuntime.extractInstanceRefs(item.value, refs);
+      }
+      // literal 信封：value 为字面量不含引用（替换器亦跳过）
       for (const dep of item.dependsOn ?? []) refs.add(dep);
       // 自引用（dependsOn 自己 / 引用自己的输出键）不剔除——自依赖即环，
       // 归 CYCLE_DETECTED fail loud（实例无法先于自身产出，静默忽略会掩盖作者错误）
@@ -901,8 +944,21 @@ class DecisionRuntime {
    * （nodeInput ∪ 前驱输出）下裸键即取前驱输出。仅替换 resolved 集内的键、
    * 词边界精确（`$.a.v` → `a.v` 的 `.v` 保持属性访问）。
    */
+  /**
+   * 信封窄识别（ADR-016）：自有键**恰为** `mode`+`value` 二键、`mode` ∈
+   * literal|expression|reference、`value` 为字符串——否则非信封（按现状处理）。
+   * 单源函数：引擎 parse 层与 validateNamedArgs 校验面共用（防双轨）。
+   */
+  static asTypedValueEnvelope(v: unknown): TypedValueEnvelope | null {
+    return asTypedValueEnvelope(v);
+  }
+
   static substituteInstanceRefs<T>(value: T, resolved: Set<string>): T {
     if (resolved.size === 0) return value;
+    // 信封感知（ADR-016）：literal 信封整体跳过——其 value 是字面量非引用，
+    // 替换即「静默变语义」复刻；expression 信封 value 内引用照常替换；
+    // reference 信封 value 为路径形态无 $. 前缀，天然不受影响
+    if (DecisionRuntime.asTypedValueEnvelope(value)?.mode === 'literal') return value;
     if (typeof value === 'string') {
       let out: string = value;
       for (const dep of resolved) {
@@ -1160,13 +1216,28 @@ class DecisionRuntime {
       if (fSchema) {
         let operatorKwargs: Record<string, unknown>;
         if (namedArgs) {
-          // 命名形态：字符串值 = zen 表达式（按 inputField 前缀求值），非字符串 = 字面量
+          // 命名形态：字符串值 = zen 表达式（按 inputField 前缀求值），非字符串 = 字面量；
+          // ADR-016 信封（{mode, value} 窄识别）= 模式显式化——literal 原样绑定
+          // （绕过 inputField 拼接与求值），expression 求值，reference 按 $.value 路径求值
           const evaluated: Record<string, unknown> = {};
           for (const [k, v] of Object.entries(namedArgs)) {
-            evaluated[k] =
-              typeof v === 'string'
-                ? evaluateExpressionSafe(inputField ? `${inputField}.${v}` : v, evalContext ?? nodeInput)
-                : v;
+            const env = DecisionRuntime.asTypedValueEnvelope(v);
+            if (env) {
+              // literal：原样绑定（绕过 inputField 拼接与求值）；
+              // expression/reference 首期同义（OQ1）：与裸字符串同路径求值（inputField 前缀），
+              // reference 的路径形态在替换后上下文下等价——schema 校验位预留不实现
+              if (env.mode === 'literal') {
+                evaluated[k] = env.value;
+              } else {
+                const expr = inputField ? `${inputField}.${env.value as string}` : String(env.value);
+                evaluated[k] = evaluateExpressionSafe(expr, evalContext ?? nodeInput);
+              }
+            } else {
+              evaluated[k] =
+                typeof v === 'string'
+                  ? evaluateExpressionSafe(inputField ? `${inputField}.${v}` : v, evalContext ?? nodeInput)
+                  : v;
+            }
           }
           const bind = this.registry.bindNamedArgs(funcName, evaluated);
           if (bind.issues.length > 0) {
@@ -1183,7 +1254,11 @@ class DecisionRuntime {
           }
           operatorKwargs = bind.kwargs;
         } else {
-          const args = opArgExpressions.map((i: string) => {
+          // $positional 元素信封（ADR-016，OQ5 同批）：literal 原样绑定不走 inputField 拼接
+          const args = opArgExpressions.map((raw: string | Record<string, unknown>) => {
+            const env = DecisionRuntime.asTypedValueEnvelope(raw);
+            if (env?.mode === 'literal') return env.value;
+            const i = env ? String(env.value) : (raw as string);
             const expr = inputField ? `${inputField}.${i}` : i;
             return evaluateExpressionSafe(expr, evalContext ?? nodeInput);
           });

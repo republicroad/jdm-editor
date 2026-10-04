@@ -368,6 +368,20 @@ class UdfRegistry {
    * missing（声明且必填但缺）/ extra（未声明键）/ typeMismatch（声明类型不符）。
    * 未注册函数返回空清单（与位置校验同款宽容）。
    */
+  /** 信封窄识别（ADR-016；与 engine.ts asTypedValueEnvelope 同语义——跨文件无环复制，fixtures 钉一致性） */
+  private asTypedValueEnvelopeShape(
+    v: unknown,
+  ): { mode: 'literal' | 'expression' | 'reference'; value: string } | null {
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
+    const keys = Object.keys(v);
+    if (keys.length !== 2 || !('mode' in v) || !('value' in v)) return null;
+    const mode = (v as { mode: unknown }).mode;
+    const value = (v as { value: unknown }).value;
+    if (typeof value !== 'string') return null;
+    if (mode !== 'literal' && mode !== 'expression' && mode !== 'reference') return null;
+    return { mode, value };
+  }
+
   validateNamedArgs(
     name: string,
     kwargs: Record<string, unknown>,
@@ -378,16 +392,39 @@ class UdfRegistry {
   } {
     if (!this.functions.has(name)) return { missing: [], extra: [], typeMismatch: [] };
     const declared = new Map(this.positionalParams(name).map((param) => [param.name, param]));
-    const missing = [...declared.values()]
-      .filter((param) => param.required && (kwargs[param.name] === undefined || kwargs[param.name] === null))
-      .map((param) => param.name);
-    const extra = Object.keys(kwargs).filter((k) => !declared.has(k));
+    const missing: string[] = [];
+    const extra: string[] = [];
     const typeMismatch: Array<{ name: string; expected: string; actual: string }> = [];
-    for (const [key, value] of Object.entries(kwargs)) {
+    // missing 按声明参数集判定（缺失 = kwargs 中无此键，与遍历无关）
+    for (const param of declared.values()) {
+      if (param.required && (kwargs[param.name] === undefined || kwargs[param.name] === null)) {
+        missing.push(param.name);
+      }
+    }
+    // ADR-016 mode 感知：信封值按模式校验（literal 按声明类型直校；object/array
+    // value 禁止——与顶层原始类型一致；expression 不做静态校验，执行错误语义覆盖）
+    for (const [key, raw] of Object.entries(kwargs)) {
       const param = declared.get(key);
-      if (!param || param.jsonType == null || value === undefined || value === null) continue;
-      if (!matchJsonType(value, param.jsonType)) {
-        typeMismatch.push({ name: key, expected: param.jsonType, actual: describeJsonType(value) });
+      if (!param) {
+        extra.push(key);
+        continue;
+      }
+      const envelope = this.asTypedValueEnvelopeShape(raw);
+      if (envelope) {
+        if (envelope.mode === 'literal') {
+          if (typeof envelope.value === 'object') {
+            typeMismatch.push({ name: key, expected: param.jsonType ?? 'any', actual: 'object(嵌套禁止)' });
+            continue;
+          }
+          if (param.jsonType && !matchJsonType(envelope.value, param.jsonType)) {
+            typeMismatch.push({ name: key, expected: param.jsonType, actual: describeJsonType(envelope.value) });
+          }
+        }
+        // expression/reference：值按声明类型直校（路径形态本为字符串）
+        continue;
+      }
+      if (raw !== undefined && raw !== null && param.jsonType != null && !matchJsonType(raw, param.jsonType)) {
+        typeMismatch.push({ name: key, expected: param.jsonType, actual: describeJsonType(raw) });
       }
     }
     return { missing, extra, typeMismatch };

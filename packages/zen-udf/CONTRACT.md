@@ -280,6 +280,28 @@ executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
 孪生）。执行面语义不变：`required` 缺参 = 执行错误（§5.3）；编辑面漂移带的
 默认填充是**创作辅助**，两层不互代。
 
+### 11.6 参数值信封（TypedValue，模式显式化）
+
+kwargs 值 / `$positional` 元素可为信封对象——**模式显式化的 opt-in 通道**
+（裸字符串恒按表达式求值的默认不变，引号惯例长期共存）：
+
+```jsonc
+{ "mode": "literal",    "value": "($.customer)" }   // 字面量：原样绑定，不求值
+{ "mode": "expression", "value": "$.vip ? 'a' : 'b'" } // 表达式：求值
+{ "mode": "reference",  "value": "customer.tier" }  // 引用：按路径求值（首期 ≡ expression）
+```
+
+- **窄识别（normative）**：自有键**恰为** `mode`+`value` 二键、`mode` ∈ 上三枚、
+  `value` 为原始类型（literal 允许 string/number/boolean；expression/reference
+  要求字符串）——否则非信封，按现状处理（对象字面量透传，§5.2 报类型不符）；
+- **嵌套禁止**：信封 `value` 不再嵌信封；`literal` 的 object/array value =
+  非信封透传（校验面报类型不符，OQ2）；
+- **保留字**：对象值的 `mode`/`value` 二键自此保留（手写图注意）；
+- **依赖提取**：literal 信封不含引用（替换器与提取器均跳过）；expression 提取
+  `$.refs`；reference 取路径根段；
+- `validateNamedArgs` mode 感知：literal 按声明类型直校；
+  expression 静态校验不做（执行错误语义覆盖，OQ4）。
+
 ### 11.5 实例依赖调度（行内顺序求值）
 
 函数节点实例（`expressions[]`）默认并行（零行为变化）；声明依赖才串行——
