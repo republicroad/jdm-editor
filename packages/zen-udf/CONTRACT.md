@@ -260,6 +260,12 @@ executor(fixture, index) → { result?, error?, durationMs?, traceHits? }
   编辑面漂移带 MUST 消费之并提示迁移规范形
   （`{$call, kwargs: { kwargs: {...} }}`）。
 
+> **kwargs 值中 `$.` 前缀路径非属性访问**：kwargs 求值域不接通 dollar 作用域
+> （standalone 绑定无 insert/set_reference 注入）——值以 `$.` 开头的表达式串
+> 求值恒 null。字段引用用**裸键/点路径**（`fieldx` / `a.b`）或 **reference 信封** > `{mode:'reference', value:'path'}`。表达式节点与 dt 单元格的 `$` 可用
+> （isolate 已接通）——三面边界表见
+> `packages/zen-udf/docs/dollar-scope-decision.md`（多语言移植 MUST 复现）。
+
 ### 11.3 弃用表
 
 | 形态                     | 写入                                           | 读取                 |
