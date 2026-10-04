@@ -237,12 +237,13 @@ describe('$.fieldx 作用域立法测试（宿主指定的两处规则图语义�
         { id: 'e2', sourceId: 'e', targetId: 'out', type: 'edge' },
       ],
     };
-    const engine = new ZenEngine({ handler: async () => ({ output: {} }) });
+    const engine = new ZenEngine({ customHandler: async () => ({ output: {} }) });
     const d = engine.createDecision(graph as never);
     const r = await d.evaluate({});
     // $.fieldx = 本节点前行输出 fieldx（"FIELDX"）
     expect((r.result as Record<string, unknown>)?.ref).toBe('FIELDX');
   });
-  // 决策表输入列 `$.fieldx` 语义（列字段下/根输入两态）探针已实证表达式节点侧；
-  // dt 侧探针返回 {}（输出映射待继续定位），测试随后批补充——不交付未验证断言。
+  // 决策表侧（列 field 下/根输入两态 × 条件/输出两单元格面）已另立立法测试：
+  // dt-dollar-scope.test.ts（DecisionRuntime 全图）。第一轮 dt 探针返回 {} 的
+  // 根源=规则键误用 field 名（须用列 id），已定位并清账——见 dollar-scope-decision.md §2.1。
 });
