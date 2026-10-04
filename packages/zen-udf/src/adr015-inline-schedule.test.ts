@@ -210,3 +210,39 @@ describe('1.0 toMcpTool 派生视图（MCP annotations 单一事实源）', () =
     expect(toMcpTool(act).title).toBe('Act!');
   });
 });
+
+describe('$.fieldx 作用域立法测试（宿主指定的两处规则图语义）', () => {
+  test('表达式节点：$.fieldx 引用本节点前行输出 fieldx', async () => {
+    const { ZenEngine } = await import('@gorules/zen-engine');
+    const graph = {
+      id: 'g-dollar',
+      nodes: [
+        { id: 'in', type: 'inputNode', name: 'Request' },
+        {
+          id: 'e',
+          type: 'expressionNode',
+          name: 'expr',
+          content: {
+            type: 'expression',
+            expressions: [
+              { id: 'x1', key: 'fieldx', value: '"FIELDX"' },
+              { id: 'x2', key: 'ref', value: '$.fieldx' },
+            ],
+          },
+        },
+        { id: 'out', type: 'outputNode', name: 'Response' },
+      ],
+      edges: [
+        { id: 'e1', sourceId: 'in', targetId: 'e', type: 'edge' },
+        { id: 'e2', sourceId: 'e', targetId: 'out', type: 'edge' },
+      ],
+    };
+    const engine = new ZenEngine({ handler: async () => ({ output: {} }) });
+    const d = engine.createDecision(graph as never);
+    const r = await d.evaluate({});
+    // $.fieldx = 本节点前行输出 fieldx（"FIELDX"）
+    expect((r.result as Record<string, unknown>)?.ref).toBe('FIELDX');
+  });
+  // 决策表输入列 `$.fieldx` 语义（列字段下/根输入两态）探针已实证表达式节点侧；
+  // dt 侧探针返回 {}（输出映射待继续定位），测试随后批补充——不交付未验证断言。
+});
