@@ -141,7 +141,9 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
   const newNodeTypes = produce(nodeTypes, (draft) => {
     for (const { node, incomers } of graphWalker.walk(decisionGraph)) {
       if (node.type === 'inputNode') {
-        return;
+        // inputNode 类型由字段定义另路写入（无 inferTypes 可跑）——跳过本次迭代，
+        // 不退出整个 produce 推理循环（return 会截断所有下游节点的推断）
+        continue;
       }
 
       const incomerTypes = incomers
@@ -163,9 +165,11 @@ const inferNodeTypes: InferNodeTypes = ({ decisionGraph, nodeTypes, customNodes 
         draft[node.id][NodeTypeKind.InferredInput] = inferredInputType;
       }
 
+      // 自定义节点按 content.kind（pack namespace）匹配 spec——node.type 恒为
+      // 'customNode'，按 type 查找恒不命中（seal jdm-dg-infer-dead-loop.md 同步）
       const inferTypes =
         nodeSpecification[node.type as NodeKind]?.inferTypes ??
-        customNodes.find((n) => n.kind === node.type)?.inferTypes;
+        customNodes.find((n) => n.kind === node.content?.kind)?.inferTypes;
       if (!inferTypes) {
         return;
       }
@@ -228,7 +232,8 @@ const inferTypesNeedsUpdate = (
 ) => {
   const nodesNeedUpdate = decisionGraph.nodes.map((node) => {
     const inferTypes =
-      nodeSpecification[node.type as NodeKind]?.inferTypes ?? customNodes.find((n) => n.kind === node.type)?.inferTypes;
+      nodeSpecification[node.type as NodeKind]?.inferTypes ??
+      customNodes.find((n) => n.kind === (node.content as Record<string, unknown> | undefined)?.kind)?.inferTypes;
 
     if (!inferTypes) {
       return false;
