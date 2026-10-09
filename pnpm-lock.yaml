@@ -569,8 +569,8 @@ importers:
   packages/zen-udf:
     dependencies:
       '@gorules/zen-engine':
-        specifier: 2.1.0
-        version: 2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+        specifier: 2.1.4
+        version: 2.1.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       '@sinclair/typebox':
         specifier: 0.34.38
         version: 0.34.38
@@ -1333,62 +1333,62 @@ packages:
   '@gorules/lezer-zen@0.8.1':
     resolution: {integrity: sha512-alMzl4cqlzuqIFz+/bbKiWGN3eI64KjJLq84QkUCHHZG5p9DftV0uRo2RCdMtccSYyoIEWsrkx+ceRGlUMZUVw==}
 
-  '@gorules/zen-engine-darwin-arm64@2.1.0':
-    resolution: {integrity: sha512-iAN+WGD88U8HQi0qbB28ur0UqMwZfZQ+f+KrES+hh6SPvTorw3F1Uuf7X6F8Ia0qnaWqmS8Ak7upt5hh3+2/HA==}
+  '@gorules/zen-engine-darwin-arm64@2.1.4':
+    resolution: {integrity: sha512-d5NVywo6CTRXahqAdHwi8ZMI1b1Bih6YpIjmbPT4lEha7wMjtMK3o4jrJy0e9YZX9/T5JRvlfZhcBZPTjewv4w==}
     engines: {node: '>= 14'}
     cpu: [arm64]
     os: [darwin]
 
-  '@gorules/zen-engine-darwin-x64@2.1.0':
-    resolution: {integrity: sha512-tHFXiH0ylpsiaz9PITqWW6h7ffpO5IAe05DqZBr6pa02zil2NLS293EEBWe0owxJ9EQ3Fs1fzygf9UflWaDJqQ==}
+  '@gorules/zen-engine-darwin-x64@2.1.4':
+    resolution: {integrity: sha512-SRXIwMJyGEfizitm7gyDshX9E5Wmw3FYw5aw8q5msWUmTUvX5Q7/bqj3i0Hr/0CCLYQUSftEfXCbxSipWjaD/A==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [darwin]
 
-  '@gorules/zen-engine-linux-arm64-gnu@2.1.0':
-    resolution: {integrity: sha512-FzkGbUyQrAyeA6IDqzNnh7oVcLEHAjnUWbGWecI2VdgOFAHL+e2ISyO6w3vPMhP/kNASXSQcXfuF8dfQzp7hww==}
+  '@gorules/zen-engine-linux-arm64-gnu@2.1.4':
+    resolution: {integrity: sha512-jaNZtFvt4HYFIH31eY+tChhJ44ZQ/0tbrOHzg7rI7hWiqdRV4fI9XBndUER+f8mY3PAbsXek5XVbZlLvtXcJCw==}
     engines: {node: '>= 14'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@gorules/zen-engine-linux-arm64-musl@2.1.0':
-    resolution: {integrity: sha512-nArcZoH635GhdoD9f8e9lseEk6DQxOg+YYnukVMUIAZvJMUg3bEMb81hTWyUVQ1kZal0XWusIUV/mi3gypARYA==}
+  '@gorules/zen-engine-linux-arm64-musl@2.1.4':
+    resolution: {integrity: sha512-Do+z6G72KgVHP7xOMqO21wJYO+u7xVQe+WiKlqS8Qj0p8J1d+mc2bpo3Bl3WciLjPjCKYYog+FrttZfYHJu2NQ==}
     engines: {node: '>= 14'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@gorules/zen-engine-linux-x64-gnu@2.1.0':
-    resolution: {integrity: sha512-4/yAkef9B0oz/FNkTgFO1EfUgZGOKXMl0DjDtYsAQk1gM4rgi8qHaqDRUFZt/FswwyPawxp+FDFdFjnFdeoBbA==}
+  '@gorules/zen-engine-linux-x64-gnu@2.1.4':
+    resolution: {integrity: sha512-ONL9IGUqzIHQ02YEQpxam3Ut0exd5wqvCRAP2QBZS+cG+iomm1AipPPR06lYDBZTwele8R7lNWq3hmDKQYk+9Q==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@gorules/zen-engine-linux-x64-musl@2.1.0':
-    resolution: {integrity: sha512-9WMgWadJOtgkF9xnrDSZbQQAeQF18UE7hEUZXNyfluOzQNCtxLmPsIqSS7IzyTFsehmKDWfK5RzwU+3jHtasJA==}
+  '@gorules/zen-engine-linux-x64-musl@2.1.4':
+    resolution: {integrity: sha512-CDMOe0gkljfW24h0nGG5RmqH8bOO+PX9LkTo++W/flxm3Rp7ekqcjTTn8m9lQDr9jUDGjdE54SCQjwpRSBs1yw==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@gorules/zen-engine-wasm32-wasi@2.1.0':
-    resolution: {integrity: sha512-eODpVq1QuFvPSnsvAGS5uZWf/vZFHLCgSHA8SgSmYutEby/IoT7EWvTOtV3DQCkAJSXFR3qt8ZQqY3w/exSsDA==}
+  '@gorules/zen-engine-wasm32-wasi@2.1.4':
+    resolution: {integrity: sha512-vSsD68qt9ifjXR8lpsh+7eDsrdcwC6Cl2P5WFTZhwqabB/6kv9Bgn+iWvP7JoWtIyvaByDgWW25tadycOC7f+Q==}
     engines: {node: '>=14.0.0'}
     cpu: [wasm32]
 
   '@gorules/zen-engine-wasm@0.23.1':
     resolution: {integrity: sha512-FuuzqeRyUhHjz+SLYoqKHpTKog8O+O3LLCbdvgOuarsUAdXiC+tItbHw1PmrDw3jlIQbnfBW+CDOK2serI2mzA==}
 
-  '@gorules/zen-engine-win32-x64-msvc@2.1.0':
-    resolution: {integrity: sha512-fF2EdurDZ0nTP6Kg/zdOgOvd+F2ATcNBSXqXfLET9a2JHuq+ScLY3h0u4k4/K+wr6Ps6NjbmU+oiNu6zsXntCA==}
+  '@gorules/zen-engine-win32-x64-msvc@2.1.4':
+    resolution: {integrity: sha512-Eei/W/JEBDqkny/I1tTUfXz9pXoY/xBiNwvt2CF6lJHG1I+Ft5oobhjjoU3dGczeF0CcriwMttw0Vz+icgwTtA==}
     engines: {node: '>= 14'}
     cpu: [x64]
     os: [win32]
 
-  '@gorules/zen-engine@2.1.0':
-    resolution: {integrity: sha512-ezNvajeN5L8iKxJ7smSpL2gOI8cffVDCTNQAxRpQBDE+MVGy27ywHLjOsR1NpWgIi8Nxy+leSr/h/GQqFMQ3Zg==}
+  '@gorules/zen-engine@2.1.4':
+    resolution: {integrity: sha512-fGO3p9YhChxZvK8aVNDoO9TVUrz+BhGtKyzuUAbWEZhQ7NFm/CzfoYQoca2YINfZTGRPi57APSq/BDNfX8IbdQ==}
     engines: {node: '>= 14'}
 
   '@hapi/address@5.1.1':
@@ -1739,6 +1739,13 @@ packages:
 
   '@napi-rs/wasm-runtime@1.2.4':
     resolution: {integrity: sha512-AJxoUD2/15ESHbvpcyjU274nsAPLuOtPHCk0vKJM5pj//Fg/B1FXNWjPnXTT9PymCYYiHo4zPj0ZomXBKhoy7g==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
+      '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
+
+  '@napi-rs/wasm-runtime@1.2.5':
+    resolution: {integrity: sha512-HshSvXzmBxNzqejd3k/KemgQ3hdREUYFRRrgxOZ+gPljDIsO2SDZrVZMd4Z/HsxudQbE62OVyVFE8z9BCurfjA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
     peerDependencies:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
@@ -9892,27 +9899,27 @@ snapshots:
       '@lezer/highlight': 1.2.1
       '@lezer/lr': 1.4.2
 
-  '@gorules/zen-engine-darwin-arm64@2.1.0':
+  '@gorules/zen-engine-darwin-arm64@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-darwin-x64@2.1.0':
+  '@gorules/zen-engine-darwin-x64@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-linux-arm64-gnu@2.1.0':
+  '@gorules/zen-engine-linux-arm64-gnu@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-linux-arm64-musl@2.1.0':
+  '@gorules/zen-engine-linux-arm64-musl@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-linux-x64-gnu@2.1.0':
+  '@gorules/zen-engine-linux-x64-gnu@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-linux-x64-musl@2.1.0':
+  '@gorules/zen-engine-linux-x64-musl@2.1.4':
     optional: true
 
-  '@gorules/zen-engine-wasm32-wasi@2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
+  '@gorules/zen-engine-wasm32-wasi@2.1.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     dependencies:
-      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@napi-rs/wasm-runtime': 1.2.5(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -9920,19 +9927,19 @@ snapshots:
 
   '@gorules/zen-engine-wasm@0.23.1': {}
 
-  '@gorules/zen-engine-win32-x64-msvc@2.1.0':
+  '@gorules/zen-engine-win32-x64-msvc@2.1.4':
     optional: true
 
-  '@gorules/zen-engine@2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
+  '@gorules/zen-engine@2.1.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     optionalDependencies:
-      '@gorules/zen-engine-darwin-arm64': 2.1.0
-      '@gorules/zen-engine-darwin-x64': 2.1.0
-      '@gorules/zen-engine-linux-arm64-gnu': 2.1.0
-      '@gorules/zen-engine-linux-arm64-musl': 2.1.0
-      '@gorules/zen-engine-linux-x64-gnu': 2.1.0
-      '@gorules/zen-engine-linux-x64-musl': 2.1.0
-      '@gorules/zen-engine-wasm32-wasi': 2.1.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
-      '@gorules/zen-engine-win32-x64-msvc': 2.1.0
+      '@gorules/zen-engine-darwin-arm64': 2.1.4
+      '@gorules/zen-engine-darwin-x64': 2.1.4
+      '@gorules/zen-engine-linux-arm64-gnu': 2.1.4
+      '@gorules/zen-engine-linux-arm64-musl': 2.1.4
+      '@gorules/zen-engine-linux-x64-gnu': 2.1.4
+      '@gorules/zen-engine-linux-x64-musl': 2.1.4
+      '@gorules/zen-engine-wasm32-wasi': 2.1.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@gorules/zen-engine-win32-x64-msvc': 2.1.4
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -10429,13 +10436,6 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
-  '@napi-rs/wasm-runtime@1.2.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
-    dependencies:
-      '@emnapi/core': 1.10.0
-      '@emnapi/runtime': 1.10.0
-      '@tybys/wasm-util': 0.10.3
-    optional: true
-
   '@napi-rs/wasm-runtime@1.2.3(@emnapi/core@1.11.0)(@emnapi/runtime@1.11.0)':
     dependencies:
       '@emnapi/core': 1.11.0
@@ -10450,7 +10450,14 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
-  '@napi-rs/wasm-runtime@1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
+  '@napi-rs/wasm-runtime@1.2.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
+    dependencies:
+      '@emnapi/core': 1.10.0
+      '@emnapi/runtime': 1.10.0
+      '@tybys/wasm-util': 0.10.3
+    optional: true
+
+  '@napi-rs/wasm-runtime@1.2.5(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     dependencies:
       '@emnapi/core': 1.11.3
       '@emnapi/runtime': 1.11.3
@@ -12232,7 +12239,7 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.10.0
       '@emnapi/runtime': 1.10.0
-      '@napi-rs/wasm-runtime': 1.2.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
+      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
     optional: true
 
   '@unrs/resolver-binding-win32-arm64-msvc@1.12.2':

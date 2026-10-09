@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@gorules/zen-engine": "2.1.0",
+    "@gorules/zen-engine": "2.1.4",
     "@sinclair/typebox": "0.34.38"
   },
   "devDependencies": {
