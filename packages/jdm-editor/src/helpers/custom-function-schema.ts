@@ -1,5 +1,9 @@
 import { smartSplit } from './utility';
 
+/** 局部 record 守卫（与 request-schema/utils.isRecord 同义；helper 顶层不引子目录模块） */
+const isRecord = (value: unknown): value is Record<string, any> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 export const emptyCustomFunctionReturnSchema = {};
 
 export const normalizeFunctionReturns = (returns?: any) => {
@@ -95,6 +99,10 @@ export const resolveFunctionScope = (kind?: string | null, customFunctions?: any
   return { mode: 'free', functions: allFunctions };
 };
 
+/**
+ * @deprecated 位置数组种子产出器（ADR-015 前形态）——规范形写路径下零消费方，
+ * 保留仅为公开 API 兼容；新代码勿用（种子一律 `{$call, kwargs}` 具名形）。
+ */
 export const buildDefaultFunctionExpression = (funcDef: any) => {
   const properties = funcDef?.parameters?.properties ?? {};
   const argExprs: Record<string, string> = {};
@@ -110,6 +118,54 @@ export const buildDefaultFunctionExpression = (funcDef: any) => {
     arg_exprs: argExprs,
     returnSchema: getFunctionReturnSchema(funcDef),
   };
+};
+
+/** 规范调用形（CONTRACT §11）：{$call: 函数名, kwargs: 具名参数} */
+export type NamedFunctionCall = {
+  $call: string;
+  kwargs: Record<string, unknown>;
+};
+
+/** 声明序参数键（funcDef.parameters.properties 的键序即位置序） */
+const declaredArgNames = (funcDef?: { parameters?: unknown }): string[] =>
+  funcDef && isRecord(funcDef.parameters) && isRecord(funcDef.parameters.properties)
+    ? Object.keys(funcDef.parameters.properties)
+    : [];
+
+/**
+ * 编辑器位置数组 → 规范字典：位置位按声明序映射为参数键；
+ * 超出声明位的溢出值收进保留键 `$positional`（0.14 同款约定，供漂移带按
+ * extra 检出）；priorKwargs 中的非位置键原样并回（圆往返保真）。
+ */
+export const editorValueToNamedCall = (
+  value: unknown,
+  funcDef?: { parameters?: unknown },
+  priorKwargs?: Record<string, unknown> | null,
+): NamedFunctionCall | null => {
+  if (!Array.isArray(value) || value.length === 0) {
+    return null;
+  }
+
+  const declared = declaredArgNames(funcDef);
+  const fn = String(value[0] ?? '').trim();
+  if (!fn) {
+    return null;
+  }
+
+  const kwargs: Record<string, unknown> = { ...(priorKwargs ?? {}) };
+  declared.forEach((name, index) => {
+    if (value[index + 1] !== undefined) {
+      kwargs[name] = value[index + 1];
+    }
+  });
+  const overflow = value.slice(declared.length + 1);
+  if (overflow.length > 0) {
+    kwargs.$positional = overflow;
+  } else {
+    delete kwargs.$positional;
+  }
+
+  return { $call: fn, kwargs };
 };
 
 /**

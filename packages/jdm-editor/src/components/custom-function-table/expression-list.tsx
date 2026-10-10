@@ -49,7 +49,11 @@ export const ExpressionList: React.FC<ExpressionListProps> = ({ customFunctions,
         const isFunctionExpression = expr.type === 'function' || isFunctionExpressionValue(expr.value);
         const calculatedType = isFunctionExpression
           ? jsonSchemaToVariableType(expr.returnSchema ?? emptyReturnSchema)
-          : resultingVariableType.calculateType(Array.isArray(expr.value) ? expr.value.join(';;') : expr.value);
+          : resultingVariableType.calculateType(
+              Array.isArray(expr.value) || (expr.value && typeof expr.value === 'object')
+                ? JSON.stringify(expr.value)
+                : String(expr.value),
+            );
         resultingVariableType.set(`$.${expr.key}`, calculatedType);
       });
 

@@ -21,7 +21,7 @@ const ExpressionStoreContext = React.createContext<
 export type ExpressionEntry = {
   id: string;
   key: string;
-  value: string | string[];
+  value: string | string[] | { $call: string; kwargs: Record<string, unknown> };
   _diff?: DiffMetadata;
   type?: string;
   returnSchema?: any;

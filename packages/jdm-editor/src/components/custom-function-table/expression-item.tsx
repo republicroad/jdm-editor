@@ -117,11 +117,49 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
   };
 
   const parseFunctionValue = (
-    value: string | string[],
+    value: string | string[] | { $call: string; kwargs: Record<string, unknown> },
     fallbackReturnSchema: any = expression.returnSchema ?? emptyReturnSchema,
   ) => {
     if (!value || (typeof value === 'string' && !value.trim())) {
       return null;
+    }
+
+    // ADR-015 #3 规范形（{$call, kwargs}）直读——写路径切规范形后本组件的自产形态
+    if (!Array.isArray(value) && typeof value === 'object') {
+      const funcName = value.$call;
+      const kwargs = value.kwargs ?? {};
+      const funcDef = normalizedCustomFunctions.find((f: any) => f.name === funcName);
+
+      if (!funcDef) {
+        const properties: Record<string, any> = {};
+        const argExprs: Record<string, any> = {};
+        Object.keys(kwargs).forEach((argName, index) => {
+          properties[argName] = {
+            type: 'string',
+            description: `Parameter ${index + 1}`,
+            default: '',
+          };
+          argExprs[argName] = String(kwargs[argName] ?? '');
+        });
+
+        return {
+          funcmeta: {
+            name: funcName,
+            parameters: { properties, type: 'object', title: funcName },
+            returns: normalizeFunctionReturns(fallbackReturnSchema),
+          },
+          arg_exprs: argExprs,
+        };
+      }
+
+      const argExprs: Record<string, string> = {};
+      const properties = funcDef.parameters?.properties ?? {};
+      Object.keys(properties).forEach((argName: string) => {
+        const v = kwargs[argName];
+        argExprs[argName] = v !== undefined && v !== null ? String(v) : (properties[argName].default ?? '');
+      });
+
+      return { funcmeta: funcDef, arg_exprs: argExprs };
     }
 
     const parts = toOperatorExprArray(value);
@@ -262,10 +300,24 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
     updateRow(index, update);
   };
 
-  const buildFunctionValue = (funcmeta: any, argExprs: Record<string, any>): string[] => {
+  /** ADR-015 #3：写路径产规范形 {$call, kwargs}——非声明 prior 额外键保真并回（与 tab 面 persistExpressions 同构）。 */
+  const buildFunctionValue = (
+    funcmeta: any,
+    argExprs: Record<string, any>,
+    priorKwargs?: Record<string, unknown> | null,
+  ): { $call: string; kwargs: Record<string, unknown> } => {
     const properties = funcmeta?.parameters?.properties ?? {};
-    const argValues = Object.keys(properties).map((argName) => String(argExprs?.[argName] ?? ''));
-    return [funcmeta?.name ?? '', ...argValues];
+    const kwargs: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(priorKwargs ?? {})) {
+      if (!(k in properties)) {
+        kwargs[k] = v;
+      }
+    }
+    for (const argName of Object.keys(properties)) {
+      kwargs[argName] = argExprs?.[argName] ?? '';
+    }
+
+    return { $call: funcmeta?.name ?? '', kwargs };
   };
 
   const onSelectFunction = (funcName: string, option: any) => {
@@ -280,12 +332,12 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
       argExprs[argName] = properties[argName].default ?? '';
     });
 
+    // ADR-015 #3 / 2.2：arg_exprs 停写（具名形参数即本体）——写路径产规范形
     onChange({
       value: buildFunctionValue(funcmeta, argExprs),
       type: 'function',
       returnSchema: getFunctionReturnSchema(funcmeta),
       funcmeta,
-      arg_exprs: argExprs,
     });
   };
 
@@ -298,10 +350,14 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
     const nextArgExprs: Record<string, any> = { ...currentInfo.arg_exprs };
     nextArgExprs[argName] = argValue;
 
+    const priorKwargs =
+      expression.value && typeof expression.value === 'object' && !Array.isArray(expression.value)
+        ? ((expression.value as { $call: string; kwargs?: Record<string, unknown> }).kwargs ?? null)
+        : null;
+
     onChange({
-      value: buildFunctionValue(currentInfo.funcmeta, nextArgExprs),
+      value: buildFunctionValue(currentInfo.funcmeta, nextArgExprs, priorKwargs),
       type: 'function',
-      arg_exprs: nextArgExprs,
     });
   };
 
@@ -502,7 +558,10 @@ export const ExpressionItem: React.FC<ExpressionItemProps> = ({
   );
 };
 
-const LivePreview = React.memo<{ id: string; value: string | string[] }>(({ id, value }) => {
+const LivePreview = React.memo<{
+  id: string;
+  value: string | string[] | { $call: string; kwargs: Record<string, unknown> };
+}>(({ id, value }) => {
   const { inputData, initial } = useExpressionStore(({ debug, debugIndex, calculatedInputData }) => {
     const snapshot = (debug?.snapshot?.expressions ?? []).find((e) => e.id === id);
     const trace = snapshot?.key ? getTrace(debug?.trace.traceData, debugIndex)?.[snapshot.key] : undefined;

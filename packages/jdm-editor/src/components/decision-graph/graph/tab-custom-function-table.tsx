@@ -2,12 +2,12 @@ import React, { useMemo } from 'react';
 import { P, match } from 'ts-pattern';
 import type { z } from 'zod';
 
-import { resolveFunctionScope } from '../../../helpers/custom-function-schema';
+import { editorValueToNamedCall, resolveFunctionScope } from '../../../helpers/custom-function-schema';
 import type { GetNodeDataResult } from '../../../helpers/node-data';
 import { getNodeData } from '../../../helpers/node-data';
 import { useNodeType } from '../../../helpers/node-type';
 import type { customNodeSchema } from '../../../helpers/schema';
-import { get, toOperatorExprArray } from '../../../helpers/utility';
+import { get } from '../../../helpers/utility';
 import { isWasmAvailable } from '../../../helpers/wasm';
 import { CustomFunction } from '../../custom-function-table';
 import type { ExpressionPermission } from '../../custom-function-table/context/expression-store.context';
@@ -55,6 +55,36 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
     () => resolveFunctionScope((content as { kind?: string } | undefined)?.kind, customFunctions),
     [content?.kind, customFunctions],
   );
+
+  const expressions = (content?.config as { expressions?: any } | undefined)?.expressions;
+
+  // ADR-015 #3（seal ADR-022 移植）：写路径归一为规范形 {$call, kwargs}（编辑器位置数组经
+  // 声明序映射；priorKwargs 并回保非位置额外键）；expr_asts 停写（引擎派生，零风险）
+  const persistExpressions = (val: any) => {
+    const previousById = new Map(((expressions ?? []) as any[]).map((expr: any) => [expr?.id, expr]));
+    const canonical = (val ?? []).map((expr: any) => {
+      const functionName = Array.isArray(expr?.value)
+        ? expr.value[0]
+        : typeof expr?.value?.$call === 'string'
+          ? expr.value.$call
+          : undefined;
+      const funcDef = functionScope.functions.find((func: any) => func?.name === functionName);
+      const prior = previousById.get(expr?.id)?.value;
+      const priorKwargs = prior && typeof prior === 'object' && !Array.isArray(prior) ? (prior.kwargs ?? null) : null;
+      const named = editorValueToNamedCall(expr?.value, funcDef, priorKwargs);
+      return named ? { ...expr, value: named } : expr;
+    });
+
+    graphActions.updateNode(id, (draft) => {
+      draft.content.config.expressions = canonical;
+
+      draft.content.config.meta = {
+        user: user ?? '',
+        proj: user ?? '',
+      };
+      return draft;
+    });
+  };
 
   const inputVariableType = useMemo(() => {
     if (!nodeType) {
@@ -109,23 +139,7 @@ export const CustomFunctionTable: React.FC<TabCustomFunctionProps> = ({ id, user
         functionScope={functionScope}
         debug={debug as any}
         inputVariableType={inputVariableType}
-        onChange={(val: any) => {
-          graphActions.updateNode(id, (draft) => {
-            draft.content.config.expressions = val;
-
-            draft.content.config.expr_asts = (val ?? []).map((expr: any) => ({
-              id: expr?.id,
-              key: expr?.key,
-              value: expr?.value ? toOperatorExprArray(expr.value) : [''],
-            }));
-
-            draft.content.config.meta = {
-              user: user ?? '',
-              proj: user ?? '',
-            };
-            return draft;
-          });
-        }}
+        onChange={persistExpressions}
       />
     </div>
   );

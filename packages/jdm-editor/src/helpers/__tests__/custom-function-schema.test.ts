@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDefaultFunctionExpression,
+  editorValueToNamedCall,
   healExpressionsForScope,
   resolveFunctionScope,
 } from '../custom-function-schema';
@@ -105,6 +106,50 @@ describe('buildDefaultFunctionExpression', () => {
     expect(entry.arg_exprs).toEqual({ a: 'x', b: '' });
     expect(entry.funcmeta).toBe(funcDef);
     expect(entry.returnSchema).toEqual({ type: 'string' });
+  });
+});
+
+describe('editorValueToNamedCall（ADR-015 #3 写路径切规范形，seal ADR-022 移植）', () => {
+  const funcDef = namespaces[0].tools[0]; // inout(a, b)
+
+  it('maps positional args onto declared names in declaration order', () => {
+    expect(editorValueToNamedCall(['inout', 'x', '1'], funcDef)).toEqual({
+      $call: 'inout',
+      kwargs: { a: 'x', b: '1' },
+    });
+  });
+
+  it('collects overflow args into the $positional reserved key', () => {
+    expect(editorValueToNamedCall(['inout', 'x', '1', 'extra'], funcDef)).toEqual({
+      $call: 'inout',
+      kwargs: { a: 'x', b: '1', $positional: ['extra'] },
+    });
+  });
+
+  it('merges priorKwargs extra keys and drops stale $positional when no overflow', () => {
+    const prior = { custom: 'keep', $positional: ['old'] };
+    expect(editorValueToNamedCall(['inout', 'x'], funcDef, prior)).toEqual({
+      $call: 'inout',
+      kwargs: { custom: 'keep', a: 'x' },
+    });
+  });
+
+  it('passes named-form values through untouched (already canonical)', () => {
+    expect(editorValueToNamedCall({ $call: 'inout', kwargs: { a: 'x' } }, funcDef)).toBeNull();
+  });
+
+  it('returns null for non-array, empty, or nameless editor values', () => {
+    expect(editorValueToNamedCall('fn;;x', funcDef)).toBeNull();
+    expect(editorValueToNamedCall([], funcDef)).toBeNull();
+    expect(editorValueToNamedCall(['', 'x'], funcDef)).toBeNull();
+    expect(editorValueToNamedCall(['  '], funcDef)).toBeNull();
+  });
+
+  it('without funcDef, canonicalizes with all args into $positional (nothing lost, drift flags it)', () => {
+    expect(editorValueToNamedCall(['mystery', 'x'])).toEqual({
+      $call: 'mystery',
+      kwargs: { $positional: ['x'] },
+    });
   });
 });
 

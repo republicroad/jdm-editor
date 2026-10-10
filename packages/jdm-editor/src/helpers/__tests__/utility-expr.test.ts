@@ -94,6 +94,18 @@ describe('normalizeCustomNodeExpressions', () => {
     expect(node.content.config.expr_asts[0].value).toEqual(['x', 'y']);
   });
 
+  it('passes canonical {$call, kwargs} values through read normalization untouched (ADR-015 #3 双读)', () => {
+    const named = { $call: 'inout', kwargs: { a: 'x' } };
+    const nodes = [
+      {
+        type: 'customNode',
+        content: { config: { expressions: [{ key: 'a', value: named, type: 'function' }] } },
+      },
+    ];
+    const [node] = normalizeCustomNodeExpressions(nodes as any) as any[];
+    expect(node.content.config.expressions[0].value).toBe(named);
+  });
+
   it('leaves custom nodes without array expressions untouched', () => {
     const nodes = [{ type: 'customNode', content: { config: {} } }];
     expect(normalizeCustomNodeExpressions(nodes)[0]).toBe(nodes[0]);

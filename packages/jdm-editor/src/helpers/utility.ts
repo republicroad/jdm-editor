@@ -57,12 +57,17 @@ export const toOperatorExprString = (value: string | string[]): string => {
   return value;
 };
 
-export const toOperatorExprDisplay = (value: string | string[]): string => {
+export const toOperatorExprDisplay = (value: string | string[] | Record<string, unknown>): string => {
   if (Array.isArray(value)) {
     return JSON.stringify(value);
   }
 
-  return value;
+  // ADR-015 #3 规范形对象 → JSON 显示（code 模式可编辑，parseOperatorExprInput 逆解析）
+  if (value && typeof value === 'object' && typeof (value as { $call?: unknown }).$call === 'string') {
+    return JSON.stringify(value);
+  }
+
+  return value as string;
 };
 
 export const parseOperatorExprInput = (text: string): string | string[] => {
