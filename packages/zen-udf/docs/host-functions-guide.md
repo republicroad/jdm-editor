@@ -31,7 +31,7 @@ export const cachePack: UdfPack = {
   ],
 };
 
-const runtime = new DecisionRuntime({ registry: createUdfRegistry({ packs: [cachePack] }) });
+const runtime = new DecisionRuntime({ registry: createUdfRuntime({ packs: [cachePack] }) });
 ```
 
 要点：
@@ -124,7 +124,75 @@ customNode 表达式调用支持三种等价形态（`fn` 恒收 kwargs 关键�
 5. **semantics / idempotent**：`query/observe/act` 三语义决定审计与回放行为
    （act 类未声明 `idempotent` 会被 `packWarnings`/`packChecks` 提示）。
 
-## 5. 上架前自检：packChecks
+## 5. 结果缓存：函数作者自决（闭包 loader 模式）
+
+框架契约（2026-10-10 立法）：**每次调用 = 真实执行**——zen-udf 没有结果缓存层，
+是否缓存、粒度、时窗、容量都是**函数作者的业务判断**，在函数实现内部自行完成。
+引擎视角无任何特例：每次调用都真实进入 `run`，只是函数内部决定「这次从自己的
+缓存里拿」——审计与 trace 照常记账（命中条目耗时近零，本身就是命中信号）。
+
+推荐形态 = **工厂 + 闭包缓存**：宿主**按请求创建函数实例**，缓存随请求生死——
+无 TTL、无失效策略、天然不跨请求读陈旧值（GraphQL DataLoader 同款语义）：
+
+```ts
+import { Type } from '@sinclair/typebox';
+import { createUdfRuntime, pack, tool, type UdfPackDef } from '@republicroad/zen-udf';
+
+export function createRosterPack({ roster }: { roster: RosterClient }): UdfPackDef {
+  const cache = new Map<string, unknown>();              // 闭包状态 = 私有缓存
+  const inflight = new Map<string, Promise<unknown>>();  // single-flight：并发同参合流
+
+  return pack({
+    id: 'roster',
+    tools: [
+      tool({
+        namespace: 'roster',
+        name: 'lookup',
+        description: '按 user_id 查 roster 档案（实例内自缓存）',
+        semantics: 'query',
+        input: Type.Object({ user_id: Type.String() }),
+        output: Type.Record(Type.String(), Type.Unknown()),
+        run: async ({ user_id }, ctx) => {
+          const key = `${ctx?.tenantId ?? 'default'}:${user_id}`;
+          const hit = cache.get(key);
+          if (hit !== undefined) return hit;
+          const pending = inflight.get(key);              // 同参在途 → 复用同一 Promise
+          if (pending) return pending;
+          const executing = roster.find(user_id).then(
+            (row) => { cache.set(key, row); inflight.delete(key); return row; },
+            (err) => { inflight.delete(key); throw err; }, // 只缓存成功——错误不进缓存
+          );
+          inflight.set(key, executing);
+          return executing;
+        },
+      }),
+    ],
+  });
+}
+
+// 宿主：HTTP 中间件里每请求一次——实例丢弃时闭包缓存随之回收
+const runtime = createUdfRuntime({ packs: [createRosterPack({ roster })] });
+```
+
+同一决策内三处同参调用 → 一次真实底层执行 + 两次闭包命中；并发同参（实例依赖
+调度下多节点并行）经 `inflight` 合流，不击穿底层。
+
+### 进程单例形态的注意义务
+
+宿主若只建一次实例（缓存跨请求存活），义务全部移交函数作者：
+
+| 义务 | 说明 |
+| --- | --- |
+| 键完整性 | `tenantId` + 全部实质输入 + pack `meta.version` 进键——漏一项即跨租户串号/升级后陈旧读 |
+| 有界 | Map 换 LRU 或定期清扫——长命进程防泄漏 |
+| 只缓存成功 | 错误可能是瞬态，重复失败交给熔断；缓存错误 = 钉死故障 |
+| act 永不缓存 | 处置效果漏执行不可逆；observe 自担时间性（「同值窗口」是业务判断） |
+| 可观测 | 作者层打 hit/miss；框架侧每次调用照常记账，耗时近零即命中 |
+
+`ToolContext` 已携带 `tenantId/requestId/userId`——即使单例形态，按请求/租户
+分片缓存键所需的料框架已给齐，无需任何新支持。
+
+## 6. 上架前自检：packChecks
 
 ```ts
 import { packChecks } from '@republicroad/zen-udf';
@@ -137,7 +205,7 @@ if (issues.some((i) => i.severity === 'error')) throw new Error(JSON.stringify(i
 `required ⊆ properties`、timeout 参数形状、act 幂等声明、namespace 命名约定。
 建议放进宿主 CI——与 RateStore conformance 套件同一契约即测试思想。
 
-## 6. 反模式
+## 7. 反模式
 
 | 反模式 | 后果 |
 | --- | --- |
@@ -146,3 +214,4 @@ if (issues.some((i) => i.severity === 'error')) throw new Error(JSON.stringify(i
 | 结果里塞函数/Symbol/循环引用 | trace/审计序列化炸或丢数据 |
 | 凭证写进 parametersSchema 默认值 | 凭证落图内容，违反多租户纪律 |
 | per-tenant 动态注册同名函数 | 注册是 deploy-time 静态行为，撞名注册期硬失败 |
+| 单例形态缓存键缺 tenantId/版本（§5） | 跨租户串号 / pack 升级后陈旧读 |
