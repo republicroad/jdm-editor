@@ -132,7 +132,7 @@ describe('Y7 决策测试夹具运行器（ADR-014 executor 反转形态）', ()
     expect(report.results[0]?.durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  test('expression 断言：可序列化，根绑定 result', async () => {
+  test('expression 断言：context 平铺裸键（OQ3 ① 定稿）', async () => {
     const runtime = makeRuntime();
     const report = await runDecisionTests({
       executor: createRuntimeExecutor(runtime, { key: 'expr', model, rev: 'v1' }),
@@ -141,12 +141,12 @@ describe('Y7 决策测试夹具运行器（ADR-014 executor 反转形态）', ()
         {
           name: '表达式通过',
           input: { x: 5, flagged: false },
-          expect: { mode: 'expression', source: 'result.score.value == 5' },
+          expect: { mode: 'expression', source: 'score.value == 5' },
         },
         {
           name: '表达式不通过',
           input: { x: 5, flagged: false },
-          expect: { mode: 'expression', source: 'result.score.value == 999' },
+          expect: { mode: 'expression', source: 'score.value == 999' },
         },
       ],
     });
@@ -164,7 +164,7 @@ describe('Y7 决策测试夹具运行器（ADR-014 executor 反转形态）', ()
         {
           name: '缺求值器',
           input: { x: 5, flagged: false },
-          expect: { mode: 'expression', source: 'result.score.value == 5' },
+          expect: { mode: 'expression', source: 'score.value == 5' },
         },
       ],
     });
@@ -230,5 +230,29 @@ describe('Y7 决策测试夹具运行器（ADR-014 executor 反转形态）', ()
     });
     expect(progress.map((p) => p.name)).toEqual(['a', 'b']);
     expect(progress[0]).toMatchObject({ index: 0, total: 2 });
+  });
+});
+
+describe('createZenExpressionEvaluator：OQ3 ① 定稿——context 平铺，禁 $ 根导航', () => {
+  const evaluator = createZenExpressionEvaluator();
+
+  test('对象结果平铺：顶层键直引（standard 语料已测面）', () => {
+    expect(evaluator('score.value == 5', { score: { value: 5 } })).toBe(true);
+    expect(evaluator('score.value == 999', { score: { value: 5 } })).toBe(false);
+    expect(evaluator('a * 2 == 20', { a: 10 })).toBe(true);
+  });
+
+  test('非对象结果绑 result 单键（标量/数组/null 可断言）', () => {
+    expect(evaluator('result == 42', 42)).toBe(true);
+    expect(evaluator('result == 41', 42)).toBe(false);
+    expect(evaluator('result[0] == "a"', ['a', 'b'])).toBe(true);
+    expect(evaluator('result == null', null)).toBe(true);
+  });
+
+  test('哨兵：$ 根与 $.path 导航在独立求值环境恒 null 静默（禁用形态）', () => {
+    // 旧约定 $.result.x 的失效实证：条件恒 false → 表达式断言恒不通过（fail-visible，
+    // 不再经 { result: data } 包装产生「result 键恰好存在」的假阳性通道）
+    expect(evaluator('$.result.score.value == 5', { score: { value: 5 } })).toBe(false);
+    expect(evaluator('$.score.value == 5', { score: { value: 5 } })).toBe(false);
   });
 });

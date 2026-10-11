@@ -196,7 +196,11 @@ ADR-009/执行规范 §6.2-6.4）。语言实现 MUST 提供这些端口的接�
 - `expect` **可选**——缺省即 **smoke 语义**：`passed = 执行无异常`（示例天然是
   smoke 用例，可逐个「毕业」为断言用例）；
 - `expect.mode`：`deep`（结果深比较）/ `path`（结果路径取值比较）/
-  `expression`（zen-expression 对结果求值，**根绑定 `result`**，可序列化）；
+  `expression`（zen-expression 对结果求值，可序列化）。**求值契约（OQ3 ①
+  定稿，1.4.0）：context 平铺**——对象结果的顶层键即变量（`score.value == 5`
+  裸键直引）；非对象结果绑定为 `result` 单键（`result == 42`）。**禁用 `$` 根
+  与 `$.path` 导航**——独立求值环境不绑定 `$`，路径 miss 恒 null 静默
+  （ADR-014 OQ3 修订增补；1.3.x 的 `result.xxx` 包装形态废弃，存量条件改裸键）；
 - `mode: "predicate"`（函数体断言）是**进程内便利糖，不在本契约内**（不可跨端
   序列化）；
 - `journal` + `asOf`：Y3 回放语义——observe/act 从桩读回不重执行，夹具可复现。

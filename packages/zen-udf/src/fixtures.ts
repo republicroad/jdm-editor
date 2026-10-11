@@ -16,7 +16,7 @@ import type { ReplayJournalEntry } from './exec-context.ts';
 export type Expectation =
   | { mode: 'deep'; value: unknown }
   | { mode: 'path'; path: string; value: unknown }
-  /** 可序列化断言：zen-expression 对结果求值（根绑定 result，ADR-014 OQ3） */
+  /** 可序列化断言：zen-expression 对结果求值（context 平铺裸键；非对象结果绑 `result` 单键——OQ3 ① 定稿，禁 `$`/`$.path`） */
   | { mode: 'expression'; source: string }
   /** 进程内便利糖：携带函数体不可跨端序列化，不入 CONTRACT 测试侧契约 */
   | { mode: 'predicate'; test: (result: unknown) => boolean };
