@@ -69,7 +69,8 @@ jobs:
         shell: bash
         run: |
           for entry in ${{ steps.publish.outputs.published }}; do
-            att="$(npm view "$entry" dist.attestations --json 2>/dev/null | head -c 40)"
+            # npm view 对缺失字段非零退出（pipefail 下会杀本步）——|| true 容错
+            att="$( (npm view "$entry" dist.attestations --json 2>/dev/null || true) | head -c 40 )"
             if [ -n "$att" ] && [ "$att" != "null" ]; then
               echo "[provenance] $entry attested ✓"
             else
