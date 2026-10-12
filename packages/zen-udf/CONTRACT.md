@@ -203,7 +203,12 @@ ADR-009/执行规范 §6.2-6.4）。语言实现 MUST 提供这些端口的接�
   （ADR-014 OQ3 修订增补；1.3.x 的 `result.xxx` 包装形态废弃，存量条件改裸键）；
 - `mode: "predicate"`（函数体断言）是**进程内便利糖，不在本契约内**（不可跨端
   序列化）；
-- `journal` + `asOf`：Y3 回放语义——observe/act 从桩读回不重执行，夹具可复现。
+- `journal` + `asOf`：Y3 回放语义——observe/act 从桩读回不重执行，夹具可复现；
+- **回放钉扎（1.5.0）**：journal 条目可携带 `packVersion`（审计 observed 透传，
+  版本源 = 函数所属 pack 的 `meta.version`）——回放时与当前注册表比对，不一致
+  即 `REPLAY_PIN_MISMATCH` fail visible（防 pack 升级后回放静默漂移；缺省不参与
+  钉扎，存量审计回放行为不变）。夹具报告携带 `fingerprint`（FNV-1a，非加密，
+  夹具集漂移检出）。
 
 ### 10.2 执行器（DecisionTestExecutor）
 

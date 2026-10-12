@@ -11,39 +11,15 @@ import { createHash } from 'node:crypto';
 import { type CircuitBreaker } from './breaker.ts';
 import { type CacheMetricsSnapshot, DecisionCache } from './decision-cache.ts';
 import { EXEC_CONTEXT_INPUT_KEY, type ExecContext, getExecContext, runWithExecContext } from './exec-context.ts';
+import { type TypedValueEnvelope, asTypedValueEnvelope } from './instances/envelope.ts';
+import { type ExprAstItem, buildInstanceSchedule, extractInstanceRefs } from './instances/plan.ts';
+import { substituteInstanceRefs } from './instances/substitute.ts';
 import { type ConcurrencyLimiter } from './limiter.ts';
 import { withOtelSpan } from './otel.ts';
 import type { JsonSchema } from './register.ts';
 import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './register.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
-
-type TypedValueEnvelope = { mode: 'literal' | 'expression' | 'reference'; value: string | number | boolean };
-
-/** 信封窄识别（ADR-016，单源）：恰为 mode+value 二键、mode 枚举、value 原始类型
- * （literal 允许 string/number/boolean——OQ2；expression/reference 要求字符串）。
- * object/array value = 非信封（按现状对象字面量透传，校验面按类型不符报）。 */
-function asTypedValueEnvelope(v: unknown): TypedValueEnvelope | null {
-  if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
-  const keys = Object.keys(v);
-  if (keys.length !== 2 || !('mode' in v) || !('value' in v)) return null;
-  const mode = (v as { mode: unknown }).mode;
-  const value = (v as { value: unknown }).value;
-  if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') return null;
-  if (mode === 'expression' || mode === 'reference') {
-    if (typeof value !== 'string') return null;
-  }
-  if (mode !== 'literal' && mode !== 'expression' && mode !== 'reference') return null;
-  return { mode, value } as TypedValueEnvelope;
-}
-
-interface ExprAstItem {
-  id: string;
-  key: string;
-  value: string | string[] | Record<string, unknown>;
-  /** 实例依赖声明（ADR-015 增补，逃生门）：显式依赖的实例输出键（与 `$.key` 自动提取取并集） */
-  dependsOn?: string[];
-}
 
 /** UDF 函数粒度执行轨迹（执行规范 §6.6）：经 customHandler 的 traceData 下发 */
 export interface UdfTrace {
@@ -56,6 +32,8 @@ export interface UdfTrace {
   issues?: string[];
   /** 算子语义（Y1） */
   semantics?: UdfSemantics;
+  /** 回放钉扎（1.5.0）：调用时函数所属 pack 的 meta.version（注册期声明；未声明不记） */
+  packVersion?: string;
   /** UDF 返回值快照（Y2 审计 journal 依据；错误路径为结构化错误对象） */
   outcome?: unknown;
   /** act 语义幂等声明（Z1） */
@@ -172,6 +150,8 @@ export interface DecisionObservedCall {
   micros: number;
   /** act 语义幂等声明（Z1，verdict 审计可见） */
   idempotent?: boolean;
+  /** 回放钉扎（1.5.0）：调用时函数所属 pack 的 meta.version——pack 升级后回放漂移的可检出来源 */
+  packVersion?: string;
   /** 审计哈希链（1.0：Trust Chain 验证记录完整性）：sha256(前链哈希+本条稳定序列化)，链种子=inputHash */
   hash?: string;
 }
@@ -475,6 +455,7 @@ class DecisionRuntime {
           idempotent: t.idempotent,
           outcome: t.outcome,
           micros: t.micros,
+          packVersion: this.registry.udfPackVersion(t.name),
         };
         entry.hash = createHash('sha256')
           .update(
@@ -485,6 +466,7 @@ class DecisionRuntime {
                 semantics: entry.semantics,
                 outcome: entry.outcome,
                 micros: entry.micros,
+                packVersion: entry.packVersion,
               }),
           )
           .digest('hex');
@@ -827,53 +809,19 @@ class DecisionRuntime {
   }
 
   /**
-   * `$.key` 根键提取（ADR-015 增补）：从字符串中取 `$.key` 访问器的根实例键
-   * （嵌套访问 `$.a.b` 归根实例 a——F1 裁定）。仅字符串产生引用；对象/数组
-   * 递归收集其字符串叶子（kwargs 实参值/位置实参）。
+   * `$.key` 根键提取（ADR-015 增补）——实现住 instances/plan.ts（1.5.0 整理重构：
+   * 纯模块移动，静态方法保留为公开 API 委托）。
    */
   static extractInstanceRefs(value: unknown, into: Set<string>): void {
-    // 信封感知（ADR-016）：literal 不含引用；expression 提取 $.refs；reference 取路径根段
-    const env = asTypedValueEnvelope(value);
-    if (env?.mode === 'literal') return;
-    if (env?.mode === 'expression' && typeof env.value === 'string') {
-      const pattern = /$.([A-Za-z_][A-Za-z0-9_]*)/g;
-      let m: RegExpExecArray | null;
-      while ((m = pattern.exec(env.value)) !== null) {
-        into.add(m[1]!);
-      }
-      return;
-    }
-    if (typeof value === 'string') {
-      const pattern = /\$\.([A-Za-z_][A-Za-z0-9_]*)/g;
-      let m: RegExpExecArray | null;
-      while ((m = pattern.exec(value)) !== null) {
-        into.add(m[1]!);
-      }
-      return;
-    }
-    if (env?.mode === 'reference' && typeof env.value === 'string') {
-      into.add(env.value.split('.')[0]);
-      return;
-    }
-    if (Array.isArray(value)) {
-      for (const item of value) DecisionRuntime.extractInstanceRefs(item, into);
-      return;
-    }
-    if (value !== null && typeof value === 'object') {
-      for (const item of Object.values(value)) DecisionRuntime.extractInstanceRefs(item, into);
-    }
+    extractInstanceRefs(value, into);
   }
 
   /**
-   * 实例依赖调度（ADR-015 增补：行内顺序求值进函数节点）——纯函数。
+   * 实例依赖调度（ADR-015 增补：行内顺序求值进函数节点）——实现住 instances/plan.ts
+   * （1.5.0 整理重构：纯模块移动，静态方法保留为公开 API 委托）。
    *
-   * 依赖边 = 自动提取（`$.key` 根引用，kwargs/位置实参的字符串叶子）∪
-   * 显式 `dependsOn`（逃生门），**并集**（F2 裁定：显式是补充不是覆盖）；
-   * 悬空引用（指向不存在的键）与自引用不建边（悬空属编辑面漂移带检出）。
-   *
-   * 返回分层调度表（层内并行、层间串行）或节点级结构化错误：
-   * - DUPLICATE_OUTPUT：输出键重复 = 行内变量重声明（并行覆盖+遮蔽双风险）；
-   * - CYCLE_DETECTED：依赖环（报错非死锁），列出环上实例键。
+   * 依赖边 = 自动提取（`$.key` 根引用）∪ 显式 `dependsOn`（并集，F2 裁定）；
+   * 返回分层调度表或节点级结构化错误（DUPLICATE_OUTPUT / CYCLE_DETECTED）；
    * 零边 → 单层全并行（调用方借此走零开销快路径）。
    */
   static buildInstanceSchedule(
@@ -882,101 +830,21 @@ class DecisionRuntime {
     | { error: 'DUPLICATE_OUTPUT'; keys: string[] }
     | { error: 'CYCLE_DETECTED'; keys: string[] }
     | { layers: ExprAstItem[][]; hasEdges: boolean; depsByItem: Record<string, string[]> } {
-    const seen = new Set<string>();
-    const duplicates = new Set<string>();
-    for (const item of items) {
-      if (seen.has(item.key)) duplicates.add(item.key);
-      seen.add(item.key);
-    }
-    if (duplicates.size > 0) {
-      return { error: 'DUPLICATE_OUTPUT', keys: [...duplicates] };
-    }
-
-    const byKey = new Map(items.map((item) => [item.key, item]));
-    const deps = new Map<string, Set<string>>();
-    let hasEdges = false;
-    for (const item of items) {
-      const refs = new Set<string>();
-      const env = asTypedValueEnvelope(item.value);
-      if (env?.mode === 'reference' && typeof env.value === 'string') {
-        // reference 路径无 $. 前缀：根段即依赖实例键（tier.v → tier）
-        refs.add(env.value.split('.')[0]);
-      } else if (env?.mode === 'expression') {
-        DecisionRuntime.extractInstanceRefs(env.value, refs);
-      } else if (!env) {
-        DecisionRuntime.extractInstanceRefs(item.value, refs);
-      }
-      // literal 信封：value 为字面量不含引用（替换器亦跳过）
-      for (const dep of item.dependsOn ?? []) refs.add(dep);
-      // 自引用（dependsOn 自己 / 引用自己的输出键）不剔除——自依赖即环，
-      // 归 CYCLE_DETECTED fail loud（实例无法先于自身产出，静默忽略会掩盖作者错误）
-      const edges = new Set([...refs].filter((ref) => byKey.has(ref)));
-      deps.set(item.key, edges);
-      if (edges.size > 0) hasEdges = true;
-    }
-
-    // Kahn 分层：层内零入度并行，剥层推进；剩余未处理键即环上实例
-    const layers: ExprAstItem[][] = [];
-    const remaining = new Map(deps);
-    const emitted = new Set<string>();
-    while (remaining.size > 0) {
-      const layer = [...remaining.entries()]
-        .filter(([, edges]) => [...edges].every((dep) => emitted.has(dep)))
-        .map(([key]) => byKey.get(key)!);
-      if (layer.length === 0) {
-        return { error: 'CYCLE_DETECTED', keys: [...remaining.keys()] };
-      }
-      layers.push(layer);
-      for (const item of layer) {
-        emitted.add(item.key);
-        remaining.delete(item.key);
-      }
-    }
-    const depsByItem: Record<string, string[]> = {};
-    for (const [key, edges] of deps) depsByItem[key] = [...edges];
-    return { layers, hasEdges, depsByItem };
+    return buildInstanceSchedule(items);
   }
 
-  /**
-   * `$.dep` 引用的执行前替换（ADR-015 增补）：独立表达式绑定（evaluateExpressionSync）
-   * 中 `$.key` 不是属性访问（恒 null——与引擎内联求值器语义不同），依赖实例的
-   * 实参字符串里对**已完成前驱**的 `$.dep` 引用替换为裸键 `dep`——合并求值上下文
-   * （nodeInput ∪ 前驱输出）下裸键即取前驱输出。仅替换 resolved 集内的键、
-   * 词边界精确（`$.a.v` → `a.v` 的 `.v` 保持属性访问）。
-   */
-  /**
-   * 信封窄识别（ADR-016）：自有键**恰为** `mode`+`value` 二键、`mode` ∈
-   * literal|expression|reference、`value` 为字符串——否则非信封（按现状处理）。
-   * 单源函数：引擎 parse 层与 validateNamedArgs 校验面共用（防双轨）。
-   */
+  /** 信封窄识别（ADR-016 单源）——实现住 instances/envelope.ts（1.5.0 整理重构：
+   * engine 求值层与 register 校验层共用的叶子模块，双轨副本已消灭）。 */
   static asTypedValueEnvelope(v: unknown): TypedValueEnvelope | null {
     return asTypedValueEnvelope(v);
   }
 
+  /**
+   * `$.dep` 引用的执行前替换（ADR-015 增补）——实现住 instances/substitute.ts
+   * （1.5.0 整理重构：纯模块移动，静态方法保留为公开 API 委托）。
+   */
   static substituteInstanceRefs<T>(value: T, resolved: Set<string>): T {
-    if (resolved.size === 0) return value;
-    // 信封感知（ADR-016）：literal 信封整体跳过——其 value 是字面量非引用，
-    // 替换即「静默变语义」复刻；expression 信封 value 内引用照常替换；
-    // reference 信封 value 为路径形态无 $. 前缀，天然不受影响
-    if (DecisionRuntime.asTypedValueEnvelope(value)?.mode === 'literal') return value;
-    if (typeof value === 'string') {
-      let out: string = value;
-      for (const dep of resolved) {
-        out = out.replace(new RegExp(`\\$\\.${dep}(?![A-Za-z0-9_])`, 'g'), dep);
-      }
-      return out as unknown as T;
-    }
-    if (Array.isArray(value)) {
-      return value.map((item) => DecisionRuntime.substituteInstanceRefs(item, resolved)) as unknown as T;
-    }
-    if (value !== null && typeof value === 'object') {
-      const out: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(value)) {
-        out[k] = DecisionRuntime.substituteInstanceRefs(v, resolved);
-      }
-      return out as unknown as T;
-    }
-    return value;
+    return substituteInstanceRefs(value, resolved);
   }
 
   /**
@@ -1210,6 +1078,29 @@ class DecisionRuntime {
           idempotent,
           outcome: entry.outcome,
         });
+        // 回放钉扎（1.5.0）：journal 记录的 pack 版本 ≠ 当前注册表 = 函数已升级，
+        // 回放确定性前提被破坏——fail visible（与 REPLAY_JOURNAL_MISS 同款逐条结构化错误；
+        // 旧审计无 packVersion 不参与钉扎，存量回放行为不变）
+        const currentPin = this.registry.udfPackVersion(funcName);
+        if (entry.packVersion && currentPin && entry.packVersion !== currentPin) {
+          const pinOutcome = {
+            error: {
+              code: 'REPLAY_PIN_MISMATCH',
+              issues: [
+                `function ${funcName} was ${entry.packVersion} at audit time, registry now has ${currentPin} — replay determinism requires the audited pack`,
+              ],
+            },
+          };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'REPLAY_PIN_MISMATCH',
+            semantics,
+            outcome: pinOutcome,
+          });
+          return pinOutcome;
+        }
         return entry.outcome;
       }
 

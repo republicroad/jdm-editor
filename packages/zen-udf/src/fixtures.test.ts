@@ -256,3 +256,20 @@ describe('createZenExpressionEvaluator：OQ3 ① 定稿——context 平铺，�
     expect(evaluator('$.score.value == 5', { score: { value: 5 } })).toBe(false);
   });
 });
+
+describe('fixtures 指纹（1.5.0 回放钉扎）', () => {
+  test('同夹具集指纹稳定；任一夹具变更即漂移', async () => {
+    const run = async (fixtures: Parameters<typeof runDecisionTests>[0]['fixtures']) =>
+      (
+        await runDecisionTests({
+          executor: createRuntimeExecutor(makeRuntime(), { key: 'fp', model, rev: 'v1' }),
+          fixtures,
+        })
+      ).fingerprint;
+    const base = [{ name: 'a', input: { x: 1, flagged: false } }];
+    const again = await run(base);
+    expect(again).toBe(await run([{ name: 'a', input: { x: 1, flagged: false } }]));
+    expect(again).not.toBe(await run([{ name: 'a', input: { x: 2, flagged: false } }]));
+    expect(again).toMatch(/^[0-9a-f]{8}$/);
+  });
+});

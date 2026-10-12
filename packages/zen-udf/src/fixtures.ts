@@ -52,7 +52,20 @@ export interface FixtureReport {
   passed: number;
   failed: number;
   results: FixtureResult[];
+  /** fixtures 指纹（1.5.0 回放钉扎）：FNV-1a 32 位 hex（非加密——夹具集漂移检出，
+   * 非 Trust Chain 安全面）。predicate 函数体不可序列化不进指纹（形状仍参与）。 */
+  fingerprint: string;
 }
+
+/** 零依赖前提（浏览器消费不引 node:crypto）——内联 FNV-1a 32 位。 */
+const fixturesFingerprint = (fixtures: readonly DecisionFixture[]): string => {
+  let hash = 0x811c9dc5;
+  for (const ch of JSON.stringify(fixtures)) {
+    hash ^= ch.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+};
 
 /** 执行器契约（CONTRACT §10）：一段「给定夹具，产出一次执行结果」的能力 */
 export type DecisionTestExecutor = (
@@ -192,5 +205,6 @@ export async function runDecisionTests(options: RunDecisionTestsOptions): Promis
     passed: results.filter((r) => r.passed).length,
     failed: results.filter((r) => !r.passed).length,
     results,
+    fingerprint: fixturesFingerprint(fixtures),
   };
 }

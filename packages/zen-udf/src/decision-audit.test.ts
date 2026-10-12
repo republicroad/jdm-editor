@@ -282,11 +282,91 @@ describe('1.0 审计哈希链与 journalVersion', () => {
     const audit = events[events.length - 1]!;
     for (const o of audit.observed) {
       const keys = Object.keys(o);
-      // 快照面 = key/name/semantics/idempotent/outcome/micros/hash——无任何入参字段
+      // 快照面 = key/name/semantics/idempotent/outcome/micros/hash/packVersion——无任何入参字段（packVersion=1.5.0 回放钉扎元数据）
       expect(
-        keys.every((k) => ['key', 'name', 'semantics', 'idempotent', 'outcome', 'micros', 'hash'].includes(k)),
+        keys.every((k) =>
+          ['key', 'name', 'semantics', 'idempotent', 'outcome', 'micros', 'hash', 'packVersion'].includes(k),
+        ),
       ).toBe(true);
       expect(JSON.stringify(o)).not.toContain('secretPayload');
     }
+  });
+});
+
+describe('回放钉扎（1.5.0）', () => {
+  test('observed 记 packVersion（setPackMeta 版本源）', async () => {
+    const events: DecisionAuditEvent[] = [];
+    const { registry } = makeRegistry();
+    registry.setPackMeta('probe', { origin: 'reference', version: '1.2.3' });
+    const runtime = new DecisionRuntime({ registry, onDecision: (e) => events.push(e) });
+    await runWithExecContext({ tenantId: TENANT, decisionId: 'dec-pin' }, () => {
+      runtime.createDecisionWithCacheKey('k', mixedGraph('g'), 'v1');
+      return Promise.resolve();
+    });
+    await runWithExecContext({ tenantId: TENANT, userId: 'u-1', decisionId: 'dec-pin' }, () =>
+      runtime.evaluateAsync('k', { x: 7 }, undefined, 'v1'),
+    );
+    const audit = events[events.length - 1];
+    expect(audit.observed.length).toBeGreaterThan(0);
+    for (const o of audit.observed) expect(o.packVersion).toBe('1.2.3');
+  });
+
+  test('pack 未声明版本 → observed.packVersion undefined（不参与钉扎）', async () => {
+    const { audit } = await evaluateOnce({ x: 7 });
+    for (const o of audit.observed) expect(o.packVersion).toBeUndefined();
+  });
+
+  test('journal packVersion ≠ 当前注册表版本 → REPLAY_PIN_MISMATCH fail visible', async () => {
+    const { registry } = makeRegistry();
+    registry.setPackMeta('probe', { origin: 'reference', version: '2.0.0' });
+    const runtime = new DecisionRuntime({ registry });
+    await runWithExecContext({ tenantId: TENANT }, () => {
+      runtime.createDecisionWithCacheKey('k', mixedGraph('g'), 'v1');
+      return Promise.resolve();
+    });
+    await runWithExecContext(
+      {
+        tenantId: TENANT,
+        replay: {
+          decisionId: 'dec-pin',
+          asOf: '2026-09-13T00:00:00Z',
+          journal: [{ key: 'act', name: 'act_udf', outcome: { blacklisted: true }, packVersion: '1.0.0' }],
+        },
+      },
+      async () => {
+        const result = await runtime.evaluateAsync('k', { x: 1 }, undefined, 'v1');
+        const act = (result.result as { act?: { error?: { code?: string } } }).act;
+        expect(act?.error?.code).toBe('REPLAY_PIN_MISMATCH');
+      },
+    );
+  });
+
+  test('journal packVersion 与当前一致 → 正常读回（REPLAYED 语义不变）', async () => {
+    const { registry } = makeRegistry();
+    registry.setPackMeta('probe', { origin: 'reference', version: '2.0.0' });
+    const runtime = new DecisionRuntime({ registry });
+    await runWithExecContext({ tenantId: TENANT }, () => {
+      runtime.createDecisionWithCacheKey('k', mixedGraph('g'), 'v1');
+      return Promise.resolve();
+    });
+    await runWithExecContext(
+      {
+        tenantId: TENANT,
+        replay: {
+          decisionId: 'dec-pin',
+          asOf: '2026-09-13T00:00:00Z',
+          journal: [
+            { key: 'act', name: 'act_udf', outcome: { blacklisted: true, x: 1 }, packVersion: '2.0.0' },
+            { key: 'obs', name: 'observe_udf', outcome: { count: 1, x: 1 }, packVersion: '2.0.0' },
+          ],
+        },
+      },
+      async () => {
+        const result = await runtime.evaluateAsync('k', { x: 1 }, undefined, 'v1');
+        const body = result.result as { act?: { blacklisted?: boolean }; obs?: { count?: number } };
+        expect(body.act).toMatchObject({ blacklisted: true });
+        expect(body.obs).toMatchObject({ count: 1 });
+      },
+    );
   });
 });

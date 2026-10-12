@@ -31,6 +31,8 @@ export interface ReplayJournalEntry {
   key: string;
   name: string;
   outcome: unknown;
+  /** 回放钉扎（1.5.0）：审计时函数所属 pack 的 meta.version（observed.packVersion 透传）；缺省不参与钉扎 */
+  packVersion?: string;
 }
 
 /** 回放上下文（Y3）：observe/act 不重执行（读 journal），query 用 asOf 时钟 */

@@ -1,3 +1,4 @@
+import { asTypedValueEnvelope } from './instances/envelope.ts';
 import type { UdfPorts } from './ports.ts';
 import { setPorts } from './runtime-ports.ts';
 import type { UdfTool } from './tool.ts';
@@ -367,20 +368,9 @@ class UdfRegistry {
    * 对应物——三类结构化清单（与编辑面参数漂移带同构，编辑时孪生）：
    * missing（声明且必填但缺）/ extra（未声明键）/ typeMismatch（声明类型不符）。
    * 未注册函数返回空清单（与位置校验同款宽容）。
+   * 信封识别用 instances/envelope.ts 单源（1.5.0：消灭本类私有双轨副本——
+   * 旧副本未跟 OQ2 的 literal 原始类型裁定，literal 非字符串值此前走不到直校分支）。
    */
-  /** 信封窄识别（ADR-016；与 engine.ts asTypedValueEnvelope 同语义——跨文件无环复制，fixtures 钉一致性） */
-  private asTypedValueEnvelopeShape(
-    v: unknown,
-  ): { mode: 'literal' | 'expression' | 'reference'; value: string } | null {
-    if (v === null || typeof v !== 'object' || Array.isArray(v)) return null;
-    const keys = Object.keys(v);
-    if (keys.length !== 2 || !('mode' in v) || !('value' in v)) return null;
-    const mode = (v as { mode: unknown }).mode;
-    const value = (v as { value: unknown }).value;
-    if (typeof value !== 'string') return null;
-    if (mode !== 'literal' && mode !== 'expression' && mode !== 'reference') return null;
-    return { mode, value };
-  }
 
   validateNamedArgs(
     name: string,
@@ -409,13 +399,11 @@ class UdfRegistry {
         extra.push(key);
         continue;
       }
-      const envelope = this.asTypedValueEnvelopeShape(raw);
+      const envelope = asTypedValueEnvelope(raw);
       if (envelope) {
         if (envelope.mode === 'literal') {
-          if (typeof envelope.value === 'object') {
-            typeMismatch.push({ name: key, expected: param.jsonType ?? 'any', actual: 'object(嵌套禁止)' });
-            continue;
-          }
+          // literal 按声明类型直校（OQ2：value 允许原始类型；object/array 值
+          // 在单源窄识别下非信封，走下方普通校验按类型不符报）
           if (param.jsonType && !matchJsonType(envelope.value, param.jsonType)) {
             typeMismatch.push({ name: key, expected: param.jsonType, actual: describeJsonType(envelope.value) });
           }
@@ -552,6 +540,13 @@ class UdfRegistry {
 
   getPackMeta(namespace: string): UdfPackMeta | undefined {
     return this.packMetas.get(namespace);
+  }
+
+  /** 回放钉扎（1.5.0）：函数所属 pack 的 meta.version——审计 observed 与回放校验的版本源；未声明版本的 pack 返回 undefined（不参与钉扎） */
+  udfPackVersion(name: string): string | undefined {
+    const fn = this.functions.get(name);
+    const ns = (fn as { schema?: { namespace?: string } } | undefined)?.schema?.namespace;
+    return ns ? this.packMetas.get(ns)?.version : undefined;
   }
 
   /**
