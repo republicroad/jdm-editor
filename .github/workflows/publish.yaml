@@ -61,6 +61,22 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # Provenance attestation probe (advisory). 1.5.0 实证：pnpm publish 接受
+      # --provenance 但未产生 attestation（pnpm #6607——需转发给 npm 才生效）。
+      # 本步让缺口逐版可见；修复方向 = pnpm pack（保 catalog: 改写）+ npm publish。
+      - name: Provenance attestation probe (advisory)
+        if: steps.publish.outputs.published != ''
+        shell: bash
+        run: |
+          for entry in ${{ steps.publish.outputs.published }}; do
+            att="$(npm view "$entry" dist.attestations --json 2>/dev/null | head -c 40)"
+            if [ -n "$att" ] && [ "$att" != "null" ]; then
+              echo "[provenance] $entry attested ✓"
+            else
+              echo "::warning::[provenance] $entry published WITHOUT provenance attestation"
+            fi
+          done
+
       # Advisory visibility probe. The publish acceptance line (+ pkg@ver,
       # exit 0) is the authoritative proof of write. Visibility polling from
       # the runner is UNRELIABLE as a gate: for three consecutive releases
