@@ -1,3 +1,5 @@
+import { Alert, AlertDescription } from '#components/reui/alert';
+import { CodeBlock } from '#components/reui/code-block/code-block';
 import type { CustomNodeNamespace } from '@republicroad/jdm-appshell';
 import React, { useEffect, useMemo, useState } from 'react';
 
@@ -123,20 +125,16 @@ export const FunctionRepl: React.FC<{
       </div>
 
       {error && (
-        <div className='rounded-md bg-[var(--seal-color-error-bg)] p-2 text-[11px] text-[var(--seal-color-error)]'>
-          {error}
-        </div>
+        <Alert variant='destructive' className='text-[11px]'>
+          <AlertDescription className='font-mono break-all'>{error}</AlertDescription>
+        </Alert>
       )}
       {outcome && (
         <div className='flex flex-col gap-1 text-[11px]'>
           <div className='text-[var(--muted-foreground)]'>绑定 kwargs:</div>
-          <pre className='overflow-x-auto rounded-md bg-[var(--muted)] p-2 font-mono'>
-            {JSON.stringify(outcome.kwargs)}
-          </pre>
+          <CodeBlock code={JSON.stringify(outcome.kwargs, null, 2)} language='json' maxLines={12} />
           <div className='text-[var(--muted-foreground)]'>结果:</div>
-          <pre className='overflow-x-auto rounded-md bg-[var(--muted)] p-2 font-mono'>
-            {JSON.stringify(outcome.result)}
-          </pre>
+          <CodeBlock code={JSON.stringify(outcome.result, null, 2)} language='json' maxLines={16} />
         </div>
       )}
     </div>
