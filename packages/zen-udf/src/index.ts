@@ -49,6 +49,7 @@ export {
   packChecks,
   RESERVED_NAMESPACE_PREFIXES,
   reservedNamespaceViolation,
+  egressHostMatches,
   type PackQualityIssue,
   type UdfPack,
   type UdfPackMeta,

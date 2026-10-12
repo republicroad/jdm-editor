@@ -57,6 +57,9 @@ jobs:
       - name: Type check
         run: pnpm typecheck
 
+      - name: Contract compat gate (zen-udf public surface vs previous release)
+        run: pnpm --filter @republicroad/zen-udf compat
+
       - name: Appshell typecheck
         run: pnpm --filter @republicroad/jdm-appshell typecheck
       - name: Appshell tests

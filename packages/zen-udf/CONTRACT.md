@@ -135,6 +135,14 @@ example 生成三条 conformance 断言（§7）：input 经 §5.2 校验通过�
 ADR-009/执行规范 §6.2-6.4）。语言实现 MUST 提供这些端口的接入点；端口实现可随
 部署后端语言不同。契约只约束：端口触发时错误码语义（§5.4）与 ctx 的字段约定。
 
+**声明式出口清单（1.6.0，可选面）**：`meta.egress.allow`（域名模式：
+`example.com` 精确 / `*.example.com` 通配，无 scheme/路径，无 `*` 全通）是 pack
+对其网络出口的**声明**（Figma networkAccess / Chrome host_permissions 同族）——
+声明是数据不是强制：策略裁定权仍归 EgressGuard 端口，机制层提供
+`registry.udfEgress(name)` 查询与 `egressHostMatches(allow, url)` 纯匹配器，
+宿主组合根据此做**交叉校验**（声明 ⊆ 租户运行时白名单；guard 可收紧到声明内，
+声明外默认拒绝属宿主策略）。未声明的 pack = 无声明面（现状行为零变化）。
+
 ## 7. Conformance 协议
 
 - **fixtures 格式**（语言中立 JSON）：
@@ -166,7 +174,16 @@ ADR-009/执行规范 §6.2-6.4）。语言实现 MUST 提供这些端口的接�
 - zen-udf 1.0 冻结条件：本契约 major=1 + 端口面（§6）冻结——此后声明字段与错误码
   只进不退；
 - 语料与 fixtures 随上游（gorules/zen）基线滚动更新；实现升级 MUST 先过全量
-  conformance 与回归语料。
+  conformance 与回归语料；
+- **兼容级（1.6.0 立法，Confluent BACKWARD/FORWARD 同族）**：
+  - **BACKWARD（minor）**：additive 可选字段（meta/journal/ctx 新可选键）、新
+    错误码、新子路径导出、新语义分支（旧图/旧审计行为零变化）——消费方自由升级；
+  - **FORWARD（消费方义务）**：消费方 MUST 容忍未知字段（meta/journal/observed/
+    fixtures 报告的未知键不报错）——本章各结构体的新增字段依赖此义务才构成 minor；
+  - **BREAKING（major）**：导出移除/改名、字段类型收窄、已文档语义的行为变更、
+    fixtures/错误码形状变更——MUST 升 major 并在变更记录中给出迁移路径；
+  - **门禁**：CI 公共面 diff（`scripts/contract-compat.mjs`）对上一已发版逐名
+    比对导出面，检测到移除/改名而版本号未升 major 即 fail。
 
 ## 9. 参考实现状态
 

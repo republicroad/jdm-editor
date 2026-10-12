@@ -549,6 +549,13 @@ class UdfRegistry {
     return ns ? this.packMetas.get(ns)?.version : undefined;
   }
 
+  /** 声明式出口清单（1.6.0）：函数所属 pack 的声明域白名单——宿主 EgressGuard 交叉校验的数据源；无声明 pack 返回 undefined（策略全权归端口） */
+  udfEgress(name: string): readonly string[] | undefined {
+    const fn = this.functions.get(name);
+    const ns = (fn as { schema?: { namespace?: string } } | undefined)?.schema?.namespace;
+    return ns ? this.packMetas.get(ns)?.egress?.allow : undefined;
+  }
+
   /**
    * 唯一注册入口（CONTRACT §4）：接受规范工具对象（tool() 产物）的 pack/集合。
    * 注册语义（deploy 期 fail fast，CONTRACT §4）：跨工具撞名列出已注册 namespace、
@@ -708,7 +715,39 @@ export interface UdfPackMeta {
   /** 目录过期提示（目录可对比 registry 内版本与最新发布） */
   version: string;
   license?: 'oss' | 'proprietary';
+  /** 声明式出口清单（1.6.0，调研增量④/Figma networkAccess 模式）：pack 网络出口
+   * 的声明域白名单（`example.com` 精确 / `*.example.com` 通配；无 scheme/路径，
+   * 不设 `*` 全通——策略面仍归 EgressGuard 端口，本声明是其交叉校验的数据源）。
+   * 声明语义 =「本 pack 设计上只出这些域」；宿主组合根可校验 声明 ⊆ 租户运行时
+   * 白名单，guard 实现可按 udfEgress(name) 收紧到声明内。 */
+  egress?: { allow: string[] };
 }
+
+/** 声明域模式校验：`example.com` 精确 / `*.example.com` 通配；禁 scheme/路径/`*` 全通 */
+const EGRESS_DOMAIN_PATTERN = /^(?:\*\.)?[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
+
+/**
+ * 声明域匹配（1.6.0）：URL 的 host 是否落声明白名单内——精确相等或通配后缀
+ * （`*.api.example.com` 命中 `v1.api.example.com`，不命中 `api.example.com`
+ * 本体；`*` 全通不支持，缺省声明 = 无声明面，策略全权归 EgressGuard）。
+ * 供宿主 EgressGuard 实现做「声明内收紧」的纯函数，机制层默认不强制。
+ */
+export const egressHostMatches = (allow: readonly string[], url: string): boolean => {
+  let host: string;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return allow.some((pattern) => {
+    const p = pattern.toLowerCase();
+    if (p.startsWith('*.')) {
+      const suffix = p.slice(1); // '.api.example.com'
+      return host.endsWith(suffix) && host.length > suffix.length;
+    }
+    return host === p;
+  });
+};
 
 /**
  * ADR-009 namespace 立法：保留前缀给 zen-udf 本体与参考域，宿主通用扩展与行业包
@@ -822,6 +861,20 @@ export function validatePack(pack: UdfPack): string[] {
       }
       if (meta.license !== undefined && !['oss', 'proprietary'].includes(meta.license)) {
         errors.push(`meta.license must be 'oss' or 'proprietary' (got '${meta.license}')`);
+      }
+      if (meta.egress !== undefined) {
+        const egress = meta.egress as { allow?: unknown };
+        if (typeof egress !== 'object' || egress === null || !Array.isArray(egress.allow)) {
+          errors.push('meta.egress must be an object with allow: string[]');
+        } else {
+          egress.allow.forEach((domain, i) => {
+            if (typeof domain !== 'string' || !EGRESS_DOMAIN_PATTERN.test(domain)) {
+              errors.push(
+                `meta.egress.allow[${i}] '${domain}' must be a domain (example.com or *.example.com; no scheme, path or bare asterisk)`,
+              );
+            }
+          });
+        }
       }
     }
   }
