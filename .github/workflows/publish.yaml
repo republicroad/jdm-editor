@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  # npm provenance（1.5.0 起供给链可验证）：publish 经 OIDC 签 provenance attestation
+  id-token: write
 
 jobs:
   build:
@@ -51,7 +53,7 @@ jobs:
             if npm view "$name@$ver" version > /dev/null 2>&1; then
               echo "[publish] $name@$ver already in registry — skip"
             else
-              pnpm --filter "$name" publish --access public --no-git-checks
+              pnpm --filter "$name" publish --access public --no-git-checks --provenance
               published="$published $name@$ver"
             fi
           done
