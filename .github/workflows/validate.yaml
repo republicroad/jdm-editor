@@ -70,7 +70,6 @@ jobs:
       - name: Bundle size budget
         run: pnpm size
 
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
