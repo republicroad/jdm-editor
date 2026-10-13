@@ -1,6 +1,6 @@
 import equal from 'fast-deep-equal/es6/react';
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import type { DictionaryMap } from '../../theme';
@@ -31,6 +31,18 @@ export type DecisionGraphEmptyType = {
   components?: DecisionGraphStoreType['state']['components'];
   customNodes?: DecisionGraphStoreType['state']['customNodes'];
 
+  /** 治理谓词（批 23）：按 namespace/kind 过滤 customNodes——缺省不过滤（全量可用） */
+  allowedNamespaces?: Set<string>;
+  /** ⌘K 二期：宿主注入扩展命令（保存/验证/导出/皮肤等） */
+  extraCommands?: Array<{
+    id: string;
+    group: string;
+    label: string;
+    icon?: React.ReactNode;
+    keywords: string;
+    run: () => void;
+  }>;
+
   hideLeftToolbar?: DecisionGraphStoreType['state']['hideLeftToolbar'];
 
   name?: DecisionGraphStoreType['state']['name'];
@@ -51,6 +63,12 @@ export type DecisionGraphEmptyType = {
   onChange?: DecisionGraphStoreType['listeners']['onChange'];
   onReactFlowInit?: DecisionGraphStoreType['listeners']['onReactFlowInit'];
 
+  /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配）；未注入时 Run all 不渲染 */
+  fixturesRunner?: DecisionGraphStoreType['state']['fixturesRunner'];
+
+  /** ADR-013 批次三：输入节点契约漂移事件流（数据装配归 kernel，宿主消费——如变更日志面板） */
+  onContractEvent?: DecisionGraphStoreType['listeners']['onContractEvent'];
+
   onCodeExtension?: DecisionGraphStoreType['listeners']['onCodeExtension'];
   onFunctionReady?: DecisionGraphStoreType['listeners']['onFunctionReady'];
 };
@@ -65,6 +83,8 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onChange,
   components,
   customNodes,
+  allowedNamespaces,
+  extraCommands,
   defaultActivePanel,
   hideLeftToolbar,
   panels,
@@ -78,6 +98,8 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   onReactFlowInit,
   onCodeExtension,
   onFunctionReady,
+  fixturesRunner,
+  onContractEvent,
 }) => {
   const mountedRef = useRef(false);
   const graphActions = useDecisionGraphActions();
@@ -103,12 +125,23 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
     }
   }, [viewConfig]);
 
+  // 治理谓词（批 23）：allowedNamespaces 过滤 customNodes——
+  // 不传或空 Set = 全量可用（零回归）
+  const filteredCustomNodes = useMemo(() => {
+    const all = Array.isArray(customNodes) ? customNodes : [];
+    if (!allowedNamespaces || allowedNamespaces.size === 0) {
+      return all;
+    }
+    return all.filter((node) => allowedNamespaces.has(node.kind));
+  }, [customNodes, allowedNamespaces]);
+
   useEffect(() => {
     stateStore.setState({
       id,
       disabled,
       components: Array.isArray(components) ? components : [],
-      customNodes: Array.isArray(customNodes) ? customNodes : [],
+      customNodes: Array.isArray(filteredCustomNodes) ? filteredCustomNodes : [],
+      extraCommands: Array.isArray(extraCommands) ? extraCommands : [],
       panels,
       viewConfig,
       viewConfigCta,
@@ -116,7 +149,20 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
       dictionaries,
       mode,
     });
-  }, [id, disabled, components, customNodes, panels, viewConfig, viewConfigCta, hideLeftToolbar, dictionaries, mode]);
+  }, [
+    id,
+    disabled,
+    components,
+    filteredCustomNodes,
+    allowedNamespaces,
+    extraCommands,
+    panels,
+    viewConfig,
+    viewConfigCta,
+    hideLeftToolbar,
+    dictionaries,
+    mode,
+  ]);
 
   useEffect(() => {
     stateStore.setState({ name: name ?? 'graph.json' });
@@ -127,14 +173,19 @@ export const DecisionGraphEmpty: React.FC<DecisionGraphEmptyType> = ({
   }, [simulate]);
 
   useEffect(() => {
+    stateStore.setState({ fixturesRunner: fixturesRunner ?? null });
+  }, [fixturesRunner]);
+
+  useEffect(() => {
     listenerStore.setState({
       onReactFlowInit,
       onPanelsChange,
       onCodeExtension,
       onFunctionReady,
       onViewConfigCta,
+      onContractEvent,
     });
-  }, [onReactFlowInit, onPanelsChange, onCodeExtension, onFunctionReady, onViewConfigCta]);
+  }, [onReactFlowInit, onPanelsChange, onCodeExtension, onFunctionReady, onViewConfigCta, onContractEvent]);
 
   useEffect(() => {
     listenerStore.setState({ onChange: innerChange });

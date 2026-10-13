@@ -242,6 +242,9 @@ importers:
       '@republicroad/jdm-editor':
         specifier: workspace:^
         version: link:../jdm-editor
+      '@republicroad/zen-udf':
+        specifier: workspace:*
+        version: link:../zen-udf
       '@tanstack/react-virtual':
         specifier: 'catalog:'
         version: 3.14.10(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
