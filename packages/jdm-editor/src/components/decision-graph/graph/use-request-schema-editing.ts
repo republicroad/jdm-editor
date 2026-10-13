@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   type RequestContentLike,
-  getRequestSchemaSourceValue,
+  applySchemaTextToInputContract,
   hasOwn,
   isRecord,
   parseRequestSchemaValue,
-  resolveRequestSchemaValue,
-  setRequestSchemaValue,
+  readRequestInputContract,
   stringifyRequestSchemaValue,
+  writeRequestInputContract,
 } from '../../../helpers/request-schema';
 import type { useDecisionGraphActions } from '../context/dg-store.context';
 
@@ -22,19 +22,18 @@ type UseRequestSchemaEditingParams = {
 export const useRequestSchemaEditing = ({ id, type, content, graphActions }: UseRequestSchemaEditingParams) => {
   const [jsonToJsonSchemaOpen, setJsonToJsonSchemaOpen] = useState(false);
 
-  const sourceSchemaValue = useMemo(
-    () => getRequestSchemaSourceValue(content),
-    [content?.schema, content?.schemaUI, content?.inputs],
+  // InputContract（ADR-013）为唯一事实源：schema 视图编辑的是契约的 schema
+  // 投影（不再含内嵌 examples——它们归契约 examples 所有）
+  const contract = useMemo(
+    () => readRequestInputContract(content).contract,
+    [content?.schema, content?.schemaUI, content?.inputs, content?.inputContract],
   );
-  const schemaObject = useMemo(
-    () => resolveRequestSchemaValue(content, { includeExamples: true }),
-    [content?.schema, content?.schemaUI, content?.inputs],
-  );
-  const schemaText = useMemo(() => stringifyRequestSchemaValue(schemaObject), [schemaObject]);
-  const persistedSchemaText = useMemo(
-    () => stringifyRequestSchemaValue(sourceSchemaValue) || schemaText,
-    [sourceSchemaValue, schemaText],
-  );
+  const sourceSchemaValue = contract.schema;
+  const schemaText = useMemo(() => {
+    const text = stringifyRequestSchemaValue(contract.schema);
+    return text === '{}' ? '' : text;
+  }, [contract.schema]);
+  const persistedSchemaText = schemaText;
 
   const [schemaDraft, setSchemaDraft] = useState(persistedSchemaText);
   const [isSchemaDraftDirty, setIsSchemaDraftDirty] = useState(false);
@@ -102,7 +101,12 @@ export const useRequestSchemaEditing = ({ id, type, content, graphActions }: Use
     graphActions.updateNode(id, (draft) => {
       draft.content ??= {};
       if (type === 'input') {
-        setRequestSchemaValue(draft.content as Record<string, any>, nextSchema);
+        // 契约写路径：draft 内新读契约（最新状态），结构文本并入，
+        // 内嵌 examples（粘贴的 legacy 形态）按序并入契约示例集，双写镜像
+        const contentRecord = draft.content as RequestContentLike & Record<string, any>;
+        const { contract: freshContract } = readRequestInputContract(contentRecord);
+        const nextContract = applySchemaTextToInputContract(freshContract, nextSchema);
+        writeRequestInputContract(contentRecord, nextContract);
       } else {
         draft.content.schema = nextSchema;
       }
@@ -152,7 +156,10 @@ export const useRequestSchemaEditing = ({ id, type, content, graphActions }: Use
     if (!trimmedSchemaDraft) {
       pendingSchemaCommitRef.current = null;
 
-      if (stringifyRequestSchemaValue(contentSchemaRef.current).trim()) {
+      // '{}' 等价于空 schema（契约投影把空对象归一化为 '' 展示），
+      // 空白 blur 不得触发无谓写入（否则会给未编辑过的节点种下 inputContract）
+      const persistedText = stringifyRequestSchemaValue(contentSchemaRef.current);
+      if (persistedText.trim() && persistedText !== '{}') {
         pendingSchemaCommitRef.current = '';
         updateNodeSchema('');
       }
@@ -197,23 +204,14 @@ export const useRequestSchemaEditing = ({ id, type, content, graphActions }: Use
   const handleConvertToJsonSchemaSuccess = ({ schema, model }: { schema: string; model: string }) => {
     localStorage.setItem(`${id}-request-model`, model);
 
-    const currentSchema = parseRequestSchemaValue(sourceSchemaValue);
-    const convertedSchema = parseRequestSchemaValue(schema);
-    const nextSchemaObject =
-      convertedSchema && currentSchema?.examples
-        ? {
-            ...convertedSchema,
-            examples: currentSchema.examples,
-          }
-        : convertedSchema;
-    const nextSchemaText = nextSchemaObject ? stringifyRequestSchemaValue(nextSchemaObject) : schema;
-
-    pendingSchemaCommitRef.current = nextSchemaText;
-    applyExternalSchemaDraft(nextSchemaText, { dirty: false });
-    updateNodeSchema(nextSchemaText);
+    // 内嵌 examples 的保留由 applySchemaTextToInputContract 按序并入契约完成
+    pendingSchemaCommitRef.current = schema;
+    applyExternalSchemaDraft(schema, { dirty: false });
+    updateNodeSchema(schema);
   };
 
   return {
+    contract,
     sourceSchemaValue,
     schemaDraft,
     jsonToJsonSchemaOpen,

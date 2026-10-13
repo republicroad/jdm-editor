@@ -51,6 +51,18 @@ export { calculateDiffGraph, processEdges, processNodes, type ProcessNodesOption
 export { computeGraphDiff, type GraphDiff, type GraphNodeChange } from './diff/compute-graph-diff';
 
 export { TabRequest, type TabRequestProps } from './graph/tab-request';
+export { FixturesPanel } from './graph/fixtures-panel';
+export { InstanceEditor, type FunctionInstance } from './graph/instance-editor';
+export { TypedInput, coerceToTypedValue, type TypedValue, type TypedValueMode } from './graph/typed-input';
+export type {
+  ContractDriftEvent,
+  ContractDriftEventKind,
+  ContractFixture,
+  ExampleRunOutcome,
+  ExampleRunReport,
+  ExampleRunResult,
+  FixturesRunner,
+} from './graph/fixtures-runner';
 export { CustomFunctionTable, type TabCustomFunctionProps } from './graph/tab-custom-function-table';
 export { ToolbarAnchor, clusterToolbarItems, type ToolbarItem } from './graph/toolbar-anchor';
 
@@ -65,9 +77,20 @@ export {
 } from './dg-types';
 
 export {
+  type InputContract,
+  type InputContractExample,
   type RequestDefinition,
   type RequestDefinitionType,
+  type RequestExampleDrift,
   type RequestExampleSource,
+  INPUT_CONTRACT_VERSION,
+  applySchemaTextToInputContract,
+  computeExampleDrift,
+  contractExamplesToSources,
+  hasExampleDrift,
+  migrateRequestExampleDataByDefinitions,
+  readRequestInputContract,
+  requestSchemaFingerprint,
   getRequestDefinitions,
   getRequestExampleSources,
   getRequestSchemaSourceValue,
@@ -79,6 +102,7 @@ export {
   normalizeRequestDefinitionOrders,
   normalizeRequestFieldKey,
   normalizeRequestJsonKeys,
+  writeRequestInputContract,
 } from '../../helpers/request-schema';
 
 export {

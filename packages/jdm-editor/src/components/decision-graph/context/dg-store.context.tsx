@@ -18,12 +18,30 @@ import type { JdmUiMode } from '../../decision-table/context/dt-store.context';
 import type { DecisionEdge, DecisionGraphType, DecisionNode } from '../dg-types';
 import { privateSymbol } from '../dg-types';
 import { mapToGraphEdge, mapToGraphEdges, mapToGraphNode, mapToGraphNodes } from '../dg-util';
+import { buildContractFixtures, listInputNodes, runFixturesForNode } from '../graph/fixtures-run';
+import type { ContractDriftEvent, ExampleRunReport, FixturesRunner } from '../graph/fixtures-runner';
 import type { useGraphClipboard } from '../hooks/use-graph-clipboard';
 import type { CustomNodeSpecification } from '../nodes/custom-node';
 import { NodeKind, type NodeSpecification } from '../nodes/specifications/specification-types';
 import type { Simulation } from '../simulator/simulation.types';
 import { applyCloseTab, applyOpenTab } from './dg-tab-strategy';
 import { createUndoRedoStack } from './undo-redo';
+
+/** Run 历史一笔（批 3 时间线）：snapshot 保整次结果，可回看旧输出 */
+export type SimulateRunEntry = {
+  id: string;
+  ts: string;
+  ok: boolean;
+  performance?: string;
+  error?: string;
+  /** 置顶保留：环形淘汰与载荷持久化的豁免标记 */
+  pinned?: boolean;
+  /** 载荷（持久化场景：未 pin 的条目可被剥除——只剩元数据行） */
+  snapshot?: Simulation;
+};
+
+/** 栈深上限（防超大输出堆积） */
+export const SIMULATE_RUNS_LIMIT = 50;
 
 export type PanelType = {
   id: string;
@@ -88,10 +106,38 @@ export type DecisionGraphStoreType = {
 
     simulate?: Simulation;
 
+    /** Run 历史（新运行头部追加） */
+    simulateRuns: SimulateRunEntry[];
+
+    /** ⌘K 全局调色板开合（批 20：GraphSideToolbar 触发钮与弹层分居两处，经 store 联通） */
+    commandMenuOpen: boolean;
+
+    /** ⌘K 二期：宿主注入的扩展命令（保存/验证/导出/皮肤等） */
+    extraCommands: Array<{
+      id: string;
+      group: string;
+      label: string;
+      icon?: React.ReactNode;
+      keywords: string;
+      run: () => void;
+    }>;
+
     user: string;
 
     simulatorRequest?: string;
     simulatorExampleBinding?: SimulatorExampleBinding;
+
+    /** ADR-013 批次三：Run all 执行槽位——宿主注入（appshell = simulateHandler 适配），未注入时 Run all 不渲染 */
+    fixturesRunner?: FixturesRunner | null;
+
+    /** 分屏范式 §1.2：Fixtures 面板图级运行状态（跨页签存续） */
+    fixturesRun?: {
+      nodeId: string;
+      status: 'running' | 'done' | 'error';
+      report?: ExampleRunReport;
+      error?: string;
+    } | null;
+    /** 域约束：规则图至多一个 inputNode——面板直接作用于它，无绑定概念 */
 
     compactMode?: boolean;
 
@@ -120,11 +166,12 @@ export type DecisionGraphStoreType = {
     handleEdgesChange: (edgesChange: EdgeChange[]) => void;
 
     setNodes: (nodes: DecisionNode[]) => void;
-    /** WS1-R6: dagre auto-layout (lazily imported); optional fitView afterwards */
-    autoLayout: (options?: { ranksep?: number; nodesep?: number; fitView?: boolean }) => Promise<void>;
     addNodes: (nodes: DecisionNode[]) => void;
     updateNode: (id: string, updater: DraftUpdateCallback<DecisionNode>) => void;
     removeNodes: (ids: string[]) => void;
+
+    /** WS1-R6: dagre auto-layout (lazily imported); optional fitView afterwards */
+    autoLayout: (options?: { ranksep?: number; nodesep?: number; fitView?: boolean }) => Promise<void>;
 
     duplicateNodes: (ids: string[]) => void;
     copyNodes: (ids: string[]) => void;
@@ -142,6 +189,28 @@ export type DecisionGraphStoreType = {
 
     setActivePanel: (panel?: string) => void;
 
+    /** Run 历史追加（头部插入，裁到栈深；pin 条目豁免淘汰） */
+    pushSimulateRun: (entry: SimulateRunEntry) => void;
+    /** ⌘K 调色板开合 */
+    setCommandMenuOpen: (open: boolean) => void;
+    /** 宿主注入扩展命令 */
+    setExtraCommands: (
+      commands: Array<{
+        id: string;
+        group: string;
+        label: string;
+        icon?: React.ReactNode;
+        keywords: string;
+        run: () => void;
+      }>,
+    ) => void;
+    /** 置顶切换：pin = 环淘汰豁免 + 载荷持久化保留 */
+    setSimulateRunPinned: (id: string, pinned: boolean) => void;
+    /** 持久化水合：整表替换（面板挂载时从 localStorage 恢复） */
+    hydrateSimulateRuns: (entries: SimulateRunEntry[]) => void;
+    /** 清空 Run 历史 */
+    clearSimulateRuns: () => void;
+
     setCompactMode: (mode: boolean) => void;
     toggleCompactMode: () => void;
 
@@ -150,6 +219,11 @@ export type DecisionGraphStoreType = {
 
     setSimulatorRequest: (req: string) => void;
     setSimulatorExampleBinding: (binding?: SimulatorExampleBinding) => void;
+    setFixturesRunner: (runner: FixturesRunner | null) => void;
+    /** Fixtures 面板/节点页签共用运行入口：作用于图内唯一 inputNode；打开面板 + 图级状态机驱动 */
+    runFixtures: () => Promise<void>;
+    /** 漂移事件外发：经 listeners.onContractEvent 投递（无订阅者时静默） */
+    emitContractEvent: (event: ContractDriftEvent) => void;
 
     triggerNodeSelect: (id: string, mode: 'toggle' | 'only') => void;
   };
@@ -157,6 +231,7 @@ export type DecisionGraphStoreType = {
   listeners: {
     onChange?: (val: DecisionGraphType) => void;
     onPanelsChange?: (val?: string) => void;
+    onContractEvent?: (event: ContractDriftEvent) => void;
     onReactFlowInit?: (instance: ReactFlowInstance) => void;
     onCodeExtension?: CodeEditorProps['extension'];
     onFunctionReady?: (monaco: Monaco) => void;
@@ -198,6 +273,9 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       create<DecisionGraphStoreType['state']>()(() => ({
         id: undefined,
         simulate: undefined,
+        simulateRuns: [],
+        commandMenuOpen: false,
+        extraCommands: [],
         decisionGraph: { nodes: [], edges: [] },
         hoveredEdgeId: null,
         openTabs: [],
@@ -209,6 +287,8 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         activePanel: undefined,
         panels: [],
         user: '',
+        fixturesRunner: null,
+        fixturesRun: null,
         compactMode: localStorage.getItem('jdm-compact-mode') === 'true',
         nodeTypes: {},
         globalType: {},
@@ -672,6 +752,38 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
         const { openTabs, activeTab } = stateStore.getState();
         stateStore.setState(applyCloseTab(openTabs, activeTab, id, action));
       },
+      setCommandMenuOpen: (open) => {
+        stateStore.setState({ commandMenuOpen: open });
+      },
+      setExtraCommands: (commands) => {
+        stateStore.setState({ extraCommands: commands });
+      },
+      pushSimulateRun: (entry) => {
+        const { simulateRuns } = stateStore.getState();
+        const next = [entry, ...simulateRuns];
+        // 环淘汰（pin 感知）：超限时从尾部丢最旧的未 pin 条目
+        const kept: SimulateRunEntry[] = [];
+        let budget = SIMULATE_RUNS_LIMIT;
+        for (const run of next) {
+          if (run.pinned || budget > 0) {
+            if (!run.pinned) budget -= 1;
+            kept.push(run);
+          }
+        }
+        stateStore.setState({ simulateRuns: kept });
+      },
+      setSimulateRunPinned: (id, pinned) => {
+        const { simulateRuns } = stateStore.getState();
+        stateStore.setState({
+          simulateRuns: simulateRuns.map((run) => (run.id === id ? { ...run, pinned } : run)),
+        });
+      },
+      hydrateSimulateRuns: (entries) => {
+        stateStore.setState({ simulateRuns: entries.slice(0, SIMULATE_RUNS_LIMIT) });
+      },
+      clearSimulateRuns: () => {
+        stateStore.setState({ simulateRuns: [] });
+      },
       setActivePanel: (panel?: string) => {
         const { panels } = stateStore.getState();
         const updatedState: Partial<DecisionGraphStoreType['state']> = {
@@ -711,6 +823,52 @@ export const DecisionGraphProvider: React.FC<React.PropsWithChildren<DecisionGra
       },
       setSimulatorExampleBinding: (binding) => {
         stateStore.setState({ simulatorExampleBinding: binding });
+      },
+      setFixturesRunner: (runner) => {
+        stateStore.setState({ fixturesRunner: runner });
+      },
+      runFixtures: async () => {
+        const { fixturesRunner, decisionGraph, panels } = stateStore.getState();
+
+        if (!fixturesRunner) {
+          return;
+        }
+
+        // 域约束：图至多一个 inputNode——面板直接作用于它
+        const inputNode = listInputNodes(decisionGraph)[0];
+        if (!inputNode) {
+          stateStore.setState({ fixturesRun: { nodeId: '', status: 'error', error: 'no-input-node' } });
+          return;
+        }
+        const nodeId = inputNode.id;
+
+        // 注意力跟随动作：打开/聚焦 Fixtures 面板
+        const fixturesPanel = panels?.find((panel) => panel.id === 'fixtures');
+        if (fixturesPanel) {
+          stateStore.setState({ activePanel: fixturesPanel.id });
+        }
+
+        if (!buildContractFixtures(decisionGraph, nodeId)) {
+          stateStore.setState({ fixturesRun: { nodeId, status: 'error', error: 'no-examples' } });
+          return;
+        }
+
+        stateStore.setState({ fixturesRun: { nodeId, status: 'running' } });
+        try {
+          const report = await runFixturesForNode(decisionGraph, nodeId, fixturesRunner);
+          stateStore.setState({
+            fixturesRun: report
+              ? { nodeId, status: 'done', report }
+              : { nodeId, status: 'error', error: 'no-examples' },
+          });
+        } catch (error: any) {
+          stateStore.setState({
+            fixturesRun: { nodeId, status: 'error', error: error?.message ?? String(error) },
+          });
+        }
+      },
+      emitContractEvent: (event) => {
+        listenerStore.getState().onContractEvent?.(event);
       },
       removeNodeType: (id, kind) => {
         const { nodeTypes } = stateStore.getState();

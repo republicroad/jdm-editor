@@ -14,7 +14,7 @@ export type RequestSchemaEditorProps = {
   onConvertSuccess: (result: { schema: string; model: string }) => void;
   onDismissConvert: () => void;
   onEditorMount: (instance: editor.IStandaloneCodeEditor) => void;
-  editorOptions: Record<string, unknown>;
+  editorOptions: editor.IStandaloneEditorConstructionOptions;
   nodeId: string;
 };
 
