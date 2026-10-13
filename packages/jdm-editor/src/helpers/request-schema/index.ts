@@ -1,4 +1,20 @@
 export {
+  INPUT_CONTRACT_SUPPORTED_VERSION,
+  INPUT_CONTRACT_VERSION,
+  applySchemaTextToInputContract,
+  computeExampleDrift,
+  contractExamplesToSources,
+  exportInputContractEnvelope,
+  hasExampleDrift,
+  migrateRequestExampleDataByDefinitions,
+  parseInputContractEnvelope,
+  readRequestInputContract,
+  requestSchemaFingerprint,
+  writeRequestInputContract,
+} from './contract';
+export type { InputContractEnvelope, ParseInputContractEnvelopeResult, RequestExampleDrift } from './contract';
+export { validateExampleDataBySchema, validateExampleDatasBySchema } from './ajv-validator';
+export {
   buildRequestSchemaFromDefinitions,
   getRequestDefinitions,
   normalizeRequestDefinitionOrders,
@@ -44,6 +60,8 @@ export {
   stringifyResolvedRequestSchemaValue,
 } from './schema-value';
 export type {
+  InputContract,
+  InputContractExample,
   LegacyRequestInput,
   RequestContentLike,
   RequestDefinition,

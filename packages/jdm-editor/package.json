@@ -93,7 +93,9 @@
     "ts-pattern": "catalog:",
     "use-debounce": "^10.0.4",
     "zod": "4.3.6",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.52.3",
