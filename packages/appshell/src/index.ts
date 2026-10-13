@@ -1,3 +1,4 @@
+export { createSimulateFixturesRunner } from './shell/fixtures-adapter';
 export * from './context/theme.provider';
 export { useCustomNodes, type UseCustomNodesOptions } from './hooks/useCustomNodes';
 export { applyNodeOverrides } from './skin/apply';

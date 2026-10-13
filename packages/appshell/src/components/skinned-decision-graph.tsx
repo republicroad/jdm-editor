@@ -3,15 +3,17 @@ import {
   type DecisionGraphProps,
   type DecisionGraphRef,
   type DecisionGraphType,
+  FixturesPanel,
   GraphSimulator,
   type Simulation,
   type ToolbarItem,
 } from '@republicroad/jdm-editor';
-import { PanelRightIcon } from 'lucide-react';
+import { FlaskConicalIcon, PanelRightIcon } from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTheme } from '../context/theme.provider';
 import PlayCircleIcon from '../reui/icons/animated/outline/play-circle';
+import { createSimulateFixturesRunner } from '../shell/fixtures-adapter';
 import type { SimulateHandler } from '../shell/types';
 import { mapPanelSlotIds, mapToolbarSlots } from '../skin/layout';
 import type { SkinSlotHostContext } from '../skin/types';
@@ -101,8 +103,23 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
         />
       ),
     };
-    return [...(props.panels ?? []), simulatorPanel];
+    // ADR-013 批次三 / 分屏范式 §1.2：Run all 图级执行面（与 simulator 对称），
+    // 渲染 kernel FixturesPanel（读 fixturesRunner 槽位，作用于唯一 inputNode）
+    const fixturesPanel: PanelItem = {
+      id: 'fixtures',
+      title: 'Fixtures',
+      icon: <FlaskConicalIcon className='size-4' />,
+      renderPanel: () => <FixturesPanel />,
+    };
+    return [...(props.panels ?? []), simulatorPanel, fixturesPanel];
   }, [props.panels, simulateHandler, running]);
+
+  // ADR-013 批次三：Run all 执行槽位——宿主显式传入优先，否则由 simulateHandler 派生
+  // （执行语义与模拟器单源）；两者皆无时 kernel 优雅降级（按钮不渲染）
+  const fixturesRunner = useMemo(
+    () => props.fixturesRunner ?? (simulateHandler ? createSimulateFixturesRunner(simulateHandler) : undefined),
+    [props.fixturesRunner, simulateHandler],
+  );
 
   // S005 P2：右缘面板槽位（VersionHistoryPanel 同款 Sheet 容器）
   const rightSlots = useMemo(() => mapPanelSlotIds(activeSkin?.layout?.panels?.right), [activeSkin]);
@@ -134,6 +151,7 @@ export const SkinnedDecisionGraph: React.ForwardRefExoticComponent<
       toolbarItems={toolbarItems}
       panels={panels}
       simulate={props.simulate ?? simulation}
+      fixturesRunner={fixturesRunner}
     />
   );
 

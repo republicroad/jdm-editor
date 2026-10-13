@@ -48,7 +48,8 @@
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "ts-pattern": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "@republicroad/zen-udf": "workspace:*"
   },
   "devDependencies": {
     "@lezer/common": "catalog:",
