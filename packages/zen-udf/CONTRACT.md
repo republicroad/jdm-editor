@@ -115,16 +115,17 @@ example 生成三条 conformance 断言（§7）：input 经 §5.2 校验通过�
 - 流程：validate → bind → 处理器 → （可选）output 契约校验；
 - 错误码（normative）：
 
-| 错误码               | 语义                                                              |
-| -------------------- | ----------------------------------------------------------------- |
-| `INVALID_PARAM`      | 参数缺失/类型违例（§5.2，列参数名与位置）                         |
-| `UDF_TIMEOUT`        | 超时端口触发                                                      |
-| `INVALID_RESULT`     | 返回值契约违例（output schema 断言；运行时档位可配 warn/enforce） |
-| `UDF_LIMITED`        | 并发闸拒绝                                                        |
-| `UDF_ERROR`          | 处理器自身错误（原始错误经脱敏）                                  |
-| `CYCLE_DETECTED`     | 实例依赖环（§11.5，执行前结构化错误，列环上输出键）               |
-| `DUPLICATE_OUTPUT`   | 输出键重声明（§11.5，行内变量重声明）                             |
-| `INVALID_DEPENDENCY` | 依赖前驱实例失败，本实例不执行（级联传播）                        |
+| 错误码               | 语义                                                                   |
+| -------------------- | ---------------------------------------------------------------------- |
+| `INVALID_PARAM`      | 参数缺失/类型违例（§5.2，列参数名与位置）                              |
+| `UDF_TIMEOUT`        | 超时端口触发                                                           |
+| `INVALID_RESULT`     | 返回值契约违例（output schema 断言；运行时档位可配 warn/enforce）      |
+| `UDF_LIMITED`        | 并发闸拒绝                                                             |
+| `UDF_ERROR`          | 处理器自身错误（原始错误经脱敏）                                       |
+| `CYCLE_DETECTED`     | 实例依赖环（§11.5，执行前结构化错误，列环上输出键）                    |
+| `DUPLICATE_OUTPUT`   | 输出键重声明（§11.5，行内变量重声明）                                  |
+| `INVALID_DEPENDENCY` | 依赖前驱实例失败，本实例不执行（级联传播）                             |
+| `RATE_NO_EVENT_TIME` | 状态算子回放强制（§13.2）：processing 工具遇 replay.asOf 且策略 strict |
 
 - **脱敏**：错误信息 MUST 经脱敏管道（路径/凭证类值替换为占位）后暴露。
 
@@ -364,3 +365,61 @@ zen-udf 实现按三档验收；档位递增累积（B 含 A，C 含 B）：
 | **Profile C · 服务端全量** | B + 多租户 ExecContext + 端口面（§6）+ 实例依赖调度（§11.5）+ breaker/limiter/审计                | 全量 1100 用例            |
 
 多语言移植版按目标部署面选档认证；档位明示于实现的兼容性声明中。
+
+## 13. 状态算子契约（Stateful Operators，ADR-021 · 1.7.0）
+
+有状态工具（窗口计数/去重等）的时间档位、保真披露、幂等纪律与命名立法。
+规范上位档：ADR-021；消费面立法：verdict-005（trailing 语义/RateStore 实现族/
+回放策略）。参考实现：contrib/rate-window.ts（1.7.0）。
+
+### 13.1 声明字段（§3 工具声明的状态算子扩展）
+
+| 字段       | 值域                                          | 缺省              | 语义                                                                                     |
+| ---------- | --------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------- |
+| `temporal` | `event \| processing`                         | `event`           | `event`=asOf point-in-time 原生支持；`processing`=处理时间实现，replay 路径受 §13.2 强制 |
+| `stateful` | boolean                                       | `false`           | `true`=非幂等（INCR 形态，同参重试双计）——宿主 HTTP/重试包装器 MUST 执行禁自动重试       |
+| `fidelity` | `exact-per-event \| bucketed \| interpolated` | `exact-per-event` | 保真披露：进 trace 与目录（§13.4）；跨实现等价性判定的 ε 口径依据                        |
+
+- **声明层级（OQ1 裁定）**：pack 级缺省（pack meta）+ tool 级覆盖；tool 声明
+  `undefined` = 透传不冻结缺省，解析统一在注册面 schema 归一；
+- **幂等键单源**：有状态调用的幂等键 = `ExecContext.requestId` 贯穿（与 ADR-002
+  构造期捕获同构）；tool 级参数覆盖不做（防双键并行去重漂移）。
+
+### 13.2 replay 路径强制（时间档位运行时）
+
+`ExecContext.replay.asOf` 存在且工具 `temporal: 'processing'` 时，按端口
+`replayPolicy` 执行：
+
+| 策略               | 行为                                                                 |
+| ------------------ | -------------------------------------------------------------------- |
+| `strict`           | 结构化错误 `RATE_NO_EVENT_TIME`（入 trace 与 outcome，fail visible） |
+| `degraded`（缺省） | 照常执行（处理时间回退）+ trace `TEMPORAL_FALLBACK` 标注             |
+
+- `observe`/`act` 语义工具走 journal 读回（不重执行），**不受此强制**——与回放
+  钉扎（1.5.0）同通道：journal/observed 携 packVersion，本条携时间档位强制；
+- `RATE_NO_EVENT_TIME` 为 normative 错误码（§5.4 表收录）。
+
+### 13.3 Conformance 分档（rate-store 存储实现许可）
+
+rate-store-conformance 套件按 `mode` 分档；实现按通过档位获部署许可：
+
+| 档                  | 向量                                                                                                                                                | 许可        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `exact`             | 现套件全向量（含 asOf point-in-time）+ **重试双计向量**：rate INCR 形态同参重试 MUST 双计；groupDistinct 的 pv 双计而 uv 不双计——「非幂等」钉进契约 | live-only   |
+| `approximate`       | exact 向量 − 重试双计 + ε 容差 + 单调性豁免声明                                                                                                     | live-only   |
+| exact + asOf 全通过 | —                                                                                                                                                   | live+replay |
+
+与 §12 一致性档位正交：§12 认**语言实现**，本节认 **rate-store 存储实现**。
+
+### 13.4 命名通式与禁用词
+
+- 通式：**`trailing_<agg>_<window>`**——`trailing` = 右缘锚定当前请求时刻、向回
+  看 window（逐请求重算，事件老化）。现注册：`trailing_count_1h`、
+  `trailing_distinct_1h`（namespace `trailing-window`）；
+- **`rolling` 禁用**：Flink 语境 = tumbling（固定网格互不重叠、与请求时刻无关），
+  pandas/图表语境 = 移动平均——两圈子语义相反，禁用消除歧义；
+- **双名过渡**：改名 = 新名注册 + 旧名 alias 同 run 函数 + `deprecated` 元数据
+  （since 1.7.0）——存量图按名解析永久可读（ADR-015 双读先例）；退役按 ADR-009
+  治理，过渡期长度按存量图旧名引用盘点定档；
+- 结果侧 ε 载体：`VelocityProvenance.relErrorBound`（宿主 velocity 契约）——
+  目录静态声明（本节 `fidelity`）与结果动态自证两层对齐；不一致以结果为准并告警。
