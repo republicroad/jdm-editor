@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 
 import { getExecContext } from '../exec-context.ts';
 import { globalUdfRegistry } from '../register.ts';
-import { pack, tool } from '../tool.ts';
+import { type UdfTool, pack, tool } from '../tool.ts';
 
 /**
  * 旧平台函数域重建（第六十九批 D2，docs/13 §8.3）：滑动窗口频控。
@@ -140,11 +140,17 @@ const resolveAsOfMs = (): number | undefined => {
   return Number.isFinite(ms) ? ms : undefined;
 };
 
-export const rate1hTool = tool({
-  namespace: 'rate-window',
-  name: 'rate_1h',
-  description: '旧域重建·频次统计：记录实体事件并返回其 1 小时滑动窗口内的事件计数。',
+// ADR-021 命名通式：trailing_<agg>_<window>（rolling 一词禁用——Flink/pandas 语境相反）；
+// 语义声明：stateful=true（INCR 形态，重试双计——§1.3 禁自动重试）、temporal=event
+// （asOf point-in-time 在参考实现原生支持）、fidelity=exact-per-event（逐事件精确）。
+export const trailingCount1hTool = tool({
+  namespace: 'trailing-window',
+  name: 'trailing_count_1h',
+  description: '频次统计：记录实体事件并返回其 1 小时 trailing 窗口内的事件计数。',
   semantics: 'observe',
+  temporal: 'event',
+  stateful: true,
+  fidelity: 'exact-per-event',
   input: Type.Object({
     entity: Type.String({ title: '实体', description: '计数实体（如 ip、phone）' }),
   }),
@@ -160,11 +166,14 @@ export const rate1hTool = tool({
   },
 });
 
-export const groupDistinct1hTool = tool({
-  namespace: 'rate-window',
-  name: 'group_distinct_1h',
-  description: '旧域重建·组去重统计：记录 (组, 值) 事件并返回 1 小时滑动窗口内组事件数(pv)与去重值数(uv)。',
+export const trailingDistinct1hTool = tool({
+  namespace: 'trailing-window',
+  name: 'trailing_distinct_1h',
+  description: '组去重统计：记录 (组, 值) 事件并返回 1 小时 trailing 窗口内组事件数(pv)与去重值数(uv)。',
   semantics: 'observe',
+  temporal: 'event',
+  stateful: true,
+  fidelity: 'exact-per-event',
   input: Type.Object({
     group: Type.String({ title: '组', description: '分组键（如 ip）' }),
     value: Type.String({ title: '值', description: '组内观测值（如 phone）' }),
@@ -186,9 +195,31 @@ export const groupDistinct1hTool = tool({
   },
 });
 
-export const tools = [rate1hTool, groupDistinct1hTool];
+export const tools = [trailingCount1hTool, trailingDistinct1hTool];
 
-export default pack({ id: 'rate-window', tools });
+/** 旧名 alias（ADR-021 §1.5 P4 方案 B 双名过渡）：同一 run 函数 + deprecated 元数据——存量图永久可读 */
+const legacyAliases: UdfTool[] = [
+  {
+    ...trailingCount1hTool,
+    namespace: 'trailing-window',
+    name: 'rate_1h',
+    deprecated: {
+      since: '1.7.0',
+      note: 'ADR-021 改名 → trailing_count_1h（本名即同一函数的 alias）；过渡期后按 ADR-009 治理退役',
+    },
+  },
+  {
+    ...trailingDistinct1hTool,
+    namespace: 'trailing-window',
+    name: 'group_distinct_1h',
+    deprecated: {
+      since: '1.7.0',
+      note: 'ADR-021 改名 → trailing_distinct_1h（本名即同一函数的 alias）；过渡期后按 ADR-009 治理退役',
+    },
+  },
+];
 
-// 全局注册（import 副作用，接替 defineContrib 的模块级注册）
-globalUdfRegistry.register(pack({ id: 'rate-window', tools }));
+export default pack({ id: 'trailing-window', tools: [...tools, ...legacyAliases] });
+
+// 全局注册（import 副作用，接替 defineContrib 的模块级注册）：新名 + 旧名 alias 双条目
+globalUdfRegistry.register(pack({ id: 'trailing-window', tools: [...tools, ...legacyAliases] }));

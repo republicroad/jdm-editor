@@ -18,6 +18,7 @@ import { type ConcurrencyLimiter } from './limiter.ts';
 import { withOtelSpan } from './otel.ts';
 import type { JsonSchema } from './register.ts';
 import { type UdfRegistry, type UdfSemantics, globalUdfRegistry } from './register.ts';
+import { getPorts } from './runtime-ports.ts';
 
 const CUSTOM_HANDLER_META = '__meta__';
 
@@ -34,6 +35,8 @@ export interface UdfTrace {
   semantics?: UdfSemantics;
   /** 回放钉扎（1.5.0）：调用时函数所属 pack 的 meta.version（注册期声明；未声明不记） */
   packVersion?: string;
+  /** 保真披露（ADR-021 §1.1）：调用时函数声明的保真档（ε 口径的结果侧可见性） */
+  fidelity?: string;
   /** UDF 返回值快照（Y2 审计 journal 依据；错误路径为结构化错误对象） */
   outcome?: unknown;
   /** act 语义幂等声明（Z1） */
@@ -152,6 +155,8 @@ export interface DecisionObservedCall {
   idempotent?: boolean;
   /** 回放钉扎（1.5.0）：调用时函数所属 pack 的 meta.version——pack 升级后回放漂移的可检出来源 */
   packVersion?: string;
+  /** 保真披露（ADR-021 §1.1）：审计侧 ε 口径可见性 */
+  fidelity?: string;
   /** 审计哈希链（1.0：Trust Chain 验证记录完整性）：sha256(前链哈希+本条稳定序列化)，链种子=inputHash */
   hash?: string;
 }
@@ -1040,6 +1045,9 @@ class DecisionRuntime {
       const inputField = context['inputField'] as string | null;
       const fSchema = this.registry.udfFunctionSchema(funcName);
       const semantics = (fSchema?.semantics as UdfSemantics | undefined) ?? 'query';
+      const temporal = (fSchema?.temporal as 'event' | 'processing' | undefined) ?? 'event';
+      const fidelity = fSchema?.fidelity as 'exact-per-event' | 'bucketed' | 'interpolated' | undefined;
+      const stateful = fSchema?.stateful as boolean | undefined;
       const idempotent = fSchema?.idempotent as boolean | undefined;
 
       // AA1 影子评估：act 类影子侧不执行（返回 intent 占位，绝不双次处置）；observe/query 照常
@@ -1104,6 +1112,37 @@ class DecisionRuntime {
         return entry.outcome;
       }
 
+      // ADR-021 §1.2 replay 强制：processing 时间档工具在 replay 路径按宿主
+      // ReplayPolicy 执行（observe/act 走 journal 读回不重执行无此险；query 重执行受检。
+      // 与 1.5.0 回放钉扎同通道——journal/observed 携 packVersion，本处携时间档位强制）。
+      // strict=RATE_NO_EVENT_TIME fail visible；degraded=处理时间回退 + TEMPORAL_FALLBACK 标注。
+      if (replayCtx && temporal === 'processing') {
+        if ((getPorts()?.replayPolicy ?? 'degraded') === 'strict') {
+          const noEventTimeOutcome = {
+            error: {
+              code: 'RATE_NO_EVENT_TIME',
+              message: `tool ${funcName} declares temporal: 'processing' and cannot serve replay.asOf — supply an event-time implementation or set ports.replayPolicy (ADR-021 §1.2)`,
+            },
+          };
+          traces.push({
+            key: execExpr.key,
+            name: funcName,
+            micros: 0,
+            code: 'RATE_NO_EVENT_TIME',
+            semantics,
+            outcome: noEventTimeOutcome,
+          });
+          return noEventTimeOutcome;
+        }
+        traces.push({
+          key: execExpr.key,
+          name: funcName,
+          micros: 0,
+          code: 'TEMPORAL_FALLBACK',
+          semantics,
+          outcome: { temporalFallback: true, name: funcName },
+        });
+      }
       if (fSchema) {
         let operatorKwargs: Record<string, unknown>;
         if (namedArgs) {
@@ -1223,6 +1262,10 @@ class DecisionRuntime {
             requestId: execCtx?.requestId,
             signal: callController.signal,
             deadlineAt: timeoutMs ? Date.now() + timeoutMs : null,
+            // ADR-021：宿主 HTTP/重试包装器据此执行 §1.3 禁重试纪律（幂等键 = requestId 单源贯穿）
+            temporal,
+            stateful,
+            fidelity,
           });
           result = timeoutMs
             ? await Promise.race([
@@ -1279,7 +1322,7 @@ class DecisionRuntime {
           }
         }
 
-        traces.push({ key: execExpr.key, name: funcName, micros, semantics, idempotent, outcome: result });
+        traces.push({ key: execExpr.key, name: funcName, micros, semantics, idempotent, fidelity, outcome: result });
         return result;
       } else {
         if (funcName) {

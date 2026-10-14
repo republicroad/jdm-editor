@@ -12,6 +12,11 @@ import type { ToolContext, UdfPackMeta, UdfSemantics } from './register.ts';
 /** 执行上下文：宿主经端口注入，不进声明契约（CONTRACT §6） */
 export type { ToolContext };
 
+/** 时间档位（ADR-021 §1.1）：event=事件时间可锚（asOf 复算）；processing=处理时间（replay 路径受 §1.2 强制） */
+export type UdfTemporal = 'event' | 'processing';
+/** 保真披露（ADR-021 §1.1，R1 改名——与 velocity windowType 窗口语义轴正交）：聚合实现的保真度 */
+export type UdfFidelity = 'exact-per-event' | 'bucketed' | 'interpolated';
+
 export interface ToolExample<I extends TSchema, O extends TSchema> {
   input: Static<I>;
   output: Static<O>;
@@ -25,6 +30,12 @@ export interface UdfToolDef<I extends TSchema, O extends TSchema> {
   description: string;
   /** 语义三元（Y1）：query 纯读 / observe 观测累积 / act 处置效果（回放与影子据此分支） */
   semantics?: UdfSemantics;
+  /** 时间档位（ADR-021 §1.1）：缺省 event；processing 在 replay 路径按宿主 ReplayPolicy 强制 */
+  temporal?: UdfTemporal;
+  /** 有状态声明（ADR-021 §1.3）：true = 禁自动重试（重试双计危害；幂等键 = ExecContext.requestId 单源贯穿） */
+  stateful?: boolean;
+  /** 保真披露（ADR-021 §1.1）：缺省 exact-per-event；进 trace 与目录（ε 口径依据） */
+  fidelity?: UdfFidelity;
   /** act 必填：处置效果的重放安全声明（缺失 = 注册失败，CONTRACT §3.2） */
   idempotent?: boolean;
   /** 契约来源：TypeBox schema（既是运行时 JSON Schema 又是编译期类型） */
@@ -45,6 +56,9 @@ export interface UdfTool<I extends TSchema = TSchema, O extends TSchema = TSchem
   title?: string;
   description: string;
   semantics: UdfSemantics;
+  temporal?: UdfTemporal;
+  stateful?: boolean;
+  fidelity?: UdfFidelity;
   idempotent?: boolean;
   /** 规范表示：纯 JSON Schema（TypeBox 构造经序列化剥除编译期标记） */
   inputSchema: object;

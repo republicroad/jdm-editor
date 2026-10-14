@@ -116,7 +116,8 @@ customNode 表达式调用支持三种等价形态（`fn` 恒收 kwargs 关键�
 1. **结果必须 JSON 可序列化**——进 trace、跨副本回放；
 2. **不抛异常**：失败返回结构化错误 `{ error: { code: 'XXX', message } }`
    （内建错误码表：`INVALID_PARAM / UDF_TIMEOUT / INVALID_RESULT / UDF_NOT_FOUND /
-   UDF_ERROR / CIRCUIT_OPEN`；业务自定义码用 `UDF_ERROR` + message 或自有前缀）;
+   UDF_ERROR / CIRCUIT_OPEN / RATE_NO_EVENT_TIME`（ADR-021 §1.2：processing 时间档
+   工具在 replay 路径遇 strict 策略；degraded 缺省为 TEMPORAL_FALLBACK trace 标注）；业务自定义码用 `UDF_ERROR` + message 或自有前缀）;
 3. **租户差异只在数据面**：`call.tenantId` 进你的数据键；禁止 per-tenant 注册、
    禁止图内容携带凭证（凭证走 http 域的 `SecretResolver` 模式）;
 4. **`kwargs.timeout` 约定**：声明 `timeout` 参数（integer）即自动获得运行时

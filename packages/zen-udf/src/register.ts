@@ -103,6 +103,12 @@ export interface UdfSchema {
   semantics?: UdfSemantics;
   /** act 语义的幂等声明（Z1）：缺失时 validatePack 产生警告（不阻断），verdict 审计可见 */
   idempotent?: boolean;
+  /** 时间档位（ADR-021 §1.1）：缺省 event；processing 在 replay 路径按宿主 ReplayPolicy 强制（§1.2） */
+  temporal?: 'event' | 'processing';
+  /** 有状态声明（ADR-021 §1.3）：true = 禁自动重试；幂等键 = ExecContext.requestId 单源贯穿 */
+  stateful?: boolean;
+  /** 保真披露（ADR-021 §1.1）：缺省 exact-per-event；进 trace 与目录 */
+  fidelity?: 'exact-per-event' | 'bucketed' | 'interpolated';
   /** 弃用标记（A4）：目录/补全/画布三处标黄提示；since 为弃用发生的版本 */
   deprecated?: { since?: string; note?: string; replacement?: string };
 }
@@ -126,6 +132,10 @@ export interface ToolContext {
   signal: AbortSignal;
   /** 绝对截止时间（epoch ms）；kwargs.timeout 缺省时为 null */
   deadlineAt: number | null;
+  /** 时间档位（ADR-021）：宿主 HTTP/重试包装器据此执行 §1.3 禁重试纪律 */
+  temporal?: 'event' | 'processing';
+  stateful?: boolean;
+  fidelity?: 'exact-per-event' | 'bucketed' | 'interpolated';
 }
 
 /** 可注册的 UDF 函数签名(动态注册表，运行时统一以单个 kwargs 对象调用；第二参为调用上下文) */
@@ -191,6 +201,9 @@ function normalizeUdfSchema(
     namespace,
     description: schema.description,
     semantics: schema.semantics ?? 'query',
+    temporal: schema.temporal ?? 'event',
+    stateful: schema.stateful ?? false,
+    fidelity: schema.fidelity ?? 'exact-per-event',
     deprecated: schema.deprecated,
   };
 
@@ -278,6 +291,9 @@ class UdfRegistry {
           returns: schema?.returns ?? { type: 'null' },
           namespace,
           semantics: schema?.semantics,
+          temporal: schema?.temporal,
+          stateful: schema?.stateful,
+          fidelity: schema?.fidelity,
           parametersSchema: schema?.parametersSchema,
           returnsSchema: schema?.returnsSchema,
           description: schema?.description,
@@ -590,6 +606,9 @@ class UdfRegistry {
       if (t.meta) {
         this.setPackMeta(namespace, t.meta);
       }
+      // OQ1 裁定（ADR-021）：temporal/fidelity/stateful = pack 级缺省 + tool 级覆盖
+      // （velocityPack 单 pack 多工具省声明；与幂等键 tool 级覆盖不做的 §1.3 裁定不冲突——
+      // 那是幂等「键」的单源，本处是声明的继承序）
       this.registerFunction(
         t.run as UdfFunction,
         namespace,
@@ -598,6 +617,9 @@ class UdfRegistry {
           parametersSchema: t.inputSchema as UdfSchema['parametersSchema'],
           returnsSchema: t.outputSchema as UdfSchema['returnsSchema'],
           semantics: t.semantics,
+          temporal: t.temporal ?? entry.meta?.temporal ?? 'event',
+          stateful: t.stateful ?? entry.meta?.stateful ?? false,
+          fidelity: t.fidelity ?? entry.meta?.fidelity ?? 'exact-per-event',
           idempotent: t.idempotent,
           deprecated: t.deprecated,
         },
@@ -715,6 +737,10 @@ export interface UdfPackMeta {
   /** 目录过期提示（目录可对比 registry 内版本与最新发布） */
   version: string;
   license?: 'oss' | 'proprietary';
+  /** 状态算子 pack 级缺省（ADR-021，OQ1 裁定）：单 pack 多工具省声明；tool 级显式声明覆盖 */
+  temporal?: 'event' | 'processing';
+  stateful?: boolean;
+  fidelity?: 'exact-per-event' | 'bucketed' | 'interpolated';
   /** 声明式出口清单（1.6.0，调研增量④/Figma networkAccess 模式）：pack 网络出口
    * 的声明域白名单（`example.com` 精确 / `*.example.com` 通配；无 scheme/路径，
    * 不设 `*` 全通——策略面仍归 EgressGuard 端口，本声明是其交叉校验的数据源）。
