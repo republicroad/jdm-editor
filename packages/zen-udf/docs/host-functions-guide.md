@@ -123,7 +123,9 @@ customNode 表达式调用支持三种等价形态（`fn` 恒收 kwargs 关键�
 4. **`kwargs.timeout` 约定**：声明 `timeout` 参数（integer）即自动获得运行时
    强制超时；重 I/O 函数务必声明它;
 5. **semantics / idempotent**：`query/observe/act` 三语义决定审计与回放行为
-   （act 类未声明 `idempotent` 会被 `packWarnings`/`packChecks` 提示）。
+   （act 类未声明 `idempotent` 会被 `packWarnings`/`packChecks` 提示）；
+   状态算子另有三声明 **temporal / fidelity / stateful**（§6）——涉及时间、计数、
+   出网窗口的函数务必过一遍。
 
 ## 5. 结果缓存：函数作者自决（闭包 loader 模式）
 
@@ -193,7 +195,97 @@ const runtime = createUdfRuntime({ packs: [createRosterPack({ roster })] });
 `ToolContext` 已携带 `tenantId/requestId/userId`——即使单例形态，按请求/租户
 分片缓存键所需的料框架已给齐，无需任何新支持。
 
-## 6. 上架前自检：packChecks
+## 6. 状态算子三声明：temporal / fidelity / stateful（ADR-021）
+
+三个可选字段进 tool 声明，**缺省全可省**（存量工具零改动）。一句话定位：
+**temporal 管时间**（能不能按历史时刻复算）、**fidelity 管精度**（读数有多准）、
+**stateful 管危险**（重试会不会双计）。
+
+### 6.1 temporal：时间档位
+
+| 值 | 语义 | replay（回测/影子）路径行为 |
+| --- | --- | --- |
+| `'event'`（缺省） | 实现支持事件时间锚——收到 asOf 能返回**该历史时刻**的值 | 正常复算，无约束 |
+| `'processing'` | 实现只能给处理时间当前值（如 HAProxy「GET 即计数」接口） | 按宿主 `ports.replayPolicy` 强制：`'strict'` → 结构化错误 **RATE_NO_EVENT_TIME**；`'degraded'`（缺省）→ 照常执行 + trace **TEMPORAL_FALLBACK** 标注（降级永远可见，静默错数关死） |
+
+判定口径一句话：**「给我上周三 14:00 的值，你答得出来吗？」答得出 = event，只能给现在 = processing。**
+
+```ts
+tool({
+  namespace: 'velocity',
+  name: 'velocity_haproxy_1h',
+  description: 'HAProxy 频控读数（上游接口无历史复算能力）',
+  temporal: 'processing',     // replay 时受宿主策略强制——声明即是告警的根
+  fidelity: 'interpolated',
+  stateful: true,
+  input: Type.Object({ entity: Type.String() }),
+  output: Type.Object({ counter: Type.Integer() }),
+  run: ({ entity }) => haproxy.get(entity),   // 只能拿当前值
+});
+```
+
+### 6.2 fidelity：保真披露
+
+| 值 | 语义 |
+| --- | --- |
+| `'exact-per-event'`（缺省） | 逐事件精确聚合 |
+| `'bucketed'` | 桶近似（整桶粒度，读数有量化误差） |
+| `'interpolated'` | 双桶插值（误差更小但仍非精确） |
+
+用途：**跨实现对比的 ε 口径依据**。声明进目录与 trace/审计（结果侧可见）；
+同一算子的 memory 精确实现与 Redis 近似实现做影子对比时，等价性判定据此裁
+量。声明与结果 provenance 自报不一致时以结果为准并告警（ADR-021 OQ2）。
+
+### 6.3 stateful：有状态纪律
+
+`true` = INCR 形态（每次调用都计数/累积）——**重试即双计**（HAProxy
+「GET 即计数」场景实测在案，重试双计向量已钉进 rate-store-conformance exact 档）：
+
+- **调用方纪律**：宿主 HTTP/重试包装器读 `call.stateful`（ToolContext 已传播），
+  `true` 时禁自动重试；breaker 半开探测/超时重试路径同理；
+- **幂等键单源**：ExecContext.requestId 贯穿（ADR-021 §1.3 立法；存储级去重
+  属可选增强，不在第一批）；
+- `false`（缺省）：纯读/幂等——SET 形态重试无害。
+
+```ts
+tool({
+  namespace: 'trailing-window',
+  name: 'trailing_count_1h',
+  description: '1 小时 trailing 窗口事件计数',
+  semantics: 'observe',
+  temporal: 'event',            // asOf point-in-time 原生支持
+  stateful: true,               // INCR 形态：调用方禁重试（重试 = 双计）
+  fidelity: 'exact-per-event',
+  ...
+});
+```
+
+### 6.4 声明层级：pack 级缺省 + tool 级覆盖（OQ1 裁定）
+
+单 pack 多工具同档是常态（如 velocityPack）——三字段可声明在 **pack meta** 省
+逐工具重复；tool 级显式声明覆盖 pack 缺省（继承序：tool 显式 > pack 缺省 > ADR
+缺省）。`tool()` 透传声明不冻结缺省，解析统一在注册面 schema——消费方一律读
+`udfFunctionSchema`（目录/trace 同源）。
+
+```ts
+pack({
+  id: 'velocity',
+  meta: {
+    origin: 'extension', version: '1.0.0',
+    temporal: 'processing', fidelity: 'interpolated',   // pack 级缺省
+  },
+  tools: [ /* 未声明的工具继承 pack 缺省；显式声明的覆盖 */ ],
+});
+```
+
+### 6.5 命名通式（状态算子改名）
+
+`trailing_<agg>_<window>`（如 `trailing_count_1h` / `trailing_distinct_5m`）；
+**`rolling` 一词禁用**——Flink 与 pandas 语境相反，语义不载名。改名走双名
+过渡：新名注册 + 旧名 alias 同一函数 + `deprecated` 元数据（存量图永久可读，
+1.7.0 的 `rate_1h` → `trailing_count_1h` 即此形态）。
+
+## 7. 上架前自检：packChecks
 
 ```ts
 import { packChecks } from '@republicroad/zen-udf';
@@ -206,7 +298,7 @@ if (issues.some((i) => i.severity === 'error')) throw new Error(JSON.stringify(i
 `required ⊆ properties`、timeout 参数形状、act 幂等声明、namespace 命名约定。
 建议放进宿主 CI——与 RateStore conformance 套件同一契约即测试思想。
 
-## 7. 反模式
+## 8. 反模式
 
 | 反模式 | 后果 |
 | --- | --- |
@@ -216,3 +308,5 @@ if (issues.some((i) => i.severity === 'error')) throw new Error(JSON.stringify(i
 | 凭证写进 parametersSchema 默认值 | 凭证落图内容，违反多租户纪律 |
 | per-tenant 动态注册同名函数 | 注册是 deploy-time 静态行为，撞名注册期硬失败 |
 | 单例形态缓存键缺 tenantId/版本（§5） | 跨租户串号 / pack 升级后陈旧读 |
+| processing 实现不声明 temporal（§6.1） | replay 静默错数——内核强制后表现为 RATE_NO_EVENT_TIME/TEMPORAL_FALLBACK，声明即告警根 |
+| stateful 工具被调用方自动重试（§6.3） | 计数双计 = 误杀；包装器 MUST 读 call.stateful |
