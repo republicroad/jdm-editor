@@ -2,12 +2,12 @@ import { Type } from '@sinclair/typebox';
 
 import { getExecContext } from '../exec-context.ts';
 import { globalUdfRegistry } from '../register.ts';
-import { queryRoster } from '../roster.ts';
 import { pack, tool } from '../tool.ts';
+import { queryValueList } from '../value-list.ts';
 
 /**
  * 旧平台函数域重建（第六十九批 D2，docs/13 §8.3）：名单查询复用 roster 存储的
- * queryRoster。调用形态对齐撞库攻击防御.json：`custom_list_query;;"名单名";;值`。
+ * queryValueList。调用形态对齐撞库攻击防御.json：`custom_list_query;;"名单名";;值`。
  * 返回图内 returnSchema 声明的 {result}（actor 隔离与 roster UDF 一致）。
  */
 export const customListQueryTool = tool({
@@ -26,7 +26,7 @@ export const customListQueryTool = tool({
   run: (input) => {
     const ctx = getExecContext();
     if (!ctx?.tenantId) return { result: false };
-    const { hit } = queryRoster(input.list_name, input.value ?? null, {
+    const { hit } = queryValueList(input.list_name, input.value ?? null, {
       tenantId: ctx.tenantId,
       actor: ctx.userId,
     });

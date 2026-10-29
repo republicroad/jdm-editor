@@ -32,14 +32,28 @@ export {
 export { InMemoryConcurrencyLimiter, NoopConcurrencyLimiter, type ConcurrencyLimiter } from './limiter.ts';
 export { InMemoryCircuitBreaker, NoopCircuitBreaker, type CircuitBreaker } from './breaker.ts';
 export {
+  registerValueList,
+  listValueLists,
+  getValueList,
+  deleteValueList,
+  queryValueList,
+  type ValueList,
+  type ValueListScope,
+  /** @deprecated ADR verdict-009 D2 改名 → registerValueList */
   registerRoster,
+  /** @deprecated ADR verdict-009 D2 改名 → listValueLists */
   listRosters,
+  /** @deprecated ADR verdict-009 D2 改名 → getValueList */
   getRoster,
+  /** @deprecated ADR verdict-009 D2 改名 → deleteValueList */
   deleteRoster,
+  /** @deprecated ADR verdict-009 D2 改名 → queryValueList */
   queryRoster,
+  /** @deprecated ADR verdict-009 D2 改名 → ValueList */
   type Roster,
+  /** @deprecated ADR verdict-009 D2 改名 → ValueListScope */
   type RosterScope,
-} from './roster.ts';
+} from './value-list.ts';
 export {
   UdfRegistry,
   globalUdfRegistry,

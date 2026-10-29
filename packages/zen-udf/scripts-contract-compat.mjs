@@ -28,8 +28,17 @@ if (previous === current) {
 
 /** 从 index.ts 抽导出名：`export {...}` 块 + 行内 export 声明。 */
 const surfaceOf = (indexSource) => {
+  // 剥注释（首个真实案例：deprecated 别名导出块的 JSDoc 行被当伪名字——1.8.0 实测）。
+  // 行过滤零正则：JSDoc 行首恒为 '*' 或 '/*'；行尾注释在导出块中不存在。
+  const src = indexSource
+    .split('\n')
+    .filter((line) => {
+      const t = line.trim();
+      return !t.startsWith('*') && !t.startsWith('/*') && !t.startsWith('//');
+    })
+    .join('\n');
   const names = new Set();
-  for (const m of indexSource.matchAll(/export\s*(?:type)?\s*\{([^}]*)\}/g)) {
+  for (const m of src.matchAll(/export\s*(?:type)?\s*\{([^}]*)\}/g)) {
     for (const part of m[1].split(',')) {
       const name = part
         .trim()
@@ -39,7 +48,7 @@ const surfaceOf = (indexSource) => {
       if (name) names.add(name);
     }
   }
-  for (const m of indexSource.matchAll(
+  for (const m of src.matchAll(
     /export\s+(?:async\s+)?(?:const|function|class|let|var|interface|type|enum)\s+([A-Za-z_$][\w$]*)/g,
   )) {
     names.add(m[1]);

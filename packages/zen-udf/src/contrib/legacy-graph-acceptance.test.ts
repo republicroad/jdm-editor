@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 
 import { DecisionRuntime } from '../engine.ts';
 import { runWithExecContext } from '../exec-context.ts';
-import { deleteRoster, registerRoster } from '../roster.ts';
+import { deleteRoster, registerRoster } from '../value-list.ts';
 import './custom-list-query.ts';
 import './ip-location.ts';
 import { __resetRateWindows } from './rate-window.ts';

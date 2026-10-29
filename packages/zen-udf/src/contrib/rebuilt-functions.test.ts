@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { runWithExecContext } from '../exec-context.ts';
 import { globalUdfRegistry } from '../register.ts';
-import { registerRoster } from '../roster.ts';
+import { registerRoster } from '../value-list.ts';
 import './custom-list-query.ts';
 import './ip-location.ts';
 import './rate-window.ts';
